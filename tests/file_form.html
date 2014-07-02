@@ -1,0 +1,34 @@
+<input type="file" id="profilePhotoFileUpload">
+<button onclick='upload ();'>upload</button>
+<html>
+  <head>
+    <title>Test</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../node_modules/mocha/mocha.css" />
+    <script src="../node_modules/mocha/mocha.js"></script>
+    <script src="../node_modules/expect.js/expect.js"></script>
+
+    <!--AV Test init-->
+
+
+    <script type="text/javascript">var serverURL="http://stg.paas.com/";</script>
+    <script src="../lib/av.js"></script>
+<script>
+function upload (){
+AV.serverURL="https://cn.avoscloud.com";
+AV._initialize('u8d277gijfac1ysldfyb92zn9fwhxsiecjs3wnrnj4yi7i00', 'nblwmv06uzbjp170pm1zw3umhrbhs75wp6djgutcglh5sopr', 'c2cbbq9fnrewpvtwm7lm25exs62hk0tnkmbs4q16c4podmdc');
+AV._useMasterKey = true;
+
+  var fileUploadControl = document.getElementById ('profilePhotoFileUpload');
+  console.log(fileUploadControl);
+  if (fileUploadControl.files.length > 0) {
+  var file = fileUploadControl.files[0];
+  var name = "photo.jpg";
+
+  var avFile = new AV.File(name, file);
+  console.dir(avFile);
+  avFile.save();
+  }
+}
+</script>

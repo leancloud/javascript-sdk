@@ -1,0 +1,50 @@
+<html>
+  <head>
+    <title>Test</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+    <!--AV Test init-->
+
+
+
+    <script src="../lib/av.js"></script>
+
+  <!--Parse Test init-->
+
+  <!--
+    <script src="http://www.parsecdn.com/js/parse-1.2.8.min.js"></script>
+    <script type="text/javascript">
+    var AV=Parse;
+    AV.initialize("9WK4a3Ju5r6pm67VcOOKfesKKfLm8XPw7vZbFwJX","fmzd7y5KRsp8LV0fx6s9YGGmsi8RuAJ3gUZcHfYf")
+    </script>
+-->
+
+<script>
+AV.initialize("4anna5vee16tv0wkl1678aqv90t18l47qtzqx15unhbc4nvc","xkwh646uqdgns37qdmngalehx7njuhdqxm7yzbh42v300s6i")
+
+var query = new AV.Query("_File");
+query.get("52cb8d4fe4b0c613ae443343",{
+  success:function(result){
+    console.log(result.get("url"));
+  }
+})
+var query1 = new AV.Query("TestObject");
+query1.get("52cb884fe4b0c613ae4432f9",{
+  success: function(result){
+    console.log(result);
+  }
+});
+</script>
+
+
+
+
+  </head>
+  <body>
+
+    <div id="mocha"></div>
+
+  </body>
+</html>
