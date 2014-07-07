@@ -4,7 +4,9 @@ Javascript SDK for [AVOS Cloud](http://avoscloud.com).
 
 # 安装
 
-	npm install avoscloud-sdk
+```sh
+$ npm install avoscloud-sdk
+```
 
 # 开发指南
 
