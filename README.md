@@ -1,4 +1,4 @@
-# 介绍
+# AVOS Cloud Javascript SDK
 
 Javascript SDK for [AVOS Cloud](http://avoscloud.com).
 
