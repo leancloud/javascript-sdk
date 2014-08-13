@@ -13,3 +13,8 @@ $ npm install avoscloud-sdk
 * [JavaScript SDK 开发指南](http://avoscloud.com/docs/js_guide.html)
 * [JavaScript SDK API文档](http://avoscloud.com/docs/api/javascript/index.html)
 * [云代码开发指南](http://avoscloud.com/docs/cloud_code_guide.html)
+
+
+# 协议
+
+[MIT License](http://opensource.org/licenses/MIT)
