@@ -3,13 +3,13 @@ describe("files", function() {
 	describe("#Saving base64", function(){
 		this.timeout(10000);
 		it("should be saved", function(done){
-			var base64 = "V29ya2luZyBhdCBQYXJzZSBpcyBncmVhdCE=";
+			var base64 = "d29ya2luZyBhdCBhdm9zY2xvdWQgaXMgZ3JlYXQh";
 			var file = new AV.File("myfile.txt", { base64: base64 });
 			file.metaData('format', 'txt file');
 			file.save().then(function(){
 				console.log(file.url());
 				console.log(file.id);
-				expect(file.size()).to.be(36);
+				expect(file.size()).to.be(30);
 				expect(file.ownerId()).to.be.ok();
 				expect(file.id).to.be.ok();
 				expect(file.metaData('format')).to.be('txt file');
