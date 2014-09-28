@@ -59,6 +59,16 @@ describe("Queries",function(){
 				done();
 			});
 		});
+		it("should return syntax error.", function(done){
+			AV.Cloud.doCloudQuery('select * GameScore limit 10').then(function(){
+				throw "Shoud not be successfully.";
+				},
+		  function(error){
+               console.dir(error);
+			  expect(error).to.be.an(AV.Error);
+			  done();
+		  });
+		});
     });
 
   	describe("#save&query()",function(){
