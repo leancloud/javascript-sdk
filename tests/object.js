@@ -59,6 +59,26 @@ describe('Objects', function(){
 			}
 		})
     });
+
+   it('should validate failed.', function(done){
+	   var TestObject = AV.Object.extend('TestObject', {
+		   validate: function (attrs, options){
+			   return new AV.Error(1, "test");
+           }
+       });
+	   var testObject =new TestObject();
+	   testObject.set('a',1, {
+		   success: function(){
+			   throw "should not be here.";
+		   },
+		   error: function(obj, err){
+			   console.dir(err);
+			   expect(obj.get('a')).to.be(undefined);
+			   expect(err.message).to.be('test');
+			   done();
+		   }
+       });
+   });
   })
 
 
