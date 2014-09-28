@@ -27,7 +27,7 @@ describe("Queries",function(){
 
     describe("#cloudQuery", function(){
 		it("should return results.", function(done){
-			AV.Cloud.doCloudQuery('select * from GameScore').then(function(result){
+			AV.Query.doCloudQuery('select * from GameScore').then(function(result){
 				console.dir(result);
 				var results = result.results;
 				expect(results.length).to.be(100);
@@ -38,7 +38,7 @@ describe("Queries",function(){
 			});
 		});
 		it("should return limited results.", function(done){
-			AV.Cloud.doCloudQuery('select * from GameScore limit 10').then(function(result){
+			AV.Query.doCloudQuery('select * from GameScore limit 10').then(function(result){
 				console.dir(result);
 				var results = result.results;
 				expect(results.length).to.be(10);
@@ -49,7 +49,7 @@ describe("Queries",function(){
 			});
 		});
 		it("should return count value.", function(done){
-			AV.Cloud.doCloudQuery('select *,count(objectId) from GameScore limit 10').then(function(result){
+			AV.Query.doCloudQuery('select *,count(objectId) from GameScore limit 10').then(function(result){
 				console.dir(result);
 				var results = result.results;
 				expect(results.length).to.be(10);
@@ -60,7 +60,7 @@ describe("Queries",function(){
 			});
 		});
 		it("should return syntax error.", function(done){
-			AV.Cloud.doCloudQuery('select * GameScore limit 10').then(function(){
+			AV.Query.doCloudQuery('select * GameScore limit 10').then(function(){
 				throw "Shoud not be successfully.";
 				},
 		  function(error){
