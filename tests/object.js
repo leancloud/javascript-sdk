@@ -7,7 +7,7 @@ var GameScoreCollection = AV.Collection.extend({
 
 describe('Objects', function(){
   var objId;
-  var gameScore = new GameScore();
+  var gameScore = GameScore.new();
   describe('#Saving Objects', function(){
     it('should crate a Object', function(done){
     	//gameScore.set("newcol","sss")
@@ -148,7 +148,7 @@ describe('Objects', function(){
 
 		// Create the post
 
-		myPost = new Post();
+		myPost = Post.new();
 		myPost.set("title", "post1");
 		myPost.set("author", "author1");
 		myPost.set("content", "Where should we go for lunch?");

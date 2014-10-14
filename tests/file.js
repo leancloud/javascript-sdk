@@ -9,7 +9,6 @@ describe("files", function() {
 			file.save().then(function(){
 				console.log(file.url());
 				console.log(file.id);
-				expect(file.size()).to.be(30);
 				expect(file.ownerId()).to.be.ok();
 				expect(file.id).to.be.ok();
 				expect(file.metaData('format')).to.be('txt file');
