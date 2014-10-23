@@ -59,6 +59,17 @@ describe("Queries",function(){
 				done();
 			});
 		});
+		it("should return count value too.", function(done){
+			AV.Query.doCloudQuery('select *,count(objectId) from GameScore limit ?', [5]).then(function(result){
+				console.dir(result);
+				var results = result.results;
+				expect(results.length).to.be(5);
+				expect(results[0].className).to.be("GameScore");
+				expect(result.count).to.be.an('number');
+				expect(result.className).to.be('GameScore');
+				done();
+			});
+		});
 		it("should return syntax error.", function(done){
 			AV.Query.doCloudQuery('select * GameScore limit 10').then(function(){
 				throw "Shoud not be successfully.";
