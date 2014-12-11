@@ -2,10 +2,10 @@
 	"name": "avoscloud-sdk",
 	"version": "0.4.6",
 	"main": "./lib/av.js",
-	"description": "AVOSCloud JavaScript SDK.",
+	"description": "LeanCloud JavaScript SDK.",
 	"repository": {
 		"type" : "git",
-		"url" : "https://github.com/avoscloud/javascript-sdk"
+		"url" : "https://github.com/leancloud/javascript-sdk"
 	},
 	"dependencies": {
 		"xmlhttprequest" : "1.6.0",
