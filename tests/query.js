@@ -288,7 +288,7 @@ describe("Counts",function(){
 })
 
 describe("Compound Query",function(){
-	it("satisfy on of the conditions",function(done){
+	it("satisfy on 'or' conditions",function(done){
 		var lotsOfWins = new AV.Query("GameScore");
 		lotsOfWins.greaterThan("score",150);
 
@@ -298,7 +298,31 @@ describe("Compound Query",function(){
 		var mainQuery = AV.Query.or(lotsOfWins, fewWins);
 		mainQuery.find({
 		  success: function(results) {
-		  	done();
+            results.forEach(function(gs){
+				expect(gs.get('score') > 150 || gs.get('cheatMode')).to.be.ok();
+			});
+			done();
+		     // results contains a list of players that either have won a lot of games or won only a few games.
+		  },
+		  error: function(error) {
+		    // There was an error.
+		  }
+		});
+	});
+	it("satisfy on 'and' conditions",function(done){
+		var lotsOfWins = new AV.Query("GameScore");
+		lotsOfWins.greaterThan("score",150);
+
+		var fewWins = new AV.Query("GameScore");
+		fewWins.equalTo("cheatMode",true);
+
+		var mainQuery = AV.Query.and(lotsOfWins, fewWins);
+		mainQuery.find({
+		  success: function(results) {
+            results.forEach(function(gs){
+				expect(gs.get('score') > 150 && gs.get('cheatMode')).to.be.ok();
+			});
+			done();
 		     // results contains a list of players that either have won a lot of games or won only a few games.
 		  },
 		  error: function(error) {
