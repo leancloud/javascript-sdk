@@ -1,0 +1,8 @@
+*.tgz
+node_modules/
+dist/
+package/
+tests/
+tools/
+demo/
+*.sh
