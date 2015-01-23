@@ -5,5 +5,5 @@ package/
 tests/
 tools/
 demo/
-lib/av_merged.js
+lib/cloud.js
 *.sh
