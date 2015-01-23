@@ -156,7 +156,6 @@ describe("Associations",function(){
 	})
 })
 
-
 describe("Follow/unfollow users",function(){
 	it("should follow/unfollow",function(done){
 		var user = AV.User.current();
