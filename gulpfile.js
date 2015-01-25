@@ -4,6 +4,7 @@ var jsdoc = require("gulp-jsdoc");
 var rename = require('gulp-rename');
 var shell = require('gulp-shell');
 var tar = require('gulp-tar');
+var clean = require('gulp-clean');
 var uglify = require('gulp-uglify');
 
 getAVVersion = function() {
@@ -52,5 +53,10 @@ gulp.task('compress-docs', ['docs'], function() {
     .pipe(gzip())
     .pipe(gulp.dest('dist'));
 })
+
+gulp.task('clean', function() {
+  gulp.src(['dist/'])
+    .pipe(clean({force: true}));
+});
 
 gulp.task('release', ['compress-scripts', 'compress-docs']);
