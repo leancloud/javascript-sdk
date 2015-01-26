@@ -15,7 +15,6 @@ tar zcvf avos-javascript-sdk-$1.tar.gz ./*.js
 cd ..
 mkdir -p dist/js-sdk-api-docs
 export JSDOCDIR=tools/jsdoc-toolkit/
-sh tools/jsdoc-toolkit/jsrun.sh -d=dist/js-sdk-api-docs -t=tools/jsdoc-toolkit/templates/jsdoc lib/av_merged.js
+sh tools/jsdoc-toolkit/jsrun.sh -d=dist/js-sdk-api-docs -t=tools/jsdoc-toolkit/templates/jsdoc lib/av.js lib/cloud.js
 tar zcvf dist/js-sdk-api-docs-$1.tar.gz dist/js-sdk-api-docs
 echo 'done'
-
