@@ -93,6 +93,25 @@ describe("User update",function(){
 	})
 });
 
+describe("Update user password", function() {
+ it("update password",function(done){
+    var user = AV.User.logIn(username, password, {
+      success: function(user) {
+        user.updatePassword(password, 'new pass').then(function(){
+          AV.User.logIn(username, 'new pass').then(function(user){
+            user.updatePassword('new pass', password).then(function(){
+              done();
+            });
+          });
+        });
+      },
+      error: function(err) {
+        throw err;
+      }
+   });
+ });
+});
+
 describe("User query",function(){
 	it("return conditoinal users",function(done){
 		var query = new AV.Query(AV.User);
@@ -136,7 +155,6 @@ describe("Associations",function(){
 
 	})
 })
-
 
 describe("Follow/unfollow users",function(){
 	it("should follow/unfollow",function(done){
