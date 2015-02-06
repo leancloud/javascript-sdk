@@ -86,4 +86,4 @@ gulp.task('clean', function() {
     .pipe(clean({force: true}));
 });
 
-gulp.task('release', ['compress-scripts', 'compress-docs']);
+gulp.task('release', ['concat', 'uglify', 'compress-scripts', 'docs', 'compress-docs']);
