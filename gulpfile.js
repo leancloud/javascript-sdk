@@ -2,6 +2,8 @@ var gulp = require('gulp');
 var gzip = require('gulp-gzip');
 var jsdoc = require("gulp-jsdoc");
 var rename = require('gulp-rename');
+var order = require("gulp-order");
+var concat = require("gulp-concat");
 var shell = require('gulp-shell');
 var tar = require('gulp-tar');
 var clean = require('gulp-clean');
@@ -20,26 +22,51 @@ gulp.task('pack', shell.task([
   'git checkout -- ./',
 ]));
 
-gulp.task('scripts', function() {
-  return gulp.src('lib/av.js')
-    .pipe(gulp.dest('dist'))
+gulp.task('concat', function() {
+  return gulp.src('src/*.js')
+    .pipe(order([
+      'version.js',
+      'underscore.js',
+      'utils.js',
+      'error.js',
+      'event.js',
+      'geopoint.js',
+      'acl.js',
+      'op.js',
+      'relation.js',
+      'promise.js',
+      'file.js',
+      'object.js',
+      'role.js',
+      'collection.js',
+      'view.js',
+      'user.js',
+      'query.js',
+      'facebook.js',
+      'history.js',
+      'router.js',
+      'cloudfunction.js',
+      'push.js',
+      'status.js',
+    ]))
+    .pipe(concat('av.js'))
+    .pipe(gulp.dest('dist'));
+});
+
+gulp.task('uglify', ['concat'], function() {
+  return gulp.src('dist/av.js')
     .pipe(uglify())
     .pipe(rename('av-mini.js'))
     .pipe(gulp.dest('dist'));
 });
 
-gulp.task('compress-scripts', ['scripts'], function() {
+gulp.task('compress-scripts', ['uglify'], function() {
   var version = getAVVersion();
   return gulp.src(['dist/av.js', 'dist/av-mini.js'])
     .pipe(tar('avos-javascript-sdk-' + version + '.tar'))
     .pipe(gzip())
     .pipe(gulp.dest('dist'));
 });
-
-// gulp.task('docs', function() {
-//   gulp.src('lib/av_merged.js')
-//   .pipe(jsdoc('./dist/js-sdk-api-docs'));
-// });
 
 gulp.task('docs', shell.task([
   'mkdir -p dist/js-sdk-api-docs',
@@ -52,7 +79,7 @@ gulp.task('compress-docs', ['docs'], function() {
     .pipe(tar('js-sdk-api-docs-' + version + '.tar'))
     .pipe(gzip())
     .pipe(gulp.dest('dist'));
-})
+});
 
 gulp.task('clean', function() {
   gulp.src(['dist/'])
