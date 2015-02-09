@@ -10,5 +10,5 @@ AV.setProduction(true);
 //AV._initialize("a6jku4sqdxbgidzrxsy8u30evp8nltry2af4atncwg5br0qi","85gi8j21v7l5li9kquh3oy900macawjs4leyx8n788k7z4qy","5cy3lnf97bkznd9su76t05qi6zuzoygxbgtik4egsd9wtl2j");
 AV._useMasterKey = true;
 if(typeof require !="undefined"){
-	require("./file.js")
+	require("./file.js");
 }
