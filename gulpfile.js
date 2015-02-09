@@ -54,12 +54,10 @@ gulp.task('compress-docs', ['docs'], function() {
     .pipe(tar('js-sdk-api-docs-' + version + '.tar'))
     .pipe(gzip())
     .pipe(gulp.dest('dist'));
-})
-
-AV = require('./lib/av').AV;
+});
 
 gulp.task('test', function() {
-  return gulp.src('tests/*.js', {read: false})
+  return gulp.src('test/*.js', {read: false})
     .pipe(order([
       'test.js',
       'file.js',
@@ -76,7 +74,6 @@ gulp.task('test', function() {
     ]))
     .pipe(mocha({
       timeout: 100000,
-      globals: ['AV'],
     }));
 });
 
