@@ -1,12 +1,13 @@
+var path = require('path');
 var gulp = require('gulp');
+var clean = require('gulp-clean');
+var concat = require("gulp-concat");
 var gzip = require('gulp-gzip');
 var jsdoc = require("gulp-jsdoc");
-var rename = require('gulp-rename');
 var order = require("gulp-order");
-var concat = require("gulp-concat");
+var rename = require('gulp-rename');
 var shell = require('gulp-shell');
 var tar = require('gulp-tar');
-var clean = require('gulp-clean');
 var uglify = require('gulp-uglify');
 
 getAVVersion = function() {
@@ -23,32 +24,33 @@ gulp.task('pack', shell.task([
 ]));
 
 gulp.task('concat', function() {
-  return gulp.src('src/*.js')
-    .pipe(order([
-      'version.js',
-      'underscore.js',
-      'utils.js',
-      'error.js',
-      'event.js',
-      'geopoint.js',
-      'acl.js',
-      'op.js',
-      'relation.js',
-      'promise.js',
-      'file.js',
-      'object.js',
-      'role.js',
-      'collection.js',
-      'view.js',
-      'user.js',
-      'query.js',
-      'facebook.js',
-      'history.js',
-      'router.js',
-      'cloudfunction.js',
-      'push.js',
-      'status.js',
-    ]))
+  var sources = [
+    'version.js',
+    'underscore.js',
+    'utils.js',
+    'error.js',
+    'event.js',
+    'geopoint.js',
+    'acl.js',
+    'op.js',
+    'relation.js',
+    'promise.js',
+    'file.js',
+    'object.js',
+    'role.js',
+    'collection.js',
+    'view.js',
+    'user.js',
+    'query.js',
+    'facebook.js',
+    'history.js',
+    'router.js',
+    'cloudfunction.js',
+    'push.js',
+    'status.js',
+  ];
+  return gulp.src(sources.map(function(filename) { return path.join('lib', filename); }))
+    .pipe(order(sources))
     .pipe(concat('av.js'))
     .pipe(gulp.dest('dist'));
 });
