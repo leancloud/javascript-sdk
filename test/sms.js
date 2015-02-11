@@ -1,21 +1,20 @@
 describe("sms", function() {
-
+  var phoneNumber = '18668012283';
   describe("#verifyUserMobilePhone", function(){
     this.timeout(10000);
     it("should be verified", function(done){
       var user = new AV.User();
       user.set("username", "dennis");
       user.set("password", "123456");
-      user.setMobilePhoneNumber('18668012283');
+      user.setMobilePhoneNumber(phoneNumber);
 
       user.signUp(null, {
         success: function(user) {
-          AV.User.requestMobilePhoneVerify('18668012283').then(function(){
-            AV.User.logInWithMobilePhone('18668012283',
-                                         '123456').then(function(user){
+          AV.User.requestMobilePhoneVerify(phoneNumber).then(function() {
+            AV.User.logInWithMobilePhone(phoneNumber, '123456').then(function(user){
               debug(user);
               expect(user.get('mobilePhoneVerified')).to.be(false);
-              AV.User.requestLoginSmsCode('18668012283').then(function(){
+              AV.User.requestLoginSmsCode(phoneNumber).then(function(){
                 throw "Unverfied.";
               }, function(err){
                 user.destroy().then(function(){
@@ -39,19 +38,19 @@ describe("sms", function() {
 
   describe("#requestSmsCode", function(){
     it("should send sms code.", function(done){
-      AV.Cloud.requestSmsCode('18668012283').then(function(){
+      AV.Cloud.requestSmsCode(phoneNumber).then(function(){
         AV.Cloud.requestSmsCode({
-          mobilePhoneNumber: '18668012283',
+          mobilePhoneNumber: phoneNumber,
           name: '测试啊',
           op: '测试操作',
           ttl: 5
         }).then(function(){
           done();
         }, function(err){
-          throw err;
+          done(err);
         });
       }, function(err){
-        throw err;
+        done(err);
       });
     });
   });
