@@ -6,7 +6,6 @@
     <link rel="stylesheet" href="../node_modules/mocha/mocha.css" />
     <script src="../node_modules/mocha/mocha.js"></script>
     <script src="../node_modules/expect.js/expect.js"></script>
-    <script src="../node_modules/debug/debug.js"></script>
 
     <!--AV Test init-->
 
@@ -19,7 +18,9 @@
       function assert(expr, msg) {
         if (!expr) throw new Error(msg || 'failed');
       }
-      var debug = console.log;
+      function debug() {
+        console.log(arguments);
+      }
     </script>
 	<script src="file.js"></script>
 	<script src="error.js"></script>
