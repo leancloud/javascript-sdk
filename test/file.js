@@ -16,10 +16,10 @@ describe("files", function() {
         file.destroy().then(function(){
           done();
         }, function(error){
-          throw error;
+          done(error);
         });
       }, function(error){
-        throw error;
+        done(error);
       });
     });
   });
@@ -37,7 +37,7 @@ describe("files", function() {
         expect(file.metaData('__source')).to.be('external');
         done();
       }, function(error){
-        throw error;
+        done(error);
       });
     });
   });
@@ -59,10 +59,10 @@ describe("files", function() {
           file.destroy().then(function(){
             done();
           }, function(error){
-            throw error;
+            done(error);
           });
         }, function(error){
-          throw error;
+          done(error);
         });
       }else{
         done();
@@ -83,10 +83,10 @@ describe("files", function() {
         file.destroy().then(function(){
           done();
         }, function(error){
-          throw error;
+          done(error);
         });
       }, function(error){
-        throw error;
+        done(error);
       });
     });
   });
@@ -115,19 +115,19 @@ describe("files", function() {
               file.destroy().then(function(){
                 done();
               }, function(error){
-                throw error;
+                done(error);
               });
             },
             error: function(object, error) {
-              throw error;
+              done(error);
             }
           });
 
         }, function(obj, error){
-          throw error;
+          done(error);
         });
       }, function(error){
-        throw error;
+        done(error);
       });
     });
   });
