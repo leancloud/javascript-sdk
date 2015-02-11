@@ -3,7 +3,7 @@ var email="u" + Date.now() + "@test.com";
 var password="password1";
 describe("User",function(){
   this.timeout(10000);
-  it("Signing up",function(done){
+  it("should sign up",function(done){
     var user = new AV.User();
     user.set("username", username);
     user.set("password", password);
@@ -15,7 +15,7 @@ describe("User",function(){
     user.signUp(null, {
       success: function(user) {
         debug(user);
-        //expect(user.id).to.be.ok();
+        expect(user.id).to.be.ok();
         done();
         // Hooray! Let them use the app now.
       },
@@ -48,7 +48,7 @@ describe("UserSignin",function(){
 });
 
 describe("Current User",function(){
-  it("return current",function(done){
+  it("should return current user",function(done){
 
     var currentUser = AV.User.current();
 
@@ -58,7 +58,7 @@ describe("Current User",function(){
 });
 
 describe("User update",function(){
-  it("update name",function(done){
+  it("shoud update name",function(done){
 
     var user = AV.User.logIn(username, password, {
       success: function(user) {
@@ -93,7 +93,7 @@ describe("User update",function(){
 });
 
 describe("Update user password", function() {
-  it("update password",function(done){
+  it("should update password",function(done){
     var user = AV.User.logIn(username, password, {
       success: function(user) {
         user.updatePassword(password, 'new pass').then(function(){
@@ -112,7 +112,7 @@ describe("Update user password", function() {
 });
 
 describe("User query",function(){
-  it("return conditoinal users",function(done){
+  it("should return conditoinal users",function(done){
     var query = new AV.Query(AV.User);
     query.equalTo("gender", "female");  // find all the women
     query.find({
@@ -158,21 +158,21 @@ describe("Associations",function(){
 describe("Follow/unfollow users",function(){
   it("should follow/unfollow",function(done){
     var user = AV.User.current();
-    user.follow('52f9be45e4b035debf88b6e2', {
+    user.follow('53fb0fd6e4b074a0f883f08a', {
       success: function(){
         var query = user.followeeQuery();
         query.find({
           success: function(results){
             expect(results.length).to.be(1);
             debug(results);
-            expect(results[0].id).to.be('52f9be45e4b035debf88b6e2');
-            var followerQuery = AV.User.followerQuery('52f9be45e4b035debf88b6e2');
+            expect(results[0].id).to.be('53fb0fd6e4b074a0f883f08a');
+            var followerQuery = AV.User.followerQuery('53fb0fd6e4b074a0f883f08a');
             followerQuery.find().then(function(results){
               expect(results.length).to.be(1);
               debug(results);
               expect(results[0].id).to.be(user.id);
               //unfollow
-              user.unfollow('52f9be45e4b035debf88b6e2').then(function(){
+              user.unfollow('53fb0fd6e4b074a0f883f08a').then(function(){
                 //query should be emtpy
                 var query = user.followeeQuery();
                 query.find({
@@ -195,8 +195,8 @@ describe("Follow/unfollow users",function(){
           }
         });
       },
-      error: function(err){
-        throw err;
+      error: function(err) {
+        done(err);
       }
     });
   });
