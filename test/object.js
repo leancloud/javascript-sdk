@@ -287,12 +287,13 @@ describe('Objects', function(){
 
     });
 
-    it("test fetchWHenSave", function(done){
+    it("should fetch when save", function(done){
       var query=new AV.Query(Person);
       query.first({
         success: function(person){
           var person2 = new Person();
           person2.id = person.id;
+          person2.set('age', 0);
           person2.increment('age',9);
           person2.save().then(function(){
             person.fetchWhenSave(true);
