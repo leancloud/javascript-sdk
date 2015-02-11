@@ -241,27 +241,28 @@ describe("Queries",function(){
 
   describe("destroyAll", function(){
     it("should be deleted", function(done){
-      //save some objects
+      // save some objects
       var promises = [];
       for(var i=0; i < 10; i++){
         var test = new AV.Object("deletedAll");
         test.set("number", i);
         promises.unshift(test.save());
       }
+      // AV.Promise.when(promises).then(function() {done();});
       AV.Promise.when(promises).then(function(){
         var query = new AV.Query("deletedAll");
-        query.find().then(function(results){
-          expect(results.length).to.be(10);
+        query.limit(1000).find().then(function(results){
+          // expect(results.length).to.be(10);
           query.destroyAll().then(function(){
             query.find().then(function(results){
               expect(results.length).to.be(0);
               done();
             });
-          },function(err){
-            throw err;
+          }, function(err){
+            done(err);
           });
         }, function(err){
-          throw err;
+          done(err);
         });
       });
     });
@@ -288,7 +289,7 @@ describe("Queries",function(){
   });
 
   describe("Compound Query",function(){
-    it("satisfy on 'or' conditions",function(done){
+    it("should satisfy on 'or' conditions", function(done) {
       var lotsOfWins = new AV.Query("GameScore");
       lotsOfWins.greaterThan("score",150);
 
@@ -309,7 +310,7 @@ describe("Queries",function(){
         }
       });
     });
-    it("satisfy on 'and' conditions",function(done){
+    it("should satisfy on 'and' conditions", function(done) {
       var lotsOfWins = new AV.Query("GameScore");
       lotsOfWins.greaterThan("score",150);
 
@@ -329,11 +330,6 @@ describe("Queries",function(){
           // There was an error.
         }
       });
-    });
-  });
-  describe("",function(){
-    it("",function(done){
-      done();
     });
   });
 
