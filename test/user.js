@@ -1,6 +1,5 @@
-
-var username="u5";
-var email="u5@test.com";
+var username="u" + Date.now();
+var email="u" + Date.now() + "@test.com";
 var password="password1";
 describe("User",function(){
   this.timeout(10000);
