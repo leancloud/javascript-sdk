@@ -3,12 +3,14 @@ var gulp = require('gulp');
 var clean = require('gulp-clean');
 var concat = require("gulp-concat");
 var gzip = require('gulp-gzip');
+var mocha = require('gulp-mocha');
 var jsdoc = require("gulp-jsdoc");
 var order = require("gulp-order");
 var rename = require('gulp-rename');
 var shell = require('gulp-shell');
 var tar = require('gulp-tar');
 var uglify = require('gulp-uglify');
+var order = require('gulp-order');
 
 getAVVersion = function() {
   return require('./lib/AV.js').AV.VERSION.replace('js', '');
@@ -81,6 +83,27 @@ gulp.task('compress-docs', ['docs'], function() {
     .pipe(tar('js-sdk-api-docs-' + version + '.tar'))
     .pipe(gzip())
     .pipe(gulp.dest('dist'));
+});
+
+gulp.task('test', function() {
+  return gulp.src('test/*.js', {read: false})
+    .pipe(order([
+      'test.js',
+      'file.js',
+      'error.js',
+      'object.js',
+      'collection.js',
+      'user.js',
+      'query.js',
+      'geopoint.js',
+      'acl.js',
+      'master_key.js',
+      'status.js',
+      'sms.js',
+    ]))
+    .pipe(mocha({
+      timeout: 100000,
+    }));
 });
 
 gulp.task('clean', function() {

@@ -9,33 +9,17 @@
 
     <!--AV Test init-->
 
-
     <script type="text/javascript">var serverURL="http://stg.paas.com/";</script>
     <script src="../dist/av.js"></script>
     <script src="test.js"></script>
 
-	<!--Parse Test init-->
-
-	<!--
-		<script src="http://www.parsecdn.com/js/parse-1.2.8.min.js"></script>
-		<script type="text/javascript">
-		  var AV=Parse;
-		  AV.initialize("9WK4a3Ju5r6pm67VcOOKfesKKfLm8XPw7vZbFwJX","fmzd7y5KRsp8LV0fx6s9YGGmsi8RuAJ3gUZcHfYf");
-		</script>
-		-->
-
-
-    <script>mocha.setup('bdd');
-
-
-    </script>
-
     <script type="text/javascript">
-
-    </script>
-    <script>
+      mocha.setup('bdd');
       function assert(expr, msg) {
-      if (!expr) throw new Error(msg || 'failed');
+        if (!expr) throw new Error(msg || 'failed');
+      }
+      function debug() {
+        console.log(arguments);
       }
     </script>
 	<script src="file.js"></script>
