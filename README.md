@@ -29,8 +29,8 @@ how to use:
 npm install -g gulp 
 cd javascript-sdk
 npm install
-gulp pack        # = sh pack.sh
-gulp release    # = sh release (and use the VERSION number from av.js  automatically)
+gulp pack       
+gulp release    
 ```
 
 # 协议
