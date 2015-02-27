@@ -1,3 +1,9 @@
+# 0.4.8 日期: 2015 年 2 月 26 日
+* 拆分 sdk，按照模块划分成多个文件。
+* 使用 gulp 构建 sdk，清理代码。
+* 修复事件流无法发送带有 `AV.File`、`AV.Object` 等类型的 Status。
+* 修复 node.js 环境下上传文件没有扩展名的 Bug。
+
 # 0.4.7 日期: 2015 年 1 月 23 日
 * 修复页面跳转更新 user 导致 current user 属性丢失的 Bug。
 * 增加 `AV.User.updatePassword` 方法，根据老密码修改成新密码。

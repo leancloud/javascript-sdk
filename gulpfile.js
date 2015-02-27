@@ -74,7 +74,7 @@ gulp.task('compress-scripts', ['uglify'], function() {
 
 gulp.task('docs', shell.task([
   'mkdir -p dist/js-sdk-api-docs',
-  'JSDOCDIR=tools/jsdoc-toolkit/ sh tools/jsdoc-toolkit/jsrun.sh -d=dist/js-sdk-api-docs -t=tools/jsdoc-toolkit/templates/jsdoc lib/av.js lib/cloud.js',
+  'JSDOCDIR=tools/jsdoc-toolkit/ sh tools/jsdoc-toolkit/jsrun.sh -d=dist/js-sdk-api-docs -t=tools/jsdoc-toolkit/templates/jsdoc dist/av.js lib/cloud.js',
 ]));
 
 gulp.task('compress-docs', ['docs'], function() {
