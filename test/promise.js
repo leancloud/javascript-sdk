@@ -99,6 +99,14 @@ describe('promise', function() {
      });
   };
 
+  function timerPromisefyReject(delay) {
+    return new AV.Promise(function (resolve, reject) {
+      setTimeout(function () {
+        reject(delay);
+      }, delay);
+     });
+  };
+
 
   describe('AV.Promise.all and AV.Promise.when', function() {
    it('AV.Promise.all is resolved with array', function(done){
@@ -138,6 +146,48 @@ describe('promise', function() {
         done();
      });
    });
+
+   it('AV.Promise.when is rejected with errors', function(done){
+     var startDate = Date.now();
+
+     AV.Promise.when(
+       timerPromisefyReject(1),
+       timerPromisefyReject(32),
+       timerPromisefyReject(64),
+       timerPromisefyReject(128)
+     ).catch(function (errors) {
+        expect(errors.length).to.be(4);
+        expect(errors[0]).to.be(1);
+        expect(errors[1]).to.be(32);
+        expect(errors[2]).to.be(64);
+        expect(errors[3]).to.be(128);
+        //should be 128 ms
+        expect(Date.now() - startDate).to.be.within(125,140);
+
+        done();
+     }).done(function(ret){
+        throw ret;
+     });
+   });
+
+   it('AV.Promise.all is rejected with only one error', function(done){
+     var startDate = Date.now();
+
+     AV.Promise.all([
+       timerPromisefyReject(1),
+       timerPromisefyReject(32),
+       timerPromisefyReject(64),
+       timerPromisefyReject(128)
+     ]).catch(function (error) {
+        expect(error).to.be(1);
+        //should be 1 ms
+        expect(Date.now() - startDate).to.be.within(0,5);
+        setTimeout(done, 500);
+     }).done(function(ret){
+        throw ret;
+     });
+   });
+
   });
 
   describe('AV.Promise.race', function(){
@@ -157,8 +207,8 @@ describe('promise', function() {
     });
     it('should run all promises.', function(done) {
       var results = [];
-      function timerPromisefy2(delay) {
-        return new AV.Promise(function (resolve) {
+      var timerPromisefy2 = function(delay) {
+        return new AV.Promise(function (resolve, reject) {
           setTimeout(function () {
             results.push(delay);
             resolve(delay);
@@ -176,6 +226,8 @@ describe('promise', function() {
         if (wasCalled) throw 'error';
         wasCalled = true;
         expect(value).to.be(1);
+      }).catch(function(error) {
+        throw error;
       });
       setTimeout(function() {
         expect(wasCalled).to.be(true);
@@ -187,5 +239,6 @@ describe('promise', function() {
         done();
       }, 500);
     });
+
   });
 });
