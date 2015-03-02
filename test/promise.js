@@ -11,6 +11,48 @@ describe('promise', function() {
     });
   });
 
+  describe('always and finally', function(){
+    it('should call always and finally', function(done){
+      var p = new AV.Promise(function(resolve, reject) {
+        resolve(42);
+      });
+      var counts= 0;
+      var completefn = function() {
+        if(counts == 2) done();
+      };
+      p.finally(function(ret) {
+        expect(ret).to.be(42);
+        counts++;
+        completefn();
+      });
+      p.always(function(ret) {
+        expect(ret).to.be(42);
+        counts++;
+        completefn();
+      });
+    });
+
+    it('should call always and finally when reject.', function(done){
+      var p = new AV.Promise(function(resolve, reject) {
+        reject(42);
+      });
+      var counts= 0;
+      var completefn = function() {
+        if(counts == 2) done();
+      };
+      p.finally(function(ret) {
+        expect(ret).to.be(42);
+        counts++;
+        completefn();
+      });
+      p.always(function(ret) {
+        expect(ret).to.be(42);
+        counts++;
+        completefn();
+      });
+    });
+  });
+
   describe('AV.Promise#catch', function(){
     it('sould be called', function(done) {
       var promise = new AV.Promise(function(resolve, reject) {
