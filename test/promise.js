@@ -11,6 +11,18 @@ describe('promise', function() {
     });
   });
 
+  describe('catch', function(){
+    it('shoud catch exception.', function(done) {
+      var promise = new AV.Promise(function(resolve) {
+        throw 'test error';
+      });
+      promise.catch(function(error) {
+        expect(error).to.be('test error');
+        done();
+      });
+    });
+  });
+
   describe('always and finally', function(){
     it('should call always and finally', function(done){
       var p = new AV.Promise(function(resolve, reject) {
