@@ -1,3 +1,7 @@
+# 0.5.0 日期: 2015 年 3 月 02 日
+* 增强 `AV.Promise`，增加`done,catch,finally,AV.Promise.race` 等方法，兼容 Promise/A+
+* 修复更新对象可能更新没有变更的属性的 Bug，减少请求流量。
+
 # 0.4.9 日期: 2015 年 2 月 26 日
 * 拆分 sdk，按照模块划分成多个文件。
 * 使用 gulp 构建 sdk，清理代码。
