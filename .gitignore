@@ -1,5 +1,4 @@
 node_modules/
-dist/
 package/
 *tgz
 release.sh
