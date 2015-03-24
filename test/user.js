@@ -30,22 +30,32 @@ describe("User",function(){
 
 });
 
-describe("UserSignin",function(){
+describe("User.logIn and User.become",function(){
   it("should login",function(done){
     AV.User.logIn(username, password, {
       success: function(user) {
         expect(user.get("username")).to.be(username);
-        done();
+        console.dir(user);
+        AV.User.become(user._sessionToken, {
+            success: function(theUser) {
+                expect(theUser.get("username")).to.be(username);
+                done();
+            },
+            error: function(err){
+                throw err;
+            }
+        });
         // Do stuff after successful login.
       },
       error: function(user, error) {
-        throw eror;
+        throw error;
         // The login failed. Check error to see why.
       }
     });
 
   });
 });
+
 
 describe("Current User",function(){
   it("should return current user",function(done){
