@@ -115,6 +115,7 @@ gulp.task('test', function() {
       'master_key.js',
       'status.js',
       'sms.js',
+      'search.js'
     ]))
     .pipe(mocha({
       timeout: 100000,
