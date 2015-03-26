@@ -30,7 +30,8 @@ var coreSources = [
   'query.js',
   'cloudfunction.js',
   'push.js',
-  'status.js'
+  'status.js',
+  'search.js'
 ];
 
 var optionalSources = [
