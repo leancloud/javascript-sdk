@@ -17,7 +17,7 @@ describe("App Searching", function() {
   describe('#AV.SearchQuery', function() {
    this.timeout(10000);
    it('should find something.', function(done) {
-     var q = new AV.SearchQuery('Thread');
+     var q = new AV.SearchQuery('GameScore');
      q.queryString('*');
      q.find().then(function(results) {
        expect(q.hits()).to.be.greaterThan(0);
@@ -26,27 +26,27 @@ describe("App Searching", function() {
      });
    });
 
-   it('should sort by tid.', function(done) {
-     var q = new AV.SearchQuery('Ticket');
-     q.descending('tid');
+   it('should sort by score.', function(done) {
+     var q = new AV.SearchQuery('GameScore');
+     q.descending('score');
      q.queryString('*');
      q.find().then(function(results) {
        expect(q.hits()).to.be.greaterThan(0);
        console.dir(results);
        expect(results[0].appURL).to.be.ok();
-       expect(results[0].get('tid')).to.be.greaterThan(results[1].get('tid'));
+       expect(results[0].get('score') >= results[1].get('score')).to.be.ok();
        done();
      });
    });
 
-   it('should sort by tid with sort builder.', function(done) {
-     var q = new AV.SearchQuery('Ticket');
-     q.sortBy(new AV.SearchSortBuilder().descending('tid'));
+   it('should sort by score with sort builder.', function(done) {
+     var q = new AV.SearchQuery('GameScore');
+     q.sortBy(new AV.SearchSortBuilder().descending('score'));
      q.queryString('*');
      q.find().then(function(results) {
        expect(q.hits()).to.be.greaterThan(0);
        console.dir(results);
-       expect(results[0].get('tid')).to.be.greaterThan(results[1].get('tid'));
+       expect(results[0].get('score')>=results[1].get('score')).to.be.ok();
        done();
      });
    });
