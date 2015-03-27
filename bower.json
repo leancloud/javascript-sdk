@@ -1,0 +1,30 @@
+{
+  "name": "leancloud-jssdk.js",
+  "version": "0.5.1",
+  "homepage": "https://github.com/leancloud/javascript-sdk",
+  "authors": [
+    "killme2008 <xzhuang@leancloud.rocks>"
+  ],
+  "description": "LeanCloud JavaScript SDK",
+  "main": "dist/av.js",
+  "ignore": [
+    "demo",
+    "lib",
+    "test",
+    "tools",
+    "README.md",
+    "changelog.md",
+    "gulpfile.js",
+    "package.json",
+    "readme.txt"
+  ],
+  "moduleType": [
+    "globals"
+  ],
+  "keywords": [
+    "LeanCloud",
+    "JavaScript",
+    "SDK"
+  ],
+  "license": "MIT"
+}
