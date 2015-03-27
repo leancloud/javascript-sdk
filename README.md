@@ -45,5 +45,5 @@ gulp release
 
 ## 发布到 bower 
 ```
-bower register leancloud-jssdk git@github.com:leancloud/javascript-sdk.git
+bower register leancloud-javascript-sdk git@github.com:leancloud/javascript-sdk.git
 ```
