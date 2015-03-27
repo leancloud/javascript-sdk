@@ -1,3 +1,7 @@
+# 0.5.1 日期：2015 年 3 月 27 日
+* 实现应用内搜索 API，具体请参考[应用内搜索开发指南](https://leancloud.cn/docs/app_search_guide.html)。
+* 增加 API : `AV.User.become(sessionToken, options)`。
+
 # 0.5.0 日期: 2015 年 3 月 02 日
 * 增强 `AV.Promise`，增加`done,catch,finally,AV.Promise.race` 等方法，兼容 Promise/A+
 * 修复更新对象可能更新没有变更的属性的 Bug，减少请求流量。
