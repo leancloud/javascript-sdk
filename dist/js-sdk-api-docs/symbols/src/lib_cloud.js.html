@@ -1,0 +1,269 @@
+<html><head><meta http-equiv="content-type" content="text/html; charset=utf-8"> <style>
+	.KEYW {color: #933;}
+	.COMM {color: #bbb; font-style: italic;}
+	.NUMB {color: #393;}
+	.STRN {color: #393;}
+	.REGX {color: #339;}
+	.line {border-right: 1px dotted #666; color: #666; font-style: normal;}
+	</style></head><body><pre><span class='line'>  1</span> <span class="COMM">/**
+<span class='line'>  2</span>  * Cloud code only APIs.
+<span class='line'>  3</span>  * All of these APIs are not implemented in client sdk,
+<span class='line'>  4</span>  * we put them here to generate API docs.
+<span class='line'>  5</span>  */</span><span class="WHIT">
+<span class='line'>  6</span> </span><span class="PUNC">(</span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">root</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>  7</span> </span><span class="WHIT">  </span><span class="NAME">root.AV</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">root.AV</span><span class="WHIT"> </span><span class="PUNC">||</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>  8</span> </span><span class="WHIT">  </span><span class="COMM">/**
+<span class='line'>  9</span>    * Contains all AV API classes and functions.
+<span class='line'> 10</span>    * @name AV
+<span class='line'> 11</span>    * @namespace
+<span class='line'> 12</span>    *
+<span class='line'> 13</span>    * Contains all AV API classes and functions.
+<span class='line'> 14</span>    */</span><span class="WHIT">
+<span class='line'> 15</span> </span><span class="WHIT">  </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">AV</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">root.AV</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 16</span> 
+<span class='line'> 17</span> </span><span class="WHIT">  </span><span class="COMM">/*
+<span class='line'> 18</span>    * @class A Request object that is passed into the afterDelete function.
+<span class='line'> 19</span>    * &lt;strong>Available in Cloud Code only.&lt;/strong>
+<span class='line'> 20</span>    * @property {AV.Object} object The object that was deleted.
+<span class='line'> 21</span>    * @property {AV.User} user If set, the user that made the request.
+<span class='line'> 22</span>    */</span><span class="WHIT">
+<span class='line'> 23</span> </span><span class="WHIT">   </span><span class="NAME">AV.Cloud.AfterDeleteRequest</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">{</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 24</span> 
+<span class='line'> 25</span> </span><span class="WHIT">  </span><span class="COMM">/**
+<span class='line'> 26</span>    * @class A Request object that is passed into the afterSave function.
+<span class='line'> 27</span>    * &lt;strong>Available in Cloud Code only.&lt;/strong>
+<span class='line'> 28</span>    * @property {AV.Object} object The object that was saved.
+<span class='line'> 29</span>    * @property {AV.User} user If set, the user that made the request.
+<span class='line'> 30</span>    */</span><span class="WHIT">
+<span class='line'> 31</span> </span><span class="WHIT">   </span><span class="NAME">AV.Cloud.AfterSaveRequest</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">{</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 32</span> 
+<span class='line'> 33</span> </span><span class="WHIT">  </span><span class="COMM">/**
+<span class='line'> 34</span>    * @class A Request object that is passed into the beforeSave function.
+<span class='line'> 35</span>    * &lt;strong>Available in Cloud Code only.&lt;/strong>
+<span class='line'> 36</span>    * @property {AV.Object} object The object that is being saved.
+<span class='line'> 37</span>    * @property {AV.User} user If set, the user that made the request.
+<span class='line'> 38</span>    */</span><span class="WHIT">
+<span class='line'> 39</span> </span><span class="WHIT">   </span><span class="NAME">AV.Cloud.BeforeSaveRequest</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">{</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 40</span> 
+<span class='line'> 41</span> </span><span class="WHIT">  </span><span class="COMM">/**
+<span class='line'> 42</span>    * @class A Request object that is passed into the beforeDelete function.
+<span class='line'> 43</span>    * &lt;strong>Available in Cloud Code only.&lt;/strong>
+<span class='line'> 44</span>    * @property {AV.Object} object The object that is being deleted.
+<span class='line'> 45</span>    * @property {AV.User} user If set, the user that made the request.
+<span class='line'> 46</span>    */</span><span class="WHIT">
+<span class='line'> 47</span> </span><span class="WHIT">   </span><span class="NAME">AV.Cloud.BeforeDeleteRequest</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">{</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 48</span> 
+<span class='line'> 49</span> </span><span class="WHIT">  </span><span class="COMM">/**
+<span class='line'> 50</span>    * @class A Request object that is passed into the afterUpdate function.
+<span class='line'> 51</span>    * &lt;strong>Available in Cloud Code only.&lt;/strong>
+<span class='line'> 52</span>    * @property {AV.Object} object The object that was updated.
+<span class='line'> 53</span>    * @property {AV.User} user If set, the user that made the request.
+<span class='line'> 54</span>    */</span><span class="WHIT">
+<span class='line'> 55</span> </span><span class="WHIT">   </span><span class="NAME">AV.Cloud.AfterUpdateRequest</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">{</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 56</span> 
+<span class='line'> 57</span> </span><span class="WHIT">  </span><span class="COMM">/**
+<span class='line'> 58</span>    * Define a timer will wait a specified number of seconds, and
+<span class='line'> 59</span>    * then execute a specified function, and it will continue to execute the function,
+<span class='line'> 60</span>    * once at every given time-interval. &lt;br/>
+<span class='line'> 61</span>    * &lt;strong>Available in Cloud Code only.&lt;/strong>
+<span class='line'> 62</span>    * For example:
+<span class='line'> 63</span>    * &lt;pre> &lt;code>
+<span class='line'> 64</span>    *       //Log every second.
+<span class='line'> 65</span>    *       AV.Cloud.setInterval("timer1", 1, function(){
+<span class='line'> 66</span>    *           consooe.log("timer1 log");
+<span class='line'> 67</span>    *       });
+<span class='line'> 68</span>    * &lt;/code>&lt;/pre>
+<span class='line'> 69</span>    * @param name The timer's unique identifier.
+<span class='line'> 70</span>    * @param interval The length of the time-intervals between each execution in seconds.
+<span class='line'> 71</span>    * @param func The function to be executed.
+<span class='line'> 72</span>    */</span><span class="WHIT">
+<span class='line'> 73</span> </span><span class="WHIT">   </span><span class="NAME">AV.Cloud.setInterval</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">name</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">interval</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">func</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 74</span> 
+<span class='line'> 75</span> </span><span class="WHIT">  </span><span class="COMM">/**
+<span class='line'> 76</span>    * Define a timer that will execute by the crontab-like expression.&lt;br/>
+<span class='line'> 77</span>    * &lt;strong>Available in Cloud Code only.&lt;/strong>
+<span class='line'> 78</span>    * &lt;pre> &lt;code>
+<span class='line'> 79</span>    *       //Log at 1:00 AM everyday.
+<span class='line'> 80</span>    *       AV.Cloud.cronJob("timer1", "0 1 * * * ?", function(){
+<span class='line'> 81</span>    *           consooe.log("timer1 log");
+<span class='line'> 82</span>    *       });
+<span class='line'> 83</span>    * &lt;/code>&lt;/pre>
+<span class='line'> 84</span>    * @param name The timer's unique identifier.
+<span class='line'> 85</span>    * @param cron The crontab-like string in the form of 'sec min hour dayOfMonth month dayOfWeek [year]'.
+<span class='line'> 86</span>    * @param func The function to be executed.
+<span class='line'> 87</span>    */</span><span class="WHIT">
+<span class='line'> 88</span> </span><span class="WHIT">   </span><span class="NAME">AV.Cloud.cronJob</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">name</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">cron</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">func</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 89</span> 
+<span class='line'> 90</span> 
+<span class='line'> 91</span> </span><span class="WHIT">  </span><span class="COMM">/**
+<span class='line'> 92</span>    * @class A Response object that is passed to the beforeSave function. This object contains functions to tell the AV.Cloud what to do with the save.
+<span class='line'> 93</span>    * &lt;strong>Available in Cloud Code only.&lt;/strong>
+<span class='line'> 94</span>    * @property {Function} success If called, will allow the save to happen. If a AV.Object is passed in, then the passed in object will be saved instead.
+<span class='line'> 95</span>    * @property {Function} error If called, will reject the save. An optional error message may be passed in.
+<span class='line'> 96</span>    */</span><span class="WHIT">
+<span class='line'> 97</span> </span><span class="WHIT">   </span><span class="NAME">AV.Cloud.BeforeSaveResponse</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">{</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 98</span> 
+<span class='line'> 99</span> </span><span class="WHIT">  </span><span class="COMM">/**
+<span class='line'>100</span>    * @class A Response object that is passed to the beforeDelete function. This object contains functions to tell the AV.Cloud what to do with the delete.
+<span class='line'>101</span>    * &lt;strong>Available in Cloud Code only.&lt;/strong>
+<span class='line'>102</span>    * @property {Function} success If called, will allow the delete to happen. If a AV.Object is passed in, then the passed in object will be deleted instead.
+<span class='line'>103</span>    * @property {Function} error If called, will reject the delete. An optional error message may be passed in.
+<span class='line'>104</span>    */</span><span class="WHIT">
+<span class='line'>105</span> </span><span class="WHIT">   </span><span class="NAME">AV.Cloud.BeforeDeleteResponse</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">{</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>106</span> 
+<span class='line'>107</span> </span><span class="WHIT">   </span><span class="COMM">/**
+<span class='line'>108</span>     * @class A Request object that is passed into a cloud function.
+<span class='line'>109</span>     * &lt;strong>Available in Cloud Code only.&lt;/strong>
+<span class='line'>110</span>     * @property {Object} params The params passed to the cloud function
+<span class='line'>111</span>     * @property {AV.User} user If set, the user that made the request.
+<span class='line'>112</span>     */</span><span class="WHIT">
+<span class='line'>113</span> </span><span class="WHIT">   </span><span class="NAME">AV.Cloud.FunctionRequest</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">{</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>114</span> 
+<span class='line'>115</span> </span><span class="WHIT">   </span><span class="COMM">/**
+<span class='line'>116</span>     * @class A Response object that is passed to a cloud function. This object contains functions to tell the AV.Cloud what to do with the save.
+<span class='line'>117</span>     * &lt;strong>Available in Cloud Code only.&lt;/strong>
+<span class='line'>118</span>     * @property {Function} success If success is called, will return a successful response with the optional argument to the caller.
+<span class='line'>119</span>     * @property {Function} error f error is called, will return an error response with an optionally passed message.
+<span class='line'>120</span>     */</span><span class="WHIT">
+<span class='line'>121</span> </span><span class="WHIT">   </span><span class="NAME">AV.Cloud.FunctionResponse</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">{</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>122</span> 
+<span class='line'>123</span> </span><span class="WHIT">   </span><span class="COMM">/**
+<span class='line'>124</span>     * Registers a before save function.
+<span class='line'>125</span>     * &lt;br/>&lt;strong>Available in Cloud Code only&lt;/strong>.
+<span class='line'>126</span>     * &lt;code>&lt;pre>
+<span class='line'>127</span>    AV.Cloud.beforeSave('MyCustomClass', function(request, response) {
+<span class='line'>128</span>    // code here
+<span class='line'>129</span>  })
+<span class='line'>130</span> 
+<span class='line'>131</span>  AV.Cloud.beforeSave(AV.User, function(request, response) {
+<span class='line'>132</span>    // code here
+<span class='line'>133</span>  })
+<span class='line'>134</span>     * &lt;/pre>&lt;/code>
+<span class='line'>135</span>     * @param {Class} name The AV.Object subclass to register the before save function for. This can instead be a String that is the className of the subclass.
+<span class='line'>136</span>     * @param {Function} func The function to run before a save. This function should take two parameters a AV.Cloud.BeforeSaveRequest and a AV.Cloud.BeforeSaveResponse.
+<span class='line'>137</span>     */</span><span class="WHIT">
+<span class='line'>138</span> </span><span class="WHIT">   </span><span class="NAME">AV.Cloud.beforeSave</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">name</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">func</span><span class="PUNC">)</span><span class="PUNC">{</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>139</span> 
+<span class='line'>140</span> </span><span class="WHIT">   </span><span class="COMM">/**
+<span class='line'>141</span>     * Registers an after save function.
+<span class='line'>142</span>     * &lt;br/>&lt;strong>Available in Cloud Code only&lt;/strong>.
+<span class='line'>143</span>     * &lt;code>&lt;pre>
+<span class='line'>144</span>  AV.Cloud.afterSave('MyCustomClass', function(request) {
+<span class='line'>145</span>      // code here
+<span class='line'>146</span>     })
+<span class='line'>147</span> 
+<span class='line'>148</span>  AV.Cloud.afterSave(AV.User, function(request) {
+<span class='line'>149</span>    // code here
+<span class='line'>150</span>  })
+<span class='line'>151</span>     * &lt;/pre>&lt;/code>
+<span class='line'>152</span>     * @param {Class} name The AV.Object subclass to register the after save function for. This can instead be a String that is the className of the subclass.
+<span class='line'>153</span>     * @param {Function} func The function to run after a save. This function should take just one parameter AV.Cloud.AfterSaveRequest.
+<span class='line'>154</span>     */</span><span class="WHIT">
+<span class='line'>155</span> </span><span class="WHIT">   </span><span class="NAME">AV.Cloud.afterSave</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">name</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">func</span><span class="PUNC">)</span><span class="PUNC">{</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>156</span> 
+<span class='line'>157</span> 
+<span class='line'>158</span> </span><span class="WHIT">   </span><span class="COMM">/**
+<span class='line'>159</span>     * Registers an after update function.
+<span class='line'>160</span>     * &lt;br/>&lt;strong>Available in Cloud Code only&lt;/strong>.
+<span class='line'>161</span>     * &lt;code>&lt;pre>
+<span class='line'>162</span>  AV.Cloud.afterUpdate('MyCustomClass', function(request) {
+<span class='line'>163</span>      // code here
+<span class='line'>164</span>     })
+<span class='line'>165</span> 
+<span class='line'>166</span>  AV.Cloud.afterUpdate(AV.User, function(request) {
+<span class='line'>167</span>    // code here
+<span class='line'>168</span>  })
+<span class='line'>169</span>     * &lt;/pre>&lt;/code>
+<span class='line'>170</span>     * @param {Class} name The AV.Object subclass to register the after update function for. This can instead be a String that is the className of the subclass.
+<span class='line'>171</span>     * @param {Function} func The function to run after a update. This function should take just one parameter AV.Cloud.AfterUpdateRequest.
+<span class='line'>172</span>     */</span><span class="WHIT">
+<span class='line'>173</span> </span><span class="WHIT">   </span><span class="NAME">AV.Cloud.afterUpdate</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">name</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">func</span><span class="PUNC">)</span><span class="PUNC">{</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>174</span> 
+<span class='line'>175</span> 
+<span class='line'>176</span> </span><span class="WHIT">   </span><span class="COMM">/**
+<span class='line'>177</span>     * Registers a before delete function.
+<span class='line'>178</span>     * &lt;br/>&lt;strong>Available in Cloud Code only&lt;/strong>.
+<span class='line'>179</span>     * If you want use beforeDelete for a predefined class in the AV JavaScript SDK (e.g. AV.User), you should pass the class itself and not the String for arg1.
+<span class='line'>180</span>     * &lt;code>&lt;pre>
+<span class='line'>181</span>  AV.Cloud.beforeDelete('MyCustomClass', function(request, response) {
+<span class='line'>182</span>     // code here
+<span class='line'>183</span>   })
+<span class='line'>184</span> 
+<span class='line'>185</span>   AV.Cloud.beforeDelete(AV.User, function(request, response) {
+<span class='line'>186</span>     // code here
+<span class='line'>187</span>   })
+<span class='line'>188</span>     * &lt;/pre>&lt;/code>
+<span class='line'>189</span>     * @param {Class} arg1 The AV.Object subclass to register the before delete function for. This can instead be a String that is the className of the subclass.
+<span class='line'>190</span>     * @param {Function} func The function to run before a delete. This function should take two parameters a AV.Cloud.BeforeDeleteRequest and a AV.Cloud.BeforeDeleteResponse
+<span class='line'>191</span>     */</span><span class="WHIT">
+<span class='line'>192</span> </span><span class="WHIT">   </span><span class="NAME">AV.Cloud.beforeDelete</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">name</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">func</span><span class="PUNC">)</span><span class="PUNC">{</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>193</span> 
+<span class='line'>194</span> </span><span class="WHIT">   </span><span class="COMM">/**
+<span class='line'>195</span>     * Registers an after delete function.
+<span class='line'>196</span>     * &lt;br/>&lt;strong>Available in Cloud Code only&lt;/strong>.
+<span class='line'>197</span>     * If you want to use afterDelete for a predefined class in the AV JavaScript SDK (e.g. AV.User), you should pass the class itself and not the String for arg1.
+<span class='line'>198</span>     * &lt;code>&lt;pre>
+<span class='line'>199</span>  AV.Cloud.afterDelete('MyCustomClass', function(request) {
+<span class='line'>200</span>     // code here
+<span class='line'>201</span>   })
+<span class='line'>202</span> 
+<span class='line'>203</span>   AV.Cloud.afterDelete(AV.User, function(request) {
+<span class='line'>204</span>     // code here
+<span class='line'>205</span>   })
+<span class='line'>206</span>     * &lt;/pre>&lt;/code>
+<span class='line'>207</span>     * @param {Class} arg1 The AV.Object subclass to register the before save function for. This can instead be a String that is the className of the subclass.
+<span class='line'>208</span>     * @param {Function} func The function to run before a save. This function should take just one parameter, AV.Cloud.AfterDeleteRequest.
+<span class='line'>209</span>     */</span><span class="WHIT">
+<span class='line'>210</span> </span><span class="WHIT">   </span><span class="NAME">AV.Cloud.afterDelete</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">name</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">func</span><span class="PUNC">)</span><span class="PUNC">{</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>211</span> 
+<span class='line'>212</span> </span><span class="WHIT">   </span><span class="COMM">/**
+<span class='line'>213</span>     * Registers an on-login function.
+<span class='line'>214</span>     * &lt;br/>&lt;strong>Available in Cloud Code only&lt;/strong>.
+<span class='line'>215</span>     * If you want to use onLogin for an user in the AV JavaScript SDK, you should pass the function:
+<span class='line'>216</span>     * &lt;code>&lt;pre>
+<span class='line'>217</span>   AV.Cloud.onLogin(function(request, response) {
+<span class='line'>218</span>     // code here
+<span class='line'>219</span>   });
+<span class='line'>220</span>     * &lt;/pre>&lt;/code>
+<span class='line'>221</span>     * @param {Function} func The function to run before an user signin. This function should take two parameters a AV.Cloud.FunctionRequest and a AV.Cloud.FunctionResponse.
+<span class='line'>222</span>     */</span><span class="WHIT">
+<span class='line'>223</span> </span><span class="WHIT">   </span><span class="NAME">AV.Cloud.onLogin</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">func</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>224</span> 
+<span class='line'>225</span> </span><span class="WHIT">   </span><span class="COMM">/**
+<span class='line'>226</span>     * Makes an HTTP Request.
+<span class='line'>227</span>     * &lt;br/>&lt;strong>Available in Cloud Code only&lt;/strong>.
+<span class='line'>228</span>     * @param {Object} The options objects that makes the request.
+<span class='line'>229</span>     * @return {AV.Promise}  A promise that will be resolved with a AV.Cloud.HTTPResponse object when the request completes.
+<span class='line'>230</span>     */</span><span class="WHIT">
+<span class='line'>231</span> </span><span class="WHIT">   </span><span class="NAME">AV.Cloud.httpRequest</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">options</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>232</span> 
+<span class='line'>233</span> </span><span class="WHIT">   </span><span class="COMM">/**
+<span class='line'>234</span>     * @namespace
+<span class='line'>235</span>     * Express middleware for AV.User session management through a signed browser cookie.
+<span class='line'>236</span>     * This API is LeanCloud-specific, and not included in the original Express API.
+<span class='line'>237</span>     * See &lt;a href="https://leancloud.cn/docs/cloud_code_guide.html#处理用户登录和登出">Cloud Code Guide&lt;/a> for details.
+<span class='line'>238</span>     * &lt;br/>&lt;strong>Available in Cloud Code only&lt;/strong>.
+<span class='line'>239</span>     * @param {String} options.cookie Optional.
+<span class='line'>240</span>     *                 Standard cookie options for the LeanCloud user session cookie.
+<span class='line'>241</span>     *                 For your application's security, we ignore the httpOnly, signed flags in cookie options,
+<span class='line'>242</span>     *                 and always set these to true for the cookie generated by this middleware.
+<span class='line'>243</span>     * @param {Boolean} options.fetchUser Optional,Default: false.
+<span class='line'>244</span> 	*                 Whether to fetch the full current LeanCloud user object on each request.
+<span class='line'>245</span>     *                 Setting this to true results in one extra LeanCloud API request during each Express request. If you set this false,
+<span class='line'>246</span>     *                 ACLs will still work when you query for objects the current user is allowed to see,
+<span class='line'>247</span>     *                 but you cannot access any fields on the current user object (except id) until you manually call AV.User.current().fetch().
+<span class='line'>248</span>     * @param {String} options.key Optional, Default: 'avos.sess'
+<span class='line'>249</span>     *                 Cookie name for storing the LeanCloud user session.
+<span class='line'>250</span>     */</span><span class="WHIT">
+<span class='line'>251</span> </span><span class="WHIT">   </span><span class="NAME">avosExpressCookieSession</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">options</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT"> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>252</span> 
+<span class='line'>253</span> </span><span class="WHIT">   </span><span class="COMM">/**
+<span class='line'>254</span>     * @namespace
+<span class='line'>255</span>     * Express middleware for redirecting the user to the HTTPS endpoint with the same URL.
+<span class='line'>256</span>     * This API is LeanCloud-specific, and not included in the original Express API.
+<span class='line'>257</span>     * See &lt;a href="https://leancloud.cn/docs/cloud_code_guide.html#启用https">Cloud Code Guide&lt;/a> for details.
+<span class='line'>258</span>     */</span><span class="WHIT">
+<span class='line'>259</span> </span><span class="WHIT">   </span><span class="NAME">avosExpressHttpsRedirect</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>260</span> 
+<span class='line'>261</span> </span><span class="PUNC">}</span><span class="PUNC">)</span><span class="PUNC">(</span><span class="KEYW">this</span><span class="PUNC">)</span><span class="WHIT">
+<span class='line'>262</span> </span></pre></body></html>
