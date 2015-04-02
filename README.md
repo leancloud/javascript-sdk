@@ -4,8 +4,15 @@ Javascript SDK for [LeanCloud](http://leancloud.cn).
 
 # 安装
 
+### npm
+
 ```sh
 $ npm install avoscloud-sdk
+```
+### bower
+
+```sh
+$ bower install leancloud-javascript-sdk
 ```
 
 ## Changelog
