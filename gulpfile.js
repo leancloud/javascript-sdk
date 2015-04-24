@@ -47,8 +47,11 @@ getAVVersion = function() {
   return require('./lib/AV.js').AV.VERSION.replace('js', '');
 };
 
+gulp.task('localstorage', function() {
+  gulp.src(['lib/localstorage.js']).pipe(gulp.dest('dist'));
+});
+
 gulp.task('pack', shell.task([
-  'rm -rf dist/',
   'rm -rf node_modules/',
   'rm -rf ./*.tgz',
   'rm -rf ./tools',
@@ -127,4 +130,4 @@ gulp.task('clean', function() {
     .pipe(clean({force: true}));
 });
 
-gulp.task('release', ['concat', 'concat_core', 'uglify', 'compress-scripts', 'docs', 'compress-docs']);
+gulp.task('release', ['concat', 'concat_core', 'uglify', 'compress-scripts', 'localstorage', 'docs', 'compress-docs']);
