@@ -52,6 +52,8 @@ gulp.task('localstorage', function() {
 });
 
 gulp.task('pack', shell.task([
+  "find dist -not -iname 'av.js' -not -iname 'localstorage.js' -delete",
+  'rm -rf avos-javascript-sd',
   'rm -rf node_modules/',
   'rm -rf ./*.tgz',
   'rm -rf ./tools',
