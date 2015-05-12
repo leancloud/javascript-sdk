@@ -1,6 +1,5 @@
 *.tgz
 node_modules/
-dist/
 package/
 tests/
 tools/
