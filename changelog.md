@@ -1,3 +1,11 @@
+# 0.5.2 日期：2015 年 5 月 12 日
+* 上传 sdk 到专门的 CDN 加速域名 [https://cdn1.lncld.net/static/](https://cdn1.lncld.net/static/)
+* 兼容 ReactNative 运行环境
+* 修复 AV.Query 的 addDescending 方法运行不符合预期的 Bug
+* AV.Promise 在兼容 Primise+ 模式下优先使用 setImmediate
+* AV.Object 的 fetch 方法新增重载方法，接收第一个参数是 fetchOptions ，设置 keys 或者 include 选项。
+* AV.Query 支持 sizeEqualTo 方法，查询数组列大小等于特定长度的对象。
+
 # 0.5.1 日期：2015 年 3 月 27 日
 * 实现应用内搜索 API，具体请参考[应用内搜索开发指南](https://leancloud.cn/docs/app_search_guide.html)。
 * 增加 API : `AV.User.become(sessionToken, options)`。
