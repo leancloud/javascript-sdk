@@ -162,7 +162,7 @@ describe('promise', function() {
         expect(errors[2]).to.be(64);
         expect(errors[3]).to.be(128);
         //should be 128 ms
-        expect(Date.now() - startDate).to.be.within(125,140);
+        expect(Date.now() - startDate).to.be.within(125, 145);
 
         done();
      }).done(function(ret){
@@ -181,7 +181,7 @@ describe('promise', function() {
      ]).catch(function (error) {
         expect(error).to.be(1);
         //should be 1 ms
-        expect(Date.now() - startDate).to.be.within(0,5);
+        expect(Date.now() - startDate).to.be.within(0, 10);
         setTimeout(done, 500);
      }).done(function(ret){
         throw ret;
