@@ -156,7 +156,7 @@ gulp.task('clean', function() {
     .pipe(clean({force: true}));
 });
 
-gulp.task('upload', function(cb) {
+gulp.task('upload', ['compress-scripts'], function(cb) {
    uploadCDN('./dist/av-mini.js', getAVVersion(), function(){
      uploadCDN('./dist/av-core-mini.js', getAVVersion(), cb);
    });
