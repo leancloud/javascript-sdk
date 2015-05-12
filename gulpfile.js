@@ -11,6 +11,8 @@ var shell = require('gulp-shell');
 var tar = require('gulp-tar');
 var uglify = require('gulp-uglify');
 var order = require('gulp-order');
+var qiniu = require('qiniu');
+var fs = require('fs');
 
 var coreSources = [
   'version.js',
@@ -68,6 +70,27 @@ function concatGenerator(sources, file) {
       .pipe(concat(file))
       .pipe(gulp.dest('dist'));
   }
+}
+
+function uploadCDN(file, version) {
+   qiniu.conf.ACCESS_KEY = process.env['CDN_QINIU_KEY'];
+   qiniu.conf.SECRET_KEY = process.env['CDN_QINIU_SECRET'];
+   var bucketname = 'paas_files';
+   var key = 'static/js/' + path.basename(file, '.js') + '-' +
+       version + '.js';
+
+   var putPolicy = new qiniu.rs.PutPolicy(bucketname + ':' + key);
+   var uptoken = putPolicy.token();
+   var extra = new qiniu.io.PutExtra();
+   extra.mimeType = 'application/javascript';
+   var buffer = fs.readFileSync(file);
+   qiniu.io.put(uptoken, key, buffer, extra, function(err, ret) {
+     if (!err) {
+        console.log('https://cdn1.lncld.net/' + ret.key);
+      } else {
+        console.log(err);
+      }
+   });
 }
 
 gulp.task('concat', concatGenerator(coreSources.concat(optionalSources), 'av.js'));
@@ -132,4 +155,11 @@ gulp.task('clean', function() {
     .pipe(clean({force: true}));
 });
 
-gulp.task('release', ['concat', 'concat_core', 'uglify', 'compress-scripts', 'localstorage', 'docs', 'compress-docs']);
+gulp.task('upload', function() {
+   uploadCDN('./dist/av-mini.js', getAVVersion());
+   uploadCDN('./dist/av-core-mini.js', getAVVersion());
+});
+
+
+gulp.task('release', ['concat', 'concat_core', 'uglify', 'compress-scripts', 'localstorage',
+          'docs', 'compress-docs', 'upload']);
