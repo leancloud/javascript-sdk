@@ -1,6 +1,6 @@
 {
   "name": "leancloud-jssdk.js",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "homepage": "https://github.com/leancloud/javascript-sdk",
   "authors": [
     "killme2008 <xzhuang@leancloud.rocks>"
