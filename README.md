@@ -15,6 +15,14 @@ $ npm install avoscloud-sdk
 $ bower install leancloud-javascript-sdk
 ```
 
+### CDN 加速
+
+```html
+<script src="https://cdn1.lncld.net/static/js/av-mini-{版本号}.js"></script>
+//或者你只是用最核心的存储、推送等功能，可以使用精简版的core.js
+<script src="https://cdn1.lncld.net/static/js/av-core-mini-{版本号}.js"></script>
+```
+
 ## Changelog
 
 * [SDK Download](https://leancloud.cn/docs/sdk_down.html)
