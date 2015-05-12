@@ -1,6 +1,6 @@
 (function(root) {
   root.AV = root.AV || {};
-  root.AV.VERSION = "js0.5.1";
+  root.AV.VERSION = "js0.5.2";
 }(this));
 
 //     Underscore.js 1.4.4
@@ -1257,9 +1257,9 @@
   } else if (typeof(require) === 'function' && typeof(require.ensure) === 'undefined') {
     try{
       AV.localStorage = require('localStorage');
-	  }catch(error){
-	    AV.localStorage = require('./localStorage.js').localStorage;
-	  }
+    }catch(error){
+      AV.localStorage = require('./localStorage.js').localStorage;
+    }
   }
 
   // Import AV's local copy of underscore.
@@ -3917,14 +3917,12 @@
         func.call();
       };
       if (AV.Promise._isPromisesAPlusCompliant) {
-        if (typeof(window) !== 'undefined' && window.setTimeout) {
+        if (typeof(setImmediate) !== 'undefined' && _.isFunction(setImmediate)) {
+          runLater = setImmediate;
+        } else if (typeof(setTimeout) !== 'undefined' && _.isFunction(setTimeout)) {
           runLater = function(func) {
-            window.setTimeout(func, 0);
-          };
-        } else if (typeof(process) !== 'undefined' && process.nextTick) {
-          runLater = function(func) {
-            process.nextTick(func);
-          };
+            setTimeout(func, 0);
+          }
         }
       }
 
@@ -5438,12 +5436,26 @@
      * Fetch the model from the server. If the server's representation of the
      * model differs from its current attributes, they will be overriden,
      * triggering a <code>"change"</code> event.
+     * @param {Object} fetchOptions Optional options to set 'keys' and
+     *      'include' option.
+     * @param {Object} options Optional Backbone-like options object to be
+     *     passed in to set.
      * @return {AV.Promise} A promise that is fulfilled when the fetch
      *     completes.
      */
-    fetch: function(options) {
+    fetch: function() {
+      var options = null;
+      var fetchOptions = {};
+      if(arguments.length === 1) {
+        options = arguments[0];
+      } else if(arguments.length === 2) {
+        fetchOptions = arguments[0];
+        options = arguments[1];
+      }
+
       var self = this;
-      var request = AV._request("classes", this.className, this.id, 'GET');
+      var request = AV._request("classes", this.className, this.id, 'GET',
+                                fetchOptions);
       return request.then(function(response, status, xhr) {
         self._finishFetch(self.parse(response, status, xhr), true);
         return self;
@@ -7693,6 +7705,17 @@
     },
 
     /**
+     * Add a constraint to the query that requires a particular
+     * <strong>array</strong> key's length to be equal to the provided value.
+     * @param {String} key The array key to check.
+     * @param value The length value.
+     * @return {AV.Query} Returns the query, so you can chain this call.
+     */
+    sizeEqualTo: function(key, value) {
+      this._addCondition(key, "$size", value);
+    },
+
+    /**
      * Add a constraint to the query that requires a particular key's value to
      * be not equal to the provided value.
      * @param {String} key The key to check.
@@ -8022,7 +8045,7 @@
      if(this._order)
        this._order += ',-' + key;
      else
-       this._order = key;
+       this._order = '-' + key;
      return key;
    },
 
