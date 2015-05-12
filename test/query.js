@@ -141,6 +141,25 @@ describe("Queries",function(){
           throw error;
         }
       });
+
+
+    it("sizeEqualTo",function(done){
+      var gameScore = new GameScore();
+      gameScore.save({
+        players: ["a", "b"]
+      }).then(function() {
+        query = new AV.Query(GameScore);
+        query.sizeEqualTo("players", 2);
+        query.first({
+          success: function(object) {
+            expect(object.get('players').size).to.be(2);
+            done();
+          },
+          error: function(error) {
+            throw error;
+          }
+        });
+      });
     });
   });
 

@@ -49,8 +49,13 @@ getAVVersion = function() {
   return require('./lib/AV.js').AV.VERSION.replace('js', '');
 };
 
+gulp.task('localstorage', function() {
+  gulp.src(['lib/localstorage.js']).pipe(gulp.dest('dist'));
+});
+
 gulp.task('pack', shell.task([
-  'rm -rf dist/',
+  "find dist -not -iname 'av.js' -not -iname 'localstorage.js' -delete",
+  'rm -rf avos-javascript-sd',
   'rm -rf node_modules/',
   'rm -rf ./*.tgz',
   'rm -rf ./tools',
@@ -153,4 +158,6 @@ gulp.task('upload', function() {
    uploadCDN('./dist/av-mini.js', getAVVersion());
 });
 
-gulp.task('release', ['concat', 'concat_core', 'uglify', 'compress-scripts', 'docs', 'compress-docs', 'upload']);
+
+gulp.task('release', ['concat', 'concat_core', 'uglify', 'compress-scripts', 'localstorage',
+          'docs', 'compress-docs', 'upload']);
