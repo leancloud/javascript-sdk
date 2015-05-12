@@ -73,8 +73,8 @@ function concatGenerator(sources, file) {
 }
 
 function uploadCDN(file, version) {
-   qiniu.conf.ACCESS_KEY = process.env['CDN_QINIU_KEY']
-   qiniu.conf.SECRET_KEY = process.env['CDN_QINIU_SECRET']
+   qiniu.conf.ACCESS_KEY = process.env['CDN_QINIU_KEY'];
+   qiniu.conf.SECRET_KEY = process.env['CDN_QINIU_SECRET'];
    var bucketname = 'paas_files';
    var key = 'static/js/' + path.basename(file, '.js') + '-' +
        version + '.js';
@@ -88,7 +88,7 @@ function uploadCDN(file, version) {
      if (!err) {
         console.log('https://cdn1.lncld.net/' + ret.key);
       } else {
-        console.log(err)
+        console.log(err);
       }
    });
 }
