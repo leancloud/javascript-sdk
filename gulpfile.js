@@ -72,7 +72,7 @@ function concatGenerator(sources, file) {
   }
 }
 
-function uploadCDN(file, version) {
+function uploadCDN(file, version, cb) {
    qiniu.conf.ACCESS_KEY = process.env['CDN_QINIU_KEY'];
    qiniu.conf.SECRET_KEY = process.env['CDN_QINIU_SECRET'];
    var bucketname = 'paas_files';
@@ -90,6 +90,7 @@ function uploadCDN(file, version) {
       } else {
         console.log(err);
       }
+      cb();
    });
 }
 
@@ -155,9 +156,10 @@ gulp.task('clean', function() {
     .pipe(clean({force: true}));
 });
 
-gulp.task('upload', function() {
-   uploadCDN('./dist/av-mini.js', getAVVersion());
-   uploadCDN('./dist/av-core-mini.js', getAVVersion());
+gulp.task('upload', function(cb) {
+   uploadCDN('./dist/av-mini.js', getAVVersion(), function(){
+     uploadCDN('./dist/av-core-mini.js', getAVVersion(), cb);
+   });
 });
 
 
