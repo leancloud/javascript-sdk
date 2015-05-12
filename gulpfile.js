@@ -76,16 +76,17 @@ function uploadCDN(file, version) {
    qiniu.conf.ACCESS_KEY = process.env['CDN_QINIU_KEY']
    qiniu.conf.SECRET_KEY = process.env['CDN_QINIU_SECRET']
    var bucketname = 'paas_files';
-   var putPolicy = new qiniu.rs.PutPolicy(bucketname);
-   var uptoken = putPolicy.token();
    var key = 'static/js/' + path.basename(file, '.js') + '-' +
        version + '.js';
+
+   var putPolicy = new qiniu.rs.PutPolicy(bucketname + ':' + key);
+   var uptoken = putPolicy.token();
    var extra = new qiniu.io.PutExtra();
    extra.mimeType = 'application/javascript';
    var buffer = fs.readFileSync(file);
    qiniu.io.put(uptoken, key, buffer, extra, function(err, ret) {
      if (!err) {
-        console.log(ret.key, ret.hash);
+        console.log('https://cdn1.lncld.net/' + ret.key);
       } else {
         console.log(err)
       }
@@ -156,6 +157,7 @@ gulp.task('clean', function() {
 
 gulp.task('upload', function() {
    uploadCDN('./dist/av-mini.js', getAVVersion());
+   uploadCDN('./dist/av-core-mini.js', getAVVersion());
 });
 
 
