@@ -164,4 +164,4 @@ gulp.task('upload', ['compress-scripts'], function(cb) {
 
 
 gulp.task('release', ['concat', 'concat_core', 'uglify', 'compress-scripts', 'localstorage',
-          'docs', 'compress-docs', 'upload']);
+          'docs', 'compress-docs']);
