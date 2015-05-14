@@ -42,7 +42,7 @@ var optionalSources = [
   'router.js',
   'collection.js',
   'view.js'
-]
+];
 
 
 getAVVersion = function() {
@@ -50,11 +50,11 @@ getAVVersion = function() {
 };
 
 gulp.task('localstorage', function() {
-  gulp.src(['lib/localstorage.js']).pipe(gulp.dest('dist'));
+  gulp.src(['lib/localStorage.js']).pipe(gulp.dest('dist'));
 });
 
 gulp.task('pack', shell.task([
-  "find dist -not -iname 'av.js' -not -iname 'localstorage.js' -delete",
+  "find dist -not -iname 'av.js' -not -iname 'localStorage.js' -delete",
   'rm -rf avos-javascript-sd',
   'rm -rf node_modules/',
   'rm -rf ./*.tgz',
