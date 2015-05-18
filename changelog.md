@@ -1,3 +1,6 @@
+# 0.5.4 日期：2015 年 5 月 14 日
+* 紧急修复 localStorage 模块大小写名称错误。
+
 # 0.5.2 日期：2015 年 5 月 12 日
 * 上传 sdk 到专门的 CDN 加速域名 [https://cdn1.lncld.net/static/](https://cdn1.lncld.net/static/)
 * 兼容 ReactNative 运行环境
