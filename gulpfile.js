@@ -33,7 +33,8 @@ var coreSources = [
   'cloudfunction.js',
   'push.js',
   'status.js',
-  'search.js'
+  'search.js',
+  'bigquery.js'
 ];
 
 var optionalSources = [
@@ -144,7 +145,8 @@ gulp.task('test', function() {
       'master_key.js',
       'status.js',
       'sms.js',
-      'search.js'
+      'search.js',
+      'bigquery.js'
     ]))
     .pipe(mocha({
       timeout: 100000,
