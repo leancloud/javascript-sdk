@@ -9076,7 +9076,7 @@
      */
     startJob: function(jobConfig, options) {
       if(!jobConfig || !jobConfig.sql) {
-        throw 'Please provide the sql to run the job.';
+        throw new Error('Please provide the sql to run the job.');
       }
       var data = {
         jobConfig: jobConfig,
@@ -9112,7 +9112,7 @@
    */
   AV.BigQuery.JobQuery = function(id, className) {
     if(!id) {
-      throw 'Please provide the job id.';
+      throw new Error('Please provide the job id.');
     }
     this.id = id;
     this.className = className;
