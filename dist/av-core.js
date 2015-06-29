@@ -1,6 +1,6 @@
 (function(root) {
   root.AV = root.AV || {};
-  root.AV.VERSION = "js0.5.4";
+  root.AV.VERSION = "js0.5.5";
 }(this));
 
 //     Underscore.js 1.4.4
