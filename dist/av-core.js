@@ -9110,11 +9110,12 @@
    * @param {String} id 任务 id
    * @since 0.5.5
    */
-  AV.BigQuery.JobQuery = function(id) {
+  AV.BigQuery.JobQuery = function(id, className) {
     if(!id) {
       throw 'Please provide the job id.';
     }
     this.id = id;
+    this.className = className;
     this._skip = 0;
     this._limit = 100;
   };
@@ -9166,14 +9167,13 @@
 
       var request = AV._request("bigquery", 'jobs', this.id, "GET",
                                    params);
+      var self = this;
       return request.then(function(response) {
-        delete response.nextAnchor;
         if(response.error) {
           return AV.Promise.error(new AV.Error(response.code, response.error));
         }
-        return response;
+        return AV.Promise.as(response);
       })._thenRunCallbacks(options);
-
     }
 
   };
