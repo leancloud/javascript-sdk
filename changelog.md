@@ -1,3 +1,9 @@
+# 0.5.5 日期：2015 年 6 月 29 日
+* AV.Promise 启用兼容 Promise+ 模式。
+* 增加 AV.BigQuery 相关 API 用于发起离线分析和查询结果等。
+* 修正 AV.Query 的 get 方法在遇到 undefined objectId 运行结果不符合预期的 Bug
+* 修复 AV.File 无法作为数组保存的 Bug。
+
 # 0.5.4 日期：2015 年 5 月 14 日
 * 紧急修复 localStorage 模块大小写名称错误。
 

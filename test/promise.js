@@ -190,6 +190,61 @@ describe('promise', function() {
 
   });
 
+  describe('PromiseAPlusCompliant', function() {
+    it('should catch all them.', function(done) {
+      new AV.Promise(function(resolve, reject) {
+        return resolve(123);
+      })
+      .then(function() {
+        throw {code: 1};
+      })
+      .then(function(){}, function(error) {
+        expect(error.code).to.be(1);
+        done();
+      })
+    });
+
+    it('shoud work in order', function(done) {
+      this.timeout(10000);
+      var ret = [];
+      var a = new AV.Promise(function(resolve){
+        setTimeout(function(){
+          resolve('hello');
+        }, 200);
+      });
+
+      var test = function(){
+        ret.push('before');
+        a.then(function(val){
+          ret.push(val);
+        });
+        ret.push('after');
+      }
+
+      test();
+      setTimeout(function() {
+        expect(ret).to.have.length(3);
+        expect(ret[0]).to.be('before');
+        expect(ret[1]).to.be('after');
+        expect(ret[2]).to.be('hello');
+        //run test in setTimeout
+        ret = [];
+        setTimeout(function(){
+          test();
+          setTimeout(function() {
+            expect(ret).to.have.length(3);
+            expect(ret[0]).to.be('before');
+            expect(ret[1]).to.be('after');
+            expect(ret[2]).to.be('hello');
+            done();
+         }, 300);
+        }, 500);
+        done();
+      }, 300);
+
+    });
+  });
+
   describe('AV.Promise.race', function(){
     it('should be called once.', function(done) {
       var wasCalled = false;

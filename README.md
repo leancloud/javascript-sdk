@@ -53,12 +53,39 @@ gulp release
 [MIT License](http://opensource.org/licenses/MIT)
 
 # 内部发布
+
 ## 修改版本号
+
 * lib/version.js
 * package.json
 * bower.json
+
+## 修改 changelog
+
+## Release
+
+```
+gulp release
+```
+
+## 提交，打上 tag 并推送到 Github
+
+tag 要求为 `v{版本号}`, dist 目录也需要更新提交。
 
 ## 发布到 bower 
 ```
 bower register leancloud-javascript-sdk git@github.com:leancloud/javascript-sdk.git
 ```
+
+## 发布到 npm
+
+```
+npm publish
+```
+
+## 发布到 CDN
+
+```
+gulp upload
+```
+
