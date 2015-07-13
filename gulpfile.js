@@ -1,4 +1,6 @@
 var path = require('path');
+var qiniu = require('qiniu');
+var fs = require('fs');
 var gulp = require('gulp');
 var clean = require('gulp-clean');
 var concat = require("gulp-concat");
@@ -11,8 +13,8 @@ var shell = require('gulp-shell');
 var tar = require('gulp-tar');
 var uglify = require('gulp-uglify');
 var order = require('gulp-order');
-var qiniu = require('qiniu');
-var fs = require('fs');
+var source = require('vinyl-source-stream');
+var browserify = require('browserify');
 
 var coreSources = [
   'version.js',
@@ -70,7 +72,7 @@ function concatGenerator(sources, file) {
       .pipe(order(sources))
       .pipe(concat(file))
       .pipe(gulp.dest('dist'));
-  }
+  };
 }
 
 function uploadCDN(file, version, cb) {
@@ -97,6 +99,13 @@ function uploadCDN(file, version, cb) {
 
 gulp.task('concat', concatGenerator(coreSources.concat(optionalSources), 'av.js'));
 gulp.task('concat_core', concatGenerator(coreSources, 'av-core.js'));
+
+gulp.task('browserify', function() {
+  var b = browserify({entries: './lib/av.js'});
+  return b.bundle()
+    .pipe(source('av.js'))
+    .pipe(gulp.dest('dist'));
+});
 
 gulp.task('uglify', ['concat'], function() {
   gulp.src('dist/av-core.js')
