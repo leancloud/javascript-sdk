@@ -309,6 +309,17 @@ describe('Objects', function(){
       });
     });
 
+    it("should fetch when save when creating new object.", function(done){
+      var p= new Person();
+      p.set('pname', 'dennis');
+      p.save().then(function(person) {
+        expect(person.get('company')).to.be('leancloud');
+        done();
+      }).catch(function(err) {
+        throw err;
+      });
+    });
+
     /*
 
        it("it should fetch relation post",function(done){
