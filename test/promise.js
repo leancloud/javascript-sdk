@@ -23,6 +23,22 @@ describe('promise', function() {
     });
   });
 
+
+  describe('AV.Promise._debugError', function() {
+    it('should log error', function(done) {
+      AV.Promise._debugError = true;
+      var p = new AV.Promise();
+      p.then(function() {
+        noThisMethod();
+      });
+      p.resolve(100);
+      p.finally(function(){
+         AV.Promise._debugError = false;
+        done();
+      });
+    });
+  });
+
   describe('always and finally', function(){
     it('should call always and finally', function(done){
       var p = new AV.Promise(function(resolve, reject) {
