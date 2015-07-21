@@ -26,14 +26,14 @@ describe('promise', function() {
 
   describe('AV.Promise._debugError', function() {
     it('should log error', function(done) {
-      AV.Promise._debugError = true;
+      AV.Promise.setDebugError(true);
       var p = new AV.Promise();
       p.then(function() {
         noThisMethod();
       });
       p.resolve(100);
       p.finally(function(){
-         AV.Promise._debugError = false;
+         AV.Promise.setDebugError(false);
         done();
       });
     });
