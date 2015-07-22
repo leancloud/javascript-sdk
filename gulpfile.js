@@ -146,6 +146,7 @@ gulp.task('test', function() {
       'status.js',
       'sms.js',
       'search.js',
+      'insight.js',
       'bigquery.js'
     ]))
     .pipe(mocha({
