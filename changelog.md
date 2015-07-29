@@ -1,3 +1,11 @@
+# 0.5.6 日期：2015 年 7 月 29 日
+* AV.Promise 仅在非 node 环境（如浏览器）默认启用 PromiseA+ 兼容模式
+* 增加 AV.Promise.setDebugError 方法，用于在启用 PromiseA+ 模式的时候打印错误信息，方便调试
+* 重命名 AV.BigQuery 模块为 AV.Insight，保留兼容 AV.BigQuery，推荐修改。
+* 修复 fetchWhenSave 无法在创建对象的时候生效。
+* 当重复初始化 SDK 的时候，打印警告日志。
+* 修改默认 API 域名为 api.leancloud.cn。
+
 # 0.5.5 日期：2015 年 6 月 29 日
 * AV.Promise 启用兼容 Promise+ 模式。
 * 增加 AV.BigQuery 相关 API 用于发起离线分析和查询结果等。
