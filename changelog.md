@@ -1,4 +1,4 @@
-# 0.5.6 日期：2015 年 7 月 29 日
+# 0.5.7 日期：2015 年 7 月 29 日
 * AV.Promise 仅在非 node 环境（如浏览器）默认启用 PromiseA+ 兼容模式
 * 增加 AV.Promise.setDebugError 方法，用于在启用 PromiseA+ 模式的时候打印错误信息，方便调试
 * 重命名 AV.BigQuery 模块为 AV.Insight，保留兼容 AV.BigQuery，推荐修改。
