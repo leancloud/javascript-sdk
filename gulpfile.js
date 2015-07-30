@@ -36,6 +36,7 @@ var coreSources = [
   'push.js',
   'status.js',
   'search.js',
+  'insight.js',
   'bigquery.js'
 ];
 
