@@ -1,6 +1,6 @@
 (function(root) {
   root.AV = root.AV || {};
-  root.AV.VERSION = "js0.5.7";
+  root.AV.VERSION = "js0.5.8";
 }(this));
 
 //     Underscore.js 1.4.4
@@ -1646,7 +1646,7 @@
     if (objectId) {
       url += "/" + objectId;
     }
-    if((route ==='users' || route === 'classes') && dataObject._fetchWhenSave){
+    if ((route ==='users' || route === 'classes') && dataObject && dataObject._fetchWhenSave){
       delete dataObject._fetchWhenSave;
       url += '?new=true';
     }

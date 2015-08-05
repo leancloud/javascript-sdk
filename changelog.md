@@ -1,3 +1,6 @@
+# 0.5.8 日期：2015 年 8 月 5 日
+* 修复 `AV.Object.destroyAll` 新版本无法工作的 Bug。
+
 # 0.5.7 日期：2015 年 7 月 29 日
 * AV.Promise 仅在非 node 环境（如浏览器）默认启用 PromiseA+ 兼容模式
 * 增加 AV.Promise.setDebugError 方法，用于在启用 PromiseA+ 模式的时候打印错误信息，方便调试
