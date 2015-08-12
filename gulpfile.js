@@ -16,46 +16,10 @@ var order = require('gulp-order');
 var source = require('vinyl-source-stream');
 var browserify = require('browserify');
 
-var coreSources = [
-  'version.js',
-  'underscore.js',
-  'utils.js',
-  'error.js',
-  'event.js',
-  'geopoint.js',
-  'acl.js',
-  'op.js',
-  'relation.js',
-  'promise.js',
-  'file.js',
-  'object.js',
-  'role.js',
-  'user.js',
-  'query.js',
-  'cloudfunction.js',
-  'push.js',
-  'status.js',
-  'search.js',
-  'insight.js',
-  'bigquery.js'
-];
-
-var optionalSources = [
-  'facebook.js',
-  'history.js',
-  'router.js',
-  'collection.js',
-  'view.js'
-];
-
 
 getAVVersion = function() {
   return require('./lib/AV.js').AV.VERSION.replace('js', '');
 };
-
-gulp.task('localstorage', function() {
-  gulp.src(['lib/localStorage.js']).pipe(gulp.dest('dist'));
-});
 
 gulp.task('pack', shell.task([
   "find dist -not -iname 'av.js' -not -iname 'localStorage.js' -delete",
@@ -98,17 +62,18 @@ function uploadCDN(file, version, cb) {
    });
 }
 
-gulp.task('concat', concatGenerator(coreSources.concat(optionalSources), 'av.js'));
-gulp.task('concat_core', concatGenerator(coreSources, 'av-core.js'));
-
 gulp.task('browserify', function() {
-  var b = browserify({entries: './lib/av.js'});
-  return b.bundle()
+  var bundle = browserify({entries: './lib/av.js'});
+  bundle.bundle()
     .pipe(source('av.js'))
+    .pipe(gulp.dest('dist'));
+  var bundleCore = browserify({entries: './lib/av-core.js'});
+  bundleCore()
+    .pipe(source('av-core.js'))
     .pipe(gulp.dest('dist'));
 });
 
-gulp.task('uglify', ['concat'], function() {
+gulp.task('uglify', ['browserify'], function() {
   gulp.src('dist/av-core.js')
     .pipe(uglify())
     .pipe(rename('av-core-mini.js'))
@@ -176,5 +141,4 @@ gulp.task('upload', ['compress-scripts'], function(cb) {
 });
 
 
-gulp.task('release', ['concat', 'concat_core', 'uglify', 'compress-scripts', 'localstorage',
-          'docs', 'compress-docs']);
+gulp.task('release', ['browserify', 'uglify', 'compress-scripts', 'docs', 'compress-docs']);
