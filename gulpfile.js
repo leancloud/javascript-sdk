@@ -64,16 +64,19 @@ function uploadCDN(file, version, cb) {
 
 gulp.task('browserify', function() {
   var bundle = browserify({entries: './lib/av.js'});
-  bundle.bundle()
+  return bundle.bundle()
     .pipe(source('av.js'))
     .pipe(gulp.dest('dist'));
-  var bundleCore = browserify({entries: './lib/av-core.js'});
-  bundleCore()
+});
+
+gulp.task('browserify-core', function() {
+  var bundle = browserify({entries: './lib/av-core.js'});
+  return bundle.bundle()
     .pipe(source('av-core.js'))
     .pipe(gulp.dest('dist'));
 });
 
-gulp.task('uglify', ['browserify'], function() {
+gulp.task('uglify', ['browserify', 'browserify-core'], function() {
   gulp.src('dist/av-core.js')
     .pipe(uglify())
     .pipe(rename('av-core-mini.js'))
