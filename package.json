@@ -36,6 +36,6 @@
     "email": "xzhuang@avos.com"
   },
   "browser": {
-
+    "./lib/browserify-wrapper/upload.js": "./lib/browserify-wrapper/upload-browser.js"
   }
 }
