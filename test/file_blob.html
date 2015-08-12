@@ -1,0 +1,92 @@
+<button onclick='upload ();'>upload</button>
+<progress id="progressBar" value="0"></progress>
+<html>
+<head>
+    <title>Test</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../node_modules/mocha/mocha.css" />
+    <script src="../node_modules/mocha/mocha.js"></script>
+    <script src="../node_modules/expect.js/expect.js"></script>
+
+    <!--AV Test init-->
+
+
+    <script type="text/javascript">var serverURL="http://stg.paas.com/";</script>
+    <script src="../dist/av.js"></script>
+    <script>
+        var hasBlobConstructor = window.Blob && (function () {
+                            try {
+                                return Boolean(new Blob());
+                            } catch (e) {
+                                return false;
+                            }
+                        }()),
+                hasArrayBufferViewSupport = hasBlobConstructor && window.Uint8Array &&
+                        (function () {
+                            try {
+                                return new Blob([new Uint8Array(100)]).size === 100;
+                            } catch (e) {
+                                return false;
+                            }
+                        }()),
+                BlobBuilder = window.BlobBuilder || window.WebKitBlobBuilder ||
+                        window.MozBlobBuilder || window.MSBlobBuilder,
+                dataURLtoBlob = (hasBlobConstructor || BlobBuilder) && window.atob &&
+                        window.ArrayBuffer && window.Uint8Array && function (dataURI) {
+                            var byteString,
+                                    arrayBuffer,
+                                    intArray,
+                                    i,
+                                    mimeString,
+                                    bb;
+                            if (dataURI.split(',')[0].indexOf('base64') >= 0) {
+                                // Convert base64 to raw binary data held in a string:
+                                byteString = atob(dataURI.split(',')[1]);
+                            } else {
+                                // Convert base64/URLEncoded data component to raw binary data:
+                                byteString = decodeURIComponent(dataURI.split(',')[1]);
+                            }
+                            // Write the bytes of the string to an ArrayBuffer:
+                            arrayBuffer = new ArrayBuffer(byteString.length);
+                            intArray = new Uint8Array(arrayBuffer);
+                            for (i = 0; i < byteString.length; i += 1) {
+                                intArray[i] = byteString.charCodeAt(i);
+                            }
+                            // Separate out the mime component:
+                            mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+                            // Write the ArrayBuffer (or ArrayBufferView) to a blob:
+                            if (hasBlobConstructor) {
+                                return new Blob(
+                                        [hasArrayBufferViewSupport ? intArray : arrayBuffer],
+                                        {type: mimeString}
+                                );
+                            }
+                            bb = new BlobBuilder();
+                            bb.append(arrayBuffer);
+                            return bb.getBlob(mimeString);
+                        };
+        function upload (){
+            AV.serverURL="https://cn-stg1.avoscloud.com";
+            AV._initialize('mxrb5nn3qz7drek0etojy5lh4yrwjnk485lqajnsgjwfxrb5', 'd7sbus0d81mrum4tko4t8gl74b27vl0rh762ff7ngrb6ymmq', 'l0n9wu3kwnrtf2cg1b6w2l87nphzpypgff6240d0lxui2mm4');
+            AV._useMasterKey = true;
+            AV.setProduction(true);
+
+            var name = "photo.png";
+
+            var dataUrl = 'data:image/jpeg;base64,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';
+            var blob = dataURLtoBlob(dataUrl);
+            var avFile = new AV.File(name, {blob: blob});
+            var progressBar = document.getElementById("progressBar");
+            avFile.save({onProgress: function(e) {
+                console.debug(e.loaded + '/' + e.total);
+                progressBar.max = e.total;
+                progressBar.value = e.loaded;
+            }}, null).then(function() {
+                console.info('File saved');
+                console.dir(avFile);
+            }, function(error) {
+                console.error(error);
+            });
+        }
+    </script>
