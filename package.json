@@ -36,6 +36,8 @@
     "email": "xzhuang@avos.com"
   },
   "browser": {
-
+    "./lib/browserify-wrapper/upload.js": "./lib/browserify-wrapper/upload-browser.js",
+    "xmlhttprequest": "./lib/browserify-wrapper/xmlhttprequest-browser.js",
+    "localStorage": "./lib/browserify-wrapper/localstorage-browser.js"
   }
 }
