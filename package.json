@@ -8,6 +8,7 @@
     "url": "https://github.com/avoscloud/javascript-sdk"
   },
   "dependencies": {
+    "browserify": "^11.0.1",
     "localStorage": "^1.0.3",
     "qiniu": "6.1.3",
     "underscore": "^1.8.3",
