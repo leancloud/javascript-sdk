@@ -1,4 +1,6 @@
 var path = require('path');
+var qiniu = require('qiniu');
+var fs = require('fs');
 var gulp = require('gulp');
 var clean = require('gulp-clean');
 var concat = require("gulp-concat");
@@ -11,52 +13,16 @@ var shell = require('gulp-shell');
 var tar = require('gulp-tar');
 var uglify = require('gulp-uglify');
 var order = require('gulp-order');
-var qiniu = require('qiniu');
-var fs = require('fs');
-
-var coreSources = [
-  'version.js',
-  'underscore.js',
-  'utils.js',
-  'error.js',
-  'event.js',
-  'geopoint.js',
-  'acl.js',
-  'op.js',
-  'relation.js',
-  'promise.js',
-  'file.js',
-  'object.js',
-  'role.js',
-  'user.js',
-  'query.js',
-  'cloudfunction.js',
-  'push.js',
-  'status.js',
-  'search.js',
-  'insight.js',
-  'bigquery.js'
-];
-
-var optionalSources = [
-  'facebook.js',
-  'history.js',
-  'router.js',
-  'collection.js',
-  'view.js'
-];
+var source = require('vinyl-source-stream');
+var browserify = require('browserify');
 
 
 getAVVersion = function() {
   return require('./lib/AV.js').AV.VERSION.replace('js', '');
 };
 
-gulp.task('localstorage', function() {
-  gulp.src(['lib/localStorage.js']).pipe(gulp.dest('dist'));
-});
-
 gulp.task('pack', shell.task([
-  "find dist -not -iname 'av.js' -not -iname 'localStorage.js' -delete",
+  "rm -rf ./dist/",
   'rm -rf avos-javascript-sd',
   'rm -rf node_modules/',
   'rm -rf ./*.tgz',
@@ -71,7 +37,7 @@ function concatGenerator(sources, file) {
       .pipe(order(sources))
       .pipe(concat(file))
       .pipe(gulp.dest('dist'));
-  }
+  };
 }
 
 function uploadCDN(file, version, cb) {
@@ -96,10 +62,21 @@ function uploadCDN(file, version, cb) {
    });
 }
 
-gulp.task('concat', concatGenerator(coreSources.concat(optionalSources), 'av.js'));
-gulp.task('concat_core', concatGenerator(coreSources, 'av-core.js'));
+gulp.task('browserify', function() {
+  var bundle = browserify({entries: './lib/av-browser.js'});
+  return bundle.bundle()
+    .pipe(source('av.js'))
+    .pipe(gulp.dest('dist'));
+});
 
-gulp.task('uglify', ['concat'], function() {
+gulp.task('browserify-core', function() {
+  var bundle = browserify({entries: './lib/av-browser-core.js'});
+  return bundle.bundle()
+    .pipe(source('av-core.js'))
+    .pipe(gulp.dest('dist'));
+});
+
+gulp.task('uglify', ['browserify', 'browserify-core'], function() {
   gulp.src('dist/av-core.js')
     .pipe(uglify())
     .pipe(rename('av-core-mini.js'))
@@ -167,5 +144,4 @@ gulp.task('upload', ['compress-scripts'], function(cb) {
 });
 
 
-gulp.task('release', ['concat', 'concat_core', 'uglify', 'compress-scripts', 'localstorage',
-          'docs', 'compress-docs']);
+gulp.task('release', ['browserify', 'uglify', 'compress-scripts', 'docs', 'compress-docs']);
