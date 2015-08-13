@@ -22,7 +22,7 @@ getAVVersion = function() {
 };
 
 gulp.task('pack', shell.task([
-  "find dist -not -iname 'av.js' -not -iname 'localStorage.js' -delete",
+  "find dist -delete",
   'rm -rf avos-javascript-sd',
   'rm -rf node_modules/',
   'rm -rf ./*.tgz',
