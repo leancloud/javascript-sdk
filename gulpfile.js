@@ -22,7 +22,7 @@ getAVVersion = function() {
 };
 
 gulp.task('pack', shell.task([
-  "find dist -delete",
+  "rm -rf ./dist/",
   'rm -rf avos-javascript-sd',
   'rm -rf node_modules/',
   'rm -rf ./*.tgz',
