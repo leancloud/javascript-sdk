@@ -63,14 +63,14 @@ function uploadCDN(file, version, cb) {
 }
 
 gulp.task('browserify', function() {
-  var bundle = browserify({entries: './lib/av.js'});
+  var bundle = browserify({entries: './lib/av-browser.js'});
   return bundle.bundle()
     .pipe(source('av.js'))
     .pipe(gulp.dest('dist'));
 });
 
 gulp.task('browserify-core', function() {
-  var bundle = browserify({entries: './lib/av-core.js'});
+  var bundle = browserify({entries: './lib/av-browser-core.js'});
   return bundle.bundle()
     .pipe(source('av-core.js'))
     .pipe(gulp.dest('dist'));
