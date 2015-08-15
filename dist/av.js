@@ -1890,6 +1890,7 @@ module.exports = function(AV) {
       this._isBlob = true;
     } else if (typeof(File) !== "undefined" && data instanceof File) {
       this._source = readAsync(data, type);
+      this._isFileObject = true;
     } else if(AV._isNode && global.Buffer.isBuffer(data)) {
       // use global.Buffer to prevent browserify pack Buffer module
       this._source = AV.Promise.as(data.toString('base64'), guessedType);
@@ -2099,7 +2100,7 @@ module.exports = function(AV) {
      * @param {Object} options A Backbone-style options object.
      * @return {AV.Promise} Promise that is resolved when the save finishes.
      */
-    save: function() {
+save: function() {
       var options = null;
       var saveOptions = {};
       if(arguments.length === 1) {
@@ -2111,10 +2112,11 @@ module.exports = function(AV) {
       var self = this;
       if (!self._previousSave) {
         if(self._source) {
-          if (this._isBlob) {
+          if (this._isBlob || this._isFileObject) {
             // TODO: remove this code and use qiniu SDK
-            self._previousSave = self._source.then(function(blob, type) {
-              self._blob = blob;
+            var dataFormat;
+            self._previousSave = self._source.then(function(data, type) {
+              dataFormat = data;
               return self._qiniuToken(type);
             }).then(function(response) {
               self._url = response.url;
@@ -2124,7 +2126,7 @@ module.exports = function(AV) {
               var uptoken = response.token;
 
               var data = new FormData();
-              data.append("file", self._blob, self._name);
+              data.append("file", dataFormat, self._name);
               data.append("key", self._qiniu_key);
               data.append("token", uptoken);
 
@@ -2147,7 +2149,6 @@ module.exports = function(AV) {
                   handled = true;
 
                   delete self._qiniu_key;
-                  delete self._blob;
                   if (xhr.status >= 200 && xhr.status < 300) {
                     var response;
                     try {
