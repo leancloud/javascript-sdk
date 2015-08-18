@@ -19,7 +19,7 @@ $ bower install leancloud-javascript-sdk
 
 ```html
 <script src="https://cdn1.lncld.net/static/js/av-mini-{版本号}.js"></script>
-//或者你只是用最核心的存储、推送等功能，可以使用精简版的core.js
+// 或者你只是用最核心的存储、推送等功能，可以使用精简版的core.js
 <script src="https://cdn1.lncld.net/static/js/av-core-mini-{版本号}.js"></script>
 ```
 
@@ -47,10 +47,6 @@ npm install
 gulp pack       
 gulp release    
 ```
-
-# 协议
-
-[MIT License](http://opensource.org/licenses/MIT)
 
 # 内部发布
 
@@ -89,3 +85,6 @@ npm publish
 gulp upload
 ```
 
+# License
+
+[MIT License](http://opensource.org/licenses/MIT)
