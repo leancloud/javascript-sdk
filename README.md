@@ -1,6 +1,6 @@
-# LeanCloud Javascript SDK
+# LeanCloud JavaScript SDK
 
-Javascript SDK for [LeanCloud](http://leancloud.cn).
+JavaScript SDK for [LeanCloud](http://leancloud.cn/).
 
 # 安装
 
@@ -30,7 +30,7 @@ $ bower install leancloud-javascript-sdk
 # 开发指南
 
 * [JavaScript SDK 开发指南](http://leancloud.cn/docs/js_guide.html)
-* [JavaScript SDK API文档](http://leancloud.cn/docs/api/javascript/index.html)
+* [JavaScript SDK API 文档](http://leancloud.cn/docs/api/javascript/index.html)
 * [云代码开发指南](http://leancloud.cn/docs/cloud_code_guide.html)
 
 
@@ -60,7 +60,7 @@ gulp release
 * package.json
 * bower.json
 
-## 修改 changelog
+## 修改 Changelog
 
 ## Release
 
@@ -68,11 +68,11 @@ gulp release
 gulp release
 ```
 
-## 提交，打上 tag 并推送到 Github
+## 提交，打上 tag 并推送到 GitHub
 
-tag 要求为 `v{版本号}`, dist 目录也需要更新提交。
+tag 要求为 `v{版本号}`，dist 目录也需要更新提交。
 
-## 发布到 bower 
+## 发布到 bower
 ```
 bower register leancloud-javascript-sdk git@github.com:leancloud/javascript-sdk.git
 ```
