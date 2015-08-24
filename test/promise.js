@@ -25,6 +25,7 @@ describe('promise', function() {
 
 
   describe('AV.Promise._debugError', function() {
+    AV.Promise._isPromisesAPlusCompliant = true;
     it('should log error', function(done) {
       AV.Promise.setDebugError(true);
       var p = new AV.Promise();
@@ -34,6 +35,7 @@ describe('promise', function() {
       p.resolve(100);
       p.finally(function(){
          AV.Promise.setDebugError(false);
+         AV.Promise._isPromisesAPlusCompliant = false;
         done();
       });
     });
@@ -198,6 +200,7 @@ describe('promise', function() {
         expect(error).to.be(1);
         //should be 1 ms
         expect(Date.now() - startDate).to.be.within(0, 10);
+        AV.Promise._isPromisesAPlusCompliant = false;
         setTimeout(done, 500);
      }).done(function(ret){
         throw ret;
@@ -208,6 +211,7 @@ describe('promise', function() {
 
   describe('PromiseAPlusCompliant', function() {
     it('should catch all them.', function(done) {
+      AV.Promise._isPromisesAPlusCompliant = true;
       new AV.Promise(function(resolve, reject) {
         return resolve(123);
       })
@@ -216,11 +220,14 @@ describe('promise', function() {
       })
       .then(function(){}, function(error) {
         expect(error.code).to.be(1);
+        AV.Promise._isPromisesAPlusCompliant = false;
         done();
       })
     });
 
     it('shoud work in order', function(done) {
+      AV.Promise._isPromisesAPlusCompliant = true;
+
       this.timeout(10000);
       var ret = [];
       var a = new AV.Promise(function(resolve){
@@ -255,6 +262,7 @@ describe('promise', function() {
             done();
          }, 300);
         }, 500);
+        AV.Promise._isPromisesAPlusCompliant = false;
         done();
       }, 300);
 
@@ -262,6 +270,7 @@ describe('promise', function() {
   });
 
   describe('AV.Promise.race', function(){
+    AV.Promise._isPromisesAPlusCompliant = true;
     it('should be called once.', function(done) {
       var wasCalled = false;
       AV.Promise.race([
@@ -273,10 +282,12 @@ describe('promise', function() {
         if (wasCalled) throw 'error';
         wasCalled = true;
         expect(value).to.be(1);
+        AV.Promise._isPromisesAPlusCompliant = false;
         done();
       });
     });
     it('should run all promises.', function(done) {
+      AV.Promise._isPromisesAPlusCompliant = true;
       var results = [];
       var timerPromisefy2 = function(delay) {
         return new AV.Promise(function (resolve, reject) {
@@ -307,6 +318,7 @@ describe('promise', function() {
         expect(results[1]).to.be(32);
         expect(results[2]).to.be(64);
         expect(results[3]).to.be(128);
+        AV.Promise._isPromisesAPlusCompliant = false;
         done();
       }, 500);
     });
