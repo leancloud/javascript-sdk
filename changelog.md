@@ -1,3 +1,11 @@
+# 0.6.0 日期：2015 年 8 月 25 日
+
+* AV.File 在浏览器环境下直接上传文件到七牛，再无大小和频率限制。
+* 新增 API  AV.Cloud.getServerDate 用于获取当前服务器时间。 
+* 修改美国节点 API 域名为 us-api.leancloud.cn
+* 使用 browserify 构建 SDK。
+* 相同应用重复初始化 SDK 避免告警日志。
+
 # 0.5.8 日期：2015 年 8 月 5 日
 * 修复 `AV.Object.destroyAll` 新版本无法工作的 Bug。
 

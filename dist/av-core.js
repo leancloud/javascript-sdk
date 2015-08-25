@@ -1,50 +1,4 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-/*!
- * AVOSCloud JavaScript SDK
- * Built: Mon Jun 03 2013 13:45:00
- * https://leancloud.cn
- *
- * Copyright 2015 LeanCloud.cn, Inc.
- * The AVOS Cloud JavaScript SDK is freely distributable under the MIT license.
- */
-
-var AV = module.exports = {};
-
-AV._ = require('underscore');
-AV.VERSION = require('./version');
-AV.Promise = require('./promise');
-AV.XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
-AV.localStorage = require('localStorage');
-
-// 以下模块为了兼容原有代码，使用这种加载方式。
-// The module order is important.
-require('./utils')(AV);
-require('./error')(AV);
-require('./event')(AV);
-require('./geopoint')(AV);
-require('./acl')(AV);
-require('./op')(AV);
-require('./relation')(AV);
-require('./file')(AV);
-require('./object')(AV);
-require('./role')(AV);
-require('./collection')(AV);
-require('./view')(AV);
-require('./user')(AV);
-require('./query')(AV);
-require('./facebook')(AV);
-require('./history')(AV);
-require('./router')(AV);
-require('./cloudfunction')(AV);
-require('./push')(AV);
-require('./status')(AV);
-require('./search')(AV);
-require('./insight')(AV);
-require('./bigquery')(AV);
-
-AV.AV = AV; // Backward compatibility
-
-},{"./acl":2,"./bigquery":4,"./cloudfunction":9,"./collection":10,"./error":11,"./event":12,"./facebook":13,"./file":14,"./geopoint":15,"./history":16,"./insight":17,"./object":18,"./op":19,"./promise":20,"./push":21,"./query":22,"./relation":23,"./role":24,"./router":25,"./search":26,"./status":27,"./user":28,"./utils":29,"./version":30,"./view":31,"localStorage":5,"underscore":34,"xmlhttprequest":8}],2:[function(require,module,exports){
 'use strict';
 var _ = require('underscore');
 
@@ -306,16 +260,50 @@ module.exports = function(AV) {
 
 };
 
-},{"underscore":34}],3:[function(require,module,exports){
+},{"underscore":28}],2:[function(require,module,exports){
 (function (global){
-'use strict';
+/*!
+ * AVOSCloud JavaScript SDK
+ * Built: Mon Jun 03 2013 13:45:00
+ * https://leancloud.cn
+ *
+ * Copyright 2015 LeanCloud.cn, Inc.
+ * The AVOS Cloud JavaScript SDK is freely distributable under the MIT license.
+ */
 
-var AV = require('./AV');
+var AV = {};
+
+AV._ = require('underscore');
+AV.VERSION = require('./version');
+AV.Promise = require('./promise');
+AV.XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
+AV.localStorage = require('localStorage');
+
+// 以下模块为了兼容原有代码，使用这种加载方式。
+// The module order is important.
+require('./utils')(AV);
+require('./error')(AV);
+require('./event')(AV);
+require('./geopoint')(AV);
+require('./acl')(AV);
+require('./op')(AV);
+require('./relation')(AV);
+require('./file')(AV);
+require('./object')(AV);
+require('./role')(AV);
+require('./user')(AV);
+require('./query')(AV);
+require('./cloudfunction')(AV);
+require('./push')(AV);
+require('./status')(AV);
+require('./search')(AV);
+require('./insight')(AV);
+require('./bigquery')(AV);
 
 global.AV = AV;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./AV":1}],4:[function(require,module,exports){
+},{"./acl":1,"./bigquery":3,"./cloudfunction":8,"./error":9,"./event":10,"./file":11,"./geopoint":12,"./insight":13,"./object":14,"./op":15,"./promise":16,"./push":17,"./query":18,"./relation":19,"./role":20,"./search":21,"./status":22,"./user":23,"./utils":24,"./version":25,"localStorage":4,"underscore":28,"xmlhttprequest":7}],3:[function(require,module,exports){
 'use strict';
 
 module.exports = function(AV) {
@@ -335,14 +323,14 @@ module.exports = function(AV) {
   });
 };
 
-},{}],5:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 (function (global){
 'use strict';
 
 module.exports = global.localStorage;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],6:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 'use strict';
 
 var dataURItoBlob = function(dataURI, type) {
@@ -367,7 +355,7 @@ var dataURItoBlob = function(dataURI, type) {
 
 module.exports = dataURItoBlob;
 
-},{}],7:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 'use strict';
 
 module.exports = function upload(file, AV, saveOptions) {
@@ -434,14 +422,14 @@ module.exports = function upload(file, AV, saveOptions) {
   });
 };
 
-},{}],8:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 (function (global){
 'use strict';
 
 exports.XMLHttpRequest = global.XMLHttpRequest;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],9:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 'use strict';
 
 var _ = require('underscore');
@@ -543,412 +531,7 @@ module.exports = function(AV) {
   });
 };
 
-},{"underscore":34}],10:[function(require,module,exports){
-'use strict';
-
-var _ = require('underscore');
-
-module.exports = function(AV) {
-  /**
-   * Creates a new instance with the given models and options.  Typically, you
-   * will not call this method directly, but will instead make a subclass using
-   * <code>AV.Collection.extend</code>.
-   *
-   * @param {Array} models An array of instances of <code>AV.Object</code>.
-   *
-   * @param {Object} options An optional object with Backbone-style options.
-   * Valid options are:<ul>
-   *   <li>model: The AV.Object subclass that this collection contains.
-   *   <li>query: An instance of AV.Query to use when fetching items.
-   *   <li>comparator: A string property name or function to sort by.
-   * </ul>
-   *
-   * @see AV.Collection.extend
-   *
-   * @class
-   *
-   * <p>Provides a standard collection class for our sets of models, ordered
-   * or unordered.  For more information, see the
-   * <a href="http://documentcloud.github.com/backbone/#Collection">Backbone
-   * documentation</a>.</p>
-   */
-  AV.Collection = function(models, options) {
-    console.warn("AV.Collection is deprecated, please don't use it anymore.");
-    options = options || {};
-    if (options.comparator) {
-      this.comparator = options.comparator;
-    }
-    if (options.model) {
-      this.model = options.model;
-    }
-    if (options.query) {
-      this.query = options.query;
-    }
-    this._reset();
-    this.initialize.apply(this, arguments);
-    if (models) {
-      this.reset(models, {silent: true, parse: options.parse});
-    }
-  };
-
-  // Define the Collection's inheritable methods.
-  _.extend(AV.Collection.prototype, AV.Events,
-      /** @lends AV.Collection.prototype */ {
-
-    // The default model for a collection is just a AV.Object.
-    // This should be overridden in most cases.
-
-    model: AV.Object,
-
-    /**
-     * Initialize is an empty function by default. Override it with your own
-     * initialization logic.
-     */
-    initialize: function(){},
-
-    /**
-     * The JSON representation of a Collection is an array of the
-     * models' attributes.
-     */
-    toJSON: function() {
-      return this.map(function(model){ return model.toJSON(); });
-    },
-
-    /**
-     * Add a model, or list of models to the set. Pass **silent** to avoid
-     * firing the `add` event for every new model.
-     */
-    add: function(models, options) {
-      var i, index, length, model, cid, id, cids = {}, ids = {};
-      options = options || {};
-      models = _.isArray(models) ? models.slice() : [models];
-
-      // Begin by turning bare objects into model references, and preventing
-      // invalid models or duplicate models from being added.
-      for (i = 0, length = models.length; i < length; i++) {
-        models[i] = this._prepareModel(models[i], options);
-        model = models[i];
-        if (!model) {
-          throw new Error("Can't add an invalid model to a collection");
-        }
-        cid = model.cid;
-        if (cids[cid] || this._byCid[cid]) {
-          throw new Error("Duplicate cid: can't add the same model " +
-                          "to a collection twice");
-        }
-        id = model.id;
-        if (!AV._isNullOrUndefined(id) && (ids[id] || this._byId[id])) {
-          throw new Error("Duplicate id: can't add the same model " +
-                          "to a collection twice");
-        }
-        ids[id] = model;
-        cids[cid] = model;
-      }
-
-      // Listen to added models' events, and index models for lookup by
-      // `id` and by `cid`.
-      for (i = 0; i < length; i++) {
-        (model = models[i]).on('all', this._onModelEvent, this);
-        this._byCid[model.cid] = model;
-        if (model.id) {
-          this._byId[model.id] = model;
-        }
-      }
-
-      // Insert models into the collection, re-sorting if needed, and triggering
-      // `add` events unless silenced.
-      this.length += length;
-      index = AV._isNullOrUndefined(options.at) ?
-          this.models.length : options.at;
-      this.models.splice.apply(this.models, [index, 0].concat(models));
-      if (this.comparator) {
-        this.sort({silent: true});
-      }
-      if (options.silent) {
-        return this;
-      }
-      for (i = 0, length = this.models.length; i < length; i++) {
-        model = this.models[i];
-        if (cids[model.cid]) {
-          options.index = i;
-          model.trigger('add', model, this, options);
-        }
-      }
-      return this;
-    },
-
-    /**
-     * Remove a model, or a list of models from the set. Pass silent to avoid
-     * firing the <code>remove</code> event for every model removed.
-     */
-    remove: function(models, options) {
-      var i, l, index, model;
-      options = options || {};
-      models = _.isArray(models) ? models.slice() : [models];
-      for (i = 0, l = models.length; i < l; i++) {
-        model = this.getByCid(models[i]) || this.get(models[i]);
-        if (!model) {
-          continue;
-        }
-        delete this._byId[model.id];
-        delete this._byCid[model.cid];
-        index = this.indexOf(model);
-        this.models.splice(index, 1);
-        this.length--;
-        if (!options.silent) {
-          options.index = index;
-          model.trigger('remove', model, this, options);
-        }
-        this._removeReference(model);
-      }
-      return this;
-    },
-
-    /**
-     * Gets a model from the set by id.
-     */
-    get: function(id) {
-      return id && this._byId[id.id || id];
-    },
-
-    /**
-     * Gets a model from the set by client id.
-     */
-    getByCid: function(cid) {
-      return cid && this._byCid[cid.cid || cid];
-    },
-
-    /**
-     * Gets the model at the given index.
-     */
-    at: function(index) {
-      return this.models[index];
-    },
-
-    /**
-     * Forces the collection to re-sort itself. You don't need to call this
-     * under normal circumstances, as the set will maintain sort order as each
-     * item is added.
-     */
-    sort: function(options) {
-      options = options || {};
-      if (!this.comparator) {
-        throw new Error('Cannot sort a set without a comparator');
-      }
-      var boundComparator = _.bind(this.comparator, this);
-      if (this.comparator.length === 1) {
-        this.models = this.sortBy(boundComparator);
-      } else {
-        this.models.sort(boundComparator);
-      }
-      if (!options.silent) {
-        this.trigger('reset', this, options);
-      }
-      return this;
-    },
-
-    /**
-     * Plucks an attribute from each model in the collection.
-     */
-    pluck: function(attr) {
-      return _.map(this.models, function(model){ return model.get(attr); });
-    },
-
-    /**
-     * When you have more items than you want to add or remove individually,
-     * you can reset the entire set with a new list of models, without firing
-     * any `add` or `remove` events. Fires `reset` when finished.
-     */
-    reset: function(models, options) {
-      var self = this;
-      models = models || [];
-      options = options || {};
-      AV._arrayEach(this.models, function(model) {
-        self._removeReference(model);
-      });
-      this._reset();
-      this.add(models, {silent: true, parse: options.parse});
-      if (!options.silent) {
-        this.trigger('reset', this, options);
-      }
-      return this;
-    },
-
-    /**
-     * Fetches the default set of models for this collection, resetting the
-     * collection when they arrive. If `add: true` is passed, appends the
-     * models to the collection instead of resetting.
-     */
-    fetch: function(options) {
-      options = _.clone(options) || {};
-      if (options.parse === undefined) {
-        options.parse = true;
-      }
-      var collection = this;
-      var query = this.query || new AV.Query(this.model);
-      return query.find().then(function(results) {
-        if (options.add) {
-          collection.add(results, options);
-        } else {
-          collection.reset(results, options);
-        }
-        return collection;
-      })._thenRunCallbacks(options, this);
-    },
-
-    /**
-     * Creates a new instance of a model in this collection. Add the model to
-     * the collection immediately, unless `wait: true` is passed, in which case
-     * we wait for the server to agree.
-     */
-    create: function(model, options) {
-      var coll = this;
-      options = options ? _.clone(options) : {};
-      model = this._prepareModel(model, options);
-      if (!model) {
-        return false;
-      }
-      if (!options.wait) {
-        coll.add(model, options);
-      }
-      var success = options.success;
-      options.success = function(nextModel, resp, xhr) {
-        if (options.wait) {
-          coll.add(nextModel, options);
-        }
-        if (success) {
-          success(nextModel, resp);
-        } else {
-          nextModel.trigger('sync', model, resp, options);
-        }
-      };
-      model.save(null, options);
-      return model;
-    },
-
-    /**
-     * Converts a response into a list of models to be added to the collection.
-     * The default implementation is just to pass it through.
-     * @ignore
-     */
-    parse: function(resp, xhr) {
-      return resp;
-    },
-
-    /**
-     * Proxy to _'s chain. Can't be proxied the same way the rest of the
-     * underscore methods are proxied because it relies on the underscore
-     * constructor.
-     */
-    chain: function() {
-      return _(this.models).chain();
-    },
-
-    /**
-     * Reset all internal state. Called when the collection is reset.
-     */
-    _reset: function(options) {
-      this.length = 0;
-      this.models = [];
-      this._byId  = {};
-      this._byCid = {};
-    },
-
-    /**
-     * Prepare a model or hash of attributes to be added to this collection.
-     */
-    _prepareModel: function(model, options) {
-      if (!(model instanceof AV.Object)) {
-        var attrs = model;
-        options.collection = this;
-        model = new this.model(attrs, options);
-        if (!model._validate(model.attributes, options)) {
-          model = false;
-        }
-      } else if (!model.collection) {
-        model.collection = this;
-      }
-      return model;
-    },
-
-    /**
-     * Internal method to remove a model's ties to a collection.
-     */
-    _removeReference: function(model) {
-      if (this === model.collection) {
-        delete model.collection;
-      }
-      model.off('all', this._onModelEvent, this);
-    },
-
-    /**
-     * Internal method called every time a model in the set fires an event.
-     * Sets need to update their indexes when models change ids. All other
-     * events simply proxy through. "add" and "remove" events that originate
-     * in other collections are ignored.
-     */
-    _onModelEvent: function(ev, model, collection, options) {
-      if ((ev === 'add' || ev === 'remove') && collection !== this) {
-        return;
-      }
-      if (ev === 'destroy') {
-        this.remove(model, options);
-      }
-      if (model && ev === 'change:objectId') {
-        delete this._byId[model.previous("objectId")];
-        this._byId[model.id] = model;
-      }
-      this.trigger.apply(this, arguments);
-    }
-
-  });
-
-  // Underscore methods that we want to implement on the Collection.
-  var methods = ['forEach', 'each', 'map', 'reduce', 'reduceRight', 'find',
-    'detect', 'filter', 'select', 'reject', 'every', 'all', 'some', 'any',
-    'include', 'contains', 'invoke', 'max', 'min', 'sortBy', 'sortedIndex',
-    'toArray', 'size', 'first', 'initial', 'rest', 'last', 'without', 'indexOf',
-    'shuffle', 'lastIndexOf', 'isEmpty', 'groupBy'];
-
-  // Mix in each Underscore method as a proxy to `Collection#models`.
-  AV._arrayEach(methods, function(method) {
-    AV.Collection.prototype[method] = function() {
-      return _[method].apply(_, [this.models].concat(_.toArray(arguments)));
-    };
-  });
-
-  /**
-   * Creates a new subclass of <code>AV.Collection</code>.  For example,<pre>
-   *   var MyCollection = AV.Collection.extend({
-   *     // Instance properties
-   *
-   *     model: MyClass,
-   *     query: MyQuery,
-   *
-   *     getFirst: function() {
-   *       return this.at(0);
-   *     }
-   *   }, {
-   *     // Class properties
-   *
-   *     makeOne: function() {
-   *       return new MyCollection();
-   *     }
-   *   });
-   *
-   *   var collection = new MyCollection();
-   * </pre>
-   *
-   * @function
-   * @param {Object} instanceProps Instance properties for the collection.
-   * @param {Object} classProps Class properies for the collection.
-   * @return {Class} A new subclass of <code>AV.Collection</code>.
-   */
-  AV.Collection.extend = AV._extend;
-
-};
-
-},{"underscore":34}],11:[function(require,module,exports){
+},{"underscore":28}],9:[function(require,module,exports){
 'use strict';
 
 var _ = require('underscore');
@@ -1296,7 +879,7 @@ module.exports = function(AV) {
 
 };
 
-},{"underscore":34}],12:[function(require,module,exports){
+},{"underscore":28}],10:[function(require,module,exports){
 /*global _: false */
 module.exports = function(AV) {
   var eventSplitter = /\s+/;
@@ -1451,194 +1034,7 @@ module.exports = function(AV) {
   AV.Events.unbind = AV.Events.off;
 };
 
-},{}],13:[function(require,module,exports){
-'use strict';
-
-var _ = require('underscore');
-
-/*global FB: false , console: false*/
-module.exports = function(AV) {
-  var PUBLIC_KEY = "*";
-
-  var initialized = false;
-  var requestedPermissions;
-  var initOptions;
-  var provider = {
-    authenticate: function(options) {
-      var self = this;
-      FB.login(function(response) {
-        if (response.authResponse) {
-          if (options.success) {
-            options.success(self, {
-              id: response.authResponse.userID,
-              access_token: response.authResponse.accessToken,
-              expiration_date: new Date(response.authResponse.expiresIn * 1000 +
-                  (new Date()).getTime()).toJSON()
-            });
-          }
-        } else {
-          if (options.error) {
-            options.error(self, response);
-          }
-        }
-      }, {
-        scope: requestedPermissions
-      });
-    },
-    restoreAuthentication: function(authData) {
-      if (authData) {
-        var authResponse = {
-          userID: authData.id,
-          accessToken: authData.access_token,
-          expiresIn: (AV._parseDate(authData.expiration_date).getTime() -
-              (new Date()).getTime()) / 1000
-        };
-        var newOptions = _.clone(initOptions);
-        newOptions.authResponse = authResponse;
-
-        // Suppress checks for login status from the browser.
-        newOptions.status = false;
-        FB.init(newOptions);
-      }
-      return true;
-    },
-    getAuthType: function() {
-      return "facebook";
-    },
-    deauthenticate: function() {
-      this.restoreAuthentication(null);
-      FB.logout();
-    }
-  };
-
-  /**
-   * Provides a set of utilities for using AV with Facebook.
-   * @namespace
-   * Provides a set of utilities for using AV with Facebook.
-   */
-  AV.FacebookUtils = {
-    /**
-     * Initializes AV Facebook integration.  Call this function after you
-     * have loaded the Facebook Javascript SDK with the same parameters
-     * as you would pass to<code>
-     * <a href=
-     * "https://developers.facebook.com/docs/reference/javascript/FB.init/">
-     * FB.init()</a></code>.  AV.FacebookUtils will invoke FB.init() for you
-     * with these arguments.
-     *
-     * @param {Object} options Facebook options argument as described here:
-     *   <a href=
-     *   "https://developers.facebook.com/docs/reference/javascript/FB.init/">
-     *   FB.init()</a>. The status flag will be coerced to 'false' because it
-     *   interferes with AV Facebook integration. Call FB.getLoginStatus()
-     *   explicitly if this behavior is required by your application.
-     */
-    init: function(options) {
-      console.warn("AV.FacebookUtils is deprecated, please don't use it anymore.");
-      if (typeof(FB) === 'undefined') {
-        throw "The Facebook JavaScript SDK must be loaded before calling init.";
-      }
-      initOptions = _.clone(options) || {};
-      if (initOptions.status && typeof(console) !== "undefined") {
-        var warn = console.warn || console.log || function() {};
-        warn.call(console, "The 'status' flag passed into" +
-          " FB.init, when set to true, can interfere with AV Facebook" +
-          " integration, so it has been suppressed. Please call" +
-          " FB.getLoginStatus() explicitly if you require this behavior.");
-      }
-      initOptions.status = false;
-      FB.init(initOptions);
-      AV.User._registerAuthenticationProvider(provider);
-      initialized = true;
-    },
-
-    /**
-     * Gets whether the user has their account linked to Facebook.
-     *
-     * @param {AV.User} user User to check for a facebook link.
-     *     The user must be logged in on this device.
-     * @return {Boolean} <code>true</code> if the user has their account
-     *     linked to Facebook.
-     */
-    isLinked: function(user) {
-      return user._isLinked("facebook");
-    },
-
-    /**
-     * Logs in a user using Facebook. This method delegates to the Facebook
-     * SDK to authenticate the user, and then automatically logs in (or
-     * creates, in the case where it is a new user) a AV.User.
-     *
-     * @param {String, Object} permissions The permissions required for Facebook
-     *    log in.  This is a comma-separated string of permissions.
-     *    Alternatively, supply a Facebook authData object as described in our
-     *    REST API docs if you want to handle getting facebook auth tokens
-     *    yourself.
-     * @param {Object} options Standard options object with success and error
-     *    callbacks.
-     */
-    logIn: function(permissions, options) {
-      if (!permissions || _.isString(permissions)) {
-        if (!initialized) {
-          throw "You must initialize FacebookUtils before calling logIn.";
-        }
-        requestedPermissions = permissions;
-        return AV.User._logInWith("facebook", options);
-      } else {
-        var newOptions = _.clone(options) || {};
-        newOptions.authData = permissions;
-        return AV.User._logInWith("facebook", newOptions);
-      }
-    },
-
-    /**
-     * Links Facebook to an existing PFUser. This method delegates to the
-     * Facebook SDK to authenticate the user, and then automatically links
-     * the account to the AV.User.
-     *
-     * @param {AV.User} user User to link to Facebook. This must be the
-     *     current user.
-     * @param {String, Object} permissions The permissions required for Facebook
-     *    log in.  This is a comma-separated string of permissions.
-     *    Alternatively, supply a Facebook authData object as described in our
-     *    REST API docs if you want to handle getting facebook auth tokens
-     *    yourself.
-     * @param {Object} options Standard options object with success and error
-     *    callbacks.
-     */
-    link: function(user, permissions, options) {
-      if (!permissions || _.isString(permissions)) {
-        if (!initialized) {
-          throw "You must initialize FacebookUtils before calling link.";
-        }
-        requestedPermissions = permissions;
-        return user._linkWith("facebook", options);
-      } else {
-        var newOptions = _.clone(options) || {};
-        newOptions.authData = permissions;
-        return user._linkWith("facebook", newOptions);
-      }
-    },
-
-    /**
-     * Unlinks the AV.User from a Facebook account.
-     *
-     * @param {AV.User} user User to unlink from Facebook. This must be the
-     *     current user.
-     * @param {Object} options Standard options object with success and error
-     *    callbacks.
-     */
-    unlink: function(user, options) {
-      if (!initialized) {
-        throw "You must initialize FacebookUtils before calling unlink.";
-      }
-      return user._unlinkFrom("facebook", options);
-    }
-  };
-
-};
-
-},{"underscore":34}],14:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -2228,7 +1624,7 @@ module.exports = function(AV) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./browserify-wrapper/parse-base64":6,"./browserify-wrapper/upload":7,"path":32,"underscore":34}],15:[function(require,module,exports){
+},{"./browserify-wrapper/parse-base64":5,"./browserify-wrapper/upload":6,"path":26,"underscore":28}],12:[function(require,module,exports){
 var _ = require('underscore');
 
 /*global navigator: false */
@@ -2402,271 +1798,7 @@ module.exports = function(AV) {
   };
 };
 
-},{"underscore":34}],16:[function(require,module,exports){
-'use strict';
-
-var _ = require('underscore');
-
-/*global _: false, document: false, window: false, navigator: false */
-module.exports = function(AV) {
-  /**
-   * History serves as a global router (per frame) to handle hashchange
-   * events or pushState, match the appropriate route, and trigger
-   * callbacks. You shouldn't ever have to create one of these yourself
-   * — you should use the reference to <code>AV.history</code>
-   * that will be created for you automatically if you make use of
-   * Routers with routes.
-   * @class
-   *
-   * <p>A fork of Backbone.History, provided for your convenience.  If you
-   * use this class, you must also include jQuery, or another library
-   * that provides a jQuery-compatible $ function.  For more information,
-   * see the <a href="http://documentcloud.github.com/backbone/#History">
-   * Backbone documentation</a>.</p>
-   * <p><strong><em>Available in the client SDK only.</em></strong></p>
-   */
-  AV.History = function() {
-    console.warn("AV.History is deprecated, please don't use it anymore.");
-    this.handlers = [];
-    _.bindAll(this, 'checkUrl');
-  };
-
-  // Cached regex for cleaning leading hashes and slashes .
-  var routeStripper = /^[#\/]/;
-
-  // Cached regex for detecting MSIE.
-  var isExplorer = /msie [\w.]+/;
-
-  // Has the history handling already been started?
-  AV.History.started = false;
-
-  // Set up all inheritable **AV.History** properties and methods.
-  _.extend(AV.History.prototype, AV.Events,
-           /** @lends AV.History.prototype */ {
-
-    // The default interval to poll for hash changes, if necessary, is
-    // twenty times a second.
-    interval: 50,
-
-    // Gets the true hash value. Cannot use location.hash directly due to bug
-    // in Firefox where location.hash will always be decoded.
-    getHash: function(windowOverride) {
-      var loc = windowOverride ? windowOverride.location : window.location;
-      var match = loc.href.match(/#(.*)$/);
-      return match ? match[1] : '';
-    },
-
-    // Get the cross-browser normalized URL fragment, either from the URL,
-    // the hash, or the override.
-    getFragment: function(fragment, forcePushState) {
-      if (AV._isNullOrUndefined(fragment)) {
-        if (this._hasPushState || forcePushState) {
-          fragment = window.location.pathname;
-          var search = window.location.search;
-          if (search) {
-            fragment += search;
-          }
-        } else {
-          fragment = this.getHash();
-        }
-      }
-      if (!fragment.indexOf(this.options.root)) {
-        fragment = fragment.substr(this.options.root.length);
-      }
-      return fragment.replace(routeStripper, '');
-    },
-
-    /**
-     * Start the hash change handling, returning `true` if the current
-     * URL matches an existing route, and `false` otherwise.
-     */
-    start: function(options) {
-      if (AV.History.started) {
-        throw new Error("AV.history has already been started");
-      }
-      AV.History.started = true;
-
-      // Figure out the initial configuration. Do we need an iframe?
-      // Is pushState desired ... is it available?
-      this.options = _.extend({}, {root: '/'}, this.options, options);
-      this._wantsHashChange = this.options.hashChange !== false;
-      this._wantsPushState = !!this.options.pushState;
-      this._hasPushState = !!(this.options.pushState &&
-                              window.history &&
-                              window.history.pushState);
-      var fragment = this.getFragment();
-      var docMode = document.documentMode;
-      var oldIE = (isExplorer.exec(navigator.userAgent.toLowerCase()) &&
-                   (!docMode || docMode <= 7));
-
-      if (oldIE) {
-        this.iframe = AV.$('<iframe src="javascript:0" tabindex="-1" />')
-                      .hide().appendTo('body')[0].contentWindow;
-        this.navigate(fragment);
-      }
-
-      // Depending on whether we're using pushState or hashes, and whether
-      // 'onhashchange' is supported, determine how we check the URL state.
-      if (this._hasPushState) {
-        AV.$(window).bind('popstate', this.checkUrl);
-      } else if (this._wantsHashChange &&
-                 ('onhashchange' in window) &&
-                 !oldIE) {
-        AV.$(window).bind('hashchange', this.checkUrl);
-      } else if (this._wantsHashChange) {
-        this._checkUrlInterval = window.setInterval(this.checkUrl,
-                                                    this.interval);
-      }
-
-      // Determine if we need to change the base url, for a pushState link
-      // opened by a non-pushState browser.
-      this.fragment = fragment;
-      var loc = window.location;
-      var atRoot  = loc.pathname === this.options.root;
-
-      // If we've started off with a route from a `pushState`-enabled browser,
-      // but we're currently in a browser that doesn't support it...
-      if (this._wantsHashChange &&
-          this._wantsPushState &&
-          !this._hasPushState &&
-          !atRoot) {
-        this.fragment = this.getFragment(null, true);
-        window.location.replace(this.options.root + '#' + this.fragment);
-        // Return immediately as browser will do redirect to new url
-        return true;
-
-      // Or if we've started out with a hash-based route, but we're currently
-      // in a browser where it could be `pushState`-based instead...
-      } else if (this._wantsPushState &&
-                 this._hasPushState &&
-                 atRoot &&
-                 loc.hash) {
-        this.fragment = this.getHash().replace(routeStripper, '');
-        window.history.replaceState({}, document.title,
-            loc.protocol + '//' + loc.host + this.options.root + this.fragment);
-      }
-
-      if (!this.options.silent) {
-        return this.loadUrl();
-      }
-    },
-
-    // Disable AV.history, perhaps temporarily. Not useful in a real app,
-    // but possibly useful for unit testing Routers.
-    stop: function() {
-      AV.$(window).unbind('popstate', this.checkUrl)
-                     .unbind('hashchange', this.checkUrl);
-      window.clearInterval(this._checkUrlInterval);
-      AV.History.started = false;
-    },
-
-    // Add a route to be tested when the fragment changes. Routes added later
-    // may override previous routes.
-    route: function(route, callback) {
-      this.handlers.unshift({route: route, callback: callback});
-    },
-
-    // Checks the current URL to see if it has changed, and if it has,
-    // calls `loadUrl`, normalizing across the hidden iframe.
-    checkUrl: function(e) {
-      var current = this.getFragment();
-      if (current === this.fragment && this.iframe) {
-        current = this.getFragment(this.getHash(this.iframe));
-      }
-      if (current === this.fragment) {
-        return false;
-      }
-      if (this.iframe) {
-        this.navigate(current);
-      }
-      if (!this.loadUrl()) {
-        this.loadUrl(this.getHash());
-      }
-    },
-
-    // Attempt to load the current URL fragment. If a route succeeds with a
-    // match, returns `true`. If no defined routes matches the fragment,
-    // returns `false`.
-    loadUrl: function(fragmentOverride) {
-      var fragment = this.fragment = this.getFragment(fragmentOverride);
-      var matched = _.any(this.handlers, function(handler) {
-        if (handler.route.test(fragment)) {
-          handler.callback(fragment);
-          return true;
-        }
-      });
-      return matched;
-    },
-
-    // Save a fragment into the hash history, or replace the URL state if the
-    // 'replace' option is passed. You are responsible for properly URL-encoding
-    // the fragment in advance.
-    //
-    // The options object can contain `trigger: true` if you wish to have the
-    // route callback be fired (not usually desirable), or `replace: true`, if
-    // you wish to modify the current URL without adding an entry to the
-    // history.
-    navigate: function(fragment, options) {
-      if (!AV.History.started) {
-        return false;
-      }
-      if (!options || options === true) {
-        options = {trigger: options};
-      }
-      var frag = (fragment || '').replace(routeStripper, '');
-      if (this.fragment === frag) {
-        return;
-      }
-
-      // If pushState is available, we use it to set the fragment as a real URL.
-      if (this._hasPushState) {
-        if (frag.indexOf(this.options.root) !== 0) {
-          frag = this.options.root + frag;
-        }
-        this.fragment = frag;
-        var replaceOrPush = options.replace ? 'replaceState' : 'pushState';
-        window.history[replaceOrPush]({}, document.title, frag);
-
-      // If hash changes haven't been explicitly disabled, update the hash
-      // fragment to store history.
-      } else if (this._wantsHashChange) {
-        this.fragment = frag;
-        this._updateHash(window.location, frag, options.replace);
-        if (this.iframe &&
-            (frag !== this.getFragment(this.getHash(this.iframe)))) {
-          // Opening and closing the iframe tricks IE7 and earlier
-          // to push a history entry on hash-tag change.
-          // When replace is true, we don't want this.
-          if (!options.replace) {
-            this.iframe.document.open().close();
-          }
-          this._updateHash(this.iframe.location, frag, options.replace);
-        }
-
-      // If you've told us that you explicitly don't want fallback hashchange-
-      // based history, then `navigate` becomes a page refresh.
-      } else {
-        window.location.assign(this.options.root + fragment);
-      }
-      if (options.trigger) {
-        this.loadUrl(fragment);
-      }
-    },
-
-    // Update the hash location, either replacing the current entry, or adding
-    // a new one to the browser history.
-    _updateHash: function(location, fragment, replace) {
-      if (replace) {
-        var s = location.toString().replace(/(javascript:|#).*$/, '');
-        location.replace(s + '#' + fragment);
-      } else {
-        location.hash = fragment;
-      }
-    }
-  });
-};
-
-},{"underscore":34}],17:[function(require,module,exports){
+},{"underscore":28}],13:[function(require,module,exports){
 'use strict';
 
 var _ = require('underscore');
@@ -2809,7 +1941,7 @@ module.exports = function(AV) {
 
 };
 
-},{"underscore":34}],18:[function(require,module,exports){
+},{"underscore":28}],14:[function(require,module,exports){
 'use strict';
 
 var _ = require('underscore');
@@ -4338,7 +3470,7 @@ module.exports = function(AV) {
 
 };
 
-},{"underscore":34}],19:[function(require,module,exports){
+},{"underscore":28}],15:[function(require,module,exports){
 'use strict';
 var _ = require('underscore');
 
@@ -4870,7 +4002,7 @@ module.exports = function(AV) {
 
 };
 
-},{"underscore":34}],20:[function(require,module,exports){
+},{"underscore":28}],16:[function(require,module,exports){
 (function (process){
 'use strict';
 var _ = require('underscore');
@@ -5465,7 +4597,7 @@ Promise.prototype.finally = Promise.prototype.always;
 Promise.prototype.try = Promise.prototype.done;
 
 }).call(this,require('_process'))
-},{"_process":33,"underscore":34}],21:[function(require,module,exports){
+},{"_process":27,"underscore":28}],17:[function(require,module,exports){
 'use strict';
 
 module.exports = function(AV) {
@@ -5525,7 +4657,7 @@ module.exports = function(AV) {
   };
 };
 
-},{}],22:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 'use strict';
 
 var _ = require('underscore');
@@ -6460,7 +5592,7 @@ module.exports = function(AV) {
    });
 };
 
-},{"underscore":34}],23:[function(require,module,exports){
+},{"underscore":28}],19:[function(require,module,exports){
 'use strict';
 var _ = require('underscore');
 
@@ -6577,7 +5709,7 @@ module.exports = function(AV) {
   };
 };
 
-},{"underscore":34}],24:[function(require,module,exports){
+},{"underscore":28}],20:[function(require,module,exports){
 'use strict';
 
 var _ = require('underscore');
@@ -6705,132 +5837,7 @@ module.exports = function(AV) {
   });
 };
 
-},{"underscore":34}],25:[function(require,module,exports){
-'use strict';
-
-var _ = require('underscore');
-
-/*global _: false*/
-module.exports = function(AV) {
-  /**
-   * Routers map faux-URLs to actions, and fire events when routes are
-   * matched. Creating a new one sets its `routes` hash, if not set statically.
-   * @class
-   *
-   * <p>A fork of Backbone.Router, provided for your convenience.
-   * For more information, see the
-   * <a href="http://documentcloud.github.com/backbone/#Router">Backbone
-   * documentation</a>.</p>
-   * <p><strong><em>Available in the client SDK only.</em></strong></p>
-   */
-  AV.Router = function(options) {
-    console.warn("AV.Router is deprecated, please don't use it anymore.");
-    options = options || {};
-    if (options.routes) {
-      this.routes = options.routes;
-    }
-    this._bindRoutes();
-    this.initialize.apply(this, arguments);
-  };
-
-  // Cached regular expressions for matching named param parts and splatted
-  // parts of route strings.
-  var namedParam    = /:\w+/g;
-  var splatParam    = /\*\w+/g;
-  var escapeRegExp  = /[\-\[\]{}()+?.,\\\^\$\|#\s]/g;
-
-  // Set up all inheritable **AV.Router** properties and methods.
-  _.extend(AV.Router.prototype, AV.Events,
-           /** @lends AV.Router.prototype */ {
-
-    /**
-     * Initialize is an empty function by default. Override it with your own
-     * initialization logic.
-     */
-    initialize: function(){},
-
-    /**
-     * Manually bind a single named route to a callback. For example:
-     *
-     * <pre>this.route('search/:query/p:num', 'search', function(query, num) {
-     *       ...
-     *     });</pre>
-     */
-    route: function(route, name, callback) {
-      AV.history = AV.history || new AV.History();
-      if (!_.isRegExp(route)) {
-        route = this._routeToRegExp(route);
-      }
-      if (!callback) {
-        callback = this[name];
-      }
-      AV.history.route(route, _.bind(function(fragment) {
-        var args = this._extractParameters(route, fragment);
-        if (callback) {
-          callback.apply(this, args);
-        }
-        this.trigger.apply(this, ['route:' + name].concat(args));
-        AV.history.trigger('route', this, name, args);
-      }, this));
-      return this;
-    },
-
-    /**
-     * Whenever you reach a point in your application that you'd
-     * like to save as a URL, call navigate in order to update the
-     * URL. If you wish to also call the route function, set the
-     * trigger option to true. To update the URL without creating
-     * an entry in the browser's history, set the replace option
-     * to true.
-     */
-    navigate: function(fragment, options) {
-      AV.history.navigate(fragment, options);
-    },
-
-    // Bind all defined routes to `AV.history`. We have to reverse the
-    // order of the routes here to support behavior where the most general
-    // routes can be defined at the bottom of the route map.
-    _bindRoutes: function() {
-      if (!this.routes) {
-        return;
-      }
-      var routes = [];
-      for (var route in this.routes) {
-        if (this.routes.hasOwnProperty(route)) {
-          routes.unshift([route, this.routes[route]]);
-        }
-      }
-      for (var i = 0, l = routes.length; i < l; i++) {
-        this.route(routes[i][0], routes[i][1], this[routes[i][1]]);
-      }
-    },
-
-    // Convert a route string into a regular expression, suitable for matching
-    // against the current location hash.
-    _routeToRegExp: function(route) {
-      route = route.replace(escapeRegExp, '\\$&')
-                   .replace(namedParam, '([^\/]+)')
-                   .replace(splatParam, '(.*?)');
-      return new RegExp('^' + route + '$');
-    },
-
-    // Given a route, and a URL fragment that it matches, return the array of
-    // extracted parameters.
-    _extractParameters: function(route, fragment) {
-      return route.exec(fragment).slice(1);
-    }
-  });
-
-  /**
-   * @function
-   * @param {Object} instanceProps Instance properties for the router.
-   * @param {Object} classProps Class properies for the router.
-   * @return {Class} A new subclass of <code>AV.Router</code>.
-   */
-  AV.Router.extend = AV._extend;
-};
-
-},{"underscore":34}],26:[function(require,module,exports){
+},{"underscore":28}],21:[function(require,module,exports){
 'use strict';
 
 var _ = require('underscore');
@@ -7093,7 +6100,7 @@ module.exports = function(AV) {
   });
 };
 
-},{"underscore":34}],27:[function(require,module,exports){
+},{"underscore":28}],22:[function(require,module,exports){
 'use strict';
 
 var _ = require('underscore');
@@ -7470,7 +6477,7 @@ module.exports = function(AV) {
 
 };
 
-},{"underscore":34}],28:[function(require,module,exports){
+},{"underscore":28}],23:[function(require,module,exports){
 'use strict';
 
 var _ = require('underscore');
@@ -8466,7 +7473,7 @@ module.exports = function(AV) {
   });
 };
 
-},{"underscore":34}],29:[function(require,module,exports){
+},{"underscore":28}],24:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -9141,221 +8148,12 @@ module.exports = function(AV) {
 };
 
 }).call(this,require('_process'))
-},{"_process":33,"underscore":34}],30:[function(require,module,exports){
+},{"_process":27,"underscore":28}],25:[function(require,module,exports){
 'use strict';
 
 module.exports = "js0.6.0";
 
-},{}],31:[function(require,module,exports){
-'use strict';
-
-var _ = require('underscore');
-
-/*global _: false, document: false */
-module.exports = function(AV) {
-  /**
-   * Creating a AV.View creates its initial element outside of the DOM,
-   * if an existing element is not provided...
-   * @class
-   *
-   * <p>A fork of Backbone.View, provided for your convenience.  If you use this
-   * class, you must also include jQuery, or another library that provides a
-   * jQuery-compatible $ function.  For more information, see the
-   * <a href="http://documentcloud.github.com/backbone/#View">Backbone
-   * documentation</a>.</p>
-   * <p><strong><em>Available in the client SDK only.</em></strong></p>
-   */
-  AV.View = function(options) {
-    console.warn("AV.View is deprecated, please don't use it anymore.");
-    this.cid = _.uniqueId('view');
-    this._configure(options || {});
-    this._ensureElement();
-    this.initialize.apply(this, arguments);
-    this.delegateEvents();
-  };
-
-  // Cached regex to split keys for `delegate`.
-  var eventSplitter = /^(\S+)\s*(.*)$/;
-
-  // List of view options to be merged as properties.
-
-  var viewOptions = ['model', 'collection', 'el', 'id', 'attributes',
-                     'className', 'tagName'];
-
-  // Set up all inheritable **AV.View** properties and methods.
-  _.extend(AV.View.prototype, AV.Events,
-           /** @lends AV.View.prototype */ {
-
-    // The default `tagName` of a View's element is `"div"`.
-    tagName: 'div',
-
-    /**
-     * jQuery delegate for element lookup, scoped to DOM elements within the
-     * current view. This should be prefered to global lookups where possible.
-     */
-    $: function(selector) {
-      return this.$el.find(selector);
-    },
-
-    /**
-     * Initialize is an empty function by default. Override it with your own
-     * initialization logic.
-     */
-    initialize: function(){},
-
-    /**
-     * The core function that your view should override, in order
-     * to populate its element (`this.el`), with the appropriate HTML. The
-     * convention is for **render** to always return `this`.
-     */
-    render: function() {
-      return this;
-    },
-
-    /**
-     * Remove this view from the DOM. Note that the view isn't present in the
-     * DOM by default, so calling this method may be a no-op.
-     */
-    remove: function() {
-      this.$el.remove();
-      return this;
-    },
-
-    /**
-     * For small amounts of DOM Elements, where a full-blown template isn't
-     * needed, use **make** to manufacture elements, one at a time.
-     * <pre>
-     *     var el = this.make('li', {'class': 'row'},
-     *                        this.model.escape('title'));</pre>
-     */
-    make: function(tagName, attributes, content) {
-      var el = document.createElement(tagName);
-      if (attributes) {
-        AV.$(el).attr(attributes);
-      }
-      if (content) {
-        AV.$(el).html(content);
-      }
-      return el;
-    },
-
-    /**
-     * Changes the view's element (`this.el` property), including event
-     * re-delegation.
-     */
-    setElement: function(element, delegate) {
-      this.$el = AV.$(element);
-      this.el = this.$el[0];
-      if (delegate !== false) {
-        this.delegateEvents();
-      }
-      return this;
-    },
-
-    /**
-     * Set callbacks.  <code>this.events</code> is a hash of
-     * <pre>
-     * *{"event selector": "callback"}*
-     *
-     *     {
-     *       'mousedown .title':  'edit',
-     *       'click .button':     'save'
-     *       'click .open':       function(e) { ... }
-     *     }
-     * </pre>
-     * pairs. Callbacks will be bound to the view, with `this` set properly.
-     * Uses event delegation for efficiency.
-     * Omitting the selector binds the event to `this.el`.
-     * This only works for delegate-able events: not `focus`, `blur`, and
-     * not `change`, `submit`, and `reset` in Internet Explorer.
-     */
-    delegateEvents: function(events) {
-      events = events || AV._getValue(this, 'events');
-      if (!events) {
-        return;
-      }
-      this.undelegateEvents();
-      var self = this;
-      AV._objectEach(events, function(method, key) {
-        if (!_.isFunction(method)) {
-          method = self[events[key]];
-        }
-        if (!method) {
-          throw new Error('Event "' + events[key] + '" does not exist');
-        }
-        var match = key.match(eventSplitter);
-        var eventName = match[1], selector = match[2];
-        method = _.bind(method, self);
-        eventName += '.delegateEvents' + self.cid;
-        if (selector === '') {
-          self.$el.bind(eventName, method);
-        } else {
-          self.$el.delegate(selector, eventName, method);
-        }
-      });
-    },
-
-    /**
-     * Clears all callbacks previously bound to the view with `delegateEvents`.
-     * You usually don't need to use this, but may wish to if you have multiple
-     * Backbone views attached to the same DOM element.
-     */
-    undelegateEvents: function() {
-      this.$el.unbind('.delegateEvents' + this.cid);
-    },
-
-    /**
-     * Performs the initial configuration of a View with a set of options.
-     * Keys with special meaning *(model, collection, id, className)*, are
-     * attached directly to the view.
-     */
-    _configure: function(options) {
-      if (this.options) {
-        options = _.extend({}, this.options, options);
-      }
-      var self = this;
-      _.each(viewOptions, function(attr) {
-        if (options[attr]) {
-          self[attr] = options[attr];
-        }
-      });
-      this.options = options;
-    },
-
-    /**
-     * Ensure that the View has a DOM element to render into.
-     * If `this.el` is a string, pass it through `$()`, take the first
-     * matching element, and re-assign it to `el`. Otherwise, create
-     * an element from the `id`, `className` and `tagName` properties.
-     */
-    _ensureElement: function() {
-      if (!this.el) {
-        var attrs = AV._getValue(this, 'attributes') || {};
-        if (this.id) {
-          attrs.id = this.id;
-        }
-        if (this.className) {
-          attrs['class'] = this.className;
-        }
-        this.setElement(this.make(this.tagName, attrs), false);
-      } else {
-        this.setElement(this.el, false);
-      }
-    }
-
-  });
-
-  /**
-   * @function
-   * @param {Object} instanceProps Instance properties for the view.
-   * @param {Object} classProps Class properies for the view.
-   * @return {Class} A new subclass of <code>AV.View</code>.
-   */
-  AV.View.extend = AV._extend;
-
-};
-
-},{"underscore":34}],32:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -9583,7 +8381,7 @@ var substr = 'ab'.substr(-1) === 'b'
 ;
 
 }).call(this,require('_process'))
-},{"_process":33}],33:[function(require,module,exports){
+},{"_process":27}],27:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -9675,7 +8473,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],34:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 //     Underscore.js 1.8.3
 //     http://underscorejs.org
 //     (c) 2009-2015 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
@@ -11225,4 +10023,4 @@ process.umask = function() { return 0; };
   }
 }.call(this));
 
-},{}]},{},[3]);
+},{}]},{},[2]);
