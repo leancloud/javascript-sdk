@@ -39,6 +39,7 @@
   "browser": {
     "./lib/browserify-wrapper/upload.js": "./lib/browserify-wrapper/upload-browser.js",
     "xmlhttprequest": "./lib/browserify-wrapper/xmlhttprequest-browser.js",
-    "localStorage": "./lib/browserify-wrapper/localstorage-browser.js"
+    "localStorage": "./lib/browserify-wrapper/localstorage-browser.js",
+    "parseBase64": "./lib/browserify-wrapper/parseBase64-browser.js"
   }
 }
