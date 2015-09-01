@@ -1,15 +1,18 @@
-# 0.6.0 日期：2015 年 8 月 25 日
+# 0.6.0 日期：2015 年 09 月 01 日
+* 修复 AV.File 在 LeanEngine 中上传 Base64 图片数据损坏的 bug。
+
+# 0.6.0 日期：2015 年 08 月 25 日
 
 * AV.File 在浏览器环境下直接上传文件到七牛，再无大小和频率限制。
-* 新增 API  AV.Cloud.getServerDate 用于获取当前服务器时间。 
+* 新增 API  AV.Cloud.getServerDate 用于获取当前服务器时间。
 * 修改美国节点 API 域名为 us-api.leancloud.cn
 * 使用 browserify 构建 SDK。
 * 相同应用重复初始化 SDK 避免告警日志。
 
-# 0.5.8 日期：2015 年 8 月 5 日
+# 0.5.8 日期：2015 年 08 月 5 日
 * 修复 `AV.Object.destroyAll` 新版本无法工作的 Bug。
 
-# 0.5.7 日期：2015 年 7 月 29 日
+# 0.5.7 日期：2015 年 07 月 29 日
 * AV.Promise 仅在非 node 环境（如浏览器）默认启用 PromiseA+ 兼容模式
 * 增加 AV.Promise.setDebugError 方法，用于在启用 PromiseA+ 模式的时候打印错误信息，方便调试
 * 重命名 AV.BigQuery 模块为 AV.Insight，保留兼容 AV.BigQuery，推荐修改。
@@ -17,16 +20,16 @@
 * 当重复初始化 SDK 的时候，打印警告日志。
 * 修改默认 API 域名为 api.leancloud.cn。
 
-# 0.5.5 日期：2015 年 6 月 29 日
+# 0.5.5 日期：2015 年 06 月 29 日
 * AV.Promise 启用兼容 Promise+ 模式。
 * 增加 AV.BigQuery 相关 API 用于发起离线分析和查询结果等。
 * 修正 AV.Query 的 get 方法在遇到 undefined objectId 运行结果不符合预期的 Bug
 * 修复 AV.File 无法作为数组保存的 Bug。
 
-# 0.5.4 日期：2015 年 5 月 14 日
+# 0.5.4 日期：2015 年 05 月 14 日
 * 紧急修复 localStorage 模块大小写名称错误。
 
-# 0.5.2 日期：2015 年 5 月 12 日
+# 0.5.2 日期：2015 年 05 月 12 日
 * 上传 sdk 到专门的 CDN 加速域名 [https://cdn1.lncld.net/static/](https://cdn1.lncld.net/static/)
 * 兼容 ReactNative 运行环境
 * 修复 AV.Query 的 addDescending 方法运行不符合预期的 Bug
@@ -34,21 +37,21 @@
 * AV.Object 的 fetch 方法新增重载方法，接收第一个参数是 fetchOptions ，设置 keys 或者 include 选项。
 * AV.Query 支持 sizeEqualTo 方法，查询数组列大小等于特定长度的对象。
 
-# 0.5.1 日期：2015 年 3 月 27 日
+# 0.5.1 日期：2015 年 03 月 27 日
 * 实现应用内搜索 API，具体请参考[应用内搜索开发指南](https://leancloud.cn/docs/app_search_guide.html)。
 * 增加 API : `AV.User.become(sessionToken, options)`。
 
-# 0.5.0 日期: 2015 年 3 月 02 日
+# 0.5.0 日期: 2015 年 03 月 02 日
 * 增强 `AV.Promise`，增加`done,catch,finally,AV.Promise.race` 等方法，兼容 Promise/A+
 * 修复更新对象可能更新没有变更的属性的 Bug，减少请求流量。
 
-# 0.4.9 日期: 2015 年 2 月 26 日
+# 0.4.9 日期: 2015 年 02 月 26 日
 * 拆分 sdk，按照模块划分成多个文件。
 * 使用 gulp 构建 sdk，清理代码。
 * 修复事件流无法发送带有 `AV.File`、`AV.Object` 等类型的 Status。
 * 修复 node.js 环境下上传文件没有扩展名的 Bug。
 
-# 0.4.7 日期: 2015 年 1 月 23 日
+# 0.4.7 日期: 2015 年 01 月 23 日
 * 修复页面跳转更新 user 导致 current user 属性丢失的 Bug。
 * 增加 `AV.User.updatePassword` 方法，根据老密码修改成新密码。
 * 为 `AV.Object` 增加 `getObjectId, getUpdatedAt, getCreatedAt` 三个方法。
