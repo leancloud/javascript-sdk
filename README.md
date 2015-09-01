@@ -2,38 +2,18 @@
 
 JavaScript SDK for [LeanCloud](http://leancloud.cn/).
 
-## 安装
+## 使用方法请看 [官方文档](http://leancloud.cn/docs/js_guide.html)
 
-### npm
+## 贡献
 
-```sh
-$ npm install avoscloud-sdk
-```
-### bower
+* fork 这个项目
+* 在本地进行调试
+  * 执行 `grunt browserify` 会生成浏览器 SDK
+  * 服务环境可以通过单元测试调试
+* 确保 `gulp test` 的测试全部通过，浏览器环境打开 test/test.html
+* 提交并发起 PR
 
-```sh
-$ bower install leancloud-javascript-sdk
-```
-
-### CDN 加速
-
-```html
-<script src="https://cdn1.lncld.net/static/js/av-mini-{版本号}.js"></script>
-// 或者你只是用最核心的存储、推送等功能，可以使用精简版的core.js
-<script src="https://cdn1.lncld.net/static/js/av-core-mini-{版本号}.js"></script>
-```
-
-## Changelog
-
-* [SDK Download](https://leancloud.cn/docs/sdk_down.html)
-
-## 开发指南
-
-* [JavaScript SDK 开发指南](http://leancloud.cn/docs/js_guide.html)
-* [JavaScript SDK API 文档](http://leancloud.cn/docs/api/javascript/index.html)
-* [云代码开发指南](http://leancloud.cn/docs/cloud_code_guide.html)
-
-### 目录结构
+项目的目录结构说明如下：
 
 ```
 ├── README.md
@@ -103,58 +83,41 @@ $ bower install leancloud-javascript-sdk
 └── tools                              // 构建中依赖的第三方工具
 ```
 
+## 官方新版本发布流程
 
-### Build
+* 修改版本号
+  * lib/version.js
+  * package.json
+  * bower.json
 
-We use [gulp](http://gulpjs.com/) to build the project.
+* 修改 Changelog
 
-how to use:
-
-```sh
-npm install -g gulp 
-cd javascript-sdk
-npm install
-gulp pack       
-gulp release    
-```
-
-### 内部发布
-
-#### 修改版本号
-
-* lib/version.js
-* package.json
-* bower.json
-
-#### 修改 Changelog
-
-#### Release
+* 打包 Release
 
 ```
 gulp release
 ```
 
-#### 提交，打上 tag 并推送到 GitHub
+* 提交当前所有代码
+  * 版本号相关修改
+  * change log
+  * dist/ 目录中的新代码
 
-tag 要求为 `v{版本号}`，dist 目录也需要更新提交。
+* 提交代码，发 pull request
 
-#### 发布到 bower
+* 发布到 bower（发 release 后，bower 服务器会自动抓取，不用再手工发布。）
 ```
 bower register leancloud-javascript-sdk git@github.com:leancloud/javascript-sdk.git
 ```
+* （merge 后）Github 生成 release 包（for bower）
 
-#### 发布到 npm
-
+* 发布到 npm（需 npm 协作者身份）
 ```
 npm publish
 ```
 
-#### 发布到 CDN
-
+* 发布到 CDN（需要七牛权限）
 ```
 gulp upload
 ```
 
-## License
-
-[MIT License](http://opensource.org/licenses/MIT)
