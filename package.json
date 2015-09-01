@@ -1,6 +1,6 @@
 {
   "name": "avoscloud-sdk",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "main": "./lib/av.js",
   "description": "AVOSCloud JavaScript SDK.",
   "repository": {
