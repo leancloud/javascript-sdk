@@ -7,8 +7,8 @@ JavaScript SDK for [LeanCloud](http://leancloud.cn/).
 ## 贡献
 
 * fork 这个项目
-* 在本地进行调试
-  * 执行 `grunt browserify` 会生成浏览器 SDK
+* 在本地进行调试，`npm install` 安装相关依赖
+  * 执行 `gulp browserify` 会生成浏览器 SDK
   * 服务环境可以通过单元测试调试
 * 确保 `gulp test` 的测试全部通过，浏览器环境打开 test/test.html
 * 提交并发起 PR
