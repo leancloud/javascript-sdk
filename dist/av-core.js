@@ -8151,7 +8151,7 @@ module.exports = function(AV) {
 },{"_process":27,"underscore":28}],25:[function(require,module,exports){
 'use strict';
 
-module.exports = "js0.6.0";
+module.exports = "js0.6.1";
 
 },{}],26:[function(require,module,exports){
 (function (process){
