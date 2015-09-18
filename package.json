@@ -7,6 +7,9 @@
     "type": "git",
     "url": "https://github.com/avoscloud/javascript-sdk"
   },
+  "scripts": {
+    "test": "gulp test"
+  },
   "dependencies": {
     "localStorage": "^1.0.3",
     "qiniu": "6.1.3",
