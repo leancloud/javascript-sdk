@@ -61,9 +61,11 @@ describe("Current User",function(){
   it("should return current user",function(done){
 
     var currentUser = AV.User.current();
-
     expect(currentUser).to.be.ok();
-    done();
+    AV.User.currentAsync().then(function(user) {
+      expect(user).to.be.ok();
+      done();
+    });
   });
 });
 

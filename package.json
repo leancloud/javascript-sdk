@@ -37,9 +37,10 @@
     "email": "xzhuang@avos.com"
   },
   "browser": {
+    "react-native": false,
     "./lib/browserify-wrapper/upload.js": "./lib/browserify-wrapper/upload-browser.js",
-    "xmlhttprequest": "./lib/browserify-wrapper/xmlhttprequest-browser.js",
-    "localStorage": "./lib/browserify-wrapper/localstorage-browser.js",
+    "./lib/browserify-wrapper/xmlhttprequest.js": "./lib/browserify-wrapper/xmlhttprequest-browser.js",
+    "./lib/browserify-wrapper/localStorage.js": "./lib/browserify-wrapper/localstorage-browser.js",
     "./lib/browserify-wrapper/parse-base64.js": "./lib/browserify-wrapper/parse-base64-browser.js"
   }
 }
