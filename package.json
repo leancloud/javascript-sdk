@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "localStorage": "^1.0.3",
+    "localstorage-memory": "^1.0.1",
     "qiniu": "6.1.3",
     "underscore": "^1.8.3",
     "xmlhttprequest": "1.6.0"
