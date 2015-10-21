@@ -1,7 +1,7 @@
-describe("sms", function() {
+describe.skip("sms", function() {
   var phoneNumber = '18668012283';
   describe("#verifyUserMobilePhone", function(){
-    this.timeout(10000);
+
     it("should be verified", function(done){
       var user = new AV.User();
       user.set("username", "dennis");

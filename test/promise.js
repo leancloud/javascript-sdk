@@ -115,7 +115,7 @@ describe('promise', function() {
         resolve(delay);
       }, delay);
      });
-  };
+  }
 
   function timerPromisefyReject(delay) {
     return new AV.Promise(function (resolve, reject) {
@@ -123,7 +123,7 @@ describe('promise', function() {
         reject(delay);
       }, delay);
      });
-  };
+  }
 
 
   describe('AV.Promise.all and AV.Promise.when', function() {
@@ -137,7 +137,7 @@ describe('promise', function() {
        timerPromisefy(128)
      ]).then(function (values) {
         //should be 128 ms
-        expect(Date.now() - startDate).to.be.within(125,135);
+        expect(Date.now() - startDate).to.be.greaterThan(125);
         expect(values).to.be.an('array');
         expect(values[0]).to.be(1);
         expect(values[1]).to.be(32);
@@ -156,7 +156,7 @@ describe('promise', function() {
        timerPromisefy(128)
      ]).then(function (r1, r2, r3, r4) {
         //should be 128 ms
-        expect(Date.now() - startDate).to.be.within(125,135);
+        expect(Date.now() - startDate).to.be.greaterThan(125);
         expect(r1).to.be(1);
         expect(r2).to.be(32);
         expect(r3).to.be(64);
@@ -174,13 +174,13 @@ describe('promise', function() {
        timerPromisefyReject(64),
        timerPromisefyReject(128)
      ).catch(function (errors) {
+        //should be 128 ms
+        expect(Date.now() - startDate).to.be.greaterThan(125);
         expect(errors.length).to.be(4);
         expect(errors[0]).to.be(1);
         expect(errors[1]).to.be(32);
         expect(errors[2]).to.be(64);
         expect(errors[3]).to.be(128);
-        //should be 128 ms
-        expect(Date.now() - startDate).to.be.within(125, 145);
 
         done();
      }).done(function(ret){
@@ -199,7 +199,7 @@ describe('promise', function() {
      ]).catch(function (error) {
         expect(error).to.be(1);
         //should be 1 ms
-        expect(Date.now() - startDate).to.be.within(0, 10);
+        expect(Date.now() - startDate).to.be.within(0, 31);
         AV.Promise._isPromisesAPlusCompliant = false;
         setTimeout(done, 500);
      }).done(function(ret){
@@ -222,13 +222,13 @@ describe('promise', function() {
         expect(error.code).to.be(1);
         AV.Promise._isPromisesAPlusCompliant = false;
         done();
-      })
+      });
     });
 
     it('shoud work in order', function(done) {
       AV.Promise._isPromisesAPlusCompliant = true;
 
-      this.timeout(10000);
+
       var ret = [];
       var a = new AV.Promise(function(resolve){
         setTimeout(function(){
@@ -242,7 +242,7 @@ describe('promise', function() {
           ret.push(val);
         });
         ret.push('after');
-      }
+      };
 
       test();
       setTimeout(function() {

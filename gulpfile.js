@@ -129,7 +129,7 @@ gulp.task('test', function() {
       'bigquery.js'
     ]))
     .pipe(mocha({
-      timeout: 100000,
+      timeout: 300000,
     }));
 });
 

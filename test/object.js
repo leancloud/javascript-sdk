@@ -8,6 +8,11 @@ var GameScoreCollection = AV.Collection.extend({
 describe('Objects', function(){
   var objId;
   var gameScore = GameScore.new();
+  after(function(done) {
+    gameScore.destroy().then(function() {
+      done();
+    });
+  });
   describe('#Saving Objects', function(){
     it('should crate a Object', function(done){
       //gameScore.set("newcol","sss")
@@ -49,7 +54,7 @@ describe('Objects', function(){
     it('should create a User',function(done){
       var User = AV.Object.extend("User");
       var u = new User();
-      var r=parseInt(Math.random()*1000);
+      var r=Math.random();
       u.set("username","u"+r);
       u.set("password","11111111");
       u.set("email","u"+r+"@test.com");
@@ -295,7 +300,7 @@ describe('Objects', function(){
           person2.id = person.id;
           person2.set('age', 0);
           person2.increment('age',9);
-          person2.save().then(function(){
+          person2.save().then(function(person){
             person.fetchWhenSave(true);
             person.increment('age', 10);
             person.save().then(function(p){
@@ -311,6 +316,7 @@ describe('Objects', function(){
 
     it("should fetch when save when creating new object.", function(done){
       var p= new Person();
+      p.fetchWhenSave(true);
       p.set('pname', 'dennis');
       p.save().then(function(person) {
         expect(person.get('company')).to.be('leancloud');

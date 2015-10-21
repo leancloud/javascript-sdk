@@ -15,6 +15,7 @@
 
     <script type="text/javascript">
       mocha.setup('bdd');
+      mocha.timeout(30000);
       function assert(expr, msg) {
         if (!expr) throw new Error(msg || 'failed');
       }
@@ -23,6 +24,7 @@
       }
     </script>
 	<script src="promise.js"></script>
+  <script src="storage.js"></script>
 	<script src="file.js"></script>
 	<script src="error.js"></script>
 	<script src="object.js"></script>
@@ -32,7 +34,6 @@
 	<script src="geopoints.js"></script>
 	<script src="acl.js"></script>
 	<script src="role.js"></script>
-	<script src="master_key.js"></script>
 	<script src="status.js"></script>
 	<script src="sms.js"></script>
 	<script src="search.js"></script>
