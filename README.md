@@ -1,4 +1,4 @@
-# LeanCloud JavaScript SDK
+# LeanCloud JavaScript SDK [![Build Status](https://travis-ci.org/leancloud/javascript-sdk.svg)](https://travis-ci.org/leancloud/javascript-sdk)
 
 JavaScript SDK for [LeanCloud](http://leancloud.cn/).
 
@@ -105,10 +105,6 @@ gulp release
 
 * 提交代码，发 pull request
 
-* 发布到 bower（发 release 后，bower 服务器会自动抓取，不用再手工发布。）
-```
-bower register leancloud-javascript-sdk git@github.com:leancloud/javascript-sdk.git
-```
 * （merge 后）Github 生成 release 包（for bower）
 
 * 发布到 npm（需 npm 协作者身份）
@@ -120,4 +116,3 @@ npm publish
 ```
 gulp upload
 ```
-

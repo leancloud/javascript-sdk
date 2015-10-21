@@ -44,7 +44,7 @@ require('./bigquery')(AV);
 
 AV.AV = AV; // Backward compatibility
 
-},{"./acl":2,"./bigquery":4,"./cloudfunction":9,"./collection":10,"./error":11,"./event":12,"./facebook":13,"./file":14,"./geopoint":15,"./history":16,"./insight":17,"./object":18,"./op":19,"./promise":20,"./push":21,"./query":22,"./relation":23,"./role":24,"./router":25,"./search":26,"./status":27,"./user":28,"./utils":29,"./version":30,"./view":31,"localStorage":5,"underscore":34,"xmlhttprequest":8}],2:[function(require,module,exports){
+},{"./acl":2,"./bigquery":4,"./cloudfunction":9,"./collection":10,"./error":11,"./event":12,"./facebook":13,"./file":14,"./geopoint":15,"./history":16,"./insight":17,"./object":18,"./op":19,"./promise":20,"./push":21,"./query":22,"./relation":23,"./role":24,"./router":25,"./search":26,"./status":27,"./user":28,"./utils":29,"./version":30,"./view":31,"localStorage":5,"underscore":35,"xmlhttprequest":8}],2:[function(require,module,exports){
 'use strict';
 var _ = require('underscore');
 
@@ -306,7 +306,7 @@ module.exports = function(AV) {
 
 };
 
-},{"underscore":34}],3:[function(require,module,exports){
+},{"underscore":35}],3:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -339,10 +339,23 @@ module.exports = function(AV) {
 (function (global){
 'use strict';
 
-module.exports = global.localStorage;
+var localStorage = global.localStorage;
+
+try {
+  var testKey = '__storejs__';
+  localStorage.setItem(testKey, testKey);
+  if (localStorage.getItem(testKey) != testKey) {
+    throw new Error();
+  }
+  localStorage.remove(testKey);
+} catch (e) {
+  localStorage = require('localstorage-memory');
+}
+
+module.exports = localStorage;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],6:[function(require,module,exports){
+},{"localstorage-memory":34}],6:[function(require,module,exports){
 'use strict';
 
 var dataURItoBlob = function(dataURI, type) {
@@ -543,7 +556,7 @@ module.exports = function(AV) {
   });
 };
 
-},{"underscore":34}],10:[function(require,module,exports){
+},{"underscore":35}],10:[function(require,module,exports){
 'use strict';
 
 var _ = require('underscore');
@@ -948,7 +961,7 @@ module.exports = function(AV) {
 
 };
 
-},{"underscore":34}],11:[function(require,module,exports){
+},{"underscore":35}],11:[function(require,module,exports){
 'use strict';
 
 var _ = require('underscore');
@@ -1296,7 +1309,7 @@ module.exports = function(AV) {
 
 };
 
-},{"underscore":34}],12:[function(require,module,exports){
+},{"underscore":35}],12:[function(require,module,exports){
 /*global _: false */
 module.exports = function(AV) {
   var eventSplitter = /\s+/;
@@ -1638,7 +1651,7 @@ module.exports = function(AV) {
 
 };
 
-},{"underscore":34}],14:[function(require,module,exports){
+},{"underscore":35}],14:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -2228,7 +2241,7 @@ module.exports = function(AV) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./browserify-wrapper/parse-base64":6,"./browserify-wrapper/upload":7,"path":32,"underscore":34}],15:[function(require,module,exports){
+},{"./browserify-wrapper/parse-base64":6,"./browserify-wrapper/upload":7,"path":32,"underscore":35}],15:[function(require,module,exports){
 var _ = require('underscore');
 
 /*global navigator: false */
@@ -2402,7 +2415,7 @@ module.exports = function(AV) {
   };
 };
 
-},{"underscore":34}],16:[function(require,module,exports){
+},{"underscore":35}],16:[function(require,module,exports){
 'use strict';
 
 var _ = require('underscore');
@@ -2666,7 +2679,7 @@ module.exports = function(AV) {
   });
 };
 
-},{"underscore":34}],17:[function(require,module,exports){
+},{"underscore":35}],17:[function(require,module,exports){
 'use strict';
 
 var _ = require('underscore');
@@ -2809,7 +2822,7 @@ module.exports = function(AV) {
 
 };
 
-},{"underscore":34}],18:[function(require,module,exports){
+},{"underscore":35}],18:[function(require,module,exports){
 'use strict';
 
 var _ = require('underscore');
@@ -4204,7 +4217,7 @@ module.exports = function(AV) {
   AV.Object._canBeSerializedAsValue = function(object) {
     var canBeSerializedAsValue = true;
 
-    if (object instanceof AV.Object) {
+    if (object instanceof AV.Object || object instanceof AV.File) {
       canBeSerializedAsValue = !!object.id;
 
     } else if (_.isArray(object)) {
@@ -4338,7 +4351,7 @@ module.exports = function(AV) {
 
 };
 
-},{"underscore":34}],19:[function(require,module,exports){
+},{"underscore":35}],19:[function(require,module,exports){
 'use strict';
 var _ = require('underscore');
 
@@ -4870,7 +4883,7 @@ module.exports = function(AV) {
 
 };
 
-},{"underscore":34}],20:[function(require,module,exports){
+},{"underscore":35}],20:[function(require,module,exports){
 (function (process){
 'use strict';
 var _ = require('underscore');
@@ -5465,7 +5478,7 @@ Promise.prototype.finally = Promise.prototype.always;
 Promise.prototype.try = Promise.prototype.done;
 
 }).call(this,require('_process'))
-},{"_process":33,"underscore":34}],21:[function(require,module,exports){
+},{"_process":33,"underscore":35}],21:[function(require,module,exports){
 'use strict';
 
 module.exports = function(AV) {
@@ -6460,7 +6473,7 @@ module.exports = function(AV) {
    });
 };
 
-},{"underscore":34}],23:[function(require,module,exports){
+},{"underscore":35}],23:[function(require,module,exports){
 'use strict';
 var _ = require('underscore');
 
@@ -6577,7 +6590,7 @@ module.exports = function(AV) {
   };
 };
 
-},{"underscore":34}],24:[function(require,module,exports){
+},{"underscore":35}],24:[function(require,module,exports){
 'use strict';
 
 var _ = require('underscore');
@@ -6603,16 +6616,23 @@ module.exports = function(AV) {
      * Constructs a new AVRole with the given name and ACL.
      *
      * @param {String} name The name of the Role to create.
-     * @param {AV.ACL} acl The ACL for this role. Roles must have an ACL.
+     * @param {AV.ACL} [acl] The ACL for this role. if absent, the default ACL
+     *    `{'*': { read: true }}` will be used.
      */
     constructor: function(name, acl) {
-      if (_.isString(name) && (acl instanceof AV.ACL)) {
+      if (_.isString(name)) {
         AV.Object.prototype.constructor.call(this, null, null);
         this.setName(name);
-        this.setACL(acl);
-      } else {
-        AV.Object.prototype.constructor.call(this, name, acl);
       }
+      if (acl === undefined) {
+        var defaultAcl = new AV.ACL();
+        defaultAcl.setPublicReadAccess(true);
+        acl = defaultAcl;
+      }
+      if (!(acl instanceof AV.ACL)) {
+        throw new TypeError('acl must be an instance of AV.ACL');
+      }
+      this.setACL(acl);
     },
 
     /**
@@ -6705,7 +6725,7 @@ module.exports = function(AV) {
   });
 };
 
-},{"underscore":34}],25:[function(require,module,exports){
+},{"underscore":35}],25:[function(require,module,exports){
 'use strict';
 
 var _ = require('underscore');
@@ -6830,7 +6850,7 @@ module.exports = function(AV) {
   AV.Router.extend = AV._extend;
 };
 
-},{"underscore":34}],26:[function(require,module,exports){
+},{"underscore":35}],26:[function(require,module,exports){
 'use strict';
 
 var _ = require('underscore');
@@ -7093,7 +7113,7 @@ module.exports = function(AV) {
   });
 };
 
-},{"underscore":34}],27:[function(require,module,exports){
+},{"underscore":35}],27:[function(require,module,exports){
 'use strict';
 
 var _ = require('underscore');
@@ -7470,7 +7490,7 @@ module.exports = function(AV) {
 
 };
 
-},{"underscore":34}],28:[function(require,module,exports){
+},{"underscore":35}],28:[function(require,module,exports){
 'use strict';
 
 var _ = require('underscore');
@@ -8466,7 +8486,7 @@ module.exports = function(AV) {
   });
 };
 
-},{"underscore":34}],29:[function(require,module,exports){
+},{"underscore":35}],29:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -9141,7 +9161,7 @@ module.exports = function(AV) {
 };
 
 }).call(this,require('_process'))
-},{"_process":33,"underscore":34}],30:[function(require,module,exports){
+},{"_process":33,"underscore":35}],30:[function(require,module,exports){
 'use strict';
 
 module.exports = "js0.6.1";
@@ -9355,7 +9375,7 @@ module.exports = function(AV) {
 
 };
 
-},{"underscore":34}],32:[function(require,module,exports){
+},{"underscore":35}],32:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -9616,7 +9636,9 @@ function drainQueue() {
         currentQueue = queue;
         queue = [];
         while (++queueIndex < len) {
-            currentQueue[queueIndex].run();
+            if (currentQueue) {
+                currentQueue[queueIndex].run();
+            }
         }
         queueIndex = -1;
         len = queue.length;
@@ -9668,7 +9690,6 @@ process.binding = function (name) {
     throw new Error('process.binding is not supported');
 };
 
-// TODO(shtylman)
 process.cwd = function () { return '/' };
 process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
@@ -9676,6 +9697,87 @@ process.chdir = function (dir) {
 process.umask = function() { return 0; };
 
 },{}],34:[function(require,module,exports){
+(function(root) {
+  var localStorageMemory = {};
+  var cache = {};
+
+  /**
+   * number of stored items.
+   */
+  localStorageMemory.length = 0;
+
+  /**
+   * returns item for passed key, or null
+   *
+   * @para {String} key
+   *       name of item to be returned
+   * @returns {String|null}
+   */
+  localStorageMemory.getItem = function(key) {
+    return cache[key] || null;
+  };
+
+  /**
+   * sets item for key to passed value, as String
+   *
+   * @para {String} key
+   *       name of item to be set
+   * @para {String} value
+   *       value, will always be turned into a String
+   * @returns {undefined}
+   */
+  localStorageMemory.setItem = function(key, value) {
+    if (typeof value === 'undefined') {
+      localStorageMemory.removeItem(key);
+    } else {
+      cache[key] = '' + value;
+      localStorageMemory.length++;
+    }
+  };
+
+  /**
+   * removes item for passed key
+   *
+   * @para {String} key
+   *       name of item to be removed
+   * @returns {undefined}
+   */
+  localStorageMemory.removeItem = function(key) {
+    delete cache[key];
+    localStorageMemory.length--;
+  };
+
+  /**
+   * returns name of key at passed index
+   *
+   * @para {Number} index
+   *       Position for key to be returned (starts at 0)
+   * @returns {String|null}
+   */
+  localStorageMemory.key = function(index) {
+    return Object.keys(cache)[index] || null;
+  };
+
+  /**
+   * removes all stored items and sets length to 0
+   *
+   * @returns {undefined}
+   */
+  localStorageMemory.clear = function() {
+    cache = {};
+    localStorageMemory.length = 0;
+  };
+
+  if (typeof exports === 'object') {
+    module.exports = localStorageMemory;
+  } else {
+    root.localStorageMemory = localStorageMemory;
+  }
+})(this);
+
+
+
+},{}],35:[function(require,module,exports){
 //     Underscore.js 1.8.3
 //     http://underscorejs.org
 //     (c) 2009-2015 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors

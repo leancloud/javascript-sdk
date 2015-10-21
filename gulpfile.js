@@ -120,6 +120,7 @@ gulp.task('test', function() {
       'query.js',
       'geopoint.js',
       'acl.js',
+      'role.js',
       'master_key.js',
       'status.js',
       'sms.js',
