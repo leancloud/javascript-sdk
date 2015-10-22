@@ -2,7 +2,7 @@ var username="u" + Date.now();
 var email="u" + Date.now() + "@test.com";
 var password="password1";
 describe("User",function(){
-  this.timeout(10000);
+
   it("should sign up",function(done){
     var user = new AV.User();
     user.set("username", username);
@@ -35,7 +35,7 @@ describe("User.logIn and User.become",function(){
     AV.User.logIn(username, password, {
       success: function(user) {
         expect(user.get("username")).to.be(username);
-        console.dir(user);
+        // console.dir(user);
         AV.User.become(user._sessionToken, {
             success: function(theUser) {
                 expect(theUser.get("username")).to.be(username);
@@ -61,9 +61,11 @@ describe("Current User",function(){
   it("should return current user",function(done){
 
     var currentUser = AV.User.current();
-
     expect(currentUser).to.be.ok();
-    done();
+    AV.User.currentAsync().then(function(user) {
+      expect(user).to.be.ok();
+      done();
+    });
   });
 });
 
@@ -178,9 +180,10 @@ describe("Follow/unfollow users",function(){
             expect(results[0].id).to.be('53fb0fd6e4b074a0f883f08a');
             var followerQuery = AV.User.followerQuery('53fb0fd6e4b074a0f883f08a');
             followerQuery.find().then(function(results){
-              expect(results.length).to.be(1);
+              expect(results.filter(function(result) {
+                return result.id === user.id;
+              })).not.to.be(0);
               debug(results);
-              expect(results[0].id).to.be(user.id);
               //unfollow
               user.unfollow('53fb0fd6e4b074a0f883f08a').then(function(){
                 //query should be emtpy

@@ -2,21 +2,21 @@
 var GameScore = AV.Object.extend("GameScore");
 var Person = AV.Object.extend("Person");
 var query = new AV.Query(GameScore);
-describe("Queries",function(){
-  describe("#Basic Queries",function(){
-    it("should return Class Array",function(done){
+describe("Queries", function () {
+  describe("#Basic Queries", function () {
+    it("should return Class Array", function (done) {
 
       query = new AV.Query(GameScore);
       //query.equalTo("playerName", "testname");
       query.exists("objectId");
       //query.equalTo("arr","arr1");
       query.find({
-        success: function(results) {
+        success: function (results) {
           debug(results);
           expect(results).to.be.an("array");
           done();
         },
-        error: function(error) {
+        error: function (error) {
           throw error;
         }
       });
@@ -25,20 +25,19 @@ describe("Queries",function(){
 
   });
 
-  describe("#cloudQuery", function(){
-    it("should return results.", function(done){
-      AV.Query.doCloudQuery('select * from GameScore').then(function(result){
+  describe("#cloudQuery", function () {
+    it("should return results.", function (done) {
+      AV.Query.doCloudQuery('select * from GameScore').then(function (result) {
         debug(result);
         var results = result.results;
-        expect(results.length).to.be(100);
         expect(results[0].className).to.be("GameScore");
         expect(result.count).to.be(undefined);
         expect(result.className).to.be('GameScore');
         done();
       });
     });
-    it("should return limited results.", function(done){
-      AV.Query.doCloudQuery('select * from GameScore limit 10').then(function(result){
+    it("should return limited results.", function (done) {
+      AV.Query.doCloudQuery('select * from GameScore limit 10').then(function (result) {
         debug(result);
         var results = result.results;
         expect(results.length).to.be(10);
@@ -48,8 +47,8 @@ describe("Queries",function(){
         done();
       });
     });
-    it("should return count value.", function(done){
-      AV.Query.doCloudQuery('select *,count(objectId) from GameScore limit 10').then(function(result){
+    it("should return count value.", function (done) {
+      AV.Query.doCloudQuery('select *,count(objectId) from GameScore limit 10').then(function (result) {
         debug(result);
         var results = result.results;
         expect(results.length).to.be(10);
@@ -59,8 +58,8 @@ describe("Queries",function(){
         done();
       });
     });
-    it("should return count value too.", function(done){
-      AV.Query.doCloudQuery('select *,count(objectId) from GameScore limit ?', [5]).then(function(result){
+    it("should return count value too.", function (done) {
+      AV.Query.doCloudQuery('select *,count(objectId) from GameScore limit ?', [5]).then(function (result) {
         debug(result);
         var results = result.results;
         expect(results.length).to.be(5);
@@ -70,55 +69,57 @@ describe("Queries",function(){
         done();
       });
     });
-    it("should return syntax error.", function(done){
-      AV.Query.doCloudQuery('select * GameScore limit 10').then(function(){
-        throw "Shoud not be successfully.";
-      },
-      function(error){
-        debug(error);
-        expect(error).to.be.an(AV.Error);
-        done();
-      });
+    it("should return syntax error.", function (done) {
+      AV.Query.doCloudQuery('select * GameScore limit 10').then(function () {
+          throw "Shoud not be successfully.";
+        },
+        function (error) {
+          debug(error);
+          expect(error).to.be.an(AV.Error);
+          done();
+        });
     });
   });
 
-  describe("#save&query()",function(){
-    it("should length + 1",function(done){
+  describe("#save&query()", function () {
+    it("should length + 1", function (done) {
+
       query = new AV.Query(GameScore);
-      query.limit(1000);
-      var l=0;
+      query.limit(100);
+      var l = 0;
       query.find({
-        success: function(results) {
+        success: function (results) {
           debug(results);
           expect(results).to.be.an("array");
-          l=results.length;
+          l = results.length;
 
           var gameScore = new GameScore();
           gameScore.save(null, {
-            success: function(result) {
+            success: function (result) {
 
               expect(result.id).to.be.ok();
 
               query.find({
-                success: function(results) {
-
+                success: function (results) {
                   expect(results).to.be.an("array");
-                  expect(results.length).to.be(l+1);
-                  done();
+                  expect(results.length).to.be(l + 1);
+                  gameScore.destroy().then(function() {
+                    done();
+                  });
                 },
-                error: function(error) {
+                error: function (error) {
                   alert("Error: " + error.code + " " + error.message);
                 }
               });
             },
-            error: function(gameScore, error) {
+            error: function (gameScore, error) {
               throw error;
             }
           });
 
 
         },
-        error: function(error) {
+        error: function (error) {
           alert("Error: " + error.code + " " + error.message);
         }
       });
@@ -127,35 +128,37 @@ describe("Queries",function(){
     });
   });
 
-  describe("Query Constraints",function(){
+  describe("Query Constraints", function () {
 
-    it("basic",function(done){
+    it("basic", function (done) {
       query = new AV.Query(GameScore);
       query.equalTo("playerName", "testname");
       query.first({
-        success: function(object) {
+        success: function (object) {
 
           done();
         },
-        error: function(error) {
+        error: function (error) {
           throw error;
         }
       });
+    });
 
-
-    it("sizeEqualTo",function(done){
+    it("sizeEqualTo", function (done) {
       var gameScore = new GameScore();
       gameScore.save({
         players: ["a", "b"]
-      }).then(function() {
+      }).then(function () {
         query = new AV.Query(GameScore);
         query.sizeEqualTo("players", 2);
         query.first({
-          success: function(object) {
-            expect(object.get('players').size).to.be(2);
-            done();
+          success: function (object) {
+            expect(object.get('players').length).to.be(2);
+            gameScore.destroy().then(function () {
+              done();
+            });
           },
-          error: function(error) {
+          error: function (error) {
             throw error;
           }
         });
@@ -163,17 +166,17 @@ describe("Queries",function(){
     });
   });
 
-  describe("Query with different condtions",function(){
+  describe("Query with different condtions", function () {
 
-    it("query doncition with array",function(done){
+    it("query doncition with array", function (done) {
       query = new AV.Query(GameScore);
       query.equalTo("arr", "arr1");
       query.first({
-        success: function(object) {
+        success: function (object) {
 
           done();
         },
-        error: function(error) {
+        error: function (error) {
           throw error;
         }
       });
@@ -200,7 +203,7 @@ describe("Queries",function(){
   var Post = AV.Object.extend("Post");
   var Comment = AV.Object.extend("Comment");
 
-  describe("Relational Queries",function(){
+  describe("Relational Queries", function () {
     // it("should return comments of one post",function(done){
     // 	query = new AV.Query(Post);
     // 	query.equalTo("title","post1");
@@ -220,8 +223,8 @@ describe("Queries",function(){
     // 	})
     // })
 
-    this.timeout(10000);
-    it("should return relation count",function(done){
+
+    it("should return relation count", function (done) {
 
 
       // userQ.count(function(c){
@@ -230,11 +233,11 @@ describe("Queries",function(){
 
       var userQ = new AV.Query("Person");
 
-      userQ.get("52f9bea1e4b035debf88b730").then(function(p){
+      userQ.get("52f9bea1e4b035debf88b730").then(function (p) {
         p.relation("likes").query().count({
-          success:function(r){
+          success: function (r) {
             debug(r);
-              done();
+            done();
 
           }
         });
@@ -258,48 +261,48 @@ describe("Queries",function(){
 
   });
 
-  describe("destroyAll", function(){
-    it("should be deleted", function(done){
+  describe("destroyAll", function () {
+    it("should be deleted", function (done) {
       // save some objects
       var promises = [];
-      for(var i=0; i < 10; i++){
+      for (var i = 0; i < 10; i++) {
         var test = new AV.Object("deletedAll");
         test.set("number", i);
         promises.unshift(test.save());
       }
       // AV.Promise.when(promises).then(function() {done();});
-      AV.Promise.when(promises).then(function(){
+      AV.Promise.when(promises).then(function () {
         var query = new AV.Query("deletedAll");
-        query.limit(1000).find().then(function(results){
+        query.limit(1000).find().then(function (results) {
           // expect(results.length).to.be(10);
-          query.destroyAll().then(function(){
-            query.find().then(function(results){
+          query.destroyAll().then(function () {
+            query.find().then(function (results) {
               expect(results.length).to.be(0);
               done();
             });
-          }, function(err){
+          }, function (err) {
             done(err);
           });
-        }, function(err){
+        }, function (err) {
           done(err);
         });
       });
     });
   });
 
-  describe("Counts",function(){
-    it("should return num",function(done){
+  describe("Counts", function () {
+    it("should return num", function (done) {
 
       query = new AV.Query(Person);
       query.startsWith("pname", "p");
       query.count({
-        success: function(count) {
+        success: function (count) {
           // The count request succeeded. Show the count
 
           //expect(count).to.be.a("number");
           done();
         },
-        error: function(error) {
+        error: function (error) {
           // The request failed
         }
       });
@@ -307,51 +310,49 @@ describe("Queries",function(){
     });
   });
 
-  describe("Compound Query",function(){
-    it("should satisfy on 'or' conditions", function(done) {
+  describe("Compound Query", function () {
+    it("should satisfy on 'or' conditions", function (done) {
       var lotsOfWins = new AV.Query("GameScore");
-      lotsOfWins.greaterThan("score",150);
+      lotsOfWins.greaterThan("score", 150);
 
       var fewWins = new AV.Query("GameScore");
-      fewWins.equalTo("cheatMode",true);
+      fewWins.equalTo("cheatMode", true);
 
       var mainQuery = AV.Query.or(lotsOfWins, fewWins);
       mainQuery.find({
-        success: function(results) {
-          results.forEach(function(gs){
+        success: function (results) {
+          results.forEach(function (gs) {
             expect(gs.get('score') > 150 || gs.get('cheatMode')).to.be.ok();
           });
           done();
           // results contains a list of players that either have won a lot of games or won only a few games.
         },
-        error: function(error) {
+        error: function (error) {
           // There was an error.
         }
       });
     });
-    it("should satisfy on 'and' conditions", function(done) {
+    it("should satisfy on 'and' conditions", function (done) {
       var lotsOfWins = new AV.Query("GameScore");
-      lotsOfWins.greaterThan("score",150);
+      lotsOfWins.greaterThan("score", 150);
 
       var fewWins = new AV.Query("GameScore");
-      fewWins.equalTo("cheatMode",true);
+      fewWins.equalTo("cheatMode", true);
 
       var mainQuery = AV.Query.and(lotsOfWins, fewWins);
       mainQuery.find({
-        success: function(results) {
-          results.forEach(function(gs){
+        success: function (results) {
+          results.forEach(function (gs) {
             expect(gs.get('score') > 150 && gs.get('cheatMode')).to.be.ok();
           });
           done();
           // results contains a list of players that either have won a lot of games or won only a few games.
         },
-        error: function(error) {
+        error: function (error) {
           // There was an error.
         }
       });
     });
   });
-
-});
 
 });

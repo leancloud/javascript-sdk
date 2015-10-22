@@ -1,4 +1,4 @@
-describe("App Searching", function() {
+describe.skip("App Searching", function() {
   describe("#AV.SearchSortBuilder", function(){
     it("should build sort string.", function(done){
       var builder = new AV.SearchSortBuilder();
@@ -15,7 +15,7 @@ describe("App Searching", function() {
   });
 
   describe('#AV.SearchQuery', function() {
-   this.timeout(10000);
+
    it('should find something.', function(done) {
      var q = new AV.SearchQuery('GameScore');
      q.queryString('*');

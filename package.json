@@ -1,6 +1,6 @@
 {
   "name": "avoscloud-sdk",
-  "version": "0.6.2",
+  "version": "1.0.0-rc1",
   "main": "./lib/av.js",
   "description": "AVOSCloud JavaScript SDK.",
   "repository": {
@@ -11,7 +11,6 @@
     "test": "gulp test"
   },
   "dependencies": {
-    "localStorage": "^1.0.3",
     "localstorage-memory": "^1.0.1",
     "qiniu": "6.1.3",
     "underscore": "^1.8.3",
@@ -41,9 +40,10 @@
     "email": "xzhuang@avos.com"
   },
   "browser": {
+    "react-native": false,
     "./lib/browserify-wrapper/upload.js": "./lib/browserify-wrapper/upload-browser.js",
-    "xmlhttprequest": "./lib/browserify-wrapper/xmlhttprequest-browser.js",
-    "localStorage": "./lib/browserify-wrapper/localstorage-browser.js",
+    "./lib/browserify-wrapper/xmlhttprequest.js": "./lib/browserify-wrapper/xmlhttprequest-browser.js",
+    "./lib/browserify-wrapper/localStorage.js": "./lib/browserify-wrapper/localstorage-browser.js",
     "./lib/browserify-wrapper/parse-base64.js": "./lib/browserify-wrapper/parse-base64-browser.js"
   }
 }

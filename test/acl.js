@@ -19,9 +19,9 @@ describe("ObjectACL",function(){
       gameScore.save(null, {
         success: function(result) {
           expect(result.id).to.be.ok();
-
-          done();
-
+          gameScore.destroy().then(function() {
+            done();
+          });
         },
         error: function(gameScore, error) {
           throw error;

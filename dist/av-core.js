@@ -260,7 +260,7 @@ module.exports = function(AV) {
 
 };
 
-},{"underscore":29}],2:[function(require,module,exports){
+},{"underscore":30}],2:[function(require,module,exports){
 (function (global){
 /*!
  * AVOSCloud JavaScript SDK
@@ -276,8 +276,8 @@ var AV = {};
 AV._ = require('underscore');
 AV.VERSION = require('./version');
 AV.Promise = require('./promise');
-AV.XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
-AV.localStorage = require('localStorage');
+AV.XMLHttpRequest = require('./browserify-wrapper/xmlhttprequest').XMLHttpRequest;
+AV.localStorage = require('./localstorage');
 
 // 以下模块为了兼容原有代码，使用这种加载方式。
 // The module order is important.
@@ -303,7 +303,7 @@ require('./bigquery')(AV);
 global.AV = AV;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./acl":1,"./bigquery":3,"./cloudfunction":8,"./error":9,"./event":10,"./file":11,"./geopoint":12,"./insight":13,"./object":14,"./op":15,"./promise":16,"./push":17,"./query":18,"./relation":19,"./role":20,"./search":21,"./status":22,"./user":23,"./utils":24,"./version":25,"localStorage":4,"underscore":29,"xmlhttprequest":7}],3:[function(require,module,exports){
+},{"./acl":1,"./bigquery":3,"./browserify-wrapper/xmlhttprequest":7,"./cloudfunction":8,"./error":9,"./event":10,"./file":11,"./geopoint":12,"./insight":13,"./localstorage":14,"./object":15,"./op":16,"./promise":17,"./push":18,"./query":19,"./relation":20,"./role":21,"./search":22,"./status":23,"./user":24,"./utils":25,"./version":26,"underscore":30}],3:[function(require,module,exports){
 'use strict';
 
 module.exports = function(AV) {
@@ -327,23 +327,64 @@ module.exports = function(AV) {
 (function (global){
 'use strict';
 
-var localStorage = global.localStorage;
+var _ = require('underscore');
+var Promise = require('../promise');
 
-try {
-  var testKey = '__storejs__';
-  localStorage.setItem(testKey, testKey);
-  if (localStorage.getItem(testKey) != testKey) {
-    throw new Error();
+// interface Storage {
+//   readonly attribute boolean async;
+//   string getItem(string key);
+//   void setItem(string key, string value);
+//   void removeItem(string key);
+//   void clear();
+//   Promise getItemAsync(string key);
+//   Promise setItemAsync(string key, string value);
+//   Promise removeItemAsync(string key);
+//   Promise clearAsync();
+// }
+var Storage = {};
+var apiNames = [
+  'getItem',
+  'setItem',
+  'removeItem',
+  'clear'
+];
+
+if (global.localStorage) {
+
+  var localStorage = global.localStorage;
+
+  try {
+    var testKey = '__storejs__';
+    localStorage.setItem(testKey, testKey);
+    if (localStorage.getItem(testKey) != testKey) {
+      throw new Error();
+    }
+    localStorage.remove(testKey);
+  } catch (e) {
+    localStorage = require('localstorage-memory');
   }
-  localStorage.remove(testKey);
-} catch (e) {
-  localStorage = require('localstorage-memory');
+
+  // in browser, `localStorage.async = false` will excute `localStorage.setItem('async', false)`
+  _(apiNames).each(function(apiName) {
+    Storage[apiName] = function() {
+      return global.localStorage[apiName].apply(global.localStorage, arguments);
+    };
+  });
+  Storage.async = false;
+} else {
+  var AsyncStorage = require('react-native').AsyncStorage;
+  _(apiNames).each(function(apiName) {
+    Storage[apiName + 'Async'] = function() {
+      return Promise.as(AsyncStorage[apiName].apply(AsyncStorage, arguments));
+    };
+  });
+  Storage.async = true;
 }
 
-module.exports = localStorage;
+module.exports = Storage;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"localstorage-memory":28}],5:[function(require,module,exports){
+},{"../promise":17,"localstorage-memory":29,"react-native":27,"underscore":30}],5:[function(require,module,exports){
 'use strict';
 
 var dataURItoBlob = function(dataURI, type) {
@@ -544,7 +585,7 @@ module.exports = function(AV) {
   });
 };
 
-},{"underscore":29}],9:[function(require,module,exports){
+},{"underscore":30}],9:[function(require,module,exports){
 'use strict';
 
 var _ = require('underscore');
@@ -892,7 +933,7 @@ module.exports = function(AV) {
 
 };
 
-},{"underscore":29}],10:[function(require,module,exports){
+},{"underscore":30}],10:[function(require,module,exports){
 /*global _: false */
 module.exports = function(AV) {
   var eventSplitter = /\s+/;
@@ -1051,8 +1092,13 @@ module.exports = function(AV) {
 (function (global){
 'use strict';
 
-var path = require('path');
 var _ = require('underscore');
+
+// port from browserify path module
+// since react-native packager won't shim node modules.
+function extname(path) {
+  return path.match(/^(\/?|)([\s\S]*?)((?:\.{1,2}|[^\/]+?|)(\.[^.\/]*|))(?:[\/]*)$/)[4];
+}
 
 /*jshint bitwise:false *//*global FileReader: true, File: true */
 module.exports = function(AV) {
@@ -1363,7 +1409,13 @@ module.exports = function(AV) {
    */
   AV.File = function(name, data, type) {
     this._name = name;
-    var currentUser = AV.User.current();
+    var currentUser;
+    try {
+      currentUser = AV.User.current();
+    }
+    catch (e) {
+      console.warn('Get current user failed. It seems this runtime use an async storage system, please new AV.File in the callback of AV.User.currentAsync().');
+    }
     this._metaData = {
        owner: (currentUser != null ? currentUser.id : 'unknown')
     };
@@ -1565,7 +1617,7 @@ module.exports = function(AV) {
     _qiniuToken: function(type) {
       var self = this;
       //Create 16-bits uuid as qiniu key.
-      var extName = path.extname(self._name);
+      var extName = extname(self._name);
       var hexOctet = function() {
         return Math.floor((1+Math.random())*0x10000).toString(16).substring(1);
       };
@@ -1637,7 +1689,7 @@ module.exports = function(AV) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./browserify-wrapper/parse-base64":5,"./browserify-wrapper/upload":6,"path":26,"underscore":29}],12:[function(require,module,exports){
+},{"./browserify-wrapper/parse-base64":5,"./browserify-wrapper/upload":6,"underscore":30}],12:[function(require,module,exports){
 var _ = require('underscore');
 
 /*global navigator: false */
@@ -1811,7 +1863,7 @@ module.exports = function(AV) {
   };
 };
 
-},{"underscore":29}],13:[function(require,module,exports){
+},{"underscore":30}],13:[function(require,module,exports){
 'use strict';
 
 var _ = require('underscore');
@@ -1954,7 +2006,42 @@ module.exports = function(AV) {
 
 };
 
-},{"underscore":29}],14:[function(require,module,exports){
+},{"underscore":30}],14:[function(require,module,exports){
+'use strict';
+
+var _ = require('underscore');
+var Promise = require('./promise');
+var localStorage = require('./browserify-wrapper/localStorage');
+
+var syncApiNames = [
+  'getItem',
+  'setItem',
+  'removeItem',
+  'clear'
+];
+
+if (!localStorage.async) {
+  // wrap sync apis with async ones.
+  _(syncApiNames).each(function(apiName) {
+    if (typeof localStorage[apiName] === 'function') {
+      localStorage[apiName + 'Async'] = function() {
+        return Promise.as(localStorage[apiName].apply(localStorage, arguments));
+      };
+    }
+  });
+} else {
+  _(syncApiNames).each(function(apiName) {
+    if (typeof localStorage[apiName] !== 'function') {
+      localStorage[apiName] = function() {
+        throw new Error('Synchronous API [' + apiName + '] is not available in this runtime.');
+      };
+    }
+  });
+}
+
+module.exports = localStorage;
+
+},{"./browserify-wrapper/localStorage":4,"./promise":17,"underscore":30}],15:[function(require,module,exports){
 'use strict';
 
 var _ = require('underscore');
@@ -3483,7 +3570,7 @@ module.exports = function(AV) {
 
 };
 
-},{"underscore":29}],15:[function(require,module,exports){
+},{"underscore":30}],16:[function(require,module,exports){
 'use strict';
 var _ = require('underscore');
 
@@ -4015,7 +4102,7 @@ module.exports = function(AV) {
 
 };
 
-},{"underscore":29}],16:[function(require,module,exports){
+},{"underscore":30}],17:[function(require,module,exports){
 (function (process){
 'use strict';
 var _ = require('underscore');
@@ -4097,7 +4184,15 @@ _.extend(Promise, /** @lends AV.Promise */ {
    */
   as: function() {
     var promise = new Promise();
-    promise.resolve.apply(promise, arguments);
+    if (_.isFunction(arguments[0])) {
+      arguments[0].then(function(data) {
+        promise.resolve.call(promise, data);
+      }, function(err) {
+        promise.reject.call(promise, err);
+      });
+    } else {
+      promise.resolve.apply(promise, arguments);
+    }
     return promise;
   },
 
@@ -4610,7 +4705,7 @@ Promise.prototype.finally = Promise.prototype.always;
 Promise.prototype.try = Promise.prototype.done;
 
 }).call(this,require('_process'))
-},{"_process":27,"underscore":29}],17:[function(require,module,exports){
+},{"_process":28,"underscore":30}],18:[function(require,module,exports){
 'use strict';
 
 module.exports = function(AV) {
@@ -4670,7 +4765,7 @@ module.exports = function(AV) {
   };
 };
 
-},{}],18:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 'use strict';
 
 var _ = require('underscore');
@@ -5609,7 +5704,7 @@ module.exports = function(AV) {
    });
 };
 
-},{"underscore":29}],19:[function(require,module,exports){
+},{"underscore":30}],20:[function(require,module,exports){
 'use strict';
 var _ = require('underscore');
 
@@ -5726,7 +5821,7 @@ module.exports = function(AV) {
   };
 };
 
-},{"underscore":29}],20:[function(require,module,exports){
+},{"underscore":30}],21:[function(require,module,exports){
 'use strict';
 
 var _ = require('underscore');
@@ -5861,7 +5956,7 @@ module.exports = function(AV) {
   });
 };
 
-},{"underscore":29}],21:[function(require,module,exports){
+},{"underscore":30}],22:[function(require,module,exports){
 'use strict';
 
 var _ = require('underscore');
@@ -6124,7 +6219,7 @@ module.exports = function(AV) {
   });
 };
 
-},{"underscore":29}],22:[function(require,module,exports){
+},{"underscore":30}],23:[function(require,module,exports){
 'use strict';
 
 var _ = require('underscore');
@@ -6501,7 +6596,7 @@ module.exports = function(AV) {
 
 };
 
-},{"underscore":29}],23:[function(require,module,exports){
+},{"underscore":30}],24:[function(require,module,exports){
 'use strict';
 
 var _ = require('underscore');
@@ -6605,7 +6700,12 @@ module.exports = function(AV) {
       this._rebuildEstimatedDataForKey("password");
       this._refreshCache();
       if (makeCurrent || this.isCurrent()) {
-        AV.User._saveCurrentUser(this);
+        // Some old version of leanengine-node-sdk will overwrite
+        // AV.User._saveCurrentUser which returns no Promise.
+        // So we need a Promise wrapper.
+        return AV.Promise.as(AV.User._saveCurrentUser(this));
+      } else {
+        return AV.Promise.as();
       }
     },
 
@@ -6629,10 +6729,11 @@ module.exports = function(AV) {
         // Overridden so that the user can be made the current user.
         var newOptions = _.clone(options) || {};
         newOptions.success = function(model) {
-          model._handleSaveResult(true);
-          if (options.success) {
-            options.success.apply(this, arguments);
-          }
+          model._handleSaveResult(true).then(function() {
+            if (options.success) {
+              options.success.apply(this, arguments);
+            }
+          });
         };
         return this.save({'authData': authData}, newOptions);
       } else {
@@ -6768,15 +6869,11 @@ module.exports = function(AV) {
         return AV.Promise.error(error);
       }
 
-      // Overridden so that the user can be made the current user.
-      var newOptions = _.clone(options);
-      newOptions.success = function(model) {
-        model._handleSaveResult(true);
-        if (options.success) {
-          options.success.apply(this, arguments);
-        }
-      };
-      return this.save(attrs, newOptions);
+      return this.save(attrs).then(function(model) {
+        return model._handleSaveResult(true).then(function() {
+          return model;
+        });
+      })._thenRunCallbacks(options, this);
     },
 
     /**
@@ -6832,12 +6929,13 @@ module.exports = function(AV) {
         return AV._request('usersByMobilePhone', null, null, "POST", json);
       };
       newOptions.success = function(model) {
-        model._handleSaveResult(true);
-        delete model.attributes.smsCode;
-        delete model._serverData.smsCode;
-        if (options.success) {
-          options.success.apply(this, arguments);
-        }
+        model._handleSaveResult(true).then(function() {
+          delete model.attributes.smsCode;
+          delete model._serverData.smsCode;
+          if (options.success) {
+            options.success.apply(this, arguments);
+          }
+        });
       };
       return this.save(attrs, newOptions);
     },
@@ -6862,10 +6960,11 @@ module.exports = function(AV) {
       return request.then(function(resp, status, xhr) {
         var serverAttrs = model.parse(resp, status, xhr);
         model._finishFetch(serverAttrs);
-        model._handleSaveResult(true);
-        if(!serverAttrs.smsCode)
-          delete model.attributes['smsCode'];
-        return model;
+        return model._handleSaveResult(true).then(function() {
+          if(!serverAttrs.smsCode)
+            delete model.attributes['smsCode'];
+          return model;
+        });
       })._thenRunCallbacks(options, this);
     },
 
@@ -6886,10 +6985,11 @@ module.exports = function(AV) {
 
       var newOptions = _.clone(options);
       newOptions.success = function(model) {
-        model._handleSaveResult(false);
-        if (options.success) {
-          options.success.apply(this, arguments);
-        }
+        model._handleSaveResult(false).then(function() {
+          if (options.success) {
+            options.success.apply(this, arguments);
+          }
+        });
       };
       return AV.Object.prototype.save.call(this, attrs, newOptions);
     },
@@ -6966,10 +7066,11 @@ module.exports = function(AV) {
     fetch: function(options) {
       var newOptions = options ? _.clone(options) : {};
       newOptions.success = function(model) {
-        model._handleSaveResult(false);
-        if (options && options.success) {
-          options.success.apply(this, arguments);
-        }
+        model._handleSaveResult(false).then(function() {
+          if (options && options.success) {
+            options.success.apply(this, arguments);
+          }
+        });
       };
       return AV.Object.prototype.fetch.call(this, newOptions);
     },
@@ -7172,9 +7273,9 @@ module.exports = function(AV) {
       ).then(function(resp, status, xhr) {
           var serverAttrs = user.parse(resp, status, xhr);
           user._finishFetch(serverAttrs);
-          user._handleSaveResult(true);
-          return user;
-
+          return user._handleSaveResult(true).then(function() {
+            return user;
+          });
       })._thenRunCallbacks(options, user);
     },
 
@@ -7256,7 +7357,7 @@ module.exports = function(AV) {
       }
       AV.User._currentUserMatchesDisk = true;
       AV.User._currentUser = null;
-      AV.localStorage.removeItem(
+      return AV.localStorage.removeItemAsync(
           AV._getAVPath(AV.User._CURRENT_USER_KEY));
     },
 
@@ -7424,6 +7525,50 @@ module.exports = function(AV) {
     /**
      * Retrieves the currently logged in AVUser with a valid session,
      * either from memory or localStorage, if necessary.
+     * @return {AV.Promise} resolved with the currently logged in AV.User.
+     */
+    currentAsync: function() {
+      if (AV.User._currentUser) {
+        return AV.Promise.as(AV.User._currentUser);
+      }
+
+      if (AV.User._currentUserMatchesDisk) {
+
+        return AV.Promise.as(AV.User._currentUser);
+      }
+
+
+      return AV.localStorage.getItemAsync(
+        AV._getAVPath(AV.User._CURRENT_USER_KEY)
+      ).then(function(userData) {
+        if (!userData) {
+          return null;
+        }
+
+        // Load the user from local storage.
+        AV.User._currentUserMatchesDisk = true;
+
+        AV.User._currentUser = AV.Object._create("_User");
+        AV.User._currentUser._isCurrentUser = true;
+
+        var json = JSON.parse(userData);
+        AV.User._currentUser.id = json._id;
+        delete json._id;
+        AV.User._currentUser._sessionToken = json._sessionToken;
+        delete json._sessionToken;
+        AV.User._currentUser._finishFetch(json);
+        //AV.User._currentUser.set(json);
+
+        AV.User._currentUser._synchronizeAllAuthData();
+        AV.User._currentUser._refreshCache();
+        AV.User._currentUser._opSetQueue = [{}];
+        return AV.User._currentUser;
+      });
+    },
+
+    /**
+     * Retrieves the currently logged in AVUser with a valid session,
+     * either from memory or localStorage, if necessary.
      * @return {AV.Object} The currently logged in AV.User.
      */
     current: function() {
@@ -7466,19 +7611,27 @@ module.exports = function(AV) {
      * Persists a user as currentUser to localStorage, and into the singleton.
      */
     _saveCurrentUser: function(user) {
+      var promise;
       if (AV.User._currentUser !== user) {
-        AV.User.logOut();
+        promise = AV.User.logOut();
       }
-      user._isCurrentUser = true;
-      AV.User._currentUser = user;
-      AV.User._currentUserMatchesDisk = true;
+      else {
+        promise = AV.Promise.as();
+      }
+      return promise.then(function() {
+        user._isCurrentUser = true;
+        AV.User._currentUser = user;
 
-      var json = user.toJSON();
-      json._id = user.id;
-      json._sessionToken = user._sessionToken;
-      AV.localStorage.setItem(
+        var json = user.toJSON();
+        json._id = user.id;
+        json._sessionToken = user._sessionToken;
+        return AV.localStorage.setItemAsync(
           AV._getAVPath(AV.User._CURRENT_USER_KEY),
-          JSON.stringify(json));
+          JSON.stringify(json)
+        ).then(function() {
+          AV.User._currentUserMatchesDisk = true;
+        });
+      });
     },
 
     _registerAuthenticationProvider: function(provider) {
@@ -7497,7 +7650,7 @@ module.exports = function(AV) {
   });
 };
 
-},{"underscore":29}],24:[function(require,module,exports){
+},{"underscore":30}],25:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -7693,28 +7846,30 @@ module.exports = function(AV) {
   AV._getInstallationId = function() {
     // See if it's cached in RAM.
     if (AV._installationId) {
-      return AV._installationId;
+      return AV.Promise.as(AV._installationId);
     }
 
     // Try to get it from localStorage.
     var path = AV._getAVPath("installationId");
-    AV._installationId = AV.localStorage.getItem(path);
-
-    if (!AV._installationId || AV._installationId === "") {
-      // It wasn't in localStorage, so create a new one.
-      var hexOctet = function() {
-        return Math.floor((1+Math.random())*0x10000).toString(16).substring(1);
-      };
-      AV._installationId = (
-        hexOctet() + hexOctet() + "-" +
-        hexOctet() + "-" +
-        hexOctet() + "-" +
-        hexOctet() + "-" +
-        hexOctet() + hexOctet() + hexOctet());
-      AV.localStorage.setItem(path, AV._installationId);
-    }
-
-    return AV._installationId;
+    return AV.localStorage.getItemAsync(path).then(function(_installationId){
+      AV._installationId = _installationId;
+      if (!AV._installationId) {
+        // It wasn't in localStorage, so create a new one.
+        var hexOctet = function() {
+          return Math.floor((1+Math.random())*0x10000).toString(16).substring(1);
+        };
+        AV._installationId = (
+          hexOctet() + hexOctet() + "-" +
+          hexOctet() + "-" +
+          hexOctet() + "-" +
+          hexOctet() + "-" +
+          hexOctet() + hexOctet() + hexOctet());
+        return AV.localStorage.setItemAsync(path, AV._installationId);
+      }
+      else {
+        return _installationId;
+      }
+    });
   };
 
   AV._parseDate = function(iso8601) {
@@ -7913,32 +8068,35 @@ module.exports = function(AV) {
     if(AV._useMasterKey)
         dataObject._MasterKey = AV.masterKey;
     dataObject._ClientVersion = AV.VERSION;
-    dataObject._InstallationId = AV._getInstallationId();
     // Pass the session token on every request.
     var currentUser = AV.User.current();
     if (currentUser && currentUser._sessionToken) {
       dataObject._SessionToken = currentUser._sessionToken;
     }
-    var data = JSON.stringify(dataObject);
 
-    return AV._ajax(method, url, data).then(null, function(response) {
-      // Transform the error into an instance of AV.Error by trying to parse
-      // the error string as JSON.
-      var error;
-      if (response && response.responseText) {
-        try {
-          var errorJSON = JSON.parse(response.responseText);
-          if (errorJSON) {
-            error = new AV.Error(errorJSON.code, errorJSON.error);
+    return AV._getInstallationId().then(function(_InstallationId) {
+      dataObject._InstallationId = _InstallationId;
+    }).then(function() {
+      var data = JSON.stringify(dataObject);
+      return AV._ajax(method, url, data).then(null, function(response) {
+        // Transform the error into an instance of AV.Error by trying to parse
+        // the error string as JSON.
+        var error;
+        if (response && response.responseText) {
+          try {
+            var errorJSON = JSON.parse(response.responseText);
+            if (errorJSON) {
+              error = new AV.Error(errorJSON.code, errorJSON.error);
+            }
+          } catch (e) {
+            // If we fail to parse the error text, that's okay.
           }
-        } catch (e) {
-          // If we fail to parse the error text, that's okay.
         }
-      }
-      error = error || new AV.Error(-1, response.responseText);
-      // By explicitly returning a rejected Promise, this will work with
-      // either jQuery or Promises/A semantics.
-      return AV.Promise.error(error);
+        error = error || new AV.Error(-1, response.responseText);
+        // By explicitly returning a rejected Promise, this will work with
+        // either jQuery or Promises/A semantics.
+        return AV.Promise.error(error);
+      });
     });
   };
 
@@ -8172,240 +8330,14 @@ module.exports = function(AV) {
 };
 
 }).call(this,require('_process'))
-},{"_process":27,"underscore":29}],25:[function(require,module,exports){
+},{"_process":28,"underscore":30}],26:[function(require,module,exports){
 'use strict';
 
-module.exports = "js0.6.2";
+module.exports = "js1.0.0-rc1";
 
-},{}],26:[function(require,module,exports){
-(function (process){
-// Copyright Joyent, Inc. and other Node contributors.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a
-// copy of this software and associated documentation files (the
-// "Software"), to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to permit
-// persons to whom the Software is furnished to do so, subject to the
-// following conditions:
-//
-// The above copyright notice and this permission notice shall be included
-// in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
-// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-// USE OR OTHER DEALINGS IN THE SOFTWARE.
+},{}],27:[function(require,module,exports){
 
-// resolves . and .. elements in a path array with directory names there
-// must be no slashes, empty elements, or device names (c:\) in the array
-// (so also no leading and trailing slashes - it does not distinguish
-// relative and absolute paths)
-function normalizeArray(parts, allowAboveRoot) {
-  // if the path tries to go above the root, `up` ends up > 0
-  var up = 0;
-  for (var i = parts.length - 1; i >= 0; i--) {
-    var last = parts[i];
-    if (last === '.') {
-      parts.splice(i, 1);
-    } else if (last === '..') {
-      parts.splice(i, 1);
-      up++;
-    } else if (up) {
-      parts.splice(i, 1);
-      up--;
-    }
-  }
-
-  // if the path is allowed to go above the root, restore leading ..s
-  if (allowAboveRoot) {
-    for (; up--; up) {
-      parts.unshift('..');
-    }
-  }
-
-  return parts;
-}
-
-// Split a filename into [root, dir, basename, ext], unix version
-// 'root' is just a slash, or nothing.
-var splitPathRe =
-    /^(\/?|)([\s\S]*?)((?:\.{1,2}|[^\/]+?|)(\.[^.\/]*|))(?:[\/]*)$/;
-var splitPath = function(filename) {
-  return splitPathRe.exec(filename).slice(1);
-};
-
-// path.resolve([from ...], to)
-// posix version
-exports.resolve = function() {
-  var resolvedPath = '',
-      resolvedAbsolute = false;
-
-  for (var i = arguments.length - 1; i >= -1 && !resolvedAbsolute; i--) {
-    var path = (i >= 0) ? arguments[i] : process.cwd();
-
-    // Skip empty and invalid entries
-    if (typeof path !== 'string') {
-      throw new TypeError('Arguments to path.resolve must be strings');
-    } else if (!path) {
-      continue;
-    }
-
-    resolvedPath = path + '/' + resolvedPath;
-    resolvedAbsolute = path.charAt(0) === '/';
-  }
-
-  // At this point the path should be resolved to a full absolute path, but
-  // handle relative paths to be safe (might happen when process.cwd() fails)
-
-  // Normalize the path
-  resolvedPath = normalizeArray(filter(resolvedPath.split('/'), function(p) {
-    return !!p;
-  }), !resolvedAbsolute).join('/');
-
-  return ((resolvedAbsolute ? '/' : '') + resolvedPath) || '.';
-};
-
-// path.normalize(path)
-// posix version
-exports.normalize = function(path) {
-  var isAbsolute = exports.isAbsolute(path),
-      trailingSlash = substr(path, -1) === '/';
-
-  // Normalize the path
-  path = normalizeArray(filter(path.split('/'), function(p) {
-    return !!p;
-  }), !isAbsolute).join('/');
-
-  if (!path && !isAbsolute) {
-    path = '.';
-  }
-  if (path && trailingSlash) {
-    path += '/';
-  }
-
-  return (isAbsolute ? '/' : '') + path;
-};
-
-// posix version
-exports.isAbsolute = function(path) {
-  return path.charAt(0) === '/';
-};
-
-// posix version
-exports.join = function() {
-  var paths = Array.prototype.slice.call(arguments, 0);
-  return exports.normalize(filter(paths, function(p, index) {
-    if (typeof p !== 'string') {
-      throw new TypeError('Arguments to path.join must be strings');
-    }
-    return p;
-  }).join('/'));
-};
-
-
-// path.relative(from, to)
-// posix version
-exports.relative = function(from, to) {
-  from = exports.resolve(from).substr(1);
-  to = exports.resolve(to).substr(1);
-
-  function trim(arr) {
-    var start = 0;
-    for (; start < arr.length; start++) {
-      if (arr[start] !== '') break;
-    }
-
-    var end = arr.length - 1;
-    for (; end >= 0; end--) {
-      if (arr[end] !== '') break;
-    }
-
-    if (start > end) return [];
-    return arr.slice(start, end - start + 1);
-  }
-
-  var fromParts = trim(from.split('/'));
-  var toParts = trim(to.split('/'));
-
-  var length = Math.min(fromParts.length, toParts.length);
-  var samePartsLength = length;
-  for (var i = 0; i < length; i++) {
-    if (fromParts[i] !== toParts[i]) {
-      samePartsLength = i;
-      break;
-    }
-  }
-
-  var outputParts = [];
-  for (var i = samePartsLength; i < fromParts.length; i++) {
-    outputParts.push('..');
-  }
-
-  outputParts = outputParts.concat(toParts.slice(samePartsLength));
-
-  return outputParts.join('/');
-};
-
-exports.sep = '/';
-exports.delimiter = ':';
-
-exports.dirname = function(path) {
-  var result = splitPath(path),
-      root = result[0],
-      dir = result[1];
-
-  if (!root && !dir) {
-    // No dirname whatsoever
-    return '.';
-  }
-
-  if (dir) {
-    // It has a dirname, strip trailing slash
-    dir = dir.substr(0, dir.length - 1);
-  }
-
-  return root + dir;
-};
-
-
-exports.basename = function(path, ext) {
-  var f = splitPath(path)[2];
-  // TODO: make this comparison case-insensitive on windows?
-  if (ext && f.substr(-1 * ext.length) === ext) {
-    f = f.substr(0, f.length - ext.length);
-  }
-  return f;
-};
-
-
-exports.extname = function(path) {
-  return splitPath(path)[3];
-};
-
-function filter (xs, f) {
-    if (xs.filter) return xs.filter(f);
-    var res = [];
-    for (var i = 0; i < xs.length; i++) {
-        if (f(xs[i], i, xs)) res.push(xs[i]);
-    }
-    return res;
-}
-
-// String.prototype.substr - negative index don't work in IE8
-var substr = 'ab'.substr(-1) === 'b'
-    ? function (str, start, len) { return str.substr(start, len) }
-    : function (str, start, len) {
-        if (start < 0) start = str.length + start;
-        return str.substr(start, len);
-    }
-;
-
-}).call(this,require('_process'))
-},{"_process":27}],27:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -8438,7 +8370,9 @@ function drainQueue() {
         currentQueue = queue;
         queue = [];
         while (++queueIndex < len) {
-            currentQueue[queueIndex].run();
+            if (currentQueue) {
+                currentQueue[queueIndex].run();
+            }
         }
         queueIndex = -1;
         len = queue.length;
@@ -8490,14 +8424,13 @@ process.binding = function (name) {
     throw new Error('process.binding is not supported');
 };
 
-// TODO(shtylman)
 process.cwd = function () { return '/' };
 process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 process.umask = function() { return 0; };
 
-},{}],28:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 (function(root) {
   var localStorageMemory = {};
   var cache = {};
@@ -8578,7 +8511,7 @@ process.umask = function() { return 0; };
 
 
 
-},{}],29:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 //     Underscore.js 1.8.3
 //     http://underscorejs.org
 //     (c) 2009-2015 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors

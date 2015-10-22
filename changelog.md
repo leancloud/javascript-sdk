@@ -1,3 +1,6 @@
+# 1.0.0-rc1 日期：215 年 10 月 22 日
+* 兼容 React Native 运行环境。
+
 # 0.6.2 日期：2015 年 10 月 22 日
 * 修复 Follower/Followee 查询遇到 undefined 用户抛出异常的 bug。
 * 修复在无痕模式浏览器下无法正常运行的 Bug。

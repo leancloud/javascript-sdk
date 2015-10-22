@@ -1,6 +1,6 @@
 describe('bigquery', function() {
   describe('startJob', function(){
-    this.timeout(20000);
+    
     it('return job id and query job status.', function(done) {
       AV.BigQuery.startJob({
         sql: "select * from `_User`",
