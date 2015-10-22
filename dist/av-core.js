@@ -260,7 +260,7 @@ module.exports = function(AV) {
 
 };
 
-},{"underscore":28}],2:[function(require,module,exports){
+},{"underscore":29}],2:[function(require,module,exports){
 (function (global){
 /*!
  * AVOSCloud JavaScript SDK
@@ -303,7 +303,7 @@ require('./bigquery')(AV);
 global.AV = AV;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./acl":1,"./bigquery":3,"./cloudfunction":8,"./error":9,"./event":10,"./file":11,"./geopoint":12,"./insight":13,"./object":14,"./op":15,"./promise":16,"./push":17,"./query":18,"./relation":19,"./role":20,"./search":21,"./status":22,"./user":23,"./utils":24,"./version":25,"localStorage":4,"underscore":28,"xmlhttprequest":7}],3:[function(require,module,exports){
+},{"./acl":1,"./bigquery":3,"./cloudfunction":8,"./error":9,"./event":10,"./file":11,"./geopoint":12,"./insight":13,"./object":14,"./op":15,"./promise":16,"./push":17,"./query":18,"./relation":19,"./role":20,"./search":21,"./status":22,"./user":23,"./utils":24,"./version":25,"localStorage":4,"underscore":29,"xmlhttprequest":7}],3:[function(require,module,exports){
 'use strict';
 
 module.exports = function(AV) {
@@ -327,10 +327,23 @@ module.exports = function(AV) {
 (function (global){
 'use strict';
 
-module.exports = global.localStorage;
+var localStorage = global.localStorage;
+
+try {
+  var testKey = '__storejs__';
+  localStorage.setItem(testKey, testKey);
+  if (localStorage.getItem(testKey) != testKey) {
+    throw new Error();
+  }
+  localStorage.remove(testKey);
+} catch (e) {
+  localStorage = require('localstorage-memory');
+}
+
+module.exports = localStorage;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],5:[function(require,module,exports){
+},{"localstorage-memory":28}],5:[function(require,module,exports){
 'use strict';
 
 var dataURItoBlob = function(dataURI, type) {
@@ -531,7 +544,7 @@ module.exports = function(AV) {
   });
 };
 
-},{"underscore":28}],9:[function(require,module,exports){
+},{"underscore":29}],9:[function(require,module,exports){
 'use strict';
 
 var _ = require('underscore');
@@ -879,7 +892,7 @@ module.exports = function(AV) {
 
 };
 
-},{"underscore":28}],10:[function(require,module,exports){
+},{"underscore":29}],10:[function(require,module,exports){
 /*global _: false */
 module.exports = function(AV) {
   var eventSplitter = /\s+/;
@@ -1624,7 +1637,7 @@ module.exports = function(AV) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./browserify-wrapper/parse-base64":5,"./browserify-wrapper/upload":6,"path":26,"underscore":28}],12:[function(require,module,exports){
+},{"./browserify-wrapper/parse-base64":5,"./browserify-wrapper/upload":6,"path":26,"underscore":29}],12:[function(require,module,exports){
 var _ = require('underscore');
 
 /*global navigator: false */
@@ -1798,7 +1811,7 @@ module.exports = function(AV) {
   };
 };
 
-},{"underscore":28}],13:[function(require,module,exports){
+},{"underscore":29}],13:[function(require,module,exports){
 'use strict';
 
 var _ = require('underscore');
@@ -1941,7 +1954,7 @@ module.exports = function(AV) {
 
 };
 
-},{"underscore":28}],14:[function(require,module,exports){
+},{"underscore":29}],14:[function(require,module,exports){
 'use strict';
 
 var _ = require('underscore');
@@ -3336,7 +3349,7 @@ module.exports = function(AV) {
   AV.Object._canBeSerializedAsValue = function(object) {
     var canBeSerializedAsValue = true;
 
-    if (object instanceof AV.Object) {
+    if (object instanceof AV.Object || object instanceof AV.File) {
       canBeSerializedAsValue = !!object.id;
 
     } else if (_.isArray(object)) {
@@ -3470,7 +3483,7 @@ module.exports = function(AV) {
 
 };
 
-},{"underscore":28}],15:[function(require,module,exports){
+},{"underscore":29}],15:[function(require,module,exports){
 'use strict';
 var _ = require('underscore');
 
@@ -4002,7 +4015,7 @@ module.exports = function(AV) {
 
 };
 
-},{"underscore":28}],16:[function(require,module,exports){
+},{"underscore":29}],16:[function(require,module,exports){
 (function (process){
 'use strict';
 var _ = require('underscore');
@@ -4597,7 +4610,7 @@ Promise.prototype.finally = Promise.prototype.always;
 Promise.prototype.try = Promise.prototype.done;
 
 }).call(this,require('_process'))
-},{"_process":27,"underscore":28}],17:[function(require,module,exports){
+},{"_process":27,"underscore":29}],17:[function(require,module,exports){
 'use strict';
 
 module.exports = function(AV) {
@@ -5582,17 +5595,21 @@ module.exports = function(AV) {
       return new AV.User();
     },
      _processResult: function(json){
-      var user = json[this._friendshipTag];
-      if(user.__type === 'Pointer' && user.className === '_User'){
-        delete user.__type;
-        delete user.className;
-      }
-      return user;
+       if(json && json[this._friendshipTag]) {
+         var user = json[this._friendshipTag];
+         if(user.__type === 'Pointer' && user.className === '_User'){
+           delete user.__type;
+           delete user.className;
+          }
+          return user;
+       } else {
+         return null;
+       }
     },
    });
 };
 
-},{"underscore":28}],19:[function(require,module,exports){
+},{"underscore":29}],19:[function(require,module,exports){
 'use strict';
 var _ = require('underscore');
 
@@ -5709,7 +5726,7 @@ module.exports = function(AV) {
   };
 };
 
-},{"underscore":28}],20:[function(require,module,exports){
+},{"underscore":29}],20:[function(require,module,exports){
 'use strict';
 
 var _ = require('underscore');
@@ -5844,7 +5861,7 @@ module.exports = function(AV) {
   });
 };
 
-},{"underscore":28}],21:[function(require,module,exports){
+},{"underscore":29}],21:[function(require,module,exports){
 'use strict';
 
 var _ = require('underscore');
@@ -6107,7 +6124,7 @@ module.exports = function(AV) {
   });
 };
 
-},{"underscore":28}],22:[function(require,module,exports){
+},{"underscore":29}],22:[function(require,module,exports){
 'use strict';
 
 var _ = require('underscore');
@@ -6484,7 +6501,7 @@ module.exports = function(AV) {
 
 };
 
-},{"underscore":28}],23:[function(require,module,exports){
+},{"underscore":29}],23:[function(require,module,exports){
 'use strict';
 
 var _ = require('underscore');
@@ -7480,7 +7497,7 @@ module.exports = function(AV) {
   });
 };
 
-},{"underscore":28}],24:[function(require,module,exports){
+},{"underscore":29}],24:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -8155,10 +8172,10 @@ module.exports = function(AV) {
 };
 
 }).call(this,require('_process'))
-},{"_process":27,"underscore":28}],25:[function(require,module,exports){
+},{"_process":27,"underscore":29}],25:[function(require,module,exports){
 'use strict';
 
-module.exports = "js0.6.1";
+module.exports = "js0.6.2";
 
 },{}],26:[function(require,module,exports){
 (function (process){
@@ -8421,9 +8438,7 @@ function drainQueue() {
         currentQueue = queue;
         queue = [];
         while (++queueIndex < len) {
-            if (currentQueue) {
-                currentQueue[queueIndex].run();
-            }
+            currentQueue[queueIndex].run();
         }
         queueIndex = -1;
         len = queue.length;
@@ -8475,6 +8490,7 @@ process.binding = function (name) {
     throw new Error('process.binding is not supported');
 };
 
+// TODO(shtylman)
 process.cwd = function () { return '/' };
 process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
@@ -8482,6 +8498,87 @@ process.chdir = function (dir) {
 process.umask = function() { return 0; };
 
 },{}],28:[function(require,module,exports){
+(function(root) {
+  var localStorageMemory = {};
+  var cache = {};
+
+  /**
+   * number of stored items.
+   */
+  localStorageMemory.length = 0;
+
+  /**
+   * returns item for passed key, or null
+   *
+   * @para {String} key
+   *       name of item to be returned
+   * @returns {String|null}
+   */
+  localStorageMemory.getItem = function(key) {
+    return cache[key] || null;
+  };
+
+  /**
+   * sets item for key to passed value, as String
+   *
+   * @para {String} key
+   *       name of item to be set
+   * @para {String} value
+   *       value, will always be turned into a String
+   * @returns {undefined}
+   */
+  localStorageMemory.setItem = function(key, value) {
+    if (typeof value === 'undefined') {
+      localStorageMemory.removeItem(key);
+    } else {
+      cache[key] = '' + value;
+      localStorageMemory.length++;
+    }
+  };
+
+  /**
+   * removes item for passed key
+   *
+   * @para {String} key
+   *       name of item to be removed
+   * @returns {undefined}
+   */
+  localStorageMemory.removeItem = function(key) {
+    delete cache[key];
+    localStorageMemory.length--;
+  };
+
+  /**
+   * returns name of key at passed index
+   *
+   * @para {Number} index
+   *       Position for key to be returned (starts at 0)
+   * @returns {String|null}
+   */
+  localStorageMemory.key = function(index) {
+    return Object.keys(cache)[index] || null;
+  };
+
+  /**
+   * removes all stored items and sets length to 0
+   *
+   * @returns {undefined}
+   */
+  localStorageMemory.clear = function() {
+    cache = {};
+    localStorageMemory.length = 0;
+  };
+
+  if (typeof exports === 'object') {
+    module.exports = localStorageMemory;
+  } else {
+    root.localStorageMemory = localStorageMemory;
+  }
+})(this);
+
+
+
+},{}],29:[function(require,module,exports){
 //     Underscore.js 1.8.3
 //     http://underscorejs.org
 //     (c) 2009-2015 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
