@@ -6463,12 +6463,16 @@ module.exports = function(AV) {
       return new AV.User();
     },
      _processResult: function(json){
-      var user = json[this._friendshipTag];
-      if(user.__type === 'Pointer' && user.className === '_User'){
-        delete user.__type;
-        delete user.className;
-      }
-      return user;
+       if(json && json[this._friendshipTag]) {
+         var user = json[this._friendshipTag];
+         if(user.__type === 'Pointer' && user.className === '_User'){
+           delete user.__type;
+           delete user.className;
+          }
+          return user;
+       } else {
+         return null;
+       }
     },
    });
 };
@@ -9164,7 +9168,7 @@ module.exports = function(AV) {
 },{"_process":33,"underscore":35}],30:[function(require,module,exports){
 'use strict';
 
-module.exports = "js0.6.1";
+module.exports = "js0.6.2";
 
 },{}],31:[function(require,module,exports){
 'use strict';
@@ -9636,9 +9640,7 @@ function drainQueue() {
         currentQueue = queue;
         queue = [];
         while (++queueIndex < len) {
-            if (currentQueue) {
-                currentQueue[queueIndex].run();
-            }
+            currentQueue[queueIndex].run();
         }
         queueIndex = -1;
         len = queue.length;
@@ -9690,6 +9692,7 @@ process.binding = function (name) {
     throw new Error('process.binding is not supported');
 };
 
+// TODO(shtylman)
 process.cwd = function () { return '/' };
 process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
