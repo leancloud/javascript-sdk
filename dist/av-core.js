@@ -5759,6 +5759,8 @@ module.exports = function(AV) {
       if (_.isString(name)) {
         AV.Object.prototype.constructor.call(this, null, null);
         this.setName(name);
+      } else {
+        AV.Object.prototype.constructor.call(this, name, acl);
       }
       if (acl === undefined) {
         var defaultAcl = new AV.ACL();
@@ -8175,7 +8177,7 @@ module.exports = function(AV) {
 },{"_process":27,"underscore":29}],25:[function(require,module,exports){
 'use strict';
 
-module.exports = "js0.6.2";
+module.exports = "js0.6.3";
 
 },{}],26:[function(require,module,exports){
 (function (process){
