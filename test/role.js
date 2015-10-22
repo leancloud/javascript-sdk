@@ -20,5 +20,10 @@ describe("Role", function() {
         new AV.Role('foo', {});
       }).to.throwError();
     });
+    it('no argument', function() {
+      expect(function() {
+        new AV.Role();
+      }).not.to.throwError();
+    });
   });
 });
