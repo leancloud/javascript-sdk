@@ -1,6 +1,6 @@
 describe('promise', function() {
   describe('constructor', function(){
-    it('shoud be resolve with 42.', function(done) {
+    it('shoud be resolved with 42.', function(done) {
       var promise = new AV.Promise(function(resolve) {
         resolve(42);
       });
@@ -10,6 +10,22 @@ describe('promise', function() {
       });
     });
   });
+
+  describe('as', function() {
+    it('should be resolved.', function(done) {
+      AV.Promise.as(42).then(function(ret) {
+        expect(ret).to.be(42);
+        done();
+      });
+    });
+    it('should be resolved when got a Promise.', function(done) {
+      AV.Promise.as(Promise.resolve(42)).then(function(ret) {
+        expect(ret).to.be(42);
+        done();
+      });
+    });
+  });
+
 
   describe('catch', function(){
     it('shoud catch exception.', function(done) {
