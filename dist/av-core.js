@@ -335,7 +335,7 @@ try {
   if (localStorage.getItem(testKey) != testKey) {
     throw new Error();
   }
-  localStorage.remove(testKey);
+  localStorage.removeItem(testKey);
 } catch (e) {
   localStorage = require('localstorage-memory');
 }
@@ -5765,12 +5765,14 @@ module.exports = function(AV) {
       if (acl === undefined) {
         var defaultAcl = new AV.ACL();
         defaultAcl.setPublicReadAccess(true);
-        acl = defaultAcl;
-      }
-      if (!(acl instanceof AV.ACL)) {
+        if(!this.getACL()) {
+          this.setACL(defaultAcl);
+        }
+      } else if (!(acl instanceof AV.ACL)) {
         throw new TypeError('acl must be an instance of AV.ACL');
+      } else {
+        this.setACL(acl);
       }
-      this.setACL(acl);
     },
 
     /**
@@ -6063,6 +6065,26 @@ module.exports = function(AV) {
     },
 
     /**
+     * Returns true when there are more documents can be retrieved by this
+     * query instance, you can call find function to get more results.
+     * @see AV.SearchQuery#find
+     * @return {Boolean}
+     */
+    hasMore: function() {
+      return !this._hitEnd;
+    },
+
+    /**
+     * Reset current query instance state(such as sid, hits etc) except params
+     * for a new searching. After resetting, hasMore() will return true.
+     */
+    reset: function() {
+      this._hitEnd = false;
+      this._sid = null;
+      this._hits = 0;
+    },
+
+    /**
      * Retrieves a list of AVObjects that satisfy this query.
      * Either options.success or options.error is called when the find
      * completes.
@@ -6082,6 +6104,9 @@ module.exports = function(AV) {
         if(response.sid) {
           self._oldSid = self._sid;
           self._sid = response.sid;
+        } else {
+          self._sid = null;
+          self._hitEnd = true;
         }
         self._hits = response.hits || 0;
 
@@ -8177,7 +8202,7 @@ module.exports = function(AV) {
 },{"_process":27,"underscore":29}],25:[function(require,module,exports){
 'use strict';
 
-module.exports = "js0.6.3";
+module.exports = "js0.6.4";
 
 },{}],26:[function(require,module,exports){
 (function (process){
