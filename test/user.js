@@ -3,6 +3,7 @@ var email="u" + Date.now() + "@test.com";
 var password="password1";
 describe("User",function(){
 
+describe("User.signUp", function(){
   it("should sign up",function(done){
     var user = new AV.User();
     user.set("username", username);
@@ -213,4 +214,6 @@ describe("Follow/unfollow users",function(){
       }
     });
   });
+});
+
 });
