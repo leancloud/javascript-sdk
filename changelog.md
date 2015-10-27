@@ -1,3 +1,13 @@
+# 1.0.0-rc3 日期：2015 年 10 月 27 日
+* 修复 `AV._request` 某些情况下无法正常工作的 Bug。
+* 修复某些登录 API 没有更新 currentUser 的问题
+* 修复 localStorage 没有生效的 Bug，感谢热心用户反馈。
+* AV.SearchQuery 增加 hasMore 和 reset 方法。
+
+# 0.6.4 日期：2015 年 10 月 27 日
+* 修复 localStorage 没有生效的 Bug，感谢热心用户反馈。
+* AV.SearchQuery 增加 hasMore 和 reset 方法。
+
 # 1.0.0-rc2 日期：215 年 10 月 22 日
 * 兼容 React Native 运行环境。
 * 修复 AV.Role 的兼容性问题。

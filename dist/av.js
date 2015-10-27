@@ -371,7 +371,7 @@ if (global.localStorage) {
     if (localStorage.getItem(testKey) != testKey) {
       throw new Error();
     }
-    localStorage.remove(testKey);
+    localStorage.removeItem(testKey);
   } catch (e) {
     localStorage = require('localstorage-memory');
   }
@@ -448,11 +448,9 @@ module.exports = function upload(file, AV, saveOptions) {
 
     var xhr = new AV.XMLHttpRequest();
 
-    xhr.upload.addEventListener('progress', function(e) {
-      if (e.lengthComputable) {
-        saveOptions.onProgress && saveOptions.onProgress(e);
-      }
-    }, false);
+    if (xhr.upload) {
+      xhr.upload.onprogress = saveOptions.onProgress;
+    }
 
     xhr.onreadystatechange = function() {
       if (xhr.readyState === 4) {
@@ -5052,7 +5050,7 @@ _.extend(Promise, /** @lends AV.Promise */ {
    */
   as: function() {
     var promise = new Promise();
-    if (_.isFunction(arguments[0])) {
+    if (arguments[0] && _.isFunction(arguments[0].then)) {
       arguments[0].then(function(data) {
         promise.resolve.call(promise, data);
       }, function(err) {
@@ -6728,12 +6726,14 @@ module.exports = function(AV) {
       if (acl === undefined) {
         var defaultAcl = new AV.ACL();
         defaultAcl.setPublicReadAccess(true);
-        acl = defaultAcl;
-      }
-      if (!(acl instanceof AV.ACL)) {
+        if(!this.getACL()) {
+          this.setACL(defaultAcl);
+        }
+      } else if (!(acl instanceof AV.ACL)) {
         throw new TypeError('acl must be an instance of AV.ACL');
+      } else {
+        this.setACL(acl);
       }
-      this.setACL(acl);
     },
 
     /**
@@ -7151,6 +7151,26 @@ module.exports = function(AV) {
     },
 
     /**
+     * Returns true when there are more documents can be retrieved by this
+     * query instance, you can call find function to get more results.
+     * @see AV.SearchQuery#find
+     * @return {Boolean}
+     */
+    hasMore: function() {
+      return !this._hitEnd;
+    },
+
+    /**
+     * Reset current query instance state(such as sid, hits etc) except params
+     * for a new searching. After resetting, hasMore() will return true.
+     */
+    reset: function() {
+      this._hitEnd = false;
+      this._sid = null;
+      this._hits = 0;
+    },
+
+    /**
      * Retrieves a list of AVObjects that satisfy this query.
      * Either options.success or options.error is called when the find
      * completes.
@@ -7170,6 +7190,9 @@ module.exports = function(AV) {
         if(response.sid) {
           self._oldSid = self._sid;
           self._sid = response.sid;
+        } else {
+          self._sid = null;
+          self._hitEnd = true;
         }
         self._hits = response.hits || 0;
 
@@ -7720,17 +7743,12 @@ module.exports = function(AV) {
         var authData = this.get('authData') || {};
         authData[authType] = options.authData;
         this.set('authData', authData);
-
-        // Overridden so that the user can be made the current user.
-        var newOptions = _.clone(options) || {};
-        newOptions.success = function(model) {
-          model._handleSaveResult(true).then(function() {
-            if (options.success) {
-              options.success.apply(this, arguments);
-            }
-          });
-        };
-        return this.save({'authData': authData}, newOptions);
+        return this.save({'authData': authData}, filterOutCallbacks(options))
+          .then(function(model) {
+            return model._handleSaveResult(true).then(function() {
+              return model;
+            });
+          })._thenRunCallbacks(options);
       } else {
         var self = this;
         var promise = new AV.Promise();
@@ -7864,7 +7882,7 @@ module.exports = function(AV) {
         return AV.Promise.error(error);
       }
 
-      return this.save(attrs).then(function(model) {
+      return this.save(attrs, filterOutCallbacks(options)).then(function(model) {
         return model._handleSaveResult(true).then(function() {
           return model;
         });
@@ -7918,21 +7936,17 @@ module.exports = function(AV) {
         return AV.Promise.error(error);
       }
 
-      // Overridden so that the user can be made the current user.
-      var newOptions = _.clone(options);
+      var newOptions = filterOutCallbacks(options);
       newOptions._makeRequest = function(route, className, id, method, json) {
         return AV._request('usersByMobilePhone', null, null, "POST", json);
       };
-      newOptions.success = function(model) {
-        model._handleSaveResult(true).then(function() {
-          delete model.attributes.smsCode;
-          delete model._serverData.smsCode;
-          if (options.success) {
-            options.success.apply(this, arguments);
-          }
+      return this.save(attrs, newOptions).then(function(model) {
+        delete model.attributes.smsCode;
+        delete model._serverData.smsCode;
+        return model._handleSaveResult(true).then(function() {
+          return model;
         });
-      };
-      return this.save(attrs, newOptions);
+      })._thenRunCallbacks(options);
     },
 
     /**
@@ -7978,15 +7992,13 @@ module.exports = function(AV) {
       }
       options = options || {};
 
-      var newOptions = _.clone(options);
-      newOptions.success = function(model) {
-        model._handleSaveResult(false).then(function() {
-          if (options.success) {
-            options.success.apply(this, arguments);
-          }
-        });
-      };
-      return AV.Object.prototype.save.call(this, attrs, newOptions);
+      return AV.Object.prototype.save
+        .call(this, attrs, filterOutCallbacks(options))
+        .then(function(model) {
+          return model._handleSaveResult(false).then(function() {
+            return model;
+          });
+        })._thenRunCallbacks(options);
     },
 
     /**
@@ -8059,15 +8071,12 @@ module.exports = function(AV) {
      * @see AV.Object#fetch
      */
     fetch: function(options) {
-      var newOptions = options ? _.clone(options) : {};
-      newOptions.success = function(model) {
-        model._handleSaveResult(false).then(function() {
-          if (options && options.success) {
-            options.success.apply(this, arguments);
-          }
-        });
-      };
-      return AV.Object.prototype.fetch.call(this, newOptions);
+      return AV.Object.prototype.fetch.call(this, filterOutCallbacks(options))
+        .then(function(model) {
+          return model._handleSaveResult(false).then(function() {
+            return model;
+          });
+        })._thenRunCallbacks(options);
     },
 
     /**
@@ -8645,6 +8654,13 @@ module.exports = function(AV) {
   });
 };
 
+function filterOutCallbacks(options) {
+  var newOptions = _.clone(options) || {};
+  delete newOptions.success;
+  delete newOptions.error;
+  return newOptions;
+}
+
 },{"underscore":36}],30:[function(require,module,exports){
 (function (process){
 'use strict';
@@ -9064,14 +9080,14 @@ module.exports = function(AV) {
         dataObject._MasterKey = AV.masterKey;
     dataObject._ClientVersion = AV.VERSION;
     // Pass the session token on every request.
-    var currentUser = AV.User.current();
-    if (currentUser && currentUser._sessionToken) {
-      dataObject._SessionToken = currentUser._sessionToken;
-    }
-
-    return AV._getInstallationId().then(function(_InstallationId) {
+    return AV.User.currentAsync().then(function(currentUser) {
+      if (currentUser && currentUser._sessionToken) {
+        dataObject._SessionToken = currentUser._sessionToken;
+      }
+      return AV._getInstallationId();
+    }).then(function(_InstallationId) {
       dataObject._InstallationId = _InstallationId;
-    }).then(function() {
+      
       var data = JSON.stringify(dataObject);
       return AV._ajax(method, url, data).then(null, function(response) {
         // Transform the error into an instance of AV.Error by trying to parse
@@ -9328,7 +9344,7 @@ module.exports = function(AV) {
 },{"_process":34,"underscore":36}],31:[function(require,module,exports){
 'use strict';
 
-module.exports = "js1.0.0-rc2";
+module.exports = "js1.0.0-rc3";
 
 },{}],32:[function(require,module,exports){
 'use strict';
