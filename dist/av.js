@@ -7039,7 +7039,84 @@ module.exports = function(AV) {
         });
       })._thenRunCallbacks(options, this);
     },
+    /**
+     * Sign up or logs in a user with a third party access token.
+     * On success, this saves the session to disk, so you can retrieve the currently
+     * logged in user using <code>current</code>.
+     *
+     * <p>Calls options.success or options.error on completion.</p>
+     * 
+     * @param {String} platform Available platform for sign up. 
+     * @param {Object} data The response json data returned from third party token.
+     * @param {Object} [callback] An object that has an optional success function, that takes no arguments and will be called on a successful puSH. and an error function that takes a AV.Error and will be called if the push failed.
+     * @return {AV.Promise} A promise that is fulfilled with the user when
+     *     the login completes.
+     * @example AV.User.signUpOrlogInWithAccessToken(platform, data, {
+         *          success: function(user) {
+         *              //Access user here
+         *          },
+         *          error: function(error) {
+         *              //console.log("error: ", error);
+         *          }
+         *      });
+     * @see {@link https://leancloud.cn/docs/js_guide.html#绑定第三方平台账户}
+     */
+    signUpOrlogInWithAccessToken: function (platform, data, callback) {
+        /**
+         * Construct accessToken
+         */
+        var accessToken = {
+            authData: {}
+        }
+        accessToken.authData[platform] = data;
+        return this._logInWith(platform, {
+            "authData": data,
+            success: function (user) {
+                callback.success(user);
+            },
+            error: function (error) {
+                callback.error(error);
+            }
+        });
+    },
 
+    /**
+     * Create a new anonymous user 
+     * On success, this saves the session to disk, so you can retrieve the currently
+     * logged in user using <code>current</code>.
+     *
+     * <p>Calls options.success or options.error on completion.</p>
+     * 
+     * @param {Object} [callback] An object that has an optional success function, that takes no arguments and will be called on a successful push, and an error function that takes a AV.Error and will be called if the push failed.
+     * @example AV.User.createAnonymousUser({
+         *          success: function(user) {
+         *              //Access user here
+         *          },
+         *          error: function(error) {
+         *              //SH.showError(error);
+         *          }
+         *      });
+     * @return {AV.Promise} A promise that is fulfilled with the user when
+     *     the anonymous signup completes.
+     * @see {@link https://leancloud.cn/docs/js_guide.html#绑定第三方平台账户}
+     */
+    createAnonymousUser: function(callback) {
+        /**
+        * generate 18 digits hex string for anonymouse id
+        */
+        var generateRandomId = function () {
+            var min = 10000000000000000000;
+            var max = 99999999999999999999;
+            var random = Math.floor(Math.random() * (max - min + 1)) + min;
+            var result = random.toString(16);
+            return result;
+        }
+        var id = generateRandomId();
+        var data = {
+            id: id
+        }
+        return this.signUpOrlogInWithAccessToken("anonymous", data, callback);
+    },
     /**
      * @see AV.Object#save
      */
@@ -8415,7 +8492,7 @@ module.exports = function(AV) {
 },{"_process":29,"underscore":31}],27:[function(require,module,exports){
 'use strict';
 
-module.exports = "js1.0.0-rc3";
+module.exports = "js1.0.0-rc3-addUserMethods";
 
 },{}],28:[function(require,module,exports){
 
@@ -8452,7 +8529,9 @@ function drainQueue() {
         currentQueue = queue;
         queue = [];
         while (++queueIndex < len) {
-            currentQueue[queueIndex].run();
+            if (currentQueue) {
+                currentQueue[queueIndex].run();
+            }
         }
         queueIndex = -1;
         len = queue.length;
@@ -8504,7 +8583,6 @@ process.binding = function (name) {
     throw new Error('process.binding is not supported');
 };
 
-// TODO(shtylman)
 process.cwd = function () { return '/' };
 process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
