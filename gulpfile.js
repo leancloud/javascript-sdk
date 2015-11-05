@@ -144,11 +144,13 @@ gulp.task('upload', ['compress-scripts'], function(cb) {
    });
 });
 
-
 gulp.task('release', [
   'browserify',
   'uglify',
   'compress-scripts',
+]);
+
+gulp.task('doc', [
   'docs',
   'compress-docs'
 ]);
