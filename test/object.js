@@ -1,9 +1,6 @@
 var GameScore = AV.Object.extend("GameScore");
 
 var Post=AV.Object.extend("Post");
-var GameScoreCollection = AV.Collection.extend({
-  model: GameScore
-});
 
 describe('Objects', function(){
   var objId;
