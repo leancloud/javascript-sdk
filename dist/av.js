@@ -7977,84 +7977,6 @@ module.exports = function(AV) {
       })._thenRunCallbacks(options, this);
     },
     /**
-     * Sign up or logs in a user with a third party access token.
-     * On success, this saves the session to disk, so you can retrieve the currently
-     * logged in user using <code>current</code>.
-     *
-     * <p>Calls options.success or options.error on completion.</p>
-     * 
-     * @param {String} platform Available platform for sign up. 
-     * @param {Object} data The response json data returned from third party token.
-     * @param {Object} [callback] An object that has an optional success function, that takes no arguments and will be called on a successful puSH. and an error function that takes a AV.Error and will be called if the push failed.
-     * @return {AV.Promise} A promise that is fulfilled with the user when
-     *     the login completes.
-     * @example AV.User.signUpOrlogInWithAccessToken(platform, data, {
-         *          success: function(user) {
-         *              //Access user here
-         *          },
-         *          error: function(error) {
-         *              //console.log("error: ", error);
-         *          }
-         *      });
-     * @see {@link https://leancloud.cn/docs/js_guide.html#绑定第三方平台账户}
-     */
-    signUpOrlogInWithAccessToken: function (platform, data, callback) {
-        /**
-         * Construct accessToken
-         */
-        var accessToken = {
-            authData: {}
-        }
-        accessToken.authData[platform] = data;
-        return this._logInWith(platform, {
-            "authData": data,
-            success: function (user) {
-                callback.success(user);
-            },
-            error: function (error) {
-                callback.error(error);
-            }
-        });
-    },
-
-    /**
-     * Create a new anonymous user 
-     * On success, this saves the session to disk, so you can retrieve the currently
-     * logged in user using <code>current</code>.
-     *
-     * <p>Calls options.success or options.error on completion.</p>
-     * 
-     * @param {Object} [callback] An object that has an optional success function, that takes no arguments and will be called on a successful push, and an error function that takes a AV.Error and will be called if the push failed.
-     * @example AV.User.createAnonymousUser({
-         *          success: function(user) {
-         *              //Access user here
-         *          },
-         *          error: function(error) {
-         *              //SH.showError(error);
-         *          }
-         *      });
-     * @return {AV.Promise} A promise that is fulfilled with the user when
-     *     the anonymous signup completes.
-     * @see {@link https://leancloud.cn/docs/js_guide.html#绑定第三方平台账户}
-     */
-    createAnonymousUser: function(callback) {
-        /**
-        * generate 18 digits hex string for anonymouse id
-        */
-        var generateRandomId = function () {
-            var min = 10000000000000000000;
-            var max = 99999999999999999999;
-            var random = Math.floor(Math.random() * (max - min + 1)) + min;
-            var result = random.toString(16);
-            return result;
-        }
-        var id = generateRandomId();
-        var data = {
-            id: id
-        }
-        return this.signUpOrlogInWithAccessToken("anonymous", data, callback);
-    },
-    /**
      * @see AV.Object#save
      */
     save: function(arg1, arg2, arg3) {
@@ -8296,7 +8218,7 @@ module.exports = function(AV) {
      * @param {Object} options A Backbone-style options object.
      * @return {AV.Promise} A promise that is fulfilled with the user when
      *     the signup completes.
-     * @see AV.User#signUp
+     * @see AV.User#sign
      */
     signUp: function(username, password, attrs, options) {
       attrs = attrs || {};
@@ -8425,6 +8347,81 @@ module.exports = function(AV) {
       user._finishFetch({ mobilePhoneNumber: mobilePhone, password: password });
       return user.logIn(options);
    },
+
+    /**
+     * Sign up or logs in a user with a third party auth data(AccessToken).
+     * On success, this saves the session to disk, so you can retrieve the currently
+     * logged in user using <code>current</code>.
+     *
+     * <p>Calls options.success or options.error on completion.</p>
+     * 
+     * @param {Object} data The response json data returned from third party token.
+     * @param {string} platform Available platform for sign up. 
+     * @param {Object} [callback] An object that has an optional success function, that takes no arguments and will be called on a successful puSH. and an error function that takes a AV.Error and will be called if the push failed.
+     * @return {AV.Promise} A promise that is fulfilled with the user when
+     *     the login completes.
+     * @example AV.User.signUpOrlogInWithAuthData(data, platform, {
+         *          success: function(user) {
+         *              //Access user here
+         *          },
+         *          error: function(error) {
+         *              //console.log("error: ", error);
+         *          }
+         *      });
+     * @see {@link https://leancloud.cn/docs/js_guide.html#绑定第三方平台账户}
+     */
+    signUpOrlogInWithAuthData: function (data, platform, callback) {
+        /**
+         * Construct accessToken
+         */
+        return AV.User._logInWith(platform, {
+            "authData": data,
+            success: function (user) {
+                callback.success(user);
+            },
+            error: function (error) {
+                callback.error(error);
+            }
+        });
+    },
+
+    /**
+     * Log in as a new anonymous user 
+     * On success, this saves the session to disk, so you can retrieve the currently
+     * logged in user using <code>current</code>.
+     *
+     * <p>Calls options.success or options.error on completion.</p>
+     * 
+     * @param {Object} [callback] An object that has an optional success function, that takes no arguments and will be called on a successful push, and an error function that takes a AV.Error and will be called if the push failed.
+     * @example AV.User.logInAnonymously({
+         *          success: function(user) {
+         *              //Access user here
+         *          },
+         *          error: function(error) {
+         *              //SH.showError(error);
+         *          }
+         *      });
+     * @return {AV.Promise} A promise that is fulfilled with the user when
+     *     the anonymous signup completes.
+     * @see {@link https://leancloud.cn/docs/js_guide.html#绑定第三方平台账户}
+     */
+    logInAnonymously: function(callback) {
+        /**
+        * generate 18 digits hex string for anonymouse id
+        */
+        var generateRandomId = function () {
+            var min = 10000000000000000000;
+            var max = 99999999999999999999;
+            var random = Math.floor(Math.random() * (max - min + 1)) + min;
+            var result = random.toString(16);
+            return result;
+        }
+        var id = generateRandomId();
+        var data = {
+            id: id
+        }
+        return AV.User.signUpOrlogInWithAuthData(data, "anonymous", callback);
+    },
 
     /**
      * Logs out the currently logged in user session. This will remove the
@@ -9421,7 +9418,7 @@ module.exports = function(AV) {
 },{"_process":34,"underscore":36}],31:[function(require,module,exports){
 'use strict';
 
-module.exports = "js1.0.0-rc3-addUserMethods";
+module.exports = "js1.0.0-rc3";
 
 },{}],32:[function(require,module,exports){
 'use strict';
