@@ -69,18 +69,7 @@ gulp.task('browserify', function() {
     .pipe(gulp.dest('dist'));
 });
 
-gulp.task('browserify-core', function() {
-  var bundle = browserify({entries: './lib/av-browser-core.js'});
-  return bundle.bundle()
-    .pipe(source('av-core.js'))
-    .pipe(gulp.dest('dist'));
-});
-
-gulp.task('uglify', ['browserify', 'browserify-core'], function() {
-  gulp.src('dist/av-core.js')
-    .pipe(uglify())
-    .pipe(rename('av-core-mini.js'))
-    .pipe(gulp.dest('dist'));
+gulp.task('uglify', ['browserify'], function() {
   return gulp.src('dist/av.js')
     .pipe(uglify())
     .pipe(rename('av-mini.js'))
@@ -89,7 +78,11 @@ gulp.task('uglify', ['browserify', 'browserify-core'], function() {
 
 gulp.task('compress-scripts', ['uglify'], function() {
   var version = getAVVersion();
-  return gulp.src(['dist/av.js', 'dist/av-mini.js', 'dist/av-core-mini.js', 'dist/av-core.js', 'readme.txt'])
+  return gulp.src([
+      'dist/av.js',
+      'dist/av-mini.js',
+      'readme.txt'
+    ])
     .pipe(tar('avos-javascript-sdk-' + version + '.tar'))
     .pipe(gzip())
     .pipe(gulp.dest('dist'));
@@ -115,7 +108,6 @@ gulp.task('test', function() {
       'file.js',
       'error.js',
       'object.js',
-      'collection.js',
       'user.js',
       'query.js',
       'geopoint.js',
@@ -139,9 +131,7 @@ gulp.task('clean', function() {
 });
 
 gulp.task('upload', ['compress-scripts'], function(cb) {
-   uploadCDN('./dist/av-mini.js', getAVVersion(), function(){
-     uploadCDN('./dist/av-core-mini.js', getAVVersion(), cb);
-   });
+   uploadCDN('./dist/av-mini.js', getAVVersion(), function(){});
 });
 
 gulp.task('release', [
