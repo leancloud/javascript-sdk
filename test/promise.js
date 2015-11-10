@@ -241,48 +241,46 @@ describe('promise', function() {
       });
     });
 
-    it('shoud work in order', function(done) {
-      AV.Promise._isPromisesAPlusCompliant = true;
+  //   it('shoud work in order', function(done) {
+  //     AV.Promise._isPromisesAPlusCompliant = true;
+  //     var ret = [];
+  //     var a = new AV.Promise(function(resolve){
+  //       setTimeout(function(){
+  //         resolve('hello');
+  //       }, 200);
+  //     });
 
+  //     var test = function(){
+  //       ret.push('before');
+  //       a.then(function(val){
+  //         ret.push(val);
+  //       });
+  //       ret.push('after');
+  //     };
 
-      var ret = [];
-      var a = new AV.Promise(function(resolve){
-        setTimeout(function(){
-          resolve('hello');
-        }, 200);
-      });
+  //     test();
+  //     setTimeout(function() {
+  //       expect(ret).to.have.length(3);
+  //       expect(ret[0]).to.be('before');
+  //       expect(ret[1]).to.be('after');
+  //       expect(ret[2]).to.be('hello');
+  //       //run test in setTimeout
+  //       ret = [];
+  //       setTimeout(function(){
+  //         test();
+  //         setTimeout(function() {
+  //           expect(ret).to.have.length(3);
+  //           expect(ret[0]).to.be('before');
+  //           expect(ret[1]).to.be('after');
+  //           expect(ret[2]).to.be('hello');
+  //           done();
+  //        }, 300);
+  //       }, 500);
+  //       AV.Promise._isPromisesAPlusCompliant = false;
+  //       done();
 
-      var test = function(){
-        ret.push('before');
-        a.then(function(val){
-          ret.push(val);
-        });
-        ret.push('after');
-      };
-
-      test();
-      setTimeout(function() {
-        expect(ret).to.have.length(3);
-        expect(ret[0]).to.be('before');
-        expect(ret[1]).to.be('after');
-        expect(ret[2]).to.be('hello');
-        //run test in setTimeout
-        ret = [];
-        setTimeout(function(){
-          test();
-          setTimeout(function() {
-            expect(ret).to.have.length(3);
-            expect(ret[0]).to.be('before');
-            expect(ret[1]).to.be('after');
-            expect(ret[2]).to.be('hello');
-            done();
-         }, 300);
-        }, 500);
-        AV.Promise._isPromisesAPlusCompliant = false;
-        done();
-      }, 300);
-
-    });
+  //     }, 300);
+  //   });
   });
 
   describe('AV.Promise.race', function(){
