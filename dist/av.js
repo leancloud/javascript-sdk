@@ -7039,7 +7039,6 @@ module.exports = function(AV) {
         });
       })._thenRunCallbacks(options, this);
     },
-
     /**
      * @see AV.Object#save
      */
@@ -7411,6 +7410,43 @@ module.exports = function(AV) {
       user._finishFetch({ mobilePhoneNumber: mobilePhone, password: password });
       return user.logIn(options);
    },
+
+    /**
+     * Sign up or logs in a user with a third party auth data(AccessToken).
+     * On success, this saves the session to disk, so you can retrieve the currently
+     * logged in user using <code>current</code>.
+     *
+     * <p>Calls options.success or options.error on completion.</p>
+     * 
+     * @param {Object} data The response json data returned from third party token.
+     * @param {string} platform Available platform for sign up. 
+     * @param {Object} [callback] An object that has an optional success function, that takes no arguments and will be called on a successful puSH. and an error function that takes a AV.Error and will be called if the push failed.
+     * @return {AV.Promise} A promise that is fulfilled with the user when
+     *     the login completes.
+     * @example AV.User.signUpOrlogInWithAuthData(data, platform, {
+         *          success: function(user) {
+         *              //Access user here
+         *          },
+         *          error: function(error) {
+         *              //console.log("error: ", error);
+         *          }
+         *      });
+     * @see {@link https://leancloud.cn/docs/js_guide.html#绑定第三方平台账户}
+     */
+    signUpOrlogInWithAuthData: function (data, platform, callback) {
+        /**
+         * Construct accessToken
+         */
+        return AV.User._logInWith(platform, {
+            "authData": data,
+            success: function (user) {
+                callback.success(user);
+            },
+            error: function (error) {
+                callback.error(error);
+            }
+        });
+    },
 
     /**
      * Logs out the currently logged in user session. This will remove the
@@ -8114,6 +8150,7 @@ module.exports = function(AV) {
         route !== 'search/select' &&
         route !== 'subscribe/statuses/count' &&
         route !== 'subscribe/statuses' &&
+        route !== 'installations' &&
         !(/users\/[^\/]+\/updatePassword/.test(route)) &&
         !(/users\/[^\/]+\/friendship\/[^\/]+/.test(route))) {
       throw "Bad route: '" + route + "'.";
@@ -8415,7 +8452,7 @@ module.exports = function(AV) {
 },{"_process":29,"underscore":31}],27:[function(require,module,exports){
 'use strict';
 
-module.exports = "js1.0.0-rc3";
+module.exports = "js1.0.0-rc4";
 
 },{}],28:[function(require,module,exports){
 
@@ -8452,7 +8489,9 @@ function drainQueue() {
         currentQueue = queue;
         queue = [];
         while (++queueIndex < len) {
-            currentQueue[queueIndex].run();
+            if (currentQueue) {
+                currentQueue[queueIndex].run();
+            }
         }
         queueIndex = -1;
         len = queue.length;
@@ -8504,7 +8543,6 @@ process.binding = function (name) {
     throw new Error('process.binding is not supported');
 };
 
-// TODO(shtylman)
 process.cwd = function () { return '/' };
 process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');

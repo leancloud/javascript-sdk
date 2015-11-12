@@ -1,3 +1,8 @@
+# 1.0.0-rc4 日期：2015 年 11 月 12 日
+* **(BREAKING)** 移除了 av-core[-mini].js，请直接使用 av[-mini].js。移除了 `Collection`、`Router` 等 Backbone 兼容模块，请直接使用 Backbone。
+* 新增第三方平台帐号登录 API：`AV.User.signUpOrlogInWithAuthData()`。 感谢 @jacktator 。
+* 修复海外节点文件上传方式错误的问题。
+
 # 1.0.0-rc3 日期：2015 年 10 月 27 日
 * 修复 `AV._request` 某些情况下无法正常工作的 Bug。
 * 修复某些登录 API 没有更新 currentUser 的问题
