@@ -5,4 +5,5 @@ tests/
 tools/
 demo/
 lib/cloud.js
+dist/*.tar.gz
 *.sh
