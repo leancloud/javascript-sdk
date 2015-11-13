@@ -7,3 +7,4 @@ demo/
 lib/cloud.js
 dist/*.tar.gz
 *.sh
+dist/js-sdk-api-docs
