@@ -33,7 +33,7 @@ describe("files", function() {
       file.save().then(function(data) {
         var url = data.url();
         // check image url has image data.
-        var xmlhttprequest = require('xmlhttprequest').XMLHttpRequest;
+        var xmlhttprequest = require('leancloud-xmlhttprequest').XMLHttpRequest;
         var xhr = new xmlhttprequest();
         xhr.onreadystatechange = function() {
           if (xhr.readyState === 4) {

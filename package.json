@@ -15,7 +15,7 @@
     "localstorage-memory": "^1.0.1",
     "qiniu": "6.1.3",
     "underscore": "^1.8.3",
-    "xmlhttprequest": "1.6.0"
+    "leancloud-xmlhttprequest": "^1.8.0"
   },
   "devDependencies": {
     "browserify": "^11.0.1",
@@ -42,7 +42,7 @@
   },
   "browser": {
     "./lib/browserify-wrapper/upload.js": "./lib/browserify-wrapper/upload-browser.js",
-    "xmlhttprequest": "./lib/browserify-wrapper/xmlhttprequest-browser.js",
+    "leancloud-xmlhttprequest": "./lib/browserify-wrapper/xmlhttprequest-browser.js",
     "localStorage": "./lib/browserify-wrapper/localstorage-browser.js",
     "./lib/browserify-wrapper/parse-base64.js": "./lib/browserify-wrapper/parse-base64-browser.js"
   }
