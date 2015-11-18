@@ -178,6 +178,12 @@ describe("files", function() {
       expect(file).to.be.a(AV.File);
       expect(file.id).to.be(fileId);
     });
+    it('save a fetched file should throw', function(){
+      var file = AV.File.createWithoutData(fileId);
+      expect(function saveFetchedFile(){
+        file.save();
+      }).to.throwError(/File already saved\./);
+    });
     it('fetch() should retrieve all data', function(done){
       var file = AV.File.createWithoutData(fileId);
       file.fetch().then(function(file){
