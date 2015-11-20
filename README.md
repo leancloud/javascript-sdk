@@ -31,7 +31,6 @@ JavaScript SDK for [LeanCloud](http://leancloud.cn/).
 │   ├── av-browser.js                  // 浏览器环境入口文件，将会被 browserify 编译
 │   ├── av-browser-core.js             // 浏览器环境入口文件，只包含核心依赖，将会被 browserify 编译
 │   ├── av.js                          // node.js 环境入口文件
-│   ├── bigquery.js
 │   ├── browserify-wrapper             // 针对 node.js 与浏览器环境之间差异的不同实现
 │   └── ...
 ├── package.json
