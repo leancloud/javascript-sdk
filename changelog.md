@@ -1,3 +1,10 @@
+# 1.0.0-rc5 日期：2015 年 11 月 24 日
+* AV.File 新增 fetch 方法。
+* 废弃 AV.Object 的 existed 方法。
+* 移除 AV.BigQuery 模块。该模块在 0.5.7 中废弃。
+* 提升了在 node 中运行的性能。
+* 修复了一些 IE 兼容性问题。
+
 # 1.0.0-rc4 日期：2015 年 11 月 12 日
 * **(BREAKING)** 移除了 av-core[-mini].js，请直接使用 av[-mini].js。移除了 `Collection`、`Router` 等 Backbone 兼容模块，请直接使用 Backbone。
 * 新增第三方平台帐号登录 API：`AV.User.signUpOrlogInWithAuthData()`。 感谢 @jacktator 。

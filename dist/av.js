@@ -34,12 +34,11 @@ require('./push')(AV);
 require('./status')(AV);
 require('./search')(AV);
 require('./insight')(AV);
-require('./bigquery')(AV);
 
 // Backward compatibility
 AV.AV = AV;
 
-},{"./acl":2,"./bigquery":4,"./browserify-wrapper/xmlhttprequest":8,"./cloudfunction":9,"./error":10,"./event":11,"./file":12,"./geopoint":13,"./insight":14,"./localstorage":15,"./object":16,"./op":17,"./promise":18,"./push":19,"./query":20,"./relation":21,"./role":22,"./search":23,"./status":24,"./user":25,"./utils":26,"./version":27,"underscore":31}],2:[function(require,module,exports){
+},{"./acl":2,"./browserify-wrapper/xmlhttprequest":7,"./cloudfunction":8,"./error":9,"./event":10,"./file":11,"./geopoint":12,"./insight":13,"./localstorage":14,"./object":15,"./op":16,"./promise":17,"./push":18,"./query":19,"./relation":20,"./role":21,"./search":22,"./status":23,"./user":24,"./utils":25,"./version":26,"underscore":30}],2:[function(require,module,exports){
 'use strict';
 var _ = require('underscore');
 
@@ -301,41 +300,17 @@ module.exports = function(AV) {
 
 };
 
-},{"underscore":31}],3:[function(require,module,exports){
+},{"underscore":30}],3:[function(require,module,exports){
 (function (global){
 'use strict';
 
+var _ = require('underscore');
 var AV = require('./AV');
 
-global.AV = global.AV || {};
-
-// 防止多个 SDK 互相覆盖 AV 命名空间
-for (var k in AV) {
-  global.AV[k] = AV[k];
-}
+global.AV = _.extend(AV, global.AV);
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./AV":1}],4:[function(require,module,exports){
-'use strict';
-
-module.exports = function(AV) {
-  /**
-   * @namespace 包含了使用了 LeanCloud
-   *  <a href='/docs/leaninsight_guide.html'>离线数据分析功能</a>的函数，本模块已经废弃，
-   * 请使用 AV.Insight 。
-   * <p><strong><em>
-   *   部分函数仅在云引擎运行环境下有效。
-   * </em></strong></p>
-   */
-  Object.defineProperty(AV, "BigQuery", {
-    get: function() {
-      console.warn("AV.BigQuery is deprecated, please use AV.Insight instead.");
-      return AV.Insight;
-    },
-  });
-};
-
-},{}],5:[function(require,module,exports){
+},{"./AV":1,"underscore":30}],4:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -396,7 +371,7 @@ if (global.localStorage) {
 module.exports = Storage;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../promise":18,"localstorage-memory":30,"react-native":28,"underscore":31}],6:[function(require,module,exports){
+},{"../promise":17,"localstorage-memory":29,"react-native":27,"underscore":30}],5:[function(require,module,exports){
 'use strict';
 
 var dataURItoBlob = function(dataURI, type) {
@@ -421,7 +396,7 @@ var dataURItoBlob = function(dataURI, type) {
 
 module.exports = dataURItoBlob;
 
-},{}],7:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 'use strict';
 
 module.exports = function upload(file, AV, saveOptions) {
@@ -486,14 +461,14 @@ module.exports = function upload(file, AV, saveOptions) {
   });
 };
 
-},{}],8:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 (function (global){
 'use strict';
 
 exports.XMLHttpRequest = global.XMLHttpRequest;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],9:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 'use strict';
 
 var _ = require('underscore');
@@ -595,7 +570,7 @@ module.exports = function(AV) {
   });
 };
 
-},{"underscore":31}],10:[function(require,module,exports){
+},{"underscore":30}],9:[function(require,module,exports){
 'use strict';
 
 var _ = require('underscore');
@@ -943,7 +918,7 @@ module.exports = function(AV) {
 
 };
 
-},{"underscore":31}],11:[function(require,module,exports){
+},{"underscore":30}],10:[function(require,module,exports){
 /*global _: false */
 module.exports = function(AV) {
   var eventSplitter = /\s+/;
@@ -1098,7 +1073,7 @@ module.exports = function(AV) {
   AV.Events.unbind = AV.Events.off;
 };
 
-},{}],12:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -1673,6 +1648,9 @@ module.exports = function(AV) {
      * @return {AV.Promise} Promise that is resolved when the save finishes.
      */
     save: function() {
+      if (this.id) {
+        throw new Error('File already saved. If you want to manipulate a file, use AV.Query to get it.');
+      }
       var options = null;
       var saveOptions = {};
       if(arguments.length === 1) {
@@ -1737,13 +1715,50 @@ module.exports = function(AV) {
         }
       }
       return self._previousSave._thenRunCallbacks(options);
+    },
+
+    /**
+    * fetch the file from server. If the server's representation of the
+    * model differs from its current attributes, they will be overriden,
+    * @param {Object} fetchOptions Optional options to set 'keys' and
+    *      'include' option.
+    * @param {Object} options Optional Backbone-like options object to be
+    *     passed in to set.
+    * @return {AV.Promise} A promise that is fulfilled when the fetch
+    *     completes.
+    */
+    fetch: function() {
+        var options = null;
+        var fetchOptions = {};
+        if(arguments.length === 1) {
+          options = arguments[0];
+        } else if(arguments.length === 2) {
+          fetchOptions = arguments[0];
+          options = arguments[1];
+        }
+
+        var self = this;
+        var request = AV._request('files', null, this.id, 'GET',
+                                  fetchOptions);
+        return request.then(function(response) {
+          var value = AV.Object.prototype.parse(response);
+          value._metaData = value.metaData || {};
+          value._url = value.url;
+          value._name = value.name;
+          delete value.objectId;
+          delete value.metaData;
+          delete value.url;
+          delete value.name;
+          _.extend(self, value);
+          return self;
+        })._thenRunCallbacks(options);
     }
   };
 
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./browserify-wrapper/parse-base64":6,"./browserify-wrapper/upload":7,"underscore":31}],13:[function(require,module,exports){
+},{"./browserify-wrapper/parse-base64":5,"./browserify-wrapper/upload":6,"underscore":30}],12:[function(require,module,exports){
 var _ = require('underscore');
 
 /*global navigator: false */
@@ -1917,7 +1932,7 @@ module.exports = function(AV) {
   };
 };
 
-},{"underscore":31}],14:[function(require,module,exports){
+},{"underscore":30}],13:[function(require,module,exports){
 'use strict';
 
 var _ = require('underscore');
@@ -2060,7 +2075,7 @@ module.exports = function(AV) {
 
 };
 
-},{"underscore":31}],15:[function(require,module,exports){
+},{"underscore":30}],14:[function(require,module,exports){
 'use strict';
 
 var _ = require('underscore');
@@ -2095,7 +2110,7 @@ if (!localStorage.async) {
 
 module.exports = localStorage;
 
-},{"./browserify-wrapper/localStorage":5,"./promise":18,"underscore":31}],16:[function(require,module,exports){
+},{"./browserify-wrapper/localStorage":4,"./promise":17,"underscore":30}],15:[function(require,module,exports){
 'use strict';
 
 var _ = require('underscore');
@@ -2210,7 +2225,6 @@ module.exports = function(AV) {
   // Attach all inheritable methods to the AV.Object prototype.
   _.extend(AV.Object.prototype, AV.Events,
            /** @lends AV.Object.prototype */ {
-    _existed: false,
     _fetchWhenSave: false,
 
     /**
@@ -2887,8 +2901,8 @@ module.exports = function(AV) {
       var self = this;
       var request = AV._request("classes", this.className, this.id, 'GET',
                                 fetchOptions);
-      return request.then(function(response, status, xhr) {
-        self._finishFetch(self.parse(response, status, xhr), true);
+      return request.then(function(response) {
+        self._finishFetch(self.parse(response), true);
         return self;
       })._thenRunCallbacks(options, this);
     },
@@ -3025,8 +3039,8 @@ module.exports = function(AV) {
         var makeRequest = options._makeRequest || AV._request;
         var request = makeRequest(route, className, model.id, method, json);
 
-        request = request.then(function(resp, status, xhr) {
-          var serverAttrs = model.parse(resp, status, xhr);
+        request = request.then(function(resp) {
+          var serverAttrs = model.parse(resp);
           if (options.wait) {
             serverAttrs = _.extend(attrs || {}, serverAttrs);
           }
@@ -3086,7 +3100,7 @@ module.exports = function(AV) {
      * Converts a response into the hash of attributes to be set on the model.
      * @ignore
      */
-    parse: function(resp, status, xhr) {
+    parse: function(resp) {
       var output = _.clone(resp);
       _(["createdAt", "updatedAt"]).each(function(key) {
         if (output[key]) {
@@ -3095,9 +3109,6 @@ module.exports = function(AV) {
       });
       if (!output.updatedAt) {
         output.updatedAt = output.createdAt;
-      }
-      if (status) {
-        this._existed = (status !== 201);
       }
       return output;
     },
@@ -3165,12 +3176,13 @@ module.exports = function(AV) {
     },
 
     /**
-     * Returns true if this object was created by the AV server when the
+     * (DEPRECATED) Returns true if this object was created by the AV server when the
      * object might have already been there (e.g. in the case of a Facebook
      * login)
      */
     existed: function() {
-      return this._existed;
+      console.warn('AV.Object.prototype.existed() is deprecated.');
+      return false;
     },
 
     /**
@@ -3392,7 +3404,7 @@ module.exports = function(AV) {
    * @see AV.Object
    * @see AV.Object.extend
    */
-  AV.Object.new = function(attributes, options){
+  AV.Object['new'] = function(attributes, options){
     return new AV.Object(attributes, options);
   };
 
@@ -3461,7 +3473,7 @@ module.exports = function(AV) {
       var newArguments = [className].concat(AV._.toArray(arguments));
       return AV.Object.extend.apply(NewClassObject, newArguments);
     };
-    NewClassObject.new = function(attributes, options){
+    NewClassObject['new'] = function(attributes, options){
       return new NewClassObject(attributes, options);
     };
     AV.Object._classMap[className] = NewClassObject;
@@ -3592,12 +3604,12 @@ module.exports = function(AV) {
               };
             })
 
-          }).then(function(response, status, xhr) {
+          }).then(function(response) {
             var error;
             AV._arrayEach(batch, function(object, i) {
               if (response[i].success) {
                 object._finishSave(
-                  object.parse(response[i].success, status, xhr));
+                  object.parse(response[i].success));
               } else {
                 error = error || response[i].error;
                 object._cancelSave();
@@ -3624,7 +3636,7 @@ module.exports = function(AV) {
 
 };
 
-},{"underscore":31}],17:[function(require,module,exports){
+},{"underscore":30}],16:[function(require,module,exports){
 'use strict';
 var _ = require('underscore');
 
@@ -4156,7 +4168,7 @@ module.exports = function(AV) {
 
 };
 
-},{"underscore":31}],18:[function(require,module,exports){
+},{"underscore":30}],17:[function(require,module,exports){
 (function (process){
 'use strict';
 var _ = require('underscore');
@@ -4759,7 +4771,7 @@ Promise.prototype.finally = Promise.prototype.always;
 Promise.prototype.try = Promise.prototype.done;
 
 }).call(this,require('_process'))
-},{"_process":29,"underscore":31}],19:[function(require,module,exports){
+},{"_process":28,"underscore":30}],18:[function(require,module,exports){
 'use strict';
 
 module.exports = function(AV) {
@@ -4819,7 +4831,7 @@ module.exports = function(AV) {
   };
 };
 
-},{}],20:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 'use strict';
 
 var _ = require('underscore');
@@ -5758,7 +5770,7 @@ module.exports = function(AV) {
    });
 };
 
-},{"underscore":31}],21:[function(require,module,exports){
+},{"underscore":30}],20:[function(require,module,exports){
 'use strict';
 var _ = require('underscore');
 
@@ -5875,7 +5887,7 @@ module.exports = function(AV) {
   };
 };
 
-},{"underscore":31}],22:[function(require,module,exports){
+},{"underscore":30}],21:[function(require,module,exports){
 'use strict';
 
 var _ = require('underscore');
@@ -6014,7 +6026,7 @@ module.exports = function(AV) {
   });
 };
 
-},{"underscore":31}],23:[function(require,module,exports){
+},{"underscore":30}],22:[function(require,module,exports){
 'use strict';
 
 var _ = require('underscore');
@@ -6300,7 +6312,7 @@ module.exports = function(AV) {
   });
 };
 
-},{"underscore":31}],24:[function(require,module,exports){
+},{"underscore":30}],23:[function(require,module,exports){
 'use strict';
 
 var _ = require('underscore');
@@ -6677,7 +6689,7 @@ module.exports = function(AV) {
 
 };
 
-},{"underscore":31}],25:[function(require,module,exports){
+},{"underscore":30}],24:[function(require,module,exports){
 'use strict';
 
 var _ = require('underscore');
@@ -7760,7 +7772,7 @@ function filterOutCallbacks(options) {
   return newOptions;
 }
 
-},{"underscore":31}],26:[function(require,module,exports){
+},{"underscore":30}],25:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -8449,14 +8461,14 @@ module.exports = function(AV) {
 };
 
 }).call(this,require('_process'))
-},{"_process":29,"underscore":31}],27:[function(require,module,exports){
+},{"_process":28,"underscore":30}],26:[function(require,module,exports){
 'use strict';
 
-module.exports = "js1.0.0-rc4";
+module.exports = "js1.0.0-rc5";
+
+},{}],27:[function(require,module,exports){
 
 },{}],28:[function(require,module,exports){
-
-},{}],29:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -8549,7 +8561,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],30:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 (function(root) {
   var localStorageMemory = {};
   var cache = {};
@@ -8630,7 +8642,7 @@ process.umask = function() { return 0; };
 
 
 
-},{}],31:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 //     Underscore.js 1.8.3
 //     http://underscorejs.org
 //     (c) 2009-2015 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
