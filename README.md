@@ -15,8 +15,9 @@ JavaScript SDK for [LeanCloud](http://leancloud.cn/).
 * 在本地进行调试，`npm install` 安装相关依赖
 * 执行 `gulp browserify` 会生成浏览器 SDK
 * 执行 `gulp release` 会生成全部版本的 SDK
-* 服务环境可以通过单元测试调试 `gulp test`，浏览器环境打开 test/test.html
-* 确保测试全部通过
+* 服务环境通过 mocha 调试单个文件，如调试 file.js `mocha test file`
+* 浏览器环境打开 test/test.html
+* 确保测试全部通过 `gulp test`
 * 提交并发起 Pull Request
 
 项目的目录结构说明如下：
