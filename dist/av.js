@@ -13,7 +13,7 @@ var AV = module.exports = {};
 AV._ = require('underscore');
 AV.VERSION = require('./version');
 AV.Promise = require('./promise');
-AV.XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
+AV.XMLHttpRequest = require('leancloud-xmlhttprequest').XMLHttpRequest;
 AV.localStorage = require('localStorage');
 
 // 以下模块为了兼容原有代码，使用这种加载方式。
@@ -44,7 +44,7 @@ require('./bigquery')(AV);
 
 AV.AV = AV; // Backward compatibility
 
-},{"./acl":2,"./bigquery":4,"./cloudfunction":9,"./collection":10,"./error":11,"./event":12,"./facebook":13,"./file":14,"./geopoint":15,"./history":16,"./insight":17,"./object":18,"./op":19,"./promise":20,"./push":21,"./query":22,"./relation":23,"./role":24,"./router":25,"./search":26,"./status":27,"./user":28,"./utils":29,"./version":30,"./view":31,"localStorage":5,"underscore":35,"xmlhttprequest":8}],2:[function(require,module,exports){
+},{"./acl":2,"./bigquery":4,"./cloudfunction":9,"./collection":10,"./error":11,"./event":12,"./facebook":13,"./file":14,"./geopoint":15,"./history":16,"./insight":17,"./object":18,"./op":19,"./promise":20,"./push":21,"./query":22,"./relation":23,"./role":24,"./router":25,"./search":26,"./status":27,"./user":28,"./utils":29,"./version":30,"./view":31,"leancloud-xmlhttprequest":8,"localStorage":5,"underscore":35}],2:[function(require,module,exports){
 'use strict';
 var _ = require('underscore');
 
@@ -1700,12 +1700,20 @@ module.exports = function(AV) {
     return chunks.join("");
   };
 
+  // 取出 dataURL 中 base64 的部分
   var dataURLToBase64 = function(base64) {
     if (base64.split(',')[0] && base64.split(',')[0].indexOf('base64') >= 0) {
       base64 = base64.split(',')[1];
     }
     return base64;
   };
+
+  // 判断是否是国内节点
+  var isCnNode = function() {
+    var serverHost = AV.serverURL.match(/\/\/(.*)/, 'g')[1];
+    var cnApiHost = AV._config.cnApiUrl.match(/\/\/(.*)/, 'g')[1];
+    return serverHost === cnApiHost;
+  }
 
   // A list of file extensions to mime types as found here:
   // http://stackoverflow.com/questions/58510/using-net-how-can-you-find-the-
@@ -2222,7 +2230,8 @@ module.exports = function(AV) {
       var self = this;
       if (!self._previousSave) {
         // 如果是国内节点
-        if(self._source && AV.serverURL === AV._config.cnApiUrl) {
+        var isCnNodeFlag = isCnNode();
+        if(self._source && isCnNodeFlag) {
           // 通过国内 CDN 服务商上传
           var upload = require('./browserify-wrapper/upload');
           upload(self, AV, saveOptions);
@@ -2244,7 +2253,7 @@ module.exports = function(AV) {
             }
             return self;
           });
-        } else if (AV.serverURL !== AV._config.cnApiUrl) {
+        } else if (!isCnNodeFlag) {
           // 海外节点，通过 LeanCloud 服务器中转
           self._previousSave = self._source.then(function(file, type) {
             var data = {
@@ -9242,7 +9251,7 @@ module.exports = function(AV) {
 },{"_process":33,"underscore":35}],30:[function(require,module,exports){
 'use strict';
 
-module.exports = "js0.6.5";
+module.exports = "js0.6.6";
 
 },{}],31:[function(require,module,exports){
 'use strict';
@@ -9714,7 +9723,9 @@ function drainQueue() {
         currentQueue = queue;
         queue = [];
         while (++queueIndex < len) {
-            currentQueue[queueIndex].run();
+            if (currentQueue) {
+                currentQueue[queueIndex].run();
+            }
         }
         queueIndex = -1;
         len = queue.length;
@@ -9766,7 +9777,6 @@ process.binding = function (name) {
     throw new Error('process.binding is not supported');
 };
 
-// TODO(shtylman)
 process.cwd = function () { return '/' };
 process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
