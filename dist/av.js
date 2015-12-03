@@ -13,7 +13,7 @@ var AV = module.exports = {};
 AV._ = require('underscore');
 AV.VERSION = require('./version');
 AV.Promise = require('./promise');
-AV.XMLHttpRequest = require('leancloud-xmlhttprequest').XMLHttpRequest;
+AV.XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
 AV.localStorage = require('localStorage');
 
 // 以下模块为了兼容原有代码，使用这种加载方式。
@@ -44,7 +44,7 @@ require('./bigquery')(AV);
 
 AV.AV = AV; // Backward compatibility
 
-},{"./acl":2,"./bigquery":4,"./cloudfunction":9,"./collection":10,"./error":11,"./event":12,"./facebook":13,"./file":14,"./geopoint":15,"./history":16,"./insight":17,"./object":18,"./op":19,"./promise":20,"./push":21,"./query":22,"./relation":23,"./role":24,"./router":25,"./search":26,"./status":27,"./user":28,"./utils":29,"./version":30,"./view":31,"leancloud-xmlhttprequest":8,"localStorage":5,"underscore":35}],2:[function(require,module,exports){
+},{"./acl":2,"./bigquery":4,"./cloudfunction":9,"./collection":10,"./error":11,"./event":12,"./facebook":13,"./file":14,"./geopoint":15,"./history":16,"./insight":17,"./object":18,"./op":19,"./promise":20,"./push":21,"./query":22,"./relation":23,"./role":24,"./router":25,"./search":26,"./status":27,"./user":28,"./utils":29,"./version":30,"./view":31,"localStorage":5,"underscore":35,"xmlhttprequest":8}],2:[function(require,module,exports){
 'use strict';
 var _ = require('underscore');
 
@@ -9251,7 +9251,7 @@ module.exports = function(AV) {
 },{"_process":33,"underscore":35}],30:[function(require,module,exports){
 'use strict';
 
-module.exports = "js0.6.6";
+module.exports = "js0.6.7";
 
 },{}],31:[function(require,module,exports){
 'use strict';
