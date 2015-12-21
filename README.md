@@ -1,3 +1,4 @@
+[![Stories in Ready](https://badge.waffle.io/leancloud/javascript-sdk.png?label=ready&title=Ready)](https://waffle.io/leancloud/javascript-sdk)
 # LeanCloud JavaScript SDK [![Build Status](https://travis-ci.org/leancloud/javascript-sdk.svg)](https://travis-ci.org/leancloud/javascript-sdk)
 
 JavaScript SDK for [LeanCloud](http://leancloud.cn/).
