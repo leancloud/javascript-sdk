@@ -315,7 +315,7 @@ const init = (AV) => {
    * dataObject is the payload as an object, or null if there is none.
    * @ignore
    */
-  AV._request = function(route, className, objectId, method, dataObject) {
+  AV._request = function(route, className, objectId, method, dataObject, sessionToken) {
     if (!AV.applicationId) {
       throw "You must specify your applicationId using AV.initialize";
     }
@@ -392,7 +392,7 @@ const init = (AV) => {
     // Pass the session token on every request.
     return AV.User.currentAsync().then(function(currentUser) {
       if (currentUser && currentUser._sessionToken) {
-        dataObject._SessionToken = currentUser._sessionToken;
+        dataObject._SessionToken = sessionToken || currentUser._sessionToken;
       }
       return AV._getInstallationId();
     }).then(function(_InstallationId) {
