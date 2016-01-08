@@ -389,15 +389,25 @@ const init = (AV) => {
       dataObject._MasterKey = AV.masterKey;
     }
     dataObject._ClientVersion = AV.version;
-    // Pass the session token on every request.
-    return AV.User.currentAsync().then(function(currentUser) {
-      if (currentUser && currentUser._sessionToken) {
-        dataObject._SessionToken = sessionToken || currentUser._sessionToken;
+    return AV.Promise.as().then(function() {
+      // Pass the session token
+      if (sessionToken) {
+        dataObject._SessionToken = sessionToken;
+      } else if (!AV.User._currentUserDisabled) {
+        return AV.User.currentAsync().then(function(currentUser) {
+          if (currentUser && currentUser._sessionToken) {
+            dataObject._SessionToken = currentUser._sessionToken;
+          }
+        });
       }
-      return AV._getInstallationId();
-    }).then(function(_InstallationId) {
-      dataObject._InstallationId = _InstallationId;
-
+    }).then(function() {
+      // Pass the installation id
+      if (!AV.User._currentUserDisabled) {
+        AV._getInstallationId().then(function(installationId) {
+          dataObject._InstallationId = installationId;
+        });
+      }
+    }).then(function() {
       return AV._ajax(method, apiURL, dataObject).then(null, function(response) {
         // Transform the error into an instance of AV.Error by trying to parse
         // the error string as JSON.
