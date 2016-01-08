@@ -413,7 +413,7 @@ module.exports = function(AV) {
           throw "Invalid target user.";
       }
       var route = 'users/' + this.id + '/friendship/' + userObjectId;
-      var request = AV._request(route, null, null, 'POST', null);
+      var request = AV._request(route, null, null, 'POST', null, options && options.sessionToken);
       return request._thenRunCallbacks(options);
     },
 
@@ -437,7 +437,7 @@ module.exports = function(AV) {
           throw "Invalid target user.";
       }
       var route = 'users/' + this.id + '/friendship/' + userObjectId;
-      var request = AV._request(route, null, null, 'DELETE', null);
+      var request = AV._request(route, null, null, 'DELETE', null, options && options.sessionToken);
       return request._thenRunCallbacks(options);
     },
 
@@ -493,7 +493,7 @@ module.exports = function(AV) {
         old_password: oldPassword,
         new_password: newPassword
       };
-      var request = AV._request(route, null, null, 'PUT', params);
+      var request = AV._request(route, null, null, 'PUT', params, options && options.sessionToken);
       return request._thenRunCallbacks(options, this);
     },
 
