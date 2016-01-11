@@ -403,7 +403,7 @@ const init = (AV) => {
     }).then(function() {
       // Pass the installation id
       if (!AV.User._currentUserDisabled) {
-        AV._getInstallationId().then(function(installationId) {
+        return AV._getInstallationId().then(function(installationId) {
           dataObject._InstallationId = installationId;
         });
       }

@@ -281,4 +281,79 @@ describe("User", function() {
       });
     });
   });
+
+  describe('currentUser disabled', function() {
+    var user, originalUser;
+
+    before(function() {
+      originalUser = AV.User._currentUser;
+      AV.User._currentUser = null;
+      AV.User._currentUserDisabled = true;
+      AV._useMasterKey = false;
+    });
+
+    var username = 'u' + Date.now();
+    var email = 'u' + Date.now() + '@test.com';
+    var password = 'password1';
+
+    it('User#signUp', function() {
+      user = new AV.User();
+
+      user.set("username", username);
+      user.set("password", password);
+      user.set("email", email);
+
+      return user.signUp(null, {
+        success: function(user) {
+          expect(user._isCurrentUser).to.be.equal(false);
+          expect(AV.User._currentUser).to.be.equal(null);
+          expect(user._sessionToken).to.be.ok();
+        }
+      });
+    });
+
+    it('User#getSessionToken', function() {
+      expect(user.getSessionToken()).to.be.ok();
+    });
+
+    it('User.current', function() {
+      expect(AV.User.current()).to.be.equal(null);
+    });
+
+    it('User.currentAsync', function() {
+      AV.User.currentAsync().then(function(user) {
+        expect(user).to.be.equal(null);
+      });
+    });
+
+    it('User#save without token', function(done) {
+      user.save({username: username + 'changed'}, {
+        success: function() {
+          done(new Error('Should not success'));
+        },
+        error: function(err) {
+          expect(err.code).to.be.equal(206);
+          done();
+        }
+      });
+    });
+
+    it('User#save with token', function(done) {
+      user.save({username: username + 'changed'}, {
+        sessionToken: user.getSessionToken(),
+        success: function() {
+          done();
+        },
+        error: function(err) {
+          done(err);
+        }
+      });
+    });
+
+    after(function() {
+      AV.User._currentUserDisabled = false;
+      AV._useMasterKey = true;
+      AV.User._currentUser = originalUser;
+    });
+  });
 });

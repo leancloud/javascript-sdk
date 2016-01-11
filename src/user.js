@@ -798,7 +798,7 @@ module.exports = function(AV) {
      */
     logOut: function() {
       if (AV.User._currentUserDisabled) {
-        return console.wran('AVUser.currentUser disabled, use User#logOut instead');
+        return console.warn('AV.User\'s currentUser disabled, use User#logOut instead');
       }
 
       if (AV.User._currentUser !== null) {
@@ -979,8 +979,8 @@ module.exports = function(AV) {
      */
     currentAsync: function() {
       if (AV.User._currentUserDisabled) {
-        console.wran('AVUser.currentUser disabled, access user from request instead');
-        return AV.Promise.as();
+        console.warn('AV.User\'s currentUser disabled, access user from request instead');
+        return AV.Promise.as(null);
       }
 
       if (AV.User._currentUser) {
@@ -1028,7 +1028,7 @@ module.exports = function(AV) {
      */
     current: function() {
       if (AV.User._currentUserDisabled) {
-        console.wran('AVUser.currentUser disabled, access user from request instead');
+        console.warn('AV.User\'s currentUser disabled, access user from request instead');
         return null;
       }
 
