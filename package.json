@@ -13,8 +13,7 @@
   "dependencies": {
     "localstorage-memory": "^1.0.1",
     "qiniu": "6.1.3",
-    "underscore": "^1.8.3",
-    "leancloud-xmlhttprequest": "^1.8.0"
+    "underscore": "^1.8.3"
   },
   "devDependencies": {
     "browserify": "^11.0.1",
