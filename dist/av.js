@@ -13,7 +13,6 @@ var AV = module.exports = {};
 AV._ = require('underscore');
 AV.VERSION = require('./version');
 AV.Promise = require('./promise');
-AV.XMLHttpRequest = require('./browserify-wrapper/xmlhttprequest').XMLHttpRequest;
 AV.localStorage = require('./localstorage');
 
 // 以下模块为了兼容原有代码，使用这种加载方式。
@@ -38,7 +37,7 @@ require('./insight')(AV);
 // Backward compatibility
 AV.AV = AV;
 
-},{"./acl":2,"./browserify-wrapper/xmlhttprequest":7,"./cloudfunction":8,"./error":9,"./event":10,"./file":11,"./geopoint":12,"./insight":13,"./localstorage":14,"./object":15,"./op":16,"./promise":17,"./push":18,"./query":19,"./relation":20,"./role":21,"./search":22,"./status":23,"./user":24,"./utils":25,"./version":26,"underscore":30}],2:[function(require,module,exports){
+},{"./acl":2,"./cloudfunction":8,"./error":9,"./event":10,"./file":11,"./geopoint":12,"./insight":13,"./localstorage":14,"./object":15,"./op":16,"./promise":17,"./push":18,"./query":19,"./relation":20,"./role":21,"./search":22,"./status":23,"./user":24,"./utils":25,"./version":26,"underscore":30}],2:[function(require,module,exports){
 'use strict';
 var _ = require('underscore');
 
@@ -311,6 +310,93 @@ global.AV = _.extend(AV, global.AV);
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"./AV":1,"underscore":30}],4:[function(require,module,exports){
+var Promise = require('../promise');
+
+module.exports = function _ajax(method, url, data, success, error) {
+  var options = {
+    success: success,
+    error: error
+  };
+
+  if (useXDomainRequest()) {
+    return ajaxIE8(method, url, data)._thenRunCallbacks(options);
+  }
+
+  var promise = new Promise();
+  var handled = false;
+
+  var xhr = new XMLHttpRequest();
+  xhr.onreadystatechange = function() {
+    if (xhr.readyState === 4) {
+      if (handled) {
+        return;
+      }
+      handled = true;
+
+      if (xhr.status >= 200 && xhr.status < 300) {
+        var response;
+        try {
+          response = JSON.parse(xhr.responseText);
+        } catch (e) {
+          promise.reject(e);
+        }
+        if (response) {
+          promise.resolve(response, xhr.status, xhr);
+        }
+      } else {
+        promise.reject(xhr);
+      }
+    }
+  };
+  xhr.open(method, url, true);
+  xhr.setRequestHeader("Content-Type", "text/plain");  // avoid pre-flight.
+  xhr.send(data);
+  return promise._thenRunCallbacks(options);
+};
+
+function useXDomainRequest() {
+  if (typeof(XDomainRequest) !== "undefined") {
+    // We're in IE 8+.
+    if ('withCredentials' in new XMLHttpRequest()) {
+      // We're in IE 10+.
+      return false;
+    }
+    return true;
+  }
+  return false;
+}
+
+function ajaxIE8(method, url, data) {
+  var promise = new Promise();
+  var xdr = new XDomainRequest();
+  xdr.onload = function() {
+    var response;
+    try {
+      response = JSON.parse(xdr.responseText);
+    } catch (e) {
+      promise.reject(e);
+    }
+    if (response) {
+      promise.resolve(response);
+    }
+  };
+  xdr.onerror = xdr.ontimeout = function() {
+    // Let's fake a real error message.
+    var fakeResponse = {
+      responseText: JSON.stringify({
+        code: AV.Error.X_DOMAIN_REQUEST,
+        error: "IE's XDomainRequest does not supply error info."
+      })
+    };
+    promise.reject(xdr);
+  };
+  xdr.onprogress = function() {};
+  xdr.open(method, url);
+  xdr.send(data);
+  return promise;
+}
+
+},{"../promise":17}],5:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -371,7 +457,7 @@ if (global.localStorage) {
 module.exports = Storage;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../promise":17,"localstorage-memory":29,"react-native":27,"underscore":30}],5:[function(require,module,exports){
+},{"../promise":17,"localstorage-memory":28,"react-native":27,"underscore":30}],6:[function(require,module,exports){
 'use strict';
 
 var dataURItoBlob = function(dataURI, type) {
@@ -396,7 +482,7 @@ var dataURItoBlob = function(dataURI, type) {
 
 module.exports = dataURItoBlob;
 
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 'use strict';
 
 module.exports = function upload(file, AV, saveOptions) {
@@ -421,7 +507,7 @@ module.exports = function upload(file, AV, saveOptions) {
     var promise = new AV.Promise();
     var handled = false;
 
-    var xhr = new AV.XMLHttpRequest();
+    var xhr = new XMLHttpRequest();
 
     if (xhr.upload) {
       xhr.upload.onprogress = saveOptions.onProgress;
@@ -461,13 +547,6 @@ module.exports = function upload(file, AV, saveOptions) {
   });
 };
 
-},{}],7:[function(require,module,exports){
-(function (global){
-'use strict';
-
-exports.XMLHttpRequest = global.XMLHttpRequest;
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],8:[function(require,module,exports){
 'use strict';
 
@@ -1127,12 +1206,20 @@ module.exports = function(AV) {
     return chunks.join("");
   };
 
+  // 取出 dataURL 中 base64 的部分
   var dataURLToBase64 = function(base64) {
     if (base64.split(',')[0] && base64.split(',')[0].indexOf('base64') >= 0) {
       base64 = base64.split(',')[1];
     }
     return base64;
   };
+
+  // 判断是否是国内节点
+  var isCnNode = function() {
+    var serverHost = AV.serverURL.match(/\/\/(.*)/, 'g')[1];
+    var cnApiHost = AV._config.cnApiUrl.match(/\/\/(.*)/, 'g')[1];
+    return serverHost === cnApiHost;
+  }
 
   // A list of file extensions to mime types as found here:
   // http://stackoverflow.com/questions/58510/using-net-how-can-you-find-the-
@@ -1662,7 +1749,8 @@ module.exports = function(AV) {
       var self = this;
       if (!self._previousSave) {
         // 如果是国内节点
-        if(self._source && AV.serverURL === AV._config.cnApiUrl) {
+        var isCnNodeFlag = isCnNode();
+        if(self._source && isCnNodeFlag) {
           // 通过国内 CDN 服务商上传
           var upload = require('./browserify-wrapper/upload');
           upload(self, AV, saveOptions);
@@ -1684,7 +1772,7 @@ module.exports = function(AV) {
             }
             return self;
           });
-        } else if (AV.serverURL !== AV._config.cnApiUrl) {
+        } else if (!isCnNodeFlag) {
           // 海外节点，通过 LeanCloud 服务器中转
           self._previousSave = self._source.then(function(file, type) {
             var data = {
@@ -1758,7 +1846,7 @@ module.exports = function(AV) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./browserify-wrapper/parse-base64":5,"./browserify-wrapper/upload":6,"underscore":30}],12:[function(require,module,exports){
+},{"./browserify-wrapper/parse-base64":6,"./browserify-wrapper/upload":7,"underscore":30}],12:[function(require,module,exports){
 var _ = require('underscore');
 
 /*global navigator: false */
@@ -2110,7 +2198,7 @@ if (!localStorage.async) {
 
 module.exports = localStorage;
 
-},{"./browserify-wrapper/localStorage":4,"./promise":17,"underscore":30}],15:[function(require,module,exports){
+},{"./browserify-wrapper/localStorage":5,"./promise":17,"underscore":30}],15:[function(require,module,exports){
 'use strict';
 
 var _ = require('underscore');
@@ -4771,7 +4859,7 @@ Promise.prototype.finally = Promise.prototype.always;
 Promise.prototype.try = Promise.prototype.done;
 
 }).call(this,require('_process'))
-},{"_process":28,"underscore":30}],18:[function(require,module,exports){
+},{"_process":29,"underscore":30}],18:[function(require,module,exports){
 'use strict';
 
 module.exports = function(AV) {
@@ -7144,8 +7232,8 @@ module.exports = function(AV) {
     /**
      * @see AV.Object#fetch
      */
-    fetch: function(options) {
-      return AV.Object.prototype.fetch.call(this, filterOutCallbacks(options))
+    fetch: function(fetchOptions, options) {
+      return AV.Object.prototype.fetch.call(this, fetchOptions, {})
         .then(function(model) {
           return model._handleSaveResult(false).then(function() {
             return model;
@@ -8022,95 +8110,7 @@ module.exports = function(AV) {
     return new Date(Date.UTC(year, month, day, hour, minute, second, milli));
   };
 
-  AV._ajaxIE8 = function(method, url, data) {
-    var promise = new AV.Promise();
-    var xdr = new XDomainRequest();
-    xdr.onload = function() {
-      var response;
-      try {
-        response = JSON.parse(xdr.responseText);
-      } catch (e) {
-        promise.reject(e);
-      }
-      if (response) {
-        promise.resolve(response);
-      }
-    };
-    xdr.onerror = xdr.ontimeout = function() {
-      // Let's fake a real error message.
-      var fakeResponse = {
-        responseText: JSON.stringify({
-          code: AV.Error.X_DOMAIN_REQUEST,
-          error: "IE's XDomainRequest does not supply error info."
-        })
-      };
-      promise.reject(xdr);
-    };
-    xdr.onprogress = function() {};
-    xdr.open(method, url);
-    xdr.send(data);
-    return promise;
-  };
-
-   AV._useXDomainRequest = function() {
-       if (typeof(XDomainRequest) !== "undefined") {
-           // We're in IE 8+.
-           if ('withCredentials' in new XMLHttpRequest()) {
-               // We're in IE 10+.
-               return false;
-           }
-           return true;
-       }
-       return false;
-   };
-
-  AV._ajax = function(method, url, data, success, error) {
-    var options = {
-      success: success,
-      error: error
-    };
-
-    if (AV._useXDomainRequest()) {
-      return AV._ajaxIE8(method, url, data)._thenRunCallbacks(options);
-    }
-
-    var promise = new AV.Promise();
-    var handled = false;
-
-    var xhr = new AV.XMLHttpRequest();
-    xhr.onreadystatechange = function() {
-      if (xhr.readyState === 4) {
-        if (handled) {
-          return;
-        }
-        handled = true;
-
-        if (xhr.status >= 200 && xhr.status < 300) {
-          var response;
-          try {
-            response = JSON.parse(xhr.responseText);
-          } catch (e) {
-            promise.reject(e);
-          }
-          if (response) {
-            promise.resolve(response, xhr.status, xhr);
-          }
-        } else {
-          promise.reject(xhr);
-        }
-      }
-    };
-    xhr.open(method, url, true);
-    xhr.setRequestHeader("Content-Type", "text/plain");  // avoid pre-flight.
-    if (AV._isNode) {
-      // Add a special user agent just for request from node.js.
-      xhr.setRequestHeader("User-Agent",
-                           "AV/" + AV.VERSION +
-                           " (NodeJS " + process.versions.node + ")");
-    }
-    xhr.send(data);
-    return promise._thenRunCallbacks(options);
-  };
+  AV._ajax = require('./browserify-wrapper/ajax');
 
   // A self-propagating extend function.
   AV._extend = function(protoProps, classProps) {
@@ -8340,7 +8340,7 @@ module.exports = function(AV) {
     if (value.__type === "Pointer") {
       className = value.className;
       var pointer = AV.Object._create(className);
-      if(value.createdAt){
+      if(Object.keys(value).length > 3) {
           delete value.__type;
           delete value.className;
           pointer._finishFetch(value, true);
@@ -8461,14 +8461,98 @@ module.exports = function(AV) {
 };
 
 }).call(this,require('_process'))
-},{"_process":28,"underscore":30}],26:[function(require,module,exports){
+},{"./browserify-wrapper/ajax":4,"_process":29,"underscore":30}],26:[function(require,module,exports){
 'use strict';
 
-module.exports = "js1.0.0-rc5";
+module.exports = "js1.0.0-rc6";
 
 },{}],27:[function(require,module,exports){
 
 },{}],28:[function(require,module,exports){
+(function(root) {
+  var localStorageMemory = {};
+  var cache = {};
+
+  /**
+   * number of stored items.
+   */
+  localStorageMemory.length = 0;
+
+  /**
+   * returns item for passed key, or null
+   *
+   * @para {String} key
+   *       name of item to be returned
+   * @returns {String|null}
+   */
+  localStorageMemory.getItem = function(key) {
+    return cache[key] || null;
+  };
+
+  /**
+   * sets item for key to passed value, as String
+   *
+   * @para {String} key
+   *       name of item to be set
+   * @para {String} value
+   *       value, will always be turned into a String
+   * @returns {undefined}
+   */
+  localStorageMemory.setItem = function(key, value) {
+    if (typeof value === 'undefined') {
+      localStorageMemory.removeItem(key);
+    } else {
+      if (!(cache.hasOwnProperty(key))) {
+        localStorageMemory.length++;
+      }
+
+      cache[key] = '' + value;
+    }
+  };
+
+  /**
+   * removes item for passed key
+   *
+   * @para {String} key
+   *       name of item to be removed
+   * @returns {undefined}
+   */
+  localStorageMemory.removeItem = function(key) {
+    if (cache.hasOwnProperty(key)) {
+      delete cache[key];
+      localStorageMemory.length--;
+    }
+  };
+
+  /**
+   * returns name of key at passed index
+   *
+   * @para {Number} index
+   *       Position for key to be returned (starts at 0)
+   * @returns {String|null}
+   */
+  localStorageMemory.key = function(index) {
+    return Object.keys(cache)[index] || null;
+  };
+
+  /**
+   * removes all stored items and sets length to 0
+   *
+   * @returns {undefined}
+   */
+  localStorageMemory.clear = function() {
+    cache = {};
+    localStorageMemory.length = 0;
+  };
+
+  if (typeof exports === 'object') {
+    module.exports = localStorageMemory;
+  } else {
+    root.localStorageMemory = localStorageMemory;
+  }
+})(this);
+
+},{}],29:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -8560,87 +8644,6 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 process.umask = function() { return 0; };
-
-},{}],29:[function(require,module,exports){
-(function(root) {
-  var localStorageMemory = {};
-  var cache = {};
-
-  /**
-   * number of stored items.
-   */
-  localStorageMemory.length = 0;
-
-  /**
-   * returns item for passed key, or null
-   *
-   * @para {String} key
-   *       name of item to be returned
-   * @returns {String|null}
-   */
-  localStorageMemory.getItem = function(key) {
-    return cache[key] || null;
-  };
-
-  /**
-   * sets item for key to passed value, as String
-   *
-   * @para {String} key
-   *       name of item to be set
-   * @para {String} value
-   *       value, will always be turned into a String
-   * @returns {undefined}
-   */
-  localStorageMemory.setItem = function(key, value) {
-    if (typeof value === 'undefined') {
-      localStorageMemory.removeItem(key);
-    } else {
-      cache[key] = '' + value;
-      localStorageMemory.length++;
-    }
-  };
-
-  /**
-   * removes item for passed key
-   *
-   * @para {String} key
-   *       name of item to be removed
-   * @returns {undefined}
-   */
-  localStorageMemory.removeItem = function(key) {
-    delete cache[key];
-    localStorageMemory.length--;
-  };
-
-  /**
-   * returns name of key at passed index
-   *
-   * @para {Number} index
-   *       Position for key to be returned (starts at 0)
-   * @returns {String|null}
-   */
-  localStorageMemory.key = function(index) {
-    return Object.keys(cache)[index] || null;
-  };
-
-  /**
-   * removes all stored items and sets length to 0
-   *
-   * @returns {undefined}
-   */
-  localStorageMemory.clear = function() {
-    cache = {};
-    localStorageMemory.length = 0;
-  };
-
-  if (typeof exports === 'object') {
-    module.exports = localStorageMemory;
-  } else {
-    root.localStorageMemory = localStorageMemory;
-  }
-})(this);
-
-
 
 },{}],30:[function(require,module,exports){
 //     Underscore.js 1.8.3

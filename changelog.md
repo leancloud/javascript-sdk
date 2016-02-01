@@ -1,3 +1,8 @@
+# 1.0.0-rc6 日期：2016 年 2 月 1 日
+* 修复了云引擎中文件上传到 AWS 的问题。
+* 修复了 `AV.User#fetch` 不支持 fetch options 的问题。
+* 修复了使用 Pointer 时可能出现类型错误的问题。
+
 # 1.0.0-rc5 日期：2015 年 11 月 24 日
 * AV.File 新增 fetch 方法。
 * 废弃 AV.Object 的 existed 方法。
