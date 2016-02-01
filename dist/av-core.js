@@ -343,7 +343,7 @@ try {
 module.exports = localStorage;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"localstorage-memory":28}],5:[function(require,module,exports){
+},{"localstorage-memory":26}],5:[function(require,module,exports){
 'use strict';
 
 var dataURItoBlob = function(dataURI, type) {
@@ -1686,7 +1686,7 @@ module.exports = function(AV) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./browserify-wrapper/parse-base64":5,"./browserify-wrapper/upload":6,"path":26,"underscore":29}],12:[function(require,module,exports){
+},{"./browserify-wrapper/parse-base64":5,"./browserify-wrapper/upload":6,"path":27,"underscore":29}],12:[function(require,module,exports){
 var _ = require('underscore');
 
 /*global navigator: false */
@@ -4659,7 +4659,7 @@ Promise.prototype.finally = Promise.prototype.always;
 Promise.prototype.try = Promise.prototype.done;
 
 }).call(this,require('_process'))
-},{"_process":27,"underscore":29}],17:[function(require,module,exports){
+},{"_process":28,"underscore":29}],17:[function(require,module,exports){
 'use strict';
 
 module.exports = function(AV) {
@@ -7039,7 +7039,7 @@ module.exports = function(AV) {
     /**
      * @see AV.Object#fetch
      */
-    fetch: function(options) {
+    fetch: function(fetchOptions, options) {
       var newOptions = options ? _.clone(options) : {};
       newOptions.success = function(model) {
         model._handleSaveResult(false);
@@ -7047,7 +7047,7 @@ module.exports = function(AV) {
           options.success.apply(this, arguments);
         }
       };
-      return AV.Object.prototype.fetch.call(this, newOptions);
+      return AV.Object.prototype.fetch.call(this, fetchOptions, newOptions);
     },
 
     /**
@@ -8134,7 +8134,7 @@ module.exports = function(AV) {
     if (value.__type === "Pointer") {
       var className = value.className;
       var pointer = AV.Object._create(className);
-      if(value.createdAt){
+      if(Object.keys(value).length > 3) {
           delete value.__type;
           delete value.className;
           pointer._finishFetch(value, true);
@@ -8255,12 +8255,96 @@ module.exports = function(AV) {
 };
 
 }).call(this,require('_process'))
-},{"_process":27,"underscore":29}],25:[function(require,module,exports){
+},{"_process":28,"underscore":29}],25:[function(require,module,exports){
 'use strict';
 
-module.exports = "js0.6.7";
+module.exports = "js0.6.8";
 
 },{}],26:[function(require,module,exports){
+(function(root) {
+  var localStorageMemory = {};
+  var cache = {};
+
+  /**
+   * number of stored items.
+   */
+  localStorageMemory.length = 0;
+
+  /**
+   * returns item for passed key, or null
+   *
+   * @para {String} key
+   *       name of item to be returned
+   * @returns {String|null}
+   */
+  localStorageMemory.getItem = function(key) {
+    return cache[key] || null;
+  };
+
+  /**
+   * sets item for key to passed value, as String
+   *
+   * @para {String} key
+   *       name of item to be set
+   * @para {String} value
+   *       value, will always be turned into a String
+   * @returns {undefined}
+   */
+  localStorageMemory.setItem = function(key, value) {
+    if (typeof value === 'undefined') {
+      localStorageMemory.removeItem(key);
+    } else {
+      if (!(cache.hasOwnProperty(key))) {
+        localStorageMemory.length++;
+      }
+
+      cache[key] = '' + value;
+    }
+  };
+
+  /**
+   * removes item for passed key
+   *
+   * @para {String} key
+   *       name of item to be removed
+   * @returns {undefined}
+   */
+  localStorageMemory.removeItem = function(key) {
+    if (cache.hasOwnProperty(key)) {
+      delete cache[key];
+      localStorageMemory.length--;
+    }
+  };
+
+  /**
+   * returns name of key at passed index
+   *
+   * @para {Number} index
+   *       Position for key to be returned (starts at 0)
+   * @returns {String|null}
+   */
+  localStorageMemory.key = function(index) {
+    return Object.keys(cache)[index] || null;
+  };
+
+  /**
+   * removes all stored items and sets length to 0
+   *
+   * @returns {undefined}
+   */
+  localStorageMemory.clear = function() {
+    cache = {};
+    localStorageMemory.length = 0;
+  };
+
+  if (typeof exports === 'object') {
+    module.exports = localStorageMemory;
+  } else {
+    root.localStorageMemory = localStorageMemory;
+  }
+})(this);
+
+},{}],27:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -8488,7 +8572,7 @@ var substr = 'ab'.substr(-1) === 'b'
 ;
 
 }).call(this,require('_process'))
-},{"_process":27}],27:[function(require,module,exports){
+},{"_process":28}],28:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -8580,87 +8664,6 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 process.umask = function() { return 0; };
-
-},{}],28:[function(require,module,exports){
-(function(root) {
-  var localStorageMemory = {};
-  var cache = {};
-
-  /**
-   * number of stored items.
-   */
-  localStorageMemory.length = 0;
-
-  /**
-   * returns item for passed key, or null
-   *
-   * @para {String} key
-   *       name of item to be returned
-   * @returns {String|null}
-   */
-  localStorageMemory.getItem = function(key) {
-    return cache[key] || null;
-  };
-
-  /**
-   * sets item for key to passed value, as String
-   *
-   * @para {String} key
-   *       name of item to be set
-   * @para {String} value
-   *       value, will always be turned into a String
-   * @returns {undefined}
-   */
-  localStorageMemory.setItem = function(key, value) {
-    if (typeof value === 'undefined') {
-      localStorageMemory.removeItem(key);
-    } else {
-      cache[key] = '' + value;
-      localStorageMemory.length++;
-    }
-  };
-
-  /**
-   * removes item for passed key
-   *
-   * @para {String} key
-   *       name of item to be removed
-   * @returns {undefined}
-   */
-  localStorageMemory.removeItem = function(key) {
-    delete cache[key];
-    localStorageMemory.length--;
-  };
-
-  /**
-   * returns name of key at passed index
-   *
-   * @para {Number} index
-   *       Position for key to be returned (starts at 0)
-   * @returns {String|null}
-   */
-  localStorageMemory.key = function(index) {
-    return Object.keys(cache)[index] || null;
-  };
-
-  /**
-   * removes all stored items and sets length to 0
-   *
-   * @returns {undefined}
-   */
-  localStorageMemory.clear = function() {
-    cache = {};
-    localStorageMemory.length = 0;
-  };
-
-  if (typeof exports === 'object') {
-    module.exports = localStorageMemory;
-  } else {
-    root.localStorageMemory = localStorageMemory;
-  }
-})(this);
-
-
 
 },{}],29:[function(require,module,exports){
 //     Underscore.js 1.8.3
