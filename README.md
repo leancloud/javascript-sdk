@@ -1,4 +1,4 @@
-# LeanCloud JavaScript SDK [![Build Status](https://travis-ci.org/leancloud/javascript-sdk.svg)](https://travis-ci.org/leancloud/javascript-sdk)
+# LeanCloud JavaScript SDK [![Build Status](https://travis-ci.org/leancloud/javascript-sdk.svg)](https://travis-ci.org/leancloud/javascript-sdk) [![codecov.io](https://codecov.io/github/leancloud/javascript-sdk/coverage.svg?branch=master)](https://codecov.io/github/leancloud/javascript-sdk?branch=master)
 
 JavaScript SDK for [LeanCloud](http://leancloud.cn/).
 

@@ -1,6 +1,3 @@
-function errorProcessor(err){
-  throw err;
-}
 describe("AV.Status",function(){
 
   describe("Send status.",function(){
@@ -9,7 +6,7 @@ describe("AV.Status",function(){
       AV.Status.sendStatusToFollowers(status).then(function(status){
         debug(status);
         done();
-      }, errorProcessor);
+      }, done);
     });
 
     it("should send private status to an user.",function(done){
@@ -17,7 +14,7 @@ describe("AV.Status",function(){
       AV.Status.sendPrivateStatus(status, '5627906060b22ef9c464cc99').then(function(status){
         debug(status);
         done();
-      }, errorProcessor);
+      }, done);
     });
 
     it("should send  status to a female user.",function(done){
@@ -27,7 +24,7 @@ describe("AV.Status",function(){
       status.send().then(function(status){
         debug(status);
         done();
-      }, errorProcessor);
+      }, done);
     });
   });
 
@@ -54,14 +51,14 @@ describe("AV.Status",function(){
       query.find().then(function(statuses){
         debug(statuses);
         done();
-      }, errorProcessor);
+      }, done);
     });
     it("should return published statuses.", function(done){
       var query = AV.Status.statusQuery(AV.User.current());
       query.find().then(function(statuses){
         debug(statuses);
         done();
-      }, errorProcessor);
+      }, done);
     });
   });
 
@@ -85,13 +82,13 @@ describe("AV.Status",function(){
               debug(followees);
               expect(followees.length).to.be(0);
               done();
-            }, errorProcessor);
-          }, errorProcessor);
-        }, errorProcessor);
-      }, errorProcessor);
-    }, errorProcessor);
+            }, done);
+          }, done);
+        }, done);
+      }, done);
+    });
     var targetUserObject = AV.Object.createWithoutData('_User', targetUser);
-    it("should send statuses.", function(done){
+    it.skip("should send statuses.", function(done){
       //send private status to  targetUser
       AV.Status.countUnreadStatuses(targetUserObject, 'private').then(function(result){
         debug(result);
@@ -114,12 +111,12 @@ describe("AV.Status",function(){
                   expect(result.total).to.be(total + 1);
                   expect(result.unread).to.be(0);
                   done();
-                },errorProcessor);
-              }, errorProcessor);
-            }, errorProcessor);
+                },done);
+              }, done);
+            }, done);
           },3000);
-        }, errorProcessor);
-      }, errorProcessor);
+        }, done);
+      }, done);
     });
   });
 });
