@@ -102,13 +102,13 @@ gulp.task('compress-docs', ['docs'], function() {
     .pipe(gulp.dest('dist'));
 });
 
-gulp.task('pre-test', function () {
+gulp.task('instrument', function () {
   return gulp.src(['lib/**/*.js'])
     .pipe(istanbul())
     .pipe(istanbul.hookRequire());
 });
 
-gulp.task('test', ['pre-test'], function() {
+gulp.task('test', ['instrument'], function() {
   return gulp.src('test/*.js', {read: false})
     .pipe(order([
       'test.js',
