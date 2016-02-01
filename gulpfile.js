@@ -5,8 +5,9 @@ var gulp = require('gulp');
 var clean = require('gulp-clean');
 var concat = require("gulp-concat");
 var gzip = require('gulp-gzip');
+var istanbul = require('gulp-istanbul');
 var mocha = require('gulp-mocha');
-var jsdoc = require("gulp-jsdoc");
+// var jsdoc = require("gulp-jsdoc");
 var order = require("gulp-order");
 var rename = require('gulp-rename');
 var shell = require('gulp-shell');
@@ -101,7 +102,13 @@ gulp.task('compress-docs', ['docs'], function() {
     .pipe(gulp.dest('dist'));
 });
 
-gulp.task('test', function() {
+gulp.task('pre-test', function () {
+  return gulp.src(['lib/**/*.js'])
+    .pipe(istanbul())
+    .pipe(istanbul.hookRequire());
+});
+
+gulp.task('test', ['pre-test'], function() {
   return gulp.src('test/*.js', {read: false})
     .pipe(order([
       'test.js',
@@ -120,7 +127,8 @@ gulp.task('test', function() {
     ]))
     .pipe(mocha({
       timeout: 300000,
-    }));
+    }))
+    .pipe(istanbul.writeReports());
 });
 
 gulp.task('clean', function() {

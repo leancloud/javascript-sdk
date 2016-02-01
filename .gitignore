@@ -4,5 +4,5 @@ dist/js-sdk-api-docs/
 *tgz
 *.tar.gz
 release.sh
-
+coverage
 *.swp

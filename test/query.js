@@ -82,7 +82,7 @@ describe("Queries", function () {
   });
 
   describe("#save&query()", function () {
-    it("should length + 1", function (done) {
+    it.skip("should length + 1", function (done) {
 
       query = new AV.Query(GameScore);
       query.limit(100);
