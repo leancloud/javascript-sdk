@@ -1,3 +1,5 @@
+'use strict';
+
 describe("files", function() {
   describe("Saving base64", function(){
 

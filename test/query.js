@@ -1,3 +1,5 @@
+'use strict';
+
 // queries
 var GameScore = AV.Object.extend("GameScore");
 var Person = AV.Object.extend("Person");

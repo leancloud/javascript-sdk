@@ -12,13 +12,12 @@ JavaScript SDK for [LeanCloud](http://leancloud.cn/).
 ## 贡献
 
 * fork 这个项目
-* 在本地进行调试，`npm install` 安装相关依赖
-* 执行 `gulp browserify` 会生成浏览器 SDK
-* 执行 `gulp release` 会生成全部版本的 SDK
+* `npm install` 安装相关依赖
 * 服务环境通过 mocha 调试单个文件，如调试 file.js `mocha test file`
-* 浏览器环境打开 test/test.html
-* 确保测试全部通过 `gulp test`
+* 浏览器环境执行 `gulp dev`，会自动启动 demo 目录，可在 test-es6.js 中修改和测试，test-es5.js 为自动生成的代码
+* 确保测试全部通过 `gulp test`，浏览器环境打开 test/test.html
 * 提交并发起 Pull Request
+* 执行 `gulp release` 会生成全部版本的 SDK
 
 项目的目录结构说明如下：
 
@@ -27,12 +26,17 @@ JavaScript SDK for [LeanCloud](http://leancloud.cn/).
 ├── bower.json
 ├── changelog.md
 ├── dist                               // 编译之后生成的文件将会在此目录下
+│   ├── av-es6.js                      // 合并后的完整源码（ES6 版本）
+│   ├── av-es5.js                      // 合并并编译后的完整源码（ES5 版本）
+│   ├── av-mini.js                     // 合并、压缩并编译后的源码（ES5 版本）
+│   ├── node                           // 目录中为生成的 nodejs 版本代码
+│   └── ...
 ├── gulpfile.js
-├── lib
+├── src
 │   ├── av-browser.js                  // 浏览器环境入口文件，将会被 browserify 编译
 │   ├── av-browser-core.js             // 浏览器环境入口文件，只包含核心依赖，将会被 browserify 编译
 │   ├── av.js                          // node.js 环境入口文件
-│   ├── browserify-wrapper             // 针对 node.js 与浏览器环境之间差异的不同实现
+│   ├── browserify-wrapper             // 目录中为针对 node.js 与浏览器环境之间差异的不同实现
 │   └── ...
 ├── package.json
 ├── readme.txt
@@ -44,7 +48,7 @@ JavaScript SDK for [LeanCloud](http://leancloud.cn/).
 ## 官方新版本发布流程
 
 * 修改版本号
-  * lib/version.js
+  * src/version.js
   * package.json
   * bower.json
 * 修改 Changelog

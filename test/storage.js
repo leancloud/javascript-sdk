@@ -1,3 +1,5 @@
+'use strict';
+
 var Storage = AV.localStorage;
 var testKey = '__test__';
 

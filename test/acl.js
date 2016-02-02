@@ -1,3 +1,5 @@
+'use strict';
+
 var GameScore = AV.Object.extend("GameScore");
 describe("ObjectACL",function(){
   describe("*",function(){

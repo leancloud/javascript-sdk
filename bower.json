@@ -9,7 +9,7 @@
   "main": "dist/av.js",
   "ignore": [
     "demo",
-    "lib",
+    "src",
     "test",
     "tools",
     "README.md",

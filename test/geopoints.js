@@ -1,3 +1,5 @@
+'use strict';
+
 var post;
 var Post = AV.Object.extend("Post");
 describe("Geopoints",function(){

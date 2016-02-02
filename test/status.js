@@ -1,3 +1,5 @@
+'use strict';
+
 describe("AV.Status",function(){
 
   describe("Send status.",function(){

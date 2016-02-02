@@ -1,3 +1,5 @@
+// 'use strict';
+
 // describe("sms", function() {
 //   var phoneNumber = '18668012283';
 //   describe("#verifyUserMobilePhone", function(){

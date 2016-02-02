@@ -1,3 +1,5 @@
+'use strict';
+
 var username = "u" + Date.now();
 var email = "u" + Date.now() + "@test.com";
 var password = "password1";

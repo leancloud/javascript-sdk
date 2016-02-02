@@ -1,3 +1,5 @@
+'use strict';
+
 describe("AV.Cloud", function() {
   var originalServerURL, originalAppId, originalAppKey, originalUseMasterKey;
 

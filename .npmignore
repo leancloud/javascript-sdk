@@ -4,5 +4,5 @@ package/
 tests/
 tools/
 demo/
-lib/cloud.js
+src/cloud.js
 *.sh
