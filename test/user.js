@@ -28,7 +28,18 @@ describe("User", function() {
 
     });
 
-
+    it("should throw when required field missing", function() {
+      var user = new AV.User();
+      user.set("username", username);
+      expect(function() {
+        user.signUp(null);
+      }).to.throwError(/password/);
+      var user = new AV.User();
+      user.set("password", password);
+      expect(function() {
+        user.signUp(null);
+      }).to.throwError(/name/);
+    });
   });
 
   describe("User.logIn and User.become", function() {
@@ -219,14 +230,14 @@ describe("User", function() {
 
   describe("User logInAnonymously", function() {
     it("should create anonymous user, and login with AV.User.signUpOrlogInWithAuthData()", function(done) {
-      var getFixedId = function () {  
+      var getFixedId = function () {
         var rawId = 13334230101333423010;
-        var result = rawId.toString(16);  
-        return result;  
+        var result = rawId.toString(16);
+        return result;
       }
-      var data = {  
-        id: getFixedId()  
-      }  
+      var data = {
+        id: getFixedId()
+      }
 
       AV.User.signUpOrlogInWithAuthData(data, "anonymous", {
         success: function(user) {

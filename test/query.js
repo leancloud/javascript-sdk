@@ -23,6 +23,24 @@ describe("Queries", function () {
 
     });
 
+    it("should throw when get null", function () {
+
+      query = new AV.Query(GameScore);
+      expect(function() {
+        query.get(null, {
+          success: function () {},
+          error: function () {}
+        });
+      }).to.throwError();
+      expect(function() {
+        query.get(undefined, {
+          success: function () {},
+          error: function () {}
+        });
+      }).to.throwError();
+
+    });
+
   });
 
   describe("#cloudQuery", function () {
