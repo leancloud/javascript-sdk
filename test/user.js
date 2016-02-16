@@ -81,6 +81,25 @@ describe("User", function() {
     });
   });
 
+  describe("fetch User", function() {
+    it("should resolve promise", function(done) {
+      var currentUser = AV.User.current();
+      currentUser.fetch().then(function(user) {
+        expect(user).to.be.ok();
+        done();
+      });
+    });
+    it("should run callback", function(done) {
+      var currentUser = AV.User.current();
+      currentUser.fetch({
+        success: function(user) {
+          expect(user).to.be.ok();
+          done();
+        }
+      })
+    });;
+  });
+
   describe("User update", function() {
     it("shoud update name", function(done) {
 
