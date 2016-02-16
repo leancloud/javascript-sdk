@@ -7039,7 +7039,15 @@ module.exports = function(AV) {
     /**
      * @see AV.Object#fetch
      */
-    fetch: function(fetchOptions, options) {
+    fetch: function () {
+      var options = null;
+      var fetchOptions = {};
+      if (arguments.length === 1) {
+        options = arguments[0];
+      } else if (arguments.length === 2) {
+        fetchOptions = arguments[0];
+        options = arguments[1];
+      }
       var newOptions = options ? _.clone(options) : {};
       newOptions.success = function(model) {
         model._handleSaveResult(false);
@@ -8258,7 +8266,7 @@ module.exports = function(AV) {
 },{"_process":28,"underscore":29}],25:[function(require,module,exports){
 'use strict';
 
-module.exports = "js0.6.8";
+module.exports = "js0.6.9";
 
 },{}],26:[function(require,module,exports){
 (function(root) {
