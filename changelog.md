@@ -1,3 +1,7 @@
+# 1.0.0-rc7 日期：2016 年 2 月 16 日
+* 添加 AV.Cloud.rpc 方法
+* 修复了 `AV.User#fetch` 不会运行回调函数的 bug。
+
 # 1.0.0-rc6 日期：2016 年 2 月 1 日
 * 修复了云引擎中文件上传到 AWS 的问题。
 * 修复了 `AV.User#fetch` 不支持 fetch options 的问题。

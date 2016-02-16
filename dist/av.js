@@ -338,6 +338,8 @@ module.exports = function _ajax(method, url, data, success, error) {
         try {
           response = JSON.parse(xhr.responseText);
         } catch (e) {
+          e.statusCode = xhr.status;
+          e.responseText = xhr.responseText;
           promise.reject(e);
         }
         if (response) {
@@ -581,6 +583,25 @@ module.exports = function(AV) {
 
       return request.then(function(resp) {
         return AV._decode(null, resp).result;
+      })._thenRunCallbacks(options);
+    },
+
+    /**
+     * Makes a call to a cloud function, you can send {AV.Object} as param or a field of param; the response
+     * from server will also be parsed as an {AV.Object}, array of {AV.Object}, or object includes {AV.Object}
+     * @param {String} name The function name.
+     * @param {Object} data The parameters to send to the cloud function.
+     * @param {Object} options A Backbone-style options object.
+     * @return {AV.Promise} A promise that will be resolved with the result of the function.
+     */
+    rpc: function(name, data, options) {
+      if (_.isArray(data)) {
+        return AV.Promise.error(new Error('Can\'t pass Array as the param of rpc function in JavaScript SDK.'))
+          ._thenRunCallbacks(options);
+      }
+
+      return AV._request('call', name, null, 'POST', AV._encodeObjectOrArray(data)).then(function(resp) {
+        return AV._decode('', resp).result;
       })._thenRunCallbacks(options);
     },
 
@@ -5109,7 +5130,7 @@ module.exports = function(AV) {
       if(!objectId) {
         var errorObject = new AV.Error(AV.Error.OBJECT_NOT_FOUND,
                                           "Object not found.");
-        return AV.Promise.error(errorObject);
+        throw errorObject;
       }
 
       var self = this;
@@ -7031,7 +7052,7 @@ module.exports = function(AV) {
         if (options && options.error) {
           options.error(this, error);
         }
-        return AV.Promise.error(error);
+        throw error;
       }
 
       var password = (attrs && attrs.password) || this.get("password");
@@ -7042,7 +7063,7 @@ module.exports = function(AV) {
         if (options && options.error) {
           options.error(this, error);
         }
-        return AV.Promise.error(error);
+        throw error;
       }
 
       return this.save(attrs, filterOutCallbacks(options)).then(function(model) {
@@ -7084,7 +7105,7 @@ module.exports = function(AV) {
         if (options && options.error) {
           options.error(this, error);
         }
-        return AV.Promise.error(error);
+        throw error;
       }
 
       var smsCode = (attrs && attrs.smsCode) || this.get("smsCode");
@@ -7096,7 +7117,7 @@ module.exports = function(AV) {
         if (options && options.error) {
           options.error(this, error);
         }
-        return AV.Promise.error(error);
+        throw error;
       }
 
       var newOptions = filterOutCallbacks(options);
@@ -7232,7 +7253,15 @@ module.exports = function(AV) {
     /**
      * @see AV.Object#fetch
      */
-    fetch: function(fetchOptions, options) {
+    fetch: function() {
+      var options = null;
+      var fetchOptions = {};
+      if(arguments.length === 1) {
+        options = arguments[0];
+      } else if(arguments.length === 2) {
+        fetchOptions = arguments[0];
+        options = arguments[1];
+      }
       return AV.Object.prototype.fetch.call(this, fetchOptions, {})
         .then(function(model) {
           return model._handleSaveResult(false).then(function() {
@@ -7517,9 +7546,9 @@ module.exports = function(AV) {
      * logged in user using <code>current</code>.
      *
      * <p>Calls options.success or options.error on completion.</p>
-     * 
+     *
      * @param {Object} data The response json data returned from third party token.
-     * @param {string} platform Available platform for sign up. 
+     * @param {string} platform Available platform for sign up.
      * @param {Object} [callback] An object that has an optional success function, that takes no arguments and will be called on a successful puSH. and an error function that takes a AV.Error and will be called if the push failed.
      * @return {AV.Promise} A promise that is fulfilled with the user when
      *     the login completes.
@@ -8141,6 +8170,7 @@ module.exports = function(AV) {
         route !== "files" &&
         route !== "date" &&
         route !== "functions" &&
+        route !== "call" &&
         route !== "login" &&
         route !== "push" &&
         route !== "search/select" &&
@@ -8391,6 +8421,26 @@ module.exports = function(AV) {
     return value;
   };
 
+  AV._encodeObjectOrArray = function(value) {
+    var encodeAVObject = function(object) {
+      if (object && object._toFullJSON){
+        object = object._toFullJSON([]);
+      }
+
+      return _.mapObject(object, function(value) {
+        return AV._encode(value, []);
+      });
+    };
+
+    if (_.isArray(value)) {
+      return value.map(function(object) {
+        return encodeAVObject(object);
+      });
+    } else {
+      return encodeAVObject(value);
+    }
+  };
+
   AV._arrayEach = AV._.each;
 
   /**
@@ -8464,7 +8514,7 @@ module.exports = function(AV) {
 },{"./browserify-wrapper/ajax":4,"_process":29,"underscore":30}],26:[function(require,module,exports){
 'use strict';
 
-module.exports = "js1.0.0-rc6";
+module.exports = "js1.0.0-rc7";
 
 },{}],27:[function(require,module,exports){
 
