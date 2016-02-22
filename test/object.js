@@ -1,3 +1,5 @@
+'use strict';
+
 var GameScore = AV.Object.extend("GameScore");
 
 var Post=AV.Object.extend("Post");

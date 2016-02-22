@@ -1,3 +1,5 @@
+'use strict';
+
 var TestError = AV.Object.extend("TestError");
 describe("error",function(){
 

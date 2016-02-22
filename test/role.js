@@ -1,3 +1,5 @@
+'use strict';
+
 describe("Role", function() {
   describe("constructor", function() {
     it("normal usage", function() {

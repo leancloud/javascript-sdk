@@ -1,3 +1,5 @@
+'use strict';
+
 describe('promise', function() {
   describe('constructor', function(){
     it('shoud be resolved with 42.', function(done) {

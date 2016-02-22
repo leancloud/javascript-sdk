@@ -1,3 +1,5 @@
+// 'use strict';
+
 // describe.skip("App Searching", function() {
 //   describe("#AV.SearchSortBuilder", function(){
 //     it("should build sort string.", function(done){

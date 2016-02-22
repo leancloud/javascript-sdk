@@ -368,7 +368,7 @@ module.exports = function(AV) {
       this._source = AV.Promise.as(data.blob, guessedType);
     } else if (typeof(File) !== "undefined" && data instanceof File) {
       this._source = AV.Promise.as(data, guessedType);
-    } else if(AV._isNode && global.Buffer.isBuffer(data)) {
+    } else if(AV._config.isNode && global.Buffer.isBuffer(data)) {
       // use global.Buffer to prevent browserify pack Buffer module
       this._base64 = data.toString('base64');
       this._source = AV.Promise.as(this._base64, guessedType);

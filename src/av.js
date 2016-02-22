@@ -7,12 +7,15 @@
  * The AVOS Cloud JavaScript SDK is freely distributable under the MIT license.
  */
 
-var AV = module.exports = {};
+'use strict';
 
+let AV = module.exports = {};
 AV._ = require('underscore');
-AV.VERSION = require('./version');
+AV.version = require('./version');
 AV.Promise = require('./promise');
 AV.localStorage = require('./localstorage');
+// 挂载所有内部配置项
+AV._config = AV._config || {};
 
 // 以下模块为了兼容原有代码，使用这种加载方式。
 require('./utils')(AV);
