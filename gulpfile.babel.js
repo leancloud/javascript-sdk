@@ -147,7 +147,7 @@ gulp.task('compress-docs', ['docs'], () => {
 });
 
 // Istanbul unit test coverage plugin for gulp.
-gulp.task('instrument', () => {
+gulp.task('instrument', ['release'], () => {
   return gulp.src(['dist/node/**/*.js'])
     .pipe(istanbul())
     .pipe(istanbul.hookRequire());
