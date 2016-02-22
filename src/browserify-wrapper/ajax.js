@@ -53,7 +53,7 @@ module.exports = function _ajax(method, resourceUrl, data, success, error) {
           promise.reject(err);
         }
       } else {
-        promise.reject(JSON.parse(responseText));
+        promise.reject({responseText: responseText});
       }
     });
   });

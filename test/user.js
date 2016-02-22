@@ -68,6 +68,16 @@ describe("User", function() {
       });
 
     });
+
+    it("should fail with wrong password", function() {
+      return AV.User.logIn(username, 'wrong password').then(function() {
+        throw new Error('Should not success');
+      }, function(err) {
+        expect(err.code).to.be.equal(210);
+        expect(err.message).to.be.equal('The username and password mismatch.');
+      });
+    });
+
   });
 
 
