@@ -1,16 +1,19 @@
 'use strict';
-
-var _ = require('underscore');
-
-/*global _: false, $: false, localStorage: false, process: true,
-  XMLHttpRequest: false, XDomainRequest: false, exports: false,
-  require: false */
 module.exports = function(AV) {
 
+  const _ = AV._;
+
   // 挂载一些配置
-  _.extend(AV._config, {
-    cnApiUrl: 'https://api.leancloud.cn',
-    usApiUrl: 'https://us-api.leancloud.cn'
+  let avConfig = AV._config;
+
+  _.extend(avConfig, {
+    // 服务器请求的节点 host
+    apiHost : {
+      cn: 'https://api.leancloud.cn',
+      us: 'https://us-api.leancloud.cn'
+    },
+    // 服务器节点地区，默认中国大陆
+    region: 'cn'
   });
 
   /**
@@ -23,7 +26,7 @@ module.exports = function(AV) {
 
   // Check whether we are running in Node.js.
   if (typeof(process) !== 'undefined' && process.versions && process.versions.node) {
-    AV._config.isNode = true;
+    avConfig.isNode = true;
   }
 
   // Helpers
@@ -89,7 +92,7 @@ module.exports = function(AV) {
         applicationId !== AV.applicationId  &&
         applicationKey !== AV.applicationKey &&
         masterKey !== AV.masterKey) {
-      console.warn('AVOSCloud SDK is already initialized, please don\'t reinitialize it.');
+      console.warn('LeanCloud SDK is already initialized, please don\'t reinitialize it.');
     }
     AV.applicationId = applicationId;
     AV.applicationKey = applicationKey;
@@ -112,10 +115,17 @@ module.exports = function(AV) {
       case 1:
         const options = args[0];
         if (typeof options === 'object') {
-          if (!AV._config.isNode && options.masterKey) {
+          if (!avConfig.isNode && options.masterKey) {
             throw new Error('AV.init(): Master Key is only used in Node.js.');
           }
           initialize(options.appId, options.appKey, options.masterKey);
+
+          // 服务器地区选项，默认为中国大陆
+          switch (options.region) {
+            case 'us':
+              avConfig.region = 'us';
+            break;
+          }
         } else {
           throw new Error('AV.init(): Parameter is not correct.');
         }
@@ -123,7 +133,7 @@ module.exports = function(AV) {
       // 兼容旧版本的初始化方法
       case 2:
       case 3:
-        if (!AV._config.isNode && args.length === 3) {
+        if (!avConfig.isNode && args.length === 3) {
           throw new Error('AV.init(): Master Key is only used in Node.js.');
         }
         initialize(...args);
@@ -132,11 +142,11 @@ module.exports = function(AV) {
   };
 
   // If we're running in node.js, allow using the master key.
-  if (AV._config.isNode) {
+  if (avConfig.isNode) {
     AV.Cloud = AV.Cloud || {};
     /**
-     * Switches the AVOSCloud SDK to using the Master key.  The Master key grants
-     * priveleged access to the data in AVOSCloud and can be used to bypass ACLs and
+     * Switches the LeanCloud SDK to using the Master key.  The Master key grants
+     * priveleged access to the data in LeanCloud and can be used to bypass ACLs and
      * other restrictions that are applied to the client SDKs.
      * <p><strong><em>Available in Cloud Code and Node.js only.</em></strong>
      * </p>
@@ -164,22 +174,15 @@ module.exports = function(AV) {
     AV.applicationProduction = AV._isNullOrUndefined(production) ? 1: production;
   };
 
-  /**
-  *Use china avoscloud API service
-  */
+  // TODO: 后续不再暴露此接口
   AV.useAVCloudCN = function(){
-    AV.serverURL = AV._config.cnApiUrl;
+    avConfig.region = 'cn';
   };
 
-  /**
-  *Use USA avoscloud API service
-  */
+  // TODO: 后续不再暴露此接口
   AV.useAVCloudUS = function(){
-    AV.serverURL = AV._config.usApiUrl;
+    avConfig.region = 'us';
   };
-
-  // 默认使用国内节点
-  AV.useAVCloudCN();
 
   /**
    * Returns prefix for localStorage keys used by this instance of AV.
@@ -317,20 +320,21 @@ module.exports = function(AV) {
       throw "Bad route: '" + route + "'.";
     }
 
-    var url = AV.serverURL;
-    if (url.charAt(url.length - 1) !== "/") {
-      url += "/";
+    // 兼容 AV.serverURL 旧方式设置 API Host，后续去掉
+    let apiUrl = AV.serverURL || avConfig.apiHost[avConfig.region];
+    if (apiUrl.charAt(apiUrl.length - 1) !== "/") {
+      apiUrl += "/";
     }
-    url += "1.1/" + route;
+    apiUrl += "1.1/" + route;
     if (className) {
-      url += "/" + className;
+      apiUrl += "/" + className;
     }
     if (objectId) {
-      url += "/" + objectId;
+      apiUrl += "/" + objectId;
     }
     if ((route ==='users' || route === 'classes') && dataObject && dataObject._fetchWhenSave){
       delete dataObject._fetchWhenSave;
-      url += '?new=true';
+      apiUrl += '?new=true';
     }
 
     dataObject = AV._.clone(dataObject || {});
@@ -357,7 +361,7 @@ module.exports = function(AV) {
       dataObject._InstallationId = _InstallationId;
 
       var data = JSON.stringify(dataObject);
-      return AV._ajax(method, url, data).then(null, function(response) {
+      return AV._ajax(method, apiUrl, data).then(null, function(response) {
         // Transform the error into an instance of AV.Error by trying to parse
         // the error string as JSON.
         var error;
@@ -398,7 +402,6 @@ module.exports = function(AV) {
    * is set, then none of the AV Objects that are serialized can be dirty.
    */
   AV._encode = function(value, seenObjects, disallowObjects) {
-    var _ = AV._;
     if (value instanceof AV.Object) {
       if (disallowObjects) {
         throw "AV.Objects not allowed here";
@@ -463,7 +466,6 @@ module.exports = function(AV) {
    * TODO: make decode not mutate value.
    */
   AV._decode = function(key, value) {
-    var _ = AV._;
     if (!_.isObject(value)) {
       return value;
     }
@@ -613,7 +615,6 @@ module.exports = function(AV) {
    * * it does work for dictionaries with a "length" attribute.
    */
   AV._objectEach = AV._each = function(obj, callback) {
-    var _ = AV._;
     if (_.isObject(obj)) {
       _.each(_.keys(obj), function(key) {
         callback(obj[key], key);

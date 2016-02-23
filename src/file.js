@@ -1,15 +1,17 @@
 'use strict';
 
-var _ = require('underscore');
-
 // port from browserify path module
 // since react-native packager won't shim node modules.
 function extname(path) {
   return path.match(/^(\/?|)([\s\S]*?)((?:\.{1,2}|[^\/]+?|)(\.[^.\/]*|))(?:[\/]*)$/)[4];
 }
 
-/*jshint bitwise:false *//*global FileReader: true, File: true */
 module.exports = function(AV) {
+  const _ = AV._;
+
+  // 挂载一些配置
+  let avConfig = AV._config;
+
   var b64Digit = function(number) {
     if (number < 26) {
       return String.fromCharCode(65 + number);
@@ -59,11 +61,9 @@ module.exports = function(AV) {
   };
 
   // 判断是否是国内节点
-  var isCnNode = function() {
-    var serverHost = AV.serverURL.match(/\/\/(.*)/, 'g')[1];
-    var cnApiHost = AV._config.cnApiUrl.match(/\/\/(.*)/, 'g')[1];
-    return serverHost === cnApiHost;
-  }
+  const isCnNode = function() {
+    return avConfig.region === 'cn';
+  };
 
   // A list of file extensions to mime types as found here:
   // http://stackoverflow.com/questions/58510/using-net-how-can-you-find-the-
@@ -280,7 +280,7 @@ module.exports = function(AV) {
           -1, "Attempted to use a FileReader on an unsupported browser."));
     }
 
-    var reader = new FileReader();
+    var reader = new global.FileReader();
     reader.onloadend = function() {
       if (reader.readyState !== 2) {
         promise.reject(new AV.Error(-1, "Error reading file."));
@@ -344,7 +344,7 @@ module.exports = function(AV) {
       console.warn('Get current user failed. It seems this runtime use an async storage system, please new AV.File in the callback of AV.User.currentAsync().');
     }
     this._metaData = {
-       owner: (currentUser != null ? currentUser.id : 'unknown')
+       owner: (currentUser !== null ? currentUser.id : 'unknown')
     };
 
     // Guess the content type from the extension if we need to.
@@ -366,9 +366,9 @@ module.exports = function(AV) {
       this._source = AV.Promise.as(dataBase64, guessedType);
     } else if (data && data.blob) {
       this._source = AV.Promise.as(data.blob, guessedType);
-    } else if (typeof(File) !== "undefined" && data instanceof File) {
+    } else if (typeof(File) !== "undefined" && data instanceof global.File) {
       this._source = AV.Promise.as(data, guessedType);
-    } else if(AV._config.isNode && global.Buffer.isBuffer(data)) {
+    } else if(avConfig.isNode && global.Buffer.isBuffer(data)) {
       // use global.Buffer to prevent browserify pack Buffer module
       this._base64 = data.toString('base64');
       this._source = AV.Promise.as(this._base64, guessedType);
@@ -402,7 +402,7 @@ module.exports = function(AV) {
     }
     file._url = url;
     //Mark the file is from external source.
-    file._metaData['__source'] = 'external';
+    file._metaData.__source = 'external';
     return file;
   };
 
@@ -474,12 +474,12 @@ module.exports = function(AV) {
     * @param {Object} value an optional metadata value.
     **/
     metaData: function(attr, value) {
-      if(attr != null && value != null){
-         this._metaData[attr] = value;
-         return this;
-      }else if(attr != null){
-         return this._metaData[attr];
-      }else{
+      if (attr !== null && value !== null) {
+        this._metaData[attr] = value;
+        return this;
+      } else if (attr !== null) {
+        return this._metaData[attr];
+      } else {
         return this._metaData;
       }
     },
@@ -501,14 +501,13 @@ module.exports = function(AV) {
        throw "Invalid width or height value.";
      }
      quality = quality || 100;
-     scaleToFit = (scaleToFit == null) ? true: scaleToFit;
-     if(quality<=0 || quality>100){
+     scaleToFit = (scaleToFit === null) ? true: scaleToFit;
+     if(quality <= 0 || quality > 100){
        throw "Invalid quality value.";
      }
      fmt = fmt || 'png';
      var mode = scaleToFit ? 2: 1;
-     return this.url() + '?imageView/' + mode + '/w/' + width + '/h/' + height
-       + '/q/' + quality + '/format/' + fmt;
+     return this.url() + '?imageView/' + mode + '/w/' + width + '/h/' + height + '/q/' + quality + '/format/' + fmt;
    },
 
     /**
@@ -551,8 +550,7 @@ module.exports = function(AV) {
       var hexOctet = function() {
         return Math.floor((1+Math.random())*0x10000).toString(16).substring(1);
       };
-      var key = hexOctet() + hexOctet() + hexOctet() + hexOctet() + hexOctet()
-          + extName;
+      var key = hexOctet() + hexOctet() + hexOctet() + hexOctet() + hexOctet() + extName;
 
       var data = {
         key: key,
@@ -561,7 +559,7 @@ module.exports = function(AV) {
         mime_type: type,
         metaData: self._metaData
       };
-      if(type && self._metaData.mime_type == null)
+      if(type && self._metaData.mime_type === null)
         self._metaData.mime_type = type;
       self._qiniu_key = key;
       return AV._request("qiniu", null, null, 'POST', data);
@@ -598,7 +596,7 @@ module.exports = function(AV) {
           // 通过国内 CDN 服务商上传
           var upload = require('./browserify-wrapper/upload');
           upload(self, AV, saveOptions);
-        } else if (self._url && self._metaData['__source'] == 'external') {
+        } else if (self._url && self._metaData.__source === 'external') {
           //external link file.
           var data = {
             name: self._name,
