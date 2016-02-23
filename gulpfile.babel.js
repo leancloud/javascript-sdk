@@ -118,6 +118,15 @@ gulp.task('babel-node', ['clean-node'], () => {
     .pipe(gulp.dest('dist/node/'));
 });
 
+// 压缩 node 版本代码
+gulp.task('uglify-node', ['babel-node'], () => {
+  return gulp.src([
+      'dist/node/**/*.js'
+    ])
+    .pipe(uglify())
+    .pipe(gulp.dest('dist/node/'));
+});
+
 gulp.task('clean-demo', () => {
   return gulp.src(['demo/test-es5.js'])
     .pipe(clean());
