@@ -1,4 +1,9 @@
 /**
+ * 每位工程师都有保持代码优雅的义务
+ * Each engineer has a duty to keep the code elegant
+**/
+
+/**
  * Cloud code only APIs.
  * All of these APIs are not implemented in client sdk,
  * we put them here to generate API docs.

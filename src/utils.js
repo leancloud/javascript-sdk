@@ -1,4 +1,10 @@
+/**
+ * 每位工程师都有保持代码优雅的义务
+ * Each engineer has a duty to keep the code elegant
+**/
+
 'use strict';
+
 module.exports = function(AV) {
 
   const _ = AV._;
@@ -7,11 +13,13 @@ module.exports = function(AV) {
   let avConfig = AV._config;
 
   _.extend(avConfig, {
+
     // 服务器请求的节点 host
     apiHost : {
       cn: 'https://api.leancloud.cn',
       us: 'https://us-api.leancloud.cn'
     },
+
     // 服务器节点地区，默认中国大陆
     region: 'cn'
   });
