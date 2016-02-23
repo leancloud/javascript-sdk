@@ -103,14 +103,15 @@ module.exports = function(AV) {
    * @param {Object} incloud appId, appKey, masterKey
    */
 
-  AV.init = (...options) => {
-    switch (options.length) {
+  AV.init = (...args) => {
+    switch (args.length) {
       case 1:
+        const options = args[0];
         if (typeof options === 'object') {
           if (!AV._config.isNode && options.masterKey) {
             throw new Error('AV.init(): Master Key is only used in Node.js.');
           }
-          initialize(options[0].appId, options[0].appKey, options[0].masterKey);
+          initialize(options.appId, options.appKey, options.masterKey);
         } else {
           throw new Error('AV.init(): Parameter is not correct.');
         }
@@ -118,10 +119,10 @@ module.exports = function(AV) {
       // 兼容旧版本的初始化方法
       case 2:
       case 3:
-        if (!AV._config.isNode && options.length === 3) {
+        if (!AV._config.isNode && args.length === 3) {
           throw new Error('AV.init(): Master Key is only used in Node.js.');
         }
-        initialize(...options);
+        initialize(...args);
       break;
     }
   };
