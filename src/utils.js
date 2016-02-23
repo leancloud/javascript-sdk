@@ -98,10 +98,13 @@ module.exports = function(AV) {
   };
 
   /**
-   * Call this method first to set up your authentication tokens for LC.
-   * You can get your keys from the Data Browser on http://leancloud.cn .
-   * @param {Object} incloud appId, appKey, masterKey
-   */
+    * Call this method first to set up your authentication tokens for AV.
+    * You can get your keys from the Data Browser on http://leancloud.cn .
+    * @param args initialize options.
+    * @param args.appId application id
+    * @param args.appKey application key
+    * @param args.masterKey application master key
+  */
 
   AV.init = (...args) => {
     switch (args.length) {
