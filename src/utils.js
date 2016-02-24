@@ -99,7 +99,8 @@ module.exports = function(AV) {
 
   /**
     * Call this method first to set up your authentication tokens for AV.
-    * You can get your keys from the Data Browser on http://leancloud.cn .
+    * You can get your app keys from the LeanCloud dashboard on http://leancloud.cn .
+    * @function AV.init
     * @param args initialize options.
     * @param args.appId application id
     * @param args.appKey application key
@@ -150,6 +151,7 @@ module.exports = function(AV) {
 
   /**
    * Call this method to set production environment variable.
+   * @function AV.setProduction
    * @param {Boolean} production True is production environment,and
    *  it's true by default.
    */
