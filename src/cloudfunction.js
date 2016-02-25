@@ -109,7 +109,7 @@ module.exports = function(AV) {
       if(!code)
         throw "Missing sms code.";
       var params = {};
-      if(AV._.isString(phone)) {
+      if(_.isString(phone)) {
          params['mobilePhoneNumber'] = phone;
       } else {
         // To be compatible with old versions.

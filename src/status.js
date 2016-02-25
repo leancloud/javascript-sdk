@@ -71,7 +71,7 @@ module.exports = function(AV) {
       return AV.Object.createWithoutData('_Status', this.id);
     },
     _getDataJSON: function() {
-      var json = AV._.clone(this.data);
+      var json = _.clone(this.data);
       return AV._encode(json);
     },
    /**

@@ -199,7 +199,7 @@ module.exports = function(AV) {
       self.equalTo('objectId', objectId);
 
       return self.first().then(function(response) {
-        if (!AV._.isEmpty(response)) {
+        if (!_.isEmpty(response)) {
           return response;
         }
 
@@ -903,7 +903,7 @@ module.exports = function(AV) {
       }, function() {
         return query.find().then(function(results) {
           var callbacksDone = AV.Promise.as();
-          AV._.each(results, function(result) {
+          _.each(results, function(result) {
             callbacksDone = callbacksDone.then(function() {
               return callback(result);
             });

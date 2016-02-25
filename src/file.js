@@ -5,6 +5,8 @@
 
 'use strict';
 
+const _ = require('underscore');
+
 // port from browserify path module
 // since react-native packager won't shim node modules.
 function extname(path) {
@@ -12,7 +14,6 @@ function extname(path) {
 }
 
 module.exports = function(AV) {
-  const _ = AV._;
 
   // 挂载一些配置
   let avConfig = AV._config;
