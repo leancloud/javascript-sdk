@@ -108,6 +108,18 @@ module.exports = function(AV) {
     AV._useMasterKey = false;
   };
 
+  const setRegion = (region) => {
+    // 服务器地区选项，默认为中国大陆
+    switch (region) {
+      case 'cn':
+        AVConfig.region = 'cn';
+      break;
+      case 'us':
+        AVConfig.region = 'us';
+      break;
+    }
+  };
+
   /**
     * Call this method first to set up your authentication tokens for AV.
     * You can get your app keys from the LeanCloud dashboard on http://leancloud.cn .
@@ -127,13 +139,7 @@ module.exports = function(AV) {
             throw new Error('AV.init(): Master Key is only used in Node.js.');
           }
           initialize(options.appId, options.appKey, options.masterKey);
-
-          // 服务器地区选项，默认为中国大陆
-          switch (options.region) {
-            case 'us':
-              AVConfig.region = 'us';
-            break;
-          }
+          setRegion(options.region);
         } else {
           throw new Error('AV.init(): Parameter is not correct.');
         }
