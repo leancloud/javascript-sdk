@@ -66,7 +66,7 @@ module.exports = function(AV) {
   };
 
   // 判断是否是国内节点
-  const isCnNode = function() {
+  const isCnNode = () => {
     return avConfig.region === 'cn';
   };
 
@@ -349,7 +349,7 @@ module.exports = function(AV) {
       console.warn('Get current user failed. It seems this runtime use an async storage system, please new AV.File in the callback of AV.User.currentAsync().');
     }
     this._metaData = {
-       owner: (currentUser !== null ? currentUser.id : 'unknown')
+       owner: (currentUser ? currentUser.id : 'unknown')
     };
 
     // Guess the content type from the extension if we need to.
@@ -479,10 +479,10 @@ module.exports = function(AV) {
     * @param {Object} value an optional metadata value.
     **/
     metaData: function(attr, value) {
-      if (attr !== null && value !== null) {
+      if (attr && value) {
         this._metaData[attr] = value;
         return this;
-      } else if (attr !== null) {
+      } else if (attr && !value) {
         return this._metaData[attr];
       } else {
         return this._metaData;
@@ -506,7 +506,7 @@ module.exports = function(AV) {
        throw "Invalid width or height value.";
      }
      quality = quality || 100;
-     scaleToFit = (scaleToFit === null) ? true: scaleToFit;
+     scaleToFit = !scaleToFit ? true : scaleToFit;
      if(quality <= 0 || quality > 100){
        throw "Invalid quality value.";
      }
@@ -564,7 +564,7 @@ module.exports = function(AV) {
         mime_type: type,
         metaData: self._metaData
       };
-      if(type && self._metaData.mime_type === null)
+      if(type && !self._metaData.mime_type)
         self._metaData.mime_type = type;
       self._qiniu_key = key;
       return AV._request("qiniu", null, null, 'POST', data);
