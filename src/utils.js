@@ -7,10 +7,15 @@ var _ = require('underscore');
   require: false */
 module.exports = function(AV) {
 
+  let avConfig = AV._config;
+
   // 挂载一些配置
   _.extend(AV._config, {
     cnApiUrl: 'https://api.leancloud.cn',
-    usApiUrl: 'https://us-api.leancloud.cn'
+    usApiUrl: 'https://us-api.leancloud.cn',
+
+    // 是否使用 MasterKey
+    isUseMasterKey: false
   });
 
   /**
@@ -94,7 +99,6 @@ module.exports = function(AV) {
     AV.applicationId = applicationId;
     AV.applicationKey = applicationKey;
     AV.masterKey = masterKey;
-    AV._useMasterKey = false;
   };
 
   /**
@@ -141,8 +145,8 @@ module.exports = function(AV) {
      * <p><strong><em>Available in Cloud Code and Node.js only.</em></strong>
      * </p>
      */
-    AV.Cloud.useMasterKey = function() {
-      AV._useMasterKey = true;
+    AV.Cloud.useMasterKey = () => {
+      avConfig.isUseMasterKey = true;
     };
   }
 
@@ -339,12 +343,10 @@ module.exports = function(AV) {
       method = "POST";
     }
 
-    dataObject._ApplicationId = AV.applicationId;
-    dataObject._ApplicationKey = AV.applicationKey;
     if(!AV._isNullOrUndefined(AV.applicationProduction)) {
       dataObject._ApplicationProduction = AV.applicationProduction;
     }
-    if(AV._useMasterKey)
+    if(avConfig.isUseMasterKey)
         dataObject._MasterKey = AV.masterKey;
     dataObject._ClientVersion = AV.VERSION;
     // Pass the session token on every request.
