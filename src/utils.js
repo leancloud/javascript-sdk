@@ -5,14 +5,14 @@
 
 'use strict';
 
+const _ = require('underscore');
+
 module.exports = function(AV) {
 
-  const _ = AV._;
-
   // 挂载一些配置
-  let avConfig = AV._config;
+  let AVConfig = AV._config;
 
-  _.extend(avConfig, {
+  _.extend(AVConfig, {
 
     // 服务器请求的节点 host
     apiHost : {
@@ -34,7 +34,7 @@ module.exports = function(AV) {
 
   // Check whether we are running in Node.js.
   if (typeof(process) !== 'undefined' && process.versions && process.versions.node) {
-    avConfig.isNode = true;
+    AVConfig.isNode = true;
   }
 
   // Helpers
@@ -123,7 +123,7 @@ module.exports = function(AV) {
       case 1:
         const options = args[0];
         if (typeof options === 'object') {
-          if (!avConfig.isNode && options.masterKey) {
+          if (!AVConfig.isNode && options.masterKey) {
             throw new Error('AV.init(): Master Key is only used in Node.js.');
           }
           initialize(options.appId, options.appKey, options.masterKey);
@@ -131,7 +131,7 @@ module.exports = function(AV) {
           // 服务器地区选项，默认为中国大陆
           switch (options.region) {
             case 'us':
-              avConfig.region = 'us';
+              AVConfig.region = 'us';
             break;
           }
         } else {
@@ -141,7 +141,8 @@ module.exports = function(AV) {
       // 兼容旧版本的初始化方法
       case 2:
       case 3:
-        if (!avConfig.isNode && args.length === 3) {
+        console.warn('Please use AV.init() replace AV.initialize() .');
+        if (!AVConfig.isNode && args.length === 3) {
           throw new Error('AV.init(): Master Key is only used in Node.js.');
         }
         initialize(...args);
@@ -150,7 +151,7 @@ module.exports = function(AV) {
   };
 
   // If we're running in node.js, allow using the master key.
-  if (avConfig.isNode) {
+  if (AVConfig.isNode) {
     AV.Cloud = AV.Cloud || {};
     /**
      * Switches the LeanCloud SDK to using the Master key.  The Master key grants
@@ -182,14 +183,22 @@ module.exports = function(AV) {
     AV.applicationProduction = AV._isNullOrUndefined(production) ? 1: production;
   };
 
+  /**
+   * @deprecated Please use AV.init(), you can set the region of server .
+  **/
   // TODO: 后续不再暴露此接口
   AV.useAVCloudCN = function(){
-    avConfig.region = 'cn';
+    AVConfig.region = 'cn';
+    console.warn('Do not use AV.useAVCloudCN. Please use AV.init(), you can set the region of server.');
   };
 
+  /**
+   * @deprecated Please use AV.init(), you can set the region of server .
+  **/
   // TODO: 后续不再暴露此接口
   AV.useAVCloudUS = function(){
-    avConfig.region = 'us';
+    AVConfig.region = 'us';
+    console.warn('Do not use AV.useAVCloudUS. Please use AV.init(), you can set the region of server.');
   };
 
   /**
@@ -205,7 +214,7 @@ module.exports = function(AV) {
     if (!path) {
       path = "";
     }
-    if (!AV._.isString(path)) {
+    if (!_.isString(path)) {
       throw "Tried to get a localStorage path that wasn't a String.";
     }
     if (path[0] === "/") {
@@ -329,7 +338,7 @@ module.exports = function(AV) {
     }
 
     // 兼容 AV.serverURL 旧方式设置 API Host，后续去掉
-    let apiUrl = AV.serverURL || avConfig.apiHost[avConfig.region];
+    let apiUrl = AV.serverURL || AVConfig.apiHost[AVConfig.region];
     if (apiUrl.charAt(apiUrl.length - 1) !== "/") {
       apiUrl += "/";
     }
@@ -345,7 +354,7 @@ module.exports = function(AV) {
       apiUrl += '?new=true';
     }
 
-    dataObject = AV._.clone(dataObject || {});
+    dataObject = _.clone(dataObject || {});
     if (method !== "POST") {
       dataObject._method = method;
       method = "POST";
@@ -397,7 +406,7 @@ module.exports = function(AV) {
     if (!(object && object[prop])) {
       return null;
     }
-    return AV._.isFunction(object[prop]) ? object[prop]() : object[prop];
+    return _.isFunction(object[prop]) ? object[prop]() : object[prop];
   };
 
   /**
@@ -570,7 +579,7 @@ module.exports = function(AV) {
     }
   };
 
-  AV._arrayEach = AV._.each;
+  AV._arrayEach = _.each;
 
   /**
    * Does a deep traversal of every item in object, calling func on every one.
@@ -583,7 +592,7 @@ module.exports = function(AV) {
   AV._traverse = function(object, func, seen) {
     if (object instanceof AV.Object) {
       seen = seen || [];
-      if (AV._.indexOf(seen, object) >= 0) {
+      if (_.indexOf(seen, object) >= 0) {
         // We've already visited this object in this call.
         return;
       }
@@ -596,8 +605,8 @@ module.exports = function(AV) {
       // object's parent infinitely, so we catch this case.
       return func(object);
     }
-    if (AV._.isArray(object)) {
-      AV._.each(object, function(child, index) {
+    if (_.isArray(object)) {
+      _.each(object, function(child, index) {
         var newChild = AV._traverse(child, func, seen);
         if (newChild) {
           object[index] = newChild;
@@ -605,7 +614,7 @@ module.exports = function(AV) {
       });
       return func(object);
     }
-    if (AV._.isObject(object)) {
+    if (_.isObject(object)) {
       AV._each(object, function(child, key) {
         var newChild = AV._traverse(child, func, seen);
         if (newChild) {
@@ -634,6 +643,6 @@ module.exports = function(AV) {
 
   // Helper function to check null or undefined.
   AV._isNullOrUndefined = function(x) {
-    return AV._.isNull(x) || AV._.isUndefined(x);
+    return _.isNull(x) || _.isUndefined(x);
   };
 };
