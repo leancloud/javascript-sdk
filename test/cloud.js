@@ -7,12 +7,12 @@ describe("AV.Cloud", function() {
     originalServerURL = AV._config.apiServerUrl;
     originalAppId = AV.applicationId;
     originalAppKey = AV.applicationKey;
-    originalUseMasterKey = AV._useMasterKey;
+    originalUseMasterKey = AV._config.isUseMasterKey;
 
     AV._config.apiServerUrl = 'https://leancloud.cn'
     AV.applicationId = '4h2h4okwiyn8b6cle0oig00vitayum8ephrlsvg7xo8o19ne';
     AV.applicationKey = '3xjj1qw91cr3ygjq9lt0g8c3qpet38rrxtwmmp0yffyoy2t4';
-    AV._useMasterKey = false;
+    AV._config.isUseMasterKey = false;
 
     AV.User._currentUser = null;
   });
@@ -119,6 +119,6 @@ describe("AV.Cloud", function() {
     AV._config.apiServerUrl = originalServerURL;
     AV.applicationId = originalAppId;
     AV.applicationKey = originalAppKey;
-    AV._useMasterKey = originalUseMasterKey;
+    AV._config.isUseMasterKey = originalUseMasterKey;
   });
 });

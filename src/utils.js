@@ -24,7 +24,13 @@ module.exports = function(AV) {
     region: 'cn',
 
     // 服务器的 URL，默认初始化时被设置为大陆节点地址
-    apiServerUrl: AVConfig.apiServerUrl || ''
+    apiServerUrl: AVConfig.apiServerUrl || '',
+
+    // 当前是否为 nodejs 环境
+    isNode: false,
+
+    // 是否启用 masterKey
+    isUseMasterKey: false
   });
 
   /**
@@ -105,7 +111,6 @@ module.exports = function(AV) {
     AV.applicationId = appId;
     AV.applicationKey = appKey;
     AV.masterKey = masterKey;
-    AV._useMasterKey = false;
   };
 
   const setRegionServer = (region) => {
@@ -172,7 +177,7 @@ module.exports = function(AV) {
      * </p>
      */
     AV.Cloud.useMasterKey = function() {
-      AV._useMasterKey = true;
+      AVConfig.isUseMasterKey = true;
     };
   }
 
@@ -380,7 +385,7 @@ module.exports = function(AV) {
     if(!AV._isNullOrUndefined(AV.applicationProduction)) {
       dataObject._ApplicationProduction = AV.applicationProduction;
     }
-    if(AV._useMasterKey)
+    if(AVConfig.isUseMasterKey)
         dataObject._MasterKey = AV.masterKey;
     dataObject._ClientVersion = AV.VERSION;
     // Pass the session token on every request.

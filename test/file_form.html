@@ -18,7 +18,7 @@
 function upload (){
 AV._config.apiServerUrl="https://cn.avoscloud.com";
 AV.init('u8d277gijfac1ysldfyb92zn9fwhxsiecjs3wnrnj4yi7i00', 'nblwmv06uzbjp170pm1zw3umhrbhs75wp6djgutcglh5sopr', 'c2cbbq9fnrewpvtwm7lm25exs62hk0tnkmbs4q16c4podmdc');
-AV._useMasterKey = true;
+AV._config.isUseMasterKey = true;
 
   var fileUploadControl = document.getElementById ('profilePhotoFileUpload');
   console.log(fileUploadControl);

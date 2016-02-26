@@ -14,4 +14,4 @@ AV.init({
   masterKey: 'l0n9wu3kwnrtf2cg1b6w2l87nphzpypgff6240d0lxui2mm4'
 });
 AV.setProduction(true);
-AV._useMasterKey = true;
+AV._config.isUseMasterKey = true;
