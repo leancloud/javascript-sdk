@@ -5,3 +5,4 @@ package/
 release.sh
 coverage
 *.swp
+dist/js-sdk-api-docs
