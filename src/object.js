@@ -1,3 +1,8 @@
+/**
+ * 每位工程师都有保持代码优雅的义务
+ * Each engineer has a duty to keep the code elegant
+**/
+
 'use strict';
 
 var _ = require('underscore');
@@ -1357,7 +1362,7 @@ module.exports = function(AV) {
       if (_.isString(arg0) || (arg0 && _.has(arg0, "className"))) {
         return AV.Object.extend.apply(NewClassObject, arguments);
       }
-      var newArguments = [className].concat(AV._.toArray(arguments));
+      var newArguments = [className].concat(_.toArray(arguments));
       return AV.Object.extend.apply(NewClassObject, newArguments);
     };
     NewClassObject['new'] = function(attributes, options){

@@ -4,12 +4,12 @@ describe("AV.Cloud", function() {
   var originalServerURL, originalAppId, originalAppKey, originalUseMasterKey;
 
   before(function() {
-    originalServerURL = AV.serverURL;
+    originalServerURL = AV._config.APIServerURL;
     originalAppId = AV.applicationId;
     originalAppKey = AV.applicationKey;
     originalUseMasterKey = AV._useMasterKey;
 
-    AV.serverURL = 'https://leancloud.cn'
+    AV._config.APIServerURL = 'https://leancloud.cn'
     AV.applicationId = '4h2h4okwiyn8b6cle0oig00vitayum8ephrlsvg7xo8o19ne';
     AV.applicationKey = '3xjj1qw91cr3ygjq9lt0g8c3qpet38rrxtwmmp0yffyoy2t4';
     AV._useMasterKey = false;
@@ -116,7 +116,7 @@ describe("AV.Cloud", function() {
   });
 
   after(function() {
-    AV.serverURL = originalServerURL;
+    AV._config.APIServerURL = originalServerURL;
     AV.applicationId = originalAppId;
     AV.applicationKey = originalAppKey;
     AV._useMasterKey = originalUseMasterKey;

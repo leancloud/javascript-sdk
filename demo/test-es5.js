@@ -7,7 +7,6 @@ AV.init({
   appId: appId,
   appKey: appKey
 });
-// AV.initialize(appId, appKey);
 
 var TestClass = AV.Object.extend('TestClass');
 var testObj = new TestClass();
@@ -20,4 +19,13 @@ testObj.save().then(function () {
 }).catch(function (err) {
   console.log('failed');
   console.log(err);
+});
+
+var base64 = 'd29ya2luZyBhdCBhdm9zY2xvdWQgaXMgZ3JlYXQh';
+var file = new AV.File('myfile.txt', { base64: base64 });
+file.metaData('format', 'txt file');
+file.save().then(function (data) {
+  console.log(data);
+}).catch(function (error) {
+  console.log(error);
 });

@@ -13,7 +13,6 @@ JavaScript SDK for [LeanCloud](http://leancloud.cn/).
 
 * fork 这个项目
 * `npm install` 安装相关依赖
-* 服务环境通过 mocha 调试单个文件，如调试 file.js `mocha test file`
 * 浏览器环境执行 `gulp dev`，会自动启动 demo 目录，可在 test-es6.js 中修改和测试，test-es5.js 为自动生成的代码
 * 确保测试全部通过 `gulp test`，浏览器环境打开 test/test.html
 * 提交并发起 Pull Request

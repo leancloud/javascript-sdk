@@ -1,3 +1,8 @@
+/**
+ * 每位工程师都有保持代码优雅的义务
+ * Each engineer has a duty to keep the code elegant
+**/
+
 'use strict';
 
 var _ = require('underscore');
@@ -104,7 +109,7 @@ module.exports = function(AV) {
       if(!code)
         throw "Missing sms code.";
       var params = {};
-      if(AV._.isString(phone)) {
+      if(_.isString(phone)) {
          params['mobilePhoneNumber'] = phone;
       } else {
         // To be compatible with old versions.
