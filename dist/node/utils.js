@@ -98,23 +98,24 @@ module.exports = function (AV) {
   };
 
   /**
-   * Call this method first to set up your authentication tokens for LC.
-   * You can get your keys from the Data Browser on http://leancloud.cn .
-   * @param {Object} incloud appId, appKey, masterKey
-   */
+    * Call this method first to set up your authentication tokens for AV.
+    * You can get your app keys from the LeanCloud dashboard on http://leancloud.cn .
+    * @function AV.init
+    * @param args initialize options.
+    * @param args.appId application id
+    * @param args.appKey application key
+    * @param args.masterKey application master key
+  */
 
   AV.init = function () {
-    for (var _len = arguments.length, options = Array(_len), _key = 0; _key < _len; _key++) {
-      options[_key] = arguments[_key];
-    }
-
-    switch (options.length) {
+    switch (arguments.length) {
       case 1:
+        var options = arguments.length <= 0 ? undefined : arguments[0];
         if ((typeof options === 'undefined' ? 'undefined' : _typeof(options)) === 'object') {
           if (!AV._config.isNode && options.masterKey) {
             throw new Error('AV.init(): Master Key is only used in Node.js.');
           }
-          initialize(options[0].appId, options[0].appKey, options[0].masterKey);
+          initialize(options.appId, options.appKey, options.masterKey);
         } else {
           throw new Error('AV.init(): Parameter is not correct.');
         }
@@ -122,10 +123,10 @@ module.exports = function (AV) {
       // 兼容旧版本的初始化方法
       case 2:
       case 3:
-        if (!AV._config.isNode && options.length === 3) {
+        if (!AV._config.isNode && arguments.length === 3) {
           throw new Error('AV.init(): Master Key is only used in Node.js.');
         }
-        initialize.apply(undefined, options);
+        initialize.apply(undefined, arguments);
         break;
     }
   };
@@ -150,6 +151,7 @@ module.exports = function (AV) {
 
   /**
    * Call this method to set production environment variable.
+   * @function AV.setProduction
    * @param {Boolean} production True is production environment,and
    *  it's true by default.
    */
