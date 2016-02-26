@@ -24,13 +24,13 @@ module.exports = function(AV) {
     region: 'cn',
 
     // 服务器的 URL，默认初始化时被设置为大陆节点地址
-    apiServerUrl: AVConfig.apiServerUrl || '',
+    APIServerURL: AVConfig.APIServerURL || '',
 
     // 当前是否为 nodejs 环境
     isNode: false,
 
     // 是否启用 masterKey
-    isUseMasterKey: false
+    isUsingMasterKey: false
   });
 
   /**
@@ -124,8 +124,8 @@ module.exports = function(AV) {
         AVConfig.region = 'cn';
       break;
     }
-    if (!AVConfig.apiServerUrl) {
-      AVConfig.apiServerUrl = API_HOST[AVConfig.region];
+    if (!AVConfig.APIServerURL) {
+      AVConfig.APIServerURL = API_HOST[AVConfig.region];
     }
   };
 
@@ -156,7 +156,7 @@ module.exports = function(AV) {
       // 兼容旧版本的初始化方法
       case 2:
       case 3:
-        console.warn('Please use AV.init() replace AV.initialize() .');
+        console.warn('Please use AV.init() to replace AV.initialize() .');
         if (!AVConfig.isNode && args.length === 3) {
           throw new Error('AV.init(): Master Key is only used in Node.js.');
         }
@@ -177,7 +177,7 @@ module.exports = function(AV) {
      * </p>
      */
     AV.Cloud.useMasterKey = function() {
-      AVConfig.isUseMasterKey = true;
+      AVConfig.isUsingMasterKey = true;
     };
   }
 
@@ -354,24 +354,24 @@ module.exports = function(AV) {
     }
 
     // 兼容 AV.serverURL 旧方式设置 API Host，后续去掉
-    let apiUrl = AV.serverURL || AVConfig.apiServerUrl;
+    let apiURL = AV.serverURL || AVConfig.APIServerURL;
     if (AV.serverURL) {
-      AVConfig.apiServerUrl = AV.serverURL;
-      console.warn('Please use AV._config.apiServerUrl replace AV.serverURL .');
+      AVConfig.APIServerURL = AV.serverURL;
+      console.warn('Please use AV._config.APIServerURL to replace AV.serverURL .');
     }
-    if (apiUrl.charAt(apiUrl.length - 1) !== "/") {
-      apiUrl += "/";
+    if (apiURL.charAt(apiURL.length - 1) !== "/") {
+      apiURL += "/";
     }
-    apiUrl += "1.1/" + route;
+    apiURL += "1.1/" + route;
     if (className) {
-      apiUrl += "/" + className;
+      apiURL += "/" + className;
     }
     if (objectId) {
-      apiUrl += "/" + objectId;
+      apiURL += "/" + objectId;
     }
     if ((route ==='users' || route === 'classes') && dataObject && dataObject._fetchWhenSave){
       delete dataObject._fetchWhenSave;
-      apiUrl += '?new=true';
+      apiURL += '?new=true';
     }
 
     dataObject = _.clone(dataObject || {});
@@ -385,7 +385,7 @@ module.exports = function(AV) {
     if(!AV._isNullOrUndefined(AV.applicationProduction)) {
       dataObject._ApplicationProduction = AV.applicationProduction;
     }
-    if(AVConfig.isUseMasterKey)
+    if(AVConfig.isUsingMasterKey)
         dataObject._MasterKey = AV.masterKey;
     dataObject._ClientVersion = AV.VERSION;
     // Pass the session token on every request.
@@ -398,7 +398,7 @@ module.exports = function(AV) {
       dataObject._InstallationId = _InstallationId;
 
       var data = JSON.stringify(dataObject);
-      return AV._ajax(method, apiUrl, data).then(null, function(response) {
+      return AV._ajax(method, apiURL, data).then(null, function(response) {
         // Transform the error into an instance of AV.Error by trying to parse
         // the error string as JSON.
         var error;
