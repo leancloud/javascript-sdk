@@ -12,16 +12,19 @@ module.exports = function(AV) {
   // 挂载一些配置
   let AVConfig = AV._config;
 
+  // 服务器请求的节点 host
+  const API_HOST = {
+    cn: 'https://api.leancloud.cn',
+    us: 'https://us-api.leancloud.cn'
+  };
+
   _.extend(AVConfig, {
 
-    // 服务器请求的节点 host
-    apiHost : {
-      cn: 'https://api.leancloud.cn',
-      us: 'https://us-api.leancloud.cn'
-    },
-
     // 服务器节点地区，默认中国大陆
-    region: 'cn'
+    region: 'cn',
+
+    // 服务器的 URL，默认初始化时被设置为大陆节点地址
+    apiServerUrl: AVConfig.apiServerUrl || ''
   });
 
   /**
@@ -95,28 +98,29 @@ module.exports = function(AV) {
    * @param {String} applicationId Your AV Application ID.
    * @param {String} applicationKey Your AV Application Key
    */
-   const initialize = (applicationId, applicationKey, masterKey) => {
-    if (AV.applicationId !== undefined &&
-        applicationId !== AV.applicationId  &&
-        applicationKey !== AV.applicationKey &&
-        masterKey !== AV.masterKey) {
-      console.warn('LeanCloud SDK is already initialized, please don\'t reinitialize it.');
+   const initialize = (appId, appKey, masterKey) => {
+    if (AV.applicationId && appId !== AV.applicationId && appKey !== AV.applicationKey && masterKey !== AV.masterKey) {
+      console.warn('LeanCloud SDK is already initialized, please do not reinitialize it.');
     }
-    AV.applicationId = applicationId;
-    AV.applicationKey = applicationKey;
+    AV.applicationId = appId;
+    AV.applicationKey = appKey;
     AV.masterKey = masterKey;
     AV._useMasterKey = false;
   };
 
-  const setRegion = (region) => {
+  const setRegionServer = (region) => {
     // 服务器地区选项，默认为中国大陆
     switch (region) {
-      case 'cn':
-        AVConfig.region = 'cn';
-      break;
       case 'us':
         AVConfig.region = 'us';
       break;
+      case 'cn':
+      default:
+        AVConfig.region = 'cn';
+      break;
+    }
+    if (!AVConfig.apiServerUrl) {
+      AVConfig.apiServerUrl = API_HOST[AVConfig.region];
     }
   };
 
@@ -139,7 +143,7 @@ module.exports = function(AV) {
             throw new Error('AV.init(): Master Key is only used in Node.js.');
           }
           initialize(options.appId, options.appKey, options.masterKey);
-          setRegion(options.region);
+          setRegionServer(options.region);
         } else {
           throw new Error('AV.init(): Parameter is not correct.');
         }
@@ -152,6 +156,7 @@ module.exports = function(AV) {
           throw new Error('AV.init(): Master Key is only used in Node.js.');
         }
         initialize(...args);
+        setRegionServer('cn');
       break;
     }
   };
@@ -194,7 +199,7 @@ module.exports = function(AV) {
   **/
   // TODO: 后续不再暴露此接口
   AV.useAVCloudCN = function(){
-    AVConfig.region = 'cn';
+    setRegionServer('cn');
     console.warn('Do not use AV.useAVCloudCN. Please use AV.init(), you can set the region of server.');
   };
 
@@ -203,7 +208,7 @@ module.exports = function(AV) {
   **/
   // TODO: 后续不再暴露此接口
   AV.useAVCloudUS = function(){
-    AVConfig.region = 'us';
+    setRegionServer('us');
     console.warn('Do not use AV.useAVCloudUS. Please use AV.init(), you can set the region of server.');
   };
 
@@ -344,7 +349,11 @@ module.exports = function(AV) {
     }
 
     // 兼容 AV.serverURL 旧方式设置 API Host，后续去掉
-    let apiUrl = AV.serverURL || AVConfig.apiHost[AVConfig.region];
+    let apiUrl = AV.serverURL || AVConfig.apiServerUrl;
+    if (AV.serverURL) {
+      AVConfig.apiServerUrl = AV.serverURL;
+      console.warn('Please use AV._config.apiServerUrl replace AV.serverURL .');
+    }
     if (apiUrl.charAt(apiUrl.length - 1) !== "/") {
       apiUrl += "/";
     }
