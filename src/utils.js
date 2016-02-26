@@ -380,11 +380,12 @@ module.exports = function(AV) {
 
     dataObject._ApplicationId = AV.applicationId;
     dataObject._ApplicationKey = AV.applicationKey;
-    if(!AV._isNullOrUndefined(AV.applicationProduction)) {
+    if (!AV._isNullOrUndefined(AV.applicationProduction)) {
       dataObject._ApplicationProduction = AV.applicationProduction;
     }
-    if(AV._useMasterKey)
-        dataObject._MasterKey = AV.masterKey;
+    if (AV._useMasterKey) {
+      dataObject._MasterKey = AV.masterKey;
+    }
     dataObject._ClientVersion = AV.VERSION;
     // Pass the session token on every request.
     return AV.User.currentAsync().then(function(currentUser) {

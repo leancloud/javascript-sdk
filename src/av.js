@@ -19,8 +19,12 @@ AV._ = require('underscore');
 AV.version = require('./version');
 AV.Promise = require('./promise');
 AV.localStorage = require('./localstorage');
+
 // 挂载所有内部配置项
 AV._config = AV._config || {};
+
+// 挂载内部使用的工具方法
+AV._utils = AV._utils || {};
 
 // 以下模块为了兼容原有代码，使用这种加载方式。
 require('./utils')(AV);
