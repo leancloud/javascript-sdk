@@ -27,10 +27,7 @@ module.exports = function(AV) {
     APIServerURL: AVConfig.APIServerURL || '',
 
     // 当前是否为 nodejs 环境
-    isNode: false,
-
-    // 是否启用 masterKey
-    isUsingMasterKey: false
+    isNode: false
   });
 
   /**
@@ -111,6 +108,7 @@ module.exports = function(AV) {
     AV.applicationId = appId;
     AV.applicationKey = appKey;
     AV.masterKey = masterKey;
+    AV._useMasterKey = false;
   };
 
   const setRegionServer = (region) => {
@@ -177,7 +175,7 @@ module.exports = function(AV) {
      * </p>
      */
     AV.Cloud.useMasterKey = function() {
-      AVConfig.isUsingMasterKey = true;
+      AV._useMasterKey = true;
     };
   }
 
@@ -385,7 +383,7 @@ module.exports = function(AV) {
     if(!AV._isNullOrUndefined(AV.applicationProduction)) {
       dataObject._ApplicationProduction = AV.applicationProduction;
     }
-    if(AVConfig.isUsingMasterKey)
+    if(AV._useMasterKey)
         dataObject._MasterKey = AV.masterKey;
     dataObject._ClientVersion = AV.VERSION;
     // Pass the session token on every request.
