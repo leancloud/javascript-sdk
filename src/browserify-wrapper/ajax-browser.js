@@ -5,19 +5,8 @@
 
 'use strict';
 
-const md5 = require('md5');
 const AVPromise = require('../promise');
-
-// 计算 X-LC-Sign 的签名方法
-const sign = (key, isMasterKey) => {
-  const now = new Date().getTime();
-  const signature = md5(now + key);
-  if (isMasterKey) {
-    return signature + ',' + now + ',master';
-  } else {
-    return signature + ',' + now;
-  }
-};
+const AVUtils = require('../utils');
 
 const ajax = (method, url, data, success, error) => {
   const AV = global.AV;
@@ -61,9 +50,9 @@ const ajax = (method, url, data, success, error) => {
   xhr.open(method, url, true);
   xhr.setRequestHeader('X-LC-Id', appId);
   // 浏览器端不支持传入 masterKey 做 sign
-  const signature = sign(appKey);
+  const signature = AVUtils.sign(appKey);
   xhr.setRequestHeader('X-LC-Sign', signature);
-  xhr.setRequestHeader('Content-Type', 'application/json');
+  xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
   xhr.send(data);
   return promise._thenRunCallbacks(options);
 };

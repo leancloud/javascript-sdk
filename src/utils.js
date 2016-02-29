@@ -6,8 +6,9 @@
 'use strict';
 
 const _ = require('underscore');
+const md5 = require('md5');
 
-module.exports = function(AV) {
+const init = (AV) => {
 
   // 挂载一些配置
   let AVConfig = AV._config;
@@ -664,4 +665,23 @@ module.exports = function(AV) {
   AV._isNullOrUndefined = function(x) {
     return _.isNull(x) || _.isUndefined(x);
   };
+
+};
+
+module.exports = {
+
+  setAV: (AV) => {
+    init(AV);
+  },
+
+  // 计算 X-LC-Sign 的签名方法
+  sign: (key, isMasterKey) => {
+    const now = new Date().getTime();
+    const signature = md5(now + key);
+    if (isMasterKey) {
+      return signature + ',' + now + ',master';
+    } else {
+      return signature + ',' + now;
+    }
+  }
 };
