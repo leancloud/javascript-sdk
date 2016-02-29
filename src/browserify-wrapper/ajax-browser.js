@@ -49,8 +49,14 @@ const ajax = (method, url, data, success, error) => {
   };
   xhr.open(method, url, true);
   xhr.setRequestHeader('X-LC-Id', appId);
-  // 浏览器端不支持传入 masterKey 做 sign
-  const signature = AVUtils.sign(appKey);
+
+  let signature;
+  if (masterKey) {
+    signature = AVUtils.sign(masterKey, true);
+  } else {
+    signature = AVUtils.sign(appKey);
+  }
+
   xhr.setRequestHeader('X-LC-Sign', signature);
   xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
   xhr.send(data);

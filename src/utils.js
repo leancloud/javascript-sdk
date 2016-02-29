@@ -139,12 +139,19 @@ const init = (AV) => {
   */
 
   AV.init = (...args) => {
+
+    const masterKeyWarn = () => {
+      console.warn('MasterKey should not be used in the browser. ' +
+        'The permissions of MasterKey can be across all the server permissions,' +
+        ' including the setting of ACL .');
+    };
+
     switch (args.length) {
       case 1:
         const options = args[0];
         if (typeof options === 'object') {
           if (!AVConfig.isNode && options.masterKey) {
-            throw new Error('AV.init(): Master Key is only used in Node.js.');
+            masterKeyWarn();
           }
           initialize(options.appId, options.appKey, options.masterKey);
           setRegionServer(options.region);
@@ -157,7 +164,7 @@ const init = (AV) => {
       case 3:
         console.warn('Please use AV.init() to replace AV.initialize() .');
         if (!AVConfig.isNode && args.length === 3) {
-          throw new Error('AV.init(): Master Key is only used in Node.js.');
+          masterKeyWarn();
         }
         initialize(...args);
         setRegionServer('cn');
