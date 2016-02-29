@@ -1,8 +1,8 @@
 解压后的文件包括：
 
 av-es6.js       未经压缩的 JavaScript SDK（ECMAScript 6 版本）
-av-es5.js       编译后的 JavaScript SDK（ECMAScript 5 版本）
-av-mini.js      经编译压缩后生成的 JavaScript SDK （ECMAScript 5 版本）
+av.js           编译后的 JavaScript SDK（ECMAScript 5 版本）
+av-min.js      经编译压缩后生成的 JavaScript SDK （ECMAScript 5 版本）
 
 快速入门： https://leancloud.cn/start.html
 开发指南： https://leancloud.cn/docs/js_guide.html

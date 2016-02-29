@@ -72,19 +72,19 @@ gulp.task('babel-browser', ['browserify'], () => {
   return gulp.src('dist/av-es6.js')
     // .pipe(sourcemaps.init())
     .pipe(babel())
-    .pipe(concat('av-es5.js'))
+    .pipe(concat('av.js'))
     // .pipe(sourcemaps.write("."))
     .pipe(gulp.dest('dist'));
 });
 
 gulp.task('uglify', ['babel-browser'], () => {
   return gulp.src([
-      'dist/av-es5.js'
+      'dist/av.js'
     ])
     .pipe(uglify())
     .pipe(rename((path) => {
       // path.basename += '-mini';
-      path.basename = 'av-mini';
+      path.basename = 'av-min';
     }))
     .pipe(gulp.dest('dist'));
 
@@ -99,8 +99,8 @@ gulp.task('compress-scripts', ['uglify'], () => {
 
   return gulp.src([
       'dist/av-es6.js',
-      'dist/av-es5.js',
-      'dist/av-mini.js',
+      'dist/av.js',
+      'dist/av-min.js',
       'readme.txt'
     ])
     .pipe(tar('avos-javascript-sdk-' + version + '.tar'))

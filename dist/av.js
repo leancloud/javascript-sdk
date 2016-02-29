@@ -2834,11 +2834,15 @@ child.__super__=parent.prototype;return child;}; /**
    * @param {String} applicationId Your AV Application ID.
    * @param {String} applicationKey Your AV Application Key
    */var initialize=function initialize(applicationId,applicationKey,masterKey){if(AV.applicationId!==undefined&&applicationId!==AV.applicationId&&applicationKey!==AV.applicationKey&&masterKey!==AV.masterKey){console.warn('AVOSCloud SDK is already initialized, please don\'t reinitialize it.');}AV.applicationId=applicationId;AV.applicationKey=applicationKey;AV.masterKey=masterKey;AV._useMasterKey=false;}; /**
-   * Call this method first to set up your authentication tokens for LC.
-   * You can get your keys from the Data Browser on http://leancloud.cn .
-   * @param {Object} incloud appId, appKey, masterKey
-   */AV.init=function(){for(var _len=arguments.length,options=Array(_len),_key=0;_key<_len;_key++){options[_key]=arguments[_key];}switch(options.length){case 1:if((typeof options==="undefined"?"undefined":_typeof(options))==='object'){if(!AV._config.isNode&&options.masterKey){throw new Error('AV.init(): Master Key is only used in Node.js.');}initialize(options[0].appId,options[0].appKey,options[0].masterKey);}else {throw new Error('AV.init(): Parameter is not correct.');}break; // 兼容旧版本的初始化方法
-case 2:case 3:if(!AV._config.isNode&&options.length===3){throw new Error('AV.init(): Master Key is only used in Node.js.');}initialize.apply(undefined,options);break;}}; // If we're running in node.js, allow using the master key.
+    * Call this method first to set up your authentication tokens for AV.
+    * You can get your app keys from the LeanCloud dashboard on http://leancloud.cn .
+    * @function AV.init
+    * @param args initialize options.
+    * @param args.appId application id
+    * @param args.appKey application key
+    * @param args.masterKey application master key
+  */AV.init=function(){switch(arguments.length){case 1:var options=arguments.length<=0?undefined:arguments[0];if((typeof options==="undefined"?"undefined":_typeof(options))==='object'){if(!AV._config.isNode&&options.masterKey){throw new Error('AV.init(): Master Key is only used in Node.js.');}initialize(options.appId,options.appKey,options.masterKey);}else {throw new Error('AV.init(): Parameter is not correct.');}break; // 兼容旧版本的初始化方法
+case 2:case 3:if(!AV._config.isNode&&arguments.length===3){throw new Error('AV.init(): Master Key is only used in Node.js.');}initialize.apply(undefined,arguments);break;}}; // If we're running in node.js, allow using the master key.
 if(AV._config.isNode){AV.Cloud=AV.Cloud||{}; /**
      * Switches the AVOSCloud SDK to using the Master key.  The Master key grants
      * priveleged access to the data in AVOSCloud and can be used to bypass ACLs and
@@ -2848,6 +2852,7 @@ if(AV._config.isNode){AV.Cloud=AV.Cloud||{}; /**
      */AV.Cloud.useMasterKey=function(){AV._useMasterKey=true;};} // 兼容老版本的初始化方法
 AV.initialize=AV.init; /**
    * Call this method to set production environment variable.
+   * @function AV.setProduction
    * @param {Boolean} production True is production environment,and
    *  it's true by default.
    */AV.setProduction=function(production){if(!AV._isNullOrUndefined(production)){ //make sure it's a number

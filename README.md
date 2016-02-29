@@ -26,8 +26,8 @@ JavaScript SDK for [LeanCloud](http://leancloud.cn/).
 ├── changelog.md
 ├── dist                               // 编译之后生成的文件将会在此目录下
 │   ├── av-es6.js                      // 合并后的完整源码（ES6 版本）
-│   ├── av-es5.js                      // 合并并编译后的完整源码（ES5 版本）
-│   ├── av-mini.js                     // 合并、压缩并编译后的源码（ES5 版本）
+│   ├── av.js                          // 合并并编译后的完整源码（ES5 版本）
+│   ├── av-min.js                      // 合并、压缩并编译后的源码（ES5 版本）
 │   ├── node                           // 目录中为生成的 nodejs 版本代码
 │   └── ...
 ├── gulpfile.js
