@@ -677,9 +677,7 @@ const init = (AV) => {
 
 module.exports = {
 
-  setAV: (AV) => {
-    init(AV);
-  },
+  init: init,
 
   // 计算 X-LC-Sign 的签名方法
   sign: (key, isMasterKey) => {
