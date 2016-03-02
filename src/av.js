@@ -24,7 +24,7 @@ AV.localStorage = require('./localstorage');
 AV._config = AV._config || {};
 
 // 以下模块为了兼容原有代码，使用这种加载方式。
-require('./utils').setAV(AV);
+require('./utils').init(AV);
 require('./error')(AV);
 require('./event')(AV);
 require('./geopoint')(AV);
