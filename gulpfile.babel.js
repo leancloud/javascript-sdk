@@ -71,7 +71,9 @@ gulp.task('browserify', ['clean-dist'], () => {
 gulp.task('babel-browser', ['browserify'], () => {
   return gulp.src('dist/av-es6.js')
     // .pipe(sourcemaps.init())
-    .pipe(babel())
+    .pipe(babel({
+      compact: false
+    }))
     .pipe(concat('av.js'))
     // .pipe(sourcemaps.write("."))
     .pipe(gulp.dest('dist'));
