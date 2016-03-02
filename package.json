@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "localstorage-memory": "^1.0.1",
+    "md5": "^2.0.0",
     "qiniu": "6.1.3",
     "underscore": "^1.8.3"
   },
@@ -42,8 +43,8 @@
   },
   "license": "MIT",
   "author": {
-    "name": "dennis zhuang",
-    "email": "xzhuang@avos.com"
+    "name": "LeanCloud",
+    "email": "support@leancloud.rocks"
   },
   "browser": {
     "react-native": false,
@@ -51,7 +52,6 @@
     "./src/browserify-wrapper/upload.js": "./src/browserify-wrapper/upload-browser.js",
     "./src/browserify-wrapper/localStorage.js": "./src/browserify-wrapper/localstorage-browser.js",
     "./src/browserify-wrapper/parse-base64.js": "./src/browserify-wrapper/parse-base64-browser.js",
-
     "./dist/browserify-wrapper/ajax.js": "./dist/node/browserify-wrapper/ajax-browser.js",
     "./dist/browserify-wrapper/upload.js": "./dist/node/browserify-wrapper/upload-browser.js",
     "./dist/browserify-wrapper/localStorage.js": "./dist/node/browserify-wrapper/localstorage-browser.js",

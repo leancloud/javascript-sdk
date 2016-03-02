@@ -6,8 +6,9 @@
 'use strict';
 
 const _ = require('underscore');
+const md5 = require('md5');
 
-module.exports = function(AV) {
+const init = (AV) => {
 
   // 挂载一些配置
   let AVConfig = AV._config;
@@ -138,12 +139,19 @@ module.exports = function(AV) {
   */
 
   AV.init = (...args) => {
+
+    const masterKeyWarn = () => {
+      console.warn('MasterKey should not be used in the browser. ' +
+        'The permissions of MasterKey can be across all the server permissions,' +
+        ' including the setting of ACL .');
+    };
+
     switch (args.length) {
       case 1:
         const options = args[0];
         if (typeof options === 'object') {
           if (!AVConfig.isNode && options.masterKey) {
-            throw new Error('AV.init(): Master Key is only used in Node.js.');
+            masterKeyWarn();
           }
           initialize(options.appId, options.appKey, options.masterKey);
           setRegionServer(options.region);
@@ -156,7 +164,7 @@ module.exports = function(AV) {
       case 3:
         console.warn('Please use AV.init() to replace AV.initialize() .');
         if (!AVConfig.isNode && args.length === 3) {
-          throw new Error('AV.init(): Master Key is only used in Node.js.');
+          masterKeyWarn();
         }
         initialize(...args);
         setRegionServer('cn');
@@ -380,11 +388,12 @@ module.exports = function(AV) {
 
     dataObject._ApplicationId = AV.applicationId;
     dataObject._ApplicationKey = AV.applicationKey;
-    if(!AV._isNullOrUndefined(AV.applicationProduction)) {
+    if (!AV._isNullOrUndefined(AV.applicationProduction)) {
       dataObject._ApplicationProduction = AV.applicationProduction;
     }
-    if(AV._useMasterKey)
-        dataObject._MasterKey = AV.masterKey;
+    if (AV._useMasterKey) {
+      dataObject._MasterKey = AV.masterKey;
+    }
     dataObject._ClientVersion = AV.VERSION;
     // Pass the session token on every request.
     return AV.User.currentAsync().then(function(currentUser) {
@@ -663,4 +672,21 @@ module.exports = function(AV) {
   AV._isNullOrUndefined = function(x) {
     return _.isNull(x) || _.isUndefined(x);
   };
+
+};
+
+module.exports = {
+
+  init: init,
+
+  // 计算 X-LC-Sign 的签名方法
+  sign: (key, isMasterKey) => {
+    const now = new Date().getTime();
+    const signature = md5(now + key);
+    if (isMasterKey) {
+      return signature + ',' + now + ',master';
+    } else {
+      return signature + ',' + now;
+    }
+  }
 };
