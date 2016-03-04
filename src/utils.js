@@ -6,7 +6,7 @@
 'use strict';
 
 const _ = require('underscore');
-const md5 = require('md5');
+const ajax = require('./browserify-wrapper/ajax');
 
 const init = (AV) => {
 
@@ -118,7 +118,6 @@ const init = (AV) => {
       case 'us':
         AVConfig.region = 'us';
       break;
-      case 'cn':
       default:
         AVConfig.region = 'cn';
       break;
@@ -300,7 +299,7 @@ const init = (AV) => {
     return new Date(Date.UTC(year, month, day, hour, minute, second, milli));
   };
 
-  AV._ajax = require('./browserify-wrapper/ajax');
+  AV._ajax = ajax;
 
   // A self-propagating extend function.
   AV._extend = function(protoProps, classProps) {
@@ -381,11 +380,6 @@ const init = (AV) => {
     }
 
     dataObject = _.clone(dataObject || {});
-    if (method !== "POST") {
-      dataObject._method = method;
-      method = "POST";
-    }
-
     dataObject._ApplicationId = AV.applicationId;
     dataObject._ApplicationKey = AV.applicationKey;
     if (!AV._isNullOrUndefined(AV.applicationProduction)) {
@@ -404,8 +398,7 @@ const init = (AV) => {
     }).then(function(_InstallationId) {
       dataObject._InstallationId = _InstallationId;
 
-      var data = JSON.stringify(dataObject);
-      return AV._ajax(method, apiURL, data).then(null, function(response) {
+      return AV._ajax(method, apiURL, dataObject).then(null, function(response) {
         // Transform the error into an instance of AV.Error by trying to parse
         // the error string as JSON.
         var error;
@@ -677,16 +670,5 @@ const init = (AV) => {
 
 module.exports = {
 
-  init: init,
-
-  // 计算 X-LC-Sign 的签名方法
-  sign: (key, isMasterKey) => {
-    const now = new Date().getTime();
-    const signature = md5(now + key);
-    if (isMasterKey) {
-      return signature + ',' + now + ',master';
-    } else {
-      return signature + ',' + now;
-    }
-  }
+  init: init
 };

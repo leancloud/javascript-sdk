@@ -54,10 +54,12 @@ JavaScript SDK for [LeanCloud](http://leancloud.cn/).
 * 打包（执行 `gulp release`）
 * 提交当前所有代码
   * 版本号相关修改
-  * change log
+  * 对照 commit 历史写 change log
   * dist/ 目录中的新代码
 * 提交代码，发 Pull Request
 * 通过 review，merge 代码
 * Github 生成 release 包（for bower）
 * 发布到 npm，需 npm 协作者身份（执行 `npm publish`）
 * 发布到 CDN，需要七牛权限（执行 `gulp upload`）
+* 提醒所有相关工程师完善文档
+

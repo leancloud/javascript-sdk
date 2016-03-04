@@ -25,8 +25,30 @@ describe('Queries', function () {
 
     });
 
-    it();
-
+    it('should return TestClass', function(done) {
+      var TestClass = AV.Object.extend('TestClass');
+      var testObj = new TestClass();
+      testObj.set({
+        name: 'hjiang',
+        phone: '123123123'
+      });
+      testObj.save().then(function() {
+        var query = new AV.Query('TestClass');
+        query.equalTo('name', 'hjiang');
+        query.find().then(function(datas) {
+          var obj = datas[0];
+          if (obj && obj.get('name') === 'hjiang') {
+            done();
+          } else {
+            done('failed');
+          }
+        }).catch(function(err) {
+          done(err);
+        });
+      }).catch(function(err) {
+        done(err);
+      });
+    });
 
     it('should throw when get null', function () {
 
@@ -334,7 +356,7 @@ describe('Queries', function () {
   });
 
   describe('Compound Query', function () {
-    it('should satisfy on 'or' conditions', function (done) {
+    it('should satisfy on \'or\' conditions', function (done) {
       var lotsOfWins = new AV.Query('GameScore');
       lotsOfWins.greaterThan('score', 150);
 
@@ -355,7 +377,7 @@ describe('Queries', function () {
         }
       });
     });
-    it('should satisfy on 'and' conditions', function (done) {
+    it('should satisfy on \'and\' conditions', function (done) {
       var lotsOfWins = new AV.Query('GameScore');
       lotsOfWins.greaterThan('score', 150);
 

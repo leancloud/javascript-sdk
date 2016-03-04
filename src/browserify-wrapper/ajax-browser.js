@@ -6,7 +6,18 @@
 'use strict';
 
 const AVPromise = require('../promise');
-const AVUtils = require('../utils');
+const md5 = require('md5');
+
+// 计算 X-LC-Sign 的签名方法
+const sign = (key, isMasterKey) => {
+  const now = new Date().getTime();
+  const signature = md5(now + key);
+  if (isMasterKey) {
+    return signature + ',' + now + ',master';
+  } else {
+    return signature + ',' + now;
+  }
+};
 
 const ajax = (method, url, data, success, error) => {
   const AV = global.AV;
@@ -20,6 +31,16 @@ const ajax = (method, url, data, success, error) => {
   const appId = AV.applicationId;
   const appKey = AV.applicationKey;
   const masterKey = AV.masterKey;
+
+  // 清理
+  if (data) {
+    delete data._ApplicationId;
+    delete data._ApplicationKey;
+    delete data._ApplicationProduction;
+    delete data._MasterKey;
+    delete data._ClientVersion;
+    delete data._InstallationId;
+  }
 
   let handled = false;
   const xhr = new global.XMLHttpRequest();
@@ -47,19 +68,34 @@ const ajax = (method, url, data, success, error) => {
       }
     }
   };
+
+  if (method.toLowerCase() === 'get') {
+    let i = 0;
+    for (let k in data) {
+      if (i === 0) {
+        url = url + '?';
+      } else {
+        url = url + '&';
+      }
+      url = url + k + '=' + JSON.stringify(data[k]);
+      i ++;
+    }
+  }
+
   xhr.open(method, url, true);
   xhr.setRequestHeader('X-LC-Id', appId);
 
   let signature;
   if (masterKey) {
-    signature = AVUtils.sign(masterKey, true);
+    signature = sign(masterKey, true);
   } else {
-    signature = AVUtils.sign(appKey);
+    signature = sign(appKey);
   }
 
   xhr.setRequestHeader('X-LC-Sign', signature);
+  // xhr.setRequestHeader('X-LC-UA', 'AV-web-' + AV.version);
   xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
-  xhr.send(data);
+  xhr.send(JSON.stringify(data));
   return promise._thenRunCallbacks(options);
 };
 
