@@ -394,7 +394,7 @@ const init = (AV) => {
     if (AV._useMasterKey) {
       dataObject._MasterKey = AV.masterKey;
     }
-    dataObject._ClientVersion = AV.VERSION;
+    dataObject._ClientVersion = AV.version;
     // Pass the session token on every request.
     return AV.User.currentAsync().then(function(currentUser) {
       if (currentUser && currentUser._sessionToken) {
