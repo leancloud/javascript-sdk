@@ -93,7 +93,7 @@ const ajax = (method, url, data, success, error) => {
   }
 
   xhr.setRequestHeader('X-LC-Sign', signature);
-  // xhr.setRequestHeader('X-LC-UA', 'AV-web-' + AV.version);
+  xhr.setRequestHeader('X-LC-UA', 'LC-Web-' + AV.version);
   xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
   xhr.send(JSON.stringify(data));
   return promise._thenRunCallbacks(options);
