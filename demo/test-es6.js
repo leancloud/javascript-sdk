@@ -6,12 +6,14 @@ AV.init({
   appKey: appKey
 });
 
+// 基本存储
 const TestClass = AV.Object.extend('TestClass');
 const testObj = new TestClass();
 testObj.set({
   name: 'hjiang',
   phone: '123123123'
 });
+
 testObj.save().then(() => {
   console.log('success');
 }).catch((err) => {
@@ -19,6 +21,7 @@ testObj.save().then(() => {
   console.log(err);
 });
 
+// 存储文件
 const base64 = 'd29ya2luZyBhdCBhdm9zY2xvdWQgaXMgZ3JlYXQh';
 var file = new AV.File('myfile.txt', { base64: base64 });
 file.metaData('format', 'txt file');

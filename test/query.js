@@ -3,7 +3,9 @@
 // queries
 var GameScore = AV.Object.extend('GameScore');
 var Person = AV.Object.extend('Person');
+var TestClass = AV.Object.extend('TestClass');
 var query = new AV.Query(GameScore);
+
 describe('Queries', function () {
   describe('#Basic Queries', function () {
     it('should return Class Array', function (done) {
@@ -25,28 +27,14 @@ describe('Queries', function () {
 
     });
 
-    it('should return TestClass', function(done) {
-      var TestClass = AV.Object.extend('TestClass');
-      var testObj = new TestClass();
-      testObj.set({
+    it('should return TestClass', function() {
+      return new TestClass({
         name: 'hjiang',
         phone: '123123123'
-      });
-      testObj.save().then(function() {
-        var query = new AV.Query('TestClass');
-        query.equalTo('name', 'hjiang');
-        query.find().then(function(datas) {
-          var obj = datas[0];
-          if (obj && obj.get('name') === 'hjiang') {
-            done();
-          } else {
-            done('failed');
-          }
-        }).catch(function(err) {
-          done(err);
-        });
-      }).catch(function(err) {
-        done(err);
+      }).save().then(function() {
+        return new AV.Query(TestClass).equalTo('name', 'hjiang').find();
+      }).then(function(testObjects) {
+        expect(testObjects[0].get('name')).to.be('hjiang');
       });
     });
 

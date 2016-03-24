@@ -20,7 +20,8 @@ module.exports = function upload(file, AV, saveOptions) {
     var uptoken = response.token;
 
     var data = new FormData();
-    data.append("file", dataFormat, self._name);
+    data.append("file", dataFormat);
+    data.append('name', self._name);
     data.append("key", self._qiniu_key);
     data.append("token", uptoken);
 

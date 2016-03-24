@@ -32,7 +32,7 @@ const ajax = (method, url, data, success, error) => {
   const appKey = AV.applicationKey;
   const masterKey = AV.masterKey;
 
-  // 清理
+  // 清理原来多余的数据（如果不清理，会污染数据表）
   if (data) {
     delete data._ApplicationId;
     delete data._ApplicationKey;
@@ -77,7 +77,7 @@ const ajax = (method, url, data, success, error) => {
       } else {
         url = url + '&';
       }
-      url = url + k + '=' + JSON.stringify(data[k]);
+      url = url + k + '=' + encodeURIComponent(JSON.stringify(data[k]));
       i ++;
     }
   }
