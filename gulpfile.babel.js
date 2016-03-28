@@ -199,7 +199,7 @@ gulp.task('test', [
 
 // 上传到 CDN
 gulp.task('upload', ['compress-scripts'], (cb) => {
-  uploadCDN('./dist/av-mini.js', getAVVersion(), () => {});
+  uploadCDN('./dist/av-min.js', getAVVersion(), () => {});
 });
 
 // 生成 release 文件

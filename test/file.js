@@ -17,9 +17,11 @@ describe('files', function() {
         file.destroy().then(function(){
           done();
         }, function(error){
+          console.log(error);
           done(error);
         });
       }, function(error){
+        console.log(error);
         done(error);
       });
     });
@@ -38,10 +40,11 @@ describe('files', function() {
         return AV._ajax('get', url).then(function() {
           done(new Error('Should not parsed as JSON'));
         }).catch(function(err) {
-          if (err.responseText.indexOf('GIF89a\u0018\u0000\u0018') !== -1)
+          if (err.responseText.indexOf('GIF89a\u0018\u0000\u0018') !== -1) {
             done();
-          else
+          } else {
             done(new Error('Response is not a gif image'));
+          }
         });
       }).catch(function(error) {
         done(error);
