@@ -178,6 +178,320 @@ process.umask = function() { return 0; };
 })(this);
 
 },{}],4:[function(require,module,exports){
+(function(){
+  var crypt = require('crypt'),
+      utf8 = require('charenc').utf8,
+      isBuffer = require('is-buffer'),
+      bin = require('charenc').bin,
+
+  // The core
+  md5 = function (message, options) {
+    // Convert to byte array
+    if (message.constructor == String)
+      if (options && options.encoding === 'binary')
+        message = bin.stringToBytes(message);
+      else
+        message = utf8.stringToBytes(message);
+    else if (isBuffer(message))
+      message = Array.prototype.slice.call(message, 0);
+    else if (!Array.isArray(message))
+      message = message.toString();
+    // else, assume byte array already
+
+    var m = crypt.bytesToWords(message),
+        l = message.length * 8,
+        a =  1732584193,
+        b = -271733879,
+        c = -1732584194,
+        d =  271733878;
+
+    // Swap endian
+    for (var i = 0; i < m.length; i++) {
+      m[i] = ((m[i] <<  8) | (m[i] >>> 24)) & 0x00FF00FF |
+             ((m[i] << 24) | (m[i] >>>  8)) & 0xFF00FF00;
+    }
+
+    // Padding
+    m[l >>> 5] |= 0x80 << (l % 32);
+    m[(((l + 64) >>> 9) << 4) + 14] = l;
+
+    // Method shortcuts
+    var FF = md5._ff,
+        GG = md5._gg,
+        HH = md5._hh,
+        II = md5._ii;
+
+    for (var i = 0; i < m.length; i += 16) {
+
+      var aa = a,
+          bb = b,
+          cc = c,
+          dd = d;
+
+      a = FF(a, b, c, d, m[i+ 0],  7, -680876936);
+      d = FF(d, a, b, c, m[i+ 1], 12, -389564586);
+      c = FF(c, d, a, b, m[i+ 2], 17,  606105819);
+      b = FF(b, c, d, a, m[i+ 3], 22, -1044525330);
+      a = FF(a, b, c, d, m[i+ 4],  7, -176418897);
+      d = FF(d, a, b, c, m[i+ 5], 12,  1200080426);
+      c = FF(c, d, a, b, m[i+ 6], 17, -1473231341);
+      b = FF(b, c, d, a, m[i+ 7], 22, -45705983);
+      a = FF(a, b, c, d, m[i+ 8],  7,  1770035416);
+      d = FF(d, a, b, c, m[i+ 9], 12, -1958414417);
+      c = FF(c, d, a, b, m[i+10], 17, -42063);
+      b = FF(b, c, d, a, m[i+11], 22, -1990404162);
+      a = FF(a, b, c, d, m[i+12],  7,  1804603682);
+      d = FF(d, a, b, c, m[i+13], 12, -40341101);
+      c = FF(c, d, a, b, m[i+14], 17, -1502002290);
+      b = FF(b, c, d, a, m[i+15], 22,  1236535329);
+
+      a = GG(a, b, c, d, m[i+ 1],  5, -165796510);
+      d = GG(d, a, b, c, m[i+ 6],  9, -1069501632);
+      c = GG(c, d, a, b, m[i+11], 14,  643717713);
+      b = GG(b, c, d, a, m[i+ 0], 20, -373897302);
+      a = GG(a, b, c, d, m[i+ 5],  5, -701558691);
+      d = GG(d, a, b, c, m[i+10],  9,  38016083);
+      c = GG(c, d, a, b, m[i+15], 14, -660478335);
+      b = GG(b, c, d, a, m[i+ 4], 20, -405537848);
+      a = GG(a, b, c, d, m[i+ 9],  5,  568446438);
+      d = GG(d, a, b, c, m[i+14],  9, -1019803690);
+      c = GG(c, d, a, b, m[i+ 3], 14, -187363961);
+      b = GG(b, c, d, a, m[i+ 8], 20,  1163531501);
+      a = GG(a, b, c, d, m[i+13],  5, -1444681467);
+      d = GG(d, a, b, c, m[i+ 2],  9, -51403784);
+      c = GG(c, d, a, b, m[i+ 7], 14,  1735328473);
+      b = GG(b, c, d, a, m[i+12], 20, -1926607734);
+
+      a = HH(a, b, c, d, m[i+ 5],  4, -378558);
+      d = HH(d, a, b, c, m[i+ 8], 11, -2022574463);
+      c = HH(c, d, a, b, m[i+11], 16,  1839030562);
+      b = HH(b, c, d, a, m[i+14], 23, -35309556);
+      a = HH(a, b, c, d, m[i+ 1],  4, -1530992060);
+      d = HH(d, a, b, c, m[i+ 4], 11,  1272893353);
+      c = HH(c, d, a, b, m[i+ 7], 16, -155497632);
+      b = HH(b, c, d, a, m[i+10], 23, -1094730640);
+      a = HH(a, b, c, d, m[i+13],  4,  681279174);
+      d = HH(d, a, b, c, m[i+ 0], 11, -358537222);
+      c = HH(c, d, a, b, m[i+ 3], 16, -722521979);
+      b = HH(b, c, d, a, m[i+ 6], 23,  76029189);
+      a = HH(a, b, c, d, m[i+ 9],  4, -640364487);
+      d = HH(d, a, b, c, m[i+12], 11, -421815835);
+      c = HH(c, d, a, b, m[i+15], 16,  530742520);
+      b = HH(b, c, d, a, m[i+ 2], 23, -995338651);
+
+      a = II(a, b, c, d, m[i+ 0],  6, -198630844);
+      d = II(d, a, b, c, m[i+ 7], 10,  1126891415);
+      c = II(c, d, a, b, m[i+14], 15, -1416354905);
+      b = II(b, c, d, a, m[i+ 5], 21, -57434055);
+      a = II(a, b, c, d, m[i+12],  6,  1700485571);
+      d = II(d, a, b, c, m[i+ 3], 10, -1894986606);
+      c = II(c, d, a, b, m[i+10], 15, -1051523);
+      b = II(b, c, d, a, m[i+ 1], 21, -2054922799);
+      a = II(a, b, c, d, m[i+ 8],  6,  1873313359);
+      d = II(d, a, b, c, m[i+15], 10, -30611744);
+      c = II(c, d, a, b, m[i+ 6], 15, -1560198380);
+      b = II(b, c, d, a, m[i+13], 21,  1309151649);
+      a = II(a, b, c, d, m[i+ 4],  6, -145523070);
+      d = II(d, a, b, c, m[i+11], 10, -1120210379);
+      c = II(c, d, a, b, m[i+ 2], 15,  718787259);
+      b = II(b, c, d, a, m[i+ 9], 21, -343485551);
+
+      a = (a + aa) >>> 0;
+      b = (b + bb) >>> 0;
+      c = (c + cc) >>> 0;
+      d = (d + dd) >>> 0;
+    }
+
+    return crypt.endian([a, b, c, d]);
+  };
+
+  // Auxiliary functions
+  md5._ff  = function (a, b, c, d, x, s, t) {
+    var n = a + (b & c | ~b & d) + (x >>> 0) + t;
+    return ((n << s) | (n >>> (32 - s))) + b;
+  };
+  md5._gg  = function (a, b, c, d, x, s, t) {
+    var n = a + (b & d | c & ~d) + (x >>> 0) + t;
+    return ((n << s) | (n >>> (32 - s))) + b;
+  };
+  md5._hh  = function (a, b, c, d, x, s, t) {
+    var n = a + (b ^ c ^ d) + (x >>> 0) + t;
+    return ((n << s) | (n >>> (32 - s))) + b;
+  };
+  md5._ii  = function (a, b, c, d, x, s, t) {
+    var n = a + (c ^ (b | ~d)) + (x >>> 0) + t;
+    return ((n << s) | (n >>> (32 - s))) + b;
+  };
+
+  // Package private blocksize
+  md5._blocksize = 16;
+  md5._digestsize = 16;
+
+  module.exports = function (message, options) {
+    if(typeof message == 'undefined')
+      return;
+
+    var digestbytes = crypt.wordsToBytes(md5(message, options));
+    return options && options.asBytes ? digestbytes :
+        options && options.asString ? bin.bytesToString(digestbytes) :
+        crypt.bytesToHex(digestbytes);
+  };
+
+})();
+
+},{"charenc":5,"crypt":6,"is-buffer":7}],5:[function(require,module,exports){
+var charenc = {
+  // UTF-8 encoding
+  utf8: {
+    // Convert a string to a byte array
+    stringToBytes: function(str) {
+      return charenc.bin.stringToBytes(unescape(encodeURIComponent(str)));
+    },
+
+    // Convert a byte array to a string
+    bytesToString: function(bytes) {
+      return decodeURIComponent(escape(charenc.bin.bytesToString(bytes)));
+    }
+  },
+
+  // Binary encoding
+  bin: {
+    // Convert a string to a byte array
+    stringToBytes: function(str) {
+      for (var bytes = [], i = 0; i < str.length; i++)
+        bytes.push(str.charCodeAt(i) & 0xFF);
+      return bytes;
+    },
+
+    // Convert a byte array to a string
+    bytesToString: function(bytes) {
+      for (var str = [], i = 0; i < bytes.length; i++)
+        str.push(String.fromCharCode(bytes[i]));
+      return str.join('');
+    }
+  }
+};
+
+module.exports = charenc;
+
+},{}],6:[function(require,module,exports){
+(function() {
+  var base64map
+      = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/',
+
+  crypt = {
+    // Bit-wise rotation left
+    rotl: function(n, b) {
+      return (n << b) | (n >>> (32 - b));
+    },
+
+    // Bit-wise rotation right
+    rotr: function(n, b) {
+      return (n << (32 - b)) | (n >>> b);
+    },
+
+    // Swap big-endian to little-endian and vice versa
+    endian: function(n) {
+      // If number given, swap endian
+      if (n.constructor == Number) {
+        return crypt.rotl(n, 8) & 0x00FF00FF | crypt.rotl(n, 24) & 0xFF00FF00;
+      }
+
+      // Else, assume array and swap all items
+      for (var i = 0; i < n.length; i++)
+        n[i] = crypt.endian(n[i]);
+      return n;
+    },
+
+    // Generate an array of any length of random bytes
+    randomBytes: function(n) {
+      for (var bytes = []; n > 0; n--)
+        bytes.push(Math.floor(Math.random() * 256));
+      return bytes;
+    },
+
+    // Convert a byte array to big-endian 32-bit words
+    bytesToWords: function(bytes) {
+      for (var words = [], i = 0, b = 0; i < bytes.length; i++, b += 8)
+        words[b >>> 5] |= bytes[i] << (24 - b % 32);
+      return words;
+    },
+
+    // Convert big-endian 32-bit words to a byte array
+    wordsToBytes: function(words) {
+      for (var bytes = [], b = 0; b < words.length * 32; b += 8)
+        bytes.push((words[b >>> 5] >>> (24 - b % 32)) & 0xFF);
+      return bytes;
+    },
+
+    // Convert a byte array to a hex string
+    bytesToHex: function(bytes) {
+      for (var hex = [], i = 0; i < bytes.length; i++) {
+        hex.push((bytes[i] >>> 4).toString(16));
+        hex.push((bytes[i] & 0xF).toString(16));
+      }
+      return hex.join('');
+    },
+
+    // Convert a hex string to a byte array
+    hexToBytes: function(hex) {
+      for (var bytes = [], c = 0; c < hex.length; c += 2)
+        bytes.push(parseInt(hex.substr(c, 2), 16));
+      return bytes;
+    },
+
+    // Convert a byte array to a base-64 string
+    bytesToBase64: function(bytes) {
+      for (var base64 = [], i = 0; i < bytes.length; i += 3) {
+        var triplet = (bytes[i] << 16) | (bytes[i + 1] << 8) | bytes[i + 2];
+        for (var j = 0; j < 4; j++)
+          if (i * 8 + j * 6 <= bytes.length * 8)
+            base64.push(base64map.charAt((triplet >>> 6 * (3 - j)) & 0x3F));
+          else
+            base64.push('=');
+      }
+      return base64.join('');
+    },
+
+    // Convert a base-64 string to a byte array
+    base64ToBytes: function(base64) {
+      // Remove non-base-64 characters
+      base64 = base64.replace(/[^A-Z0-9+\/]/ig, '');
+
+      for (var bytes = [], i = 0, imod4 = 0; i < base64.length;
+          imod4 = ++i % 4) {
+        if (imod4 == 0) continue;
+        bytes.push(((base64map.indexOf(base64.charAt(i - 1))
+            & (Math.pow(2, -2 * imod4 + 8) - 1)) << (imod4 * 2))
+            | (base64map.indexOf(base64.charAt(i)) >>> (6 - imod4 * 2)));
+      }
+      return bytes;
+    }
+  };
+
+  module.exports = crypt;
+})();
+
+},{}],7:[function(require,module,exports){
+/**
+ * Determine if an object is Buffer
+ *
+ * Author:   Feross Aboukhadijeh <feross@feross.org> <http://feross.org>
+ * License:  MIT
+ *
+ * `npm install is-buffer`
+ */
+
+module.exports = function (obj) {
+  return !!(
+    obj != null &&
+    obj.constructor &&
+    typeof obj.constructor.isBuffer === 'function' &&
+    obj.constructor.isBuffer(obj)
+  )
+}
+
+},{}],8:[function(require,module,exports){
 //     Underscore.js 1.8.3
 //     http://underscorejs.org
 //     (c) 2009-2015 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
@@ -1727,7 +2041,12 @@ process.umask = function() { return 0; };
   }
 }.call(this));
 
-},{}],5:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
+/**
+ * 每位工程师都有保持代码优雅的义务
+ * Each engineer has a duty to keep the code elegant
+**/
+
 'use strict';
 var _ = require('underscore');
 
@@ -1989,15 +2308,20 @@ module.exports = function(AV) {
 
 };
 
-},{"underscore":4}],6:[function(require,module,exports){
+},{"underscore":8}],10:[function(require,module,exports){
 (function (global){
+/**
+ * 每位工程师都有保持代码优雅的义务
+ * Each engineer has a duty to keep the code elegant
+**/
+
 'use strict';
 
 const AV = require('./av');
 global.AV = AV._.extend(AV, global.AV);
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./av":7}],7:[function(require,module,exports){
+},{"./av":11}],11:[function(require,module,exports){
 /*!
  * AVOSCloud JavaScript SDK
  * Built: Mon Jun 03 2013 13:45:00
@@ -2007,6 +2331,11 @@ global.AV = AV._.extend(AV, global.AV);
  * The AVOS Cloud JavaScript SDK is freely distributable under the MIT license.
  */
 
+/**
+ * 每位工程师都有保持代码优雅的义务
+ * Each engineer has a duty to keep the code elegant
+**/
+
 'use strict';
 
 let AV = module.exports = {};
@@ -2014,11 +2343,12 @@ AV._ = require('underscore');
 AV.version = require('./version');
 AV.Promise = require('./promise');
 AV.localStorage = require('./localstorage');
+
 // 挂载所有内部配置项
 AV._config = AV._config || {};
 
 // 以下模块为了兼容原有代码，使用这种加载方式。
-require('./utils')(AV);
+require('./utils').init(AV);
 require('./error')(AV);
 require('./event')(AV);
 require('./geopoint')(AV);
@@ -2039,24 +2369,55 @@ require('./insight')(AV);
 // Backward compatibility
 AV.AV = AV;
 
-},{"./acl":5,"./cloudfunction":12,"./error":13,"./event":14,"./file":15,"./geopoint":16,"./insight":17,"./localstorage":18,"./object":19,"./op":20,"./promise":21,"./push":22,"./query":23,"./relation":24,"./role":25,"./search":26,"./status":27,"./user":28,"./utils":29,"./version":30,"underscore":4}],8:[function(require,module,exports){
-var Promise = require('../promise');
+},{"./acl":9,"./cloudfunction":16,"./error":17,"./event":18,"./file":19,"./geopoint":20,"./insight":21,"./localstorage":22,"./object":23,"./op":24,"./promise":25,"./push":26,"./query":27,"./relation":28,"./role":29,"./search":30,"./status":31,"./user":32,"./utils":33,"./version":34,"underscore":8}],12:[function(require,module,exports){
+(function (global){
+/**
+ * 每位工程师都有保持代码优雅的义务
+ * Each engineer has a duty to keep the code elegant
+**/
 
-module.exports = function _ajax(method, url, data, success, error) {
-  var options = {
+'use strict';
+
+const AVPromise = require('../promise');
+const md5 = require('md5');
+
+// 计算 X-LC-Sign 的签名方法
+const sign = (key, isMasterKey) => {
+  const now = new Date().getTime();
+  const signature = md5(now + key);
+  if (isMasterKey) {
+    return signature + ',' + now + ',master';
+  } else {
+    return signature + ',' + now;
+  }
+};
+
+const ajax = (method, url, data, success, error) => {
+  const AV = global.AV;
+
+  const promise = new AVPromise();
+  const options = {
     success: success,
     error: error
   };
 
-  if (useXDomainRequest()) {
-    return ajaxIE8(method, url, data)._thenRunCallbacks(options);
+  const appId = AV.applicationId;
+  const appKey = AV.applicationKey;
+  const masterKey = AV.masterKey;
+
+  // 清理原来多余的数据（如果不清理，会污染数据表）
+  if (data) {
+    delete data._ApplicationId;
+    delete data._ApplicationKey;
+    delete data._ApplicationProduction;
+    delete data._MasterKey;
+    delete data._ClientVersion;
+    delete data._InstallationId;
   }
 
-  var promise = new Promise();
-  var handled = false;
-
-  var xhr = new XMLHttpRequest();
-  xhr.onreadystatechange = function() {
+  let handled = false;
+  const xhr = new global.XMLHttpRequest();
+  xhr.onreadystatechange = () => {
     if (xhr.readyState === 4) {
       if (handled) {
         return;
@@ -2064,7 +2425,7 @@ module.exports = function _ajax(method, url, data, success, error) {
       handled = true;
 
       if (xhr.status >= 200 && xhr.status < 300) {
-        var response;
+        let response;
         try {
           response = JSON.parse(xhr.responseText);
         } catch (e) {
@@ -2080,56 +2441,47 @@ module.exports = function _ajax(method, url, data, success, error) {
       }
     }
   };
+
+  if (method.toLowerCase() === 'get') {
+    let i = 0;
+    for (let k in data) {
+      if (i === 0) {
+        url = url + '?';
+      } else {
+        url = url + '&';
+      }
+      url = url + k + '=' + encodeURIComponent(JSON.stringify(data[k]));
+      i ++;
+    }
+  }
+
   xhr.open(method, url, true);
-  xhr.setRequestHeader("Content-Type", "text/plain");  // avoid pre-flight.
-  xhr.send(data);
+  xhr.setRequestHeader('X-LC-Id', appId);
+
+  let signature;
+  if (masterKey) {
+    signature = sign(masterKey, true);
+  } else {
+    signature = sign(appKey);
+  }
+
+  xhr.setRequestHeader('X-LC-Sign', signature);
+  xhr.setRequestHeader('X-LC-UA', 'LC-Web-' + AV.version);
+  xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
+  xhr.send(JSON.stringify(data));
   return promise._thenRunCallbacks(options);
 };
 
-function useXDomainRequest() {
-  if (typeof(XDomainRequest) !== "undefined") {
-    // We're in IE 8+.
-    if ('withCredentials' in new XMLHttpRequest()) {
-      // We're in IE 10+.
-      return false;
-    }
-    return true;
-  }
-  return false;
-}
+module.exports = ajax;
 
-function ajaxIE8(method, url, data) {
-  var promise = new Promise();
-  var xdr = new XDomainRequest();
-  xdr.onload = function() {
-    var response;
-    try {
-      response = JSON.parse(xdr.responseText);
-    } catch (e) {
-      promise.reject(e);
-    }
-    if (response) {
-      promise.resolve(response);
-    }
-  };
-  xdr.onerror = xdr.ontimeout = function() {
-    // Let's fake a real error message.
-    var fakeResponse = {
-      responseText: JSON.stringify({
-        code: AV.Error.X_DOMAIN_REQUEST,
-        error: "IE's XDomainRequest does not supply error info."
-      })
-    };
-    promise.reject(xdr);
-  };
-  xdr.onprogress = function() {};
-  xdr.open(method, url);
-  xdr.send(data);
-  return promise;
-}
-
-},{"../promise":21}],9:[function(require,module,exports){
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"../promise":25,"md5":4}],13:[function(require,module,exports){
 (function (global){
+/**
+ * 每位工程师都有保持代码优雅的义务
+ * Each engineer has a duty to keep the code elegant
+**/
+
 'use strict';
 
 var _ = require('underscore');
@@ -2189,7 +2541,12 @@ if (global.localStorage) {
 module.exports = Storage;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../promise":21,"localstorage-memory":3,"react-native":1,"underscore":4}],10:[function(require,module,exports){
+},{"../promise":25,"localstorage-memory":3,"react-native":1,"underscore":8}],14:[function(require,module,exports){
+/**
+ * 每位工程师都有保持代码优雅的义务
+ * Each engineer has a duty to keep the code elegant
+**/
+
 'use strict';
 
 var dataURItoBlob = function(dataURI, type) {
@@ -2214,7 +2571,12 @@ var dataURItoBlob = function(dataURI, type) {
 
 module.exports = dataURItoBlob;
 
-},{}],11:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
+/**
+ * 每位工程师都有保持代码优雅的义务
+ * Each engineer has a duty to keep the code elegant
+**/
+
 'use strict';
 
 module.exports = function upload(file, AV, saveOptions) {
@@ -2232,7 +2594,8 @@ module.exports = function upload(file, AV, saveOptions) {
     var uptoken = response.token;
 
     var data = new FormData();
-    data.append("file", dataFormat, self._name);
+    data.append("file", dataFormat);
+    data.append('name', self._name);
     data.append("key", self._qiniu_key);
     data.append("token", uptoken);
 
@@ -2279,7 +2642,12 @@ module.exports = function upload(file, AV, saveOptions) {
   });
 };
 
-},{}],12:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
+/**
+ * 每位工程师都有保持代码优雅的义务
+ * Each engineer has a duty to keep the code elegant
+**/
+
 'use strict';
 
 var _ = require('underscore');
@@ -2386,7 +2754,7 @@ module.exports = function(AV) {
       if(!code)
         throw "Missing sms code.";
       var params = {};
-      if(AV._.isString(phone)) {
+      if(_.isString(phone)) {
          params['mobilePhoneNumber'] = phone;
       } else {
         // To be compatible with old versions.
@@ -2400,7 +2768,12 @@ module.exports = function(AV) {
   });
 };
 
-},{"underscore":4}],13:[function(require,module,exports){
+},{"underscore":8}],17:[function(require,module,exports){
+/**
+ * 每位工程师都有保持代码优雅的义务
+ * Each engineer has a duty to keep the code elegant
+**/
+
 'use strict';
 
 var _ = require('underscore');
@@ -2748,7 +3121,12 @@ module.exports = function(AV) {
 
 };
 
-},{"underscore":4}],14:[function(require,module,exports){
+},{"underscore":8}],18:[function(require,module,exports){
+/**
+ * 每位工程师都有保持代码优雅的义务
+ * Each engineer has a duty to keep the code elegant
+**/
+
 /*global _: false */
 module.exports = function(AV) {
   var eventSplitter = /\s+/;
@@ -2903,11 +3281,16 @@ module.exports = function(AV) {
   AV.Events.unbind = AV.Events.off;
 };
 
-},{}],15:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 (function (global){
+/**
+ * 每位工程师都有保持代码优雅的义务
+ * Each engineer has a duty to keep the code elegant
+**/
+
 'use strict';
 
-var _ = require('underscore');
+const _ = require('underscore');
 
 // port from browserify path module
 // since react-native packager won't shim node modules.
@@ -2915,8 +3298,11 @@ function extname(path) {
   return path.match(/^(\/?|)([\s\S]*?)((?:\.{1,2}|[^\/]+?|)(\.[^.\/]*|))(?:[\/]*)$/)[4];
 }
 
-/*jshint bitwise:false *//*global FileReader: true, File: true */
 module.exports = function(AV) {
+
+  // 挂载一些配置
+  let avConfig = AV._config;
+
   var b64Digit = function(number) {
     if (number < 26) {
       return String.fromCharCode(65 + number);
@@ -2966,11 +3352,9 @@ module.exports = function(AV) {
   };
 
   // 判断是否是国内节点
-  var isCnNode = function() {
-    var serverHost = AV.serverURL.match(/\/\/(.*)/, 'g')[1];
-    var cnApiHost = AV._config.cnApiUrl.match(/\/\/(.*)/, 'g')[1];
-    return serverHost === cnApiHost;
-  }
+  const isCnNode = () => {
+    return avConfig.region === 'cn';
+  };
 
   // A list of file extensions to mime types as found here:
   // http://stackoverflow.com/questions/58510/using-net-how-can-you-find-the-
@@ -3187,7 +3571,7 @@ module.exports = function(AV) {
           -1, "Attempted to use a FileReader on an unsupported browser."));
     }
 
-    var reader = new FileReader();
+    var reader = new global.FileReader();
     reader.onloadend = function() {
       if (reader.readyState !== 2) {
         promise.reject(new AV.Error(-1, "Error reading file."));
@@ -3251,7 +3635,7 @@ module.exports = function(AV) {
       console.warn('Get current user failed. It seems this runtime use an async storage system, please new AV.File in the callback of AV.User.currentAsync().');
     }
     this._metaData = {
-       owner: (currentUser != null ? currentUser.id : 'unknown')
+       owner: (currentUser ? currentUser.id : 'unknown')
     };
 
     // Guess the content type from the extension if we need to.
@@ -3273,9 +3657,9 @@ module.exports = function(AV) {
       this._source = AV.Promise.as(dataBase64, guessedType);
     } else if (data && data.blob) {
       this._source = AV.Promise.as(data.blob, guessedType);
-    } else if (typeof(File) !== "undefined" && data instanceof File) {
+    } else if (typeof(File) !== "undefined" && data instanceof global.File) {
       this._source = AV.Promise.as(data, guessedType);
-    } else if(AV._config.isNode && global.Buffer.isBuffer(data)) {
+    } else if(avConfig.isNode && global.Buffer.isBuffer(data)) {
       // use global.Buffer to prevent browserify pack Buffer module
       this._base64 = data.toString('base64');
       this._source = AV.Promise.as(this._base64, guessedType);
@@ -3309,7 +3693,7 @@ module.exports = function(AV) {
     }
     file._url = url;
     //Mark the file is from external source.
-    file._metaData['__source'] = 'external';
+    file._metaData.__source = 'external';
     return file;
   };
 
@@ -3381,12 +3765,12 @@ module.exports = function(AV) {
     * @param {Object} value an optional metadata value.
     **/
     metaData: function(attr, value) {
-      if(attr != null && value != null){
-         this._metaData[attr] = value;
-         return this;
-      }else if(attr != null){
-         return this._metaData[attr];
-      }else{
+      if (attr && value) {
+        this._metaData[attr] = value;
+        return this;
+      } else if (attr && !value) {
+        return this._metaData[attr];
+      } else {
         return this._metaData;
       }
     },
@@ -3408,14 +3792,13 @@ module.exports = function(AV) {
        throw "Invalid width or height value.";
      }
      quality = quality || 100;
-     scaleToFit = (scaleToFit == null) ? true: scaleToFit;
-     if(quality<=0 || quality>100){
+     scaleToFit = !scaleToFit ? true : scaleToFit;
+     if(quality <= 0 || quality > 100){
        throw "Invalid quality value.";
      }
      fmt = fmt || 'png';
      var mode = scaleToFit ? 2: 1;
-     return this.url() + '?imageView/' + mode + '/w/' + width + '/h/' + height
-       + '/q/' + quality + '/format/' + fmt;
+     return this.url() + '?imageView/' + mode + '/w/' + width + '/h/' + height + '/q/' + quality + '/format/' + fmt;
    },
 
     /**
@@ -3458,8 +3841,7 @@ module.exports = function(AV) {
       var hexOctet = function() {
         return Math.floor((1+Math.random())*0x10000).toString(16).substring(1);
       };
-      var key = hexOctet() + hexOctet() + hexOctet() + hexOctet() + hexOctet()
-          + extName;
+      var key = hexOctet() + hexOctet() + hexOctet() + hexOctet() + hexOctet() + extName;
 
       var data = {
         key: key,
@@ -3468,7 +3850,7 @@ module.exports = function(AV) {
         mime_type: type,
         metaData: self._metaData
       };
-      if(type && self._metaData.mime_type == null)
+      if(type && !self._metaData.mime_type)
         self._metaData.mime_type = type;
       self._qiniu_key = key;
       return AV._request("qiniu", null, null, 'POST', data);
@@ -3505,7 +3887,7 @@ module.exports = function(AV) {
           // 通过国内 CDN 服务商上传
           var upload = require('./browserify-wrapper/upload');
           upload(self, AV, saveOptions);
-        } else if (self._url && self._metaData['__source'] == 'external') {
+        } else if (self._url && self._metaData.__source === 'external') {
           //external link file.
           var data = {
             name: self._name,
@@ -3597,7 +3979,12 @@ module.exports = function(AV) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./browserify-wrapper/parse-base64":10,"./browserify-wrapper/upload":11,"underscore":4}],16:[function(require,module,exports){
+},{"./browserify-wrapper/parse-base64":14,"./browserify-wrapper/upload":15,"underscore":8}],20:[function(require,module,exports){
+/**
+ * 每位工程师都有保持代码优雅的义务
+ * Each engineer has a duty to keep the code elegant
+**/
+
 var _ = require('underscore');
 
 /*global navigator: false */
@@ -3771,7 +4158,12 @@ module.exports = function(AV) {
   };
 };
 
-},{"underscore":4}],17:[function(require,module,exports){
+},{"underscore":8}],21:[function(require,module,exports){
+/**
+ * 每位工程师都有保持代码优雅的义务
+ * Each engineer has a duty to keep the code elegant
+**/
+
 'use strict';
 
 var _ = require('underscore');
@@ -3914,7 +4306,12 @@ module.exports = function(AV) {
 
 };
 
-},{"underscore":4}],18:[function(require,module,exports){
+},{"underscore":8}],22:[function(require,module,exports){
+/**
+ * 每位工程师都有保持代码优雅的义务
+ * Each engineer has a duty to keep the code elegant
+**/
+
 'use strict';
 
 var _ = require('underscore');
@@ -3949,7 +4346,12 @@ if (!localStorage.async) {
 
 module.exports = localStorage;
 
-},{"./browserify-wrapper/localStorage":9,"./promise":21,"underscore":4}],19:[function(require,module,exports){
+},{"./browserify-wrapper/localStorage":13,"./promise":25,"underscore":8}],23:[function(require,module,exports){
+/**
+ * 每位工程师都有保持代码优雅的义务
+ * Each engineer has a duty to keep the code elegant
+**/
+
 'use strict';
 
 var _ = require('underscore');
@@ -5309,7 +5711,7 @@ module.exports = function(AV) {
       if (_.isString(arg0) || (arg0 && _.has(arg0, "className"))) {
         return AV.Object.extend.apply(NewClassObject, arguments);
       }
-      var newArguments = [className].concat(AV._.toArray(arguments));
+      var newArguments = [className].concat(_.toArray(arguments));
       return AV.Object.extend.apply(NewClassObject, newArguments);
     };
     NewClassObject['new'] = function(attributes, options){
@@ -5475,7 +5877,12 @@ module.exports = function(AV) {
 
 };
 
-},{"underscore":4}],20:[function(require,module,exports){
+},{"underscore":8}],24:[function(require,module,exports){
+/**
+ * 每位工程师都有保持代码优雅的义务
+ * Each engineer has a duty to keep the code elegant
+**/
+
 'use strict';
 var _ = require('underscore');
 
@@ -6007,8 +6414,13 @@ module.exports = function(AV) {
 
 };
 
-},{"underscore":4}],21:[function(require,module,exports){
+},{"underscore":8}],25:[function(require,module,exports){
 (function (process){
+/**
+ * 每位工程师都有保持代码优雅的义务
+ * Each engineer has a duty to keep the code elegant
+**/
+
 'use strict';
 var _ = require('underscore');
 
@@ -6610,7 +7022,12 @@ Promise.prototype.finally = Promise.prototype.always;
 Promise.prototype.try = Promise.prototype.done;
 
 }).call(this,require('_process'))
-},{"_process":2,"underscore":4}],22:[function(require,module,exports){
+},{"_process":2,"underscore":8}],26:[function(require,module,exports){
+/**
+ * 每位工程师都有保持代码优雅的义务
+ * Each engineer has a duty to keep the code elegant
+**/
+
 'use strict';
 
 module.exports = function(AV) {
@@ -6670,7 +7087,12 @@ module.exports = function(AV) {
   };
 };
 
-},{}],23:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
+/**
+ * 每位工程师都有保持代码优雅的义务
+ * Each engineer has a duty to keep the code elegant
+**/
+
 'use strict';
 
 var _ = require('underscore');
@@ -6867,7 +7289,7 @@ module.exports = function(AV) {
       self.equalTo('objectId', objectId);
 
       return self.first().then(function(response) {
-        if (!AV._.isEmpty(response)) {
+        if (!_.isEmpty(response)) {
           return response;
         }
 
@@ -7571,7 +7993,7 @@ module.exports = function(AV) {
       }, function() {
         return query.find().then(function(results) {
           var callbacksDone = AV.Promise.as();
-          AV._.each(results, function(result) {
+          _.each(results, function(result) {
             callbacksDone = callbacksDone.then(function() {
               return callback(result);
             });
@@ -7609,7 +8031,12 @@ module.exports = function(AV) {
    });
 };
 
-},{"underscore":4}],24:[function(require,module,exports){
+},{"underscore":8}],28:[function(require,module,exports){
+/**
+ * 每位工程师都有保持代码优雅的义务
+ * Each engineer has a duty to keep the code elegant
+**/
+
 'use strict';
 var _ = require('underscore');
 
@@ -7726,7 +8153,12 @@ module.exports = function(AV) {
   };
 };
 
-},{"underscore":4}],25:[function(require,module,exports){
+},{"underscore":8}],29:[function(require,module,exports){
+/**
+ * 每位工程师都有保持代码优雅的义务
+ * Each engineer has a duty to keep the code elegant
+**/
+
 'use strict';
 
 var _ = require('underscore');
@@ -7865,7 +8297,12 @@ module.exports = function(AV) {
   });
 };
 
-},{"underscore":4}],26:[function(require,module,exports){
+},{"underscore":8}],30:[function(require,module,exports){
+/**
+ * 每位工程师都有保持代码优雅的义务
+ * Each engineer has a duty to keep the code elegant
+**/
+
 'use strict';
 
 var _ = require('underscore');
@@ -8151,7 +8588,12 @@ module.exports = function(AV) {
   });
 };
 
-},{"underscore":4}],27:[function(require,module,exports){
+},{"underscore":8}],31:[function(require,module,exports){
+/**
+ * 每位工程师都有保持代码优雅的义务
+ * Each engineer has a duty to keep the code elegant
+**/
+
 'use strict';
 
 var _ = require('underscore');
@@ -8220,7 +8662,7 @@ module.exports = function(AV) {
       return AV.Object.createWithoutData('_Status', this.id);
     },
     _getDataJSON: function() {
-      var json = AV._.clone(this.data);
+      var json = _.clone(this.data);
       return AV._encode(json);
     },
    /**
@@ -8528,7 +8970,12 @@ module.exports = function(AV) {
 
 };
 
-},{"underscore":4}],28:[function(require,module,exports){
+},{"underscore":8}],32:[function(require,module,exports){
+/**
+ * 每位工程师都有保持代码优雅的义务
+ * Each engineer has a duty to keep the code elegant
+**/
+
 'use strict';
 
 var _ = require('underscore');
@@ -9619,21 +10066,39 @@ function filterOutCallbacks(options) {
   return newOptions;
 }
 
-},{"underscore":4}],29:[function(require,module,exports){
+},{"underscore":8}],33:[function(require,module,exports){
 (function (process){
+/**
+ * 每位工程师都有保持代码优雅的义务
+ * Each engineer has a duty to keep the code elegant
+**/
+
 'use strict';
 
-var _ = require('underscore');
+const _ = require('underscore');
+const ajax = require('./browserify-wrapper/ajax');
 
-/*global _: false, $: false, localStorage: false, process: true,
-  XMLHttpRequest: false, XDomainRequest: false, exports: false,
-  require: false */
-module.exports = function(AV) {
+const init = (AV) => {
 
   // 挂载一些配置
-  _.extend(AV._config, {
-    cnApiUrl: 'https://api.leancloud.cn',
-    usApiUrl: 'https://us-api.leancloud.cn'
+  let AVConfig = AV._config;
+
+  // 服务器请求的节点 host
+  const API_HOST = {
+    cn: 'https://api.leancloud.cn',
+    us: 'https://us-api.leancloud.cn'
+  };
+
+  _.extend(AVConfig, {
+
+    // 服务器节点地区，默认中国大陆
+    region: 'cn',
+
+    // 服务器的 URL，默认初始化时被设置为大陆节点地址
+    APIServerURL: AVConfig.APIServerURL || '',
+
+    // 当前是否为 nodejs 环境
+    isNode: false
   });
 
   /**
@@ -9646,7 +10111,7 @@ module.exports = function(AV) {
 
   // Check whether we are running in Node.js.
   if (typeof(process) !== 'undefined' && process.versions && process.versions.node) {
-    AV._config.isNode = true;
+    AVConfig.isNode = true;
   }
 
   // Helpers
@@ -9707,17 +10172,29 @@ module.exports = function(AV) {
    * @param {String} applicationId Your AV Application ID.
    * @param {String} applicationKey Your AV Application Key
    */
-   const initialize = (applicationId, applicationKey, masterKey) => {
-    if (AV.applicationId !== undefined &&
-        applicationId !== AV.applicationId  &&
-        applicationKey !== AV.applicationKey &&
-        masterKey !== AV.masterKey) {
-      console.warn('AVOSCloud SDK is already initialized, please don\'t reinitialize it.');
+   const initialize = (appId, appKey, masterKey) => {
+    if (AV.applicationId && appId !== AV.applicationId && appKey !== AV.applicationKey && masterKey !== AV.masterKey) {
+      console.warn('LeanCloud SDK is already initialized, please do not reinitialize it.');
     }
-    AV.applicationId = applicationId;
-    AV.applicationKey = applicationKey;
+    AV.applicationId = appId;
+    AV.applicationKey = appKey;
     AV.masterKey = masterKey;
     AV._useMasterKey = false;
+  };
+
+  const setRegionServer = (region) => {
+    // 服务器地区选项，默认为中国大陆
+    switch (region) {
+      case 'us':
+        AVConfig.region = 'us';
+      break;
+      default:
+        AVConfig.region = 'cn';
+      break;
+    }
+    if (!AVConfig.APIServerURL) {
+      AVConfig.APIServerURL = API_HOST[AVConfig.region];
+    }
   };
 
   /**
@@ -9731,14 +10208,22 @@ module.exports = function(AV) {
   */
 
   AV.init = (...args) => {
+
+    const masterKeyWarn = () => {
+      console.warn('MasterKey should not be used in the browser. ' +
+        'The permissions of MasterKey can be across all the server permissions,' +
+        ' including the setting of ACL .');
+    };
+
     switch (args.length) {
       case 1:
         const options = args[0];
         if (typeof options === 'object') {
-          if (!AV._config.isNode && options.masterKey) {
-            throw new Error('AV.init(): Master Key is only used in Node.js.');
+          if (!AVConfig.isNode && options.masterKey) {
+            masterKeyWarn();
           }
           initialize(options.appId, options.appKey, options.masterKey);
+          setRegionServer(options.region);
         } else {
           throw new Error('AV.init(): Parameter is not correct.');
         }
@@ -9746,20 +10231,22 @@ module.exports = function(AV) {
       // 兼容旧版本的初始化方法
       case 2:
       case 3:
-        if (!AV._config.isNode && args.length === 3) {
-          throw new Error('AV.init(): Master Key is only used in Node.js.');
+        console.warn('Please use AV.init() to replace AV.initialize() .');
+        if (!AVConfig.isNode && args.length === 3) {
+          masterKeyWarn();
         }
         initialize(...args);
+        setRegionServer('cn');
       break;
     }
   };
 
   // If we're running in node.js, allow using the master key.
-  if (AV._config.isNode) {
+  if (AVConfig.isNode) {
     AV.Cloud = AV.Cloud || {};
     /**
-     * Switches the AVOSCloud SDK to using the Master key.  The Master key grants
-     * priveleged access to the data in AVOSCloud and can be used to bypass ACLs and
+     * Switches the LeanCloud SDK to using the Master key.  The Master key grants
+     * priveleged access to the data in LeanCloud and can be used to bypass ACLs and
      * other restrictions that are applied to the client SDKs.
      * <p><strong><em>Available in Cloud Code and Node.js only.</em></strong>
      * </p>
@@ -9788,21 +10275,22 @@ module.exports = function(AV) {
   };
 
   /**
-  *Use china avoscloud API service
-  */
+   * @deprecated Please use AV.init(), you can set the region of server .
+  **/
+  // TODO: 后续不再暴露此接口
   AV.useAVCloudCN = function(){
-    AV.serverURL = AV._config.cnApiUrl;
+    setRegionServer('cn');
+    console.warn('Do not use AV.useAVCloudCN. Please use AV.init(), you can set the region of server.');
   };
 
   /**
-  *Use USA avoscloud API service
-  */
+   * @deprecated Please use AV.init(), you can set the region of server .
+  **/
+  // TODO: 后续不再暴露此接口
   AV.useAVCloudUS = function(){
-    AV.serverURL = AV._config.usApiUrl;
+    setRegionServer('us');
+    console.warn('Do not use AV.useAVCloudUS. Please use AV.init(), you can set the region of server.');
   };
-
-  // 默认使用国内节点
-  AV.useAVCloudCN();
 
   /**
    * Returns prefix for localStorage keys used by this instance of AV.
@@ -9817,7 +10305,7 @@ module.exports = function(AV) {
     if (!path) {
       path = "";
     }
-    if (!AV._.isString(path)) {
+    if (!_.isString(path)) {
       throw "Tried to get a localStorage path that wasn't a String.";
     }
     if (path[0] === "/") {
@@ -9881,7 +10369,7 @@ module.exports = function(AV) {
     return new Date(Date.UTC(year, month, day, hour, minute, second, milli));
   };
 
-  AV._ajax = require('./browserify-wrapper/ajax');
+  AV._ajax = ajax;
 
   // A self-propagating extend function.
   AV._extend = function(protoProps, classProps) {
@@ -9940,36 +10428,37 @@ module.exports = function(AV) {
       throw "Bad route: '" + route + "'.";
     }
 
-    var url = AV.serverURL;
-    if (url.charAt(url.length - 1) !== "/") {
-      url += "/";
+    // 兼容 AV.serverURL 旧方式设置 API Host，后续去掉
+    let apiURL = AV.serverURL || AVConfig.APIServerURL;
+    if (AV.serverURL) {
+      AVConfig.APIServerURL = AV.serverURL;
+      console.warn('Please use AV._config.APIServerURL to replace AV.serverURL .');
     }
-    url += "1.1/" + route;
+    if (apiURL.charAt(apiURL.length - 1) !== "/") {
+      apiURL += "/";
+    }
+    apiURL += "1.1/" + route;
     if (className) {
-      url += "/" + className;
+      apiURL += "/" + className;
     }
     if (objectId) {
-      url += "/" + objectId;
+      apiURL += "/" + objectId;
     }
     if ((route ==='users' || route === 'classes') && dataObject && dataObject._fetchWhenSave){
       delete dataObject._fetchWhenSave;
-      url += '?new=true';
+      apiURL += '?new=true';
     }
 
-    dataObject = AV._.clone(dataObject || {});
-    if (method !== "POST") {
-      dataObject._method = method;
-      method = "POST";
-    }
-
+    dataObject = _.clone(dataObject || {});
     dataObject._ApplicationId = AV.applicationId;
     dataObject._ApplicationKey = AV.applicationKey;
-    if(!AV._isNullOrUndefined(AV.applicationProduction)) {
+    if (!AV._isNullOrUndefined(AV.applicationProduction)) {
       dataObject._ApplicationProduction = AV.applicationProduction;
     }
-    if(AV._useMasterKey)
-        dataObject._MasterKey = AV.masterKey;
-    dataObject._ClientVersion = AV.VERSION;
+    if (AV._useMasterKey) {
+      dataObject._MasterKey = AV.masterKey;
+    }
+    dataObject._ClientVersion = AV.version;
     // Pass the session token on every request.
     return AV.User.currentAsync().then(function(currentUser) {
       if (currentUser && currentUser._sessionToken) {
@@ -9979,8 +10468,7 @@ module.exports = function(AV) {
     }).then(function(_InstallationId) {
       dataObject._InstallationId = _InstallationId;
 
-      var data = JSON.stringify(dataObject);
-      return AV._ajax(method, url, data).then(null, function(response) {
+      return AV._ajax(method, apiURL, dataObject).then(null, function(response) {
         // Transform the error into an instance of AV.Error by trying to parse
         // the error string as JSON.
         var error;
@@ -10008,7 +10496,7 @@ module.exports = function(AV) {
     if (!(object && object[prop])) {
       return null;
     }
-    return AV._.isFunction(object[prop]) ? object[prop]() : object[prop];
+    return _.isFunction(object[prop]) ? object[prop]() : object[prop];
   };
 
   /**
@@ -10021,7 +10509,6 @@ module.exports = function(AV) {
    * is set, then none of the AV Objects that are serialized can be dirty.
    */
   AV._encode = function(value, seenObjects, disallowObjects) {
-    var _ = AV._;
     if (value instanceof AV.Object) {
       if (disallowObjects) {
         throw "AV.Objects not allowed here";
@@ -10086,7 +10573,6 @@ module.exports = function(AV) {
    * TODO: make decode not mutate value.
    */
   AV._decode = function(key, value) {
-    var _ = AV._;
     if (!_.isObject(value)) {
       return value;
     }
@@ -10183,7 +10669,7 @@ module.exports = function(AV) {
     }
   };
 
-  AV._arrayEach = AV._.each;
+  AV._arrayEach = _.each;
 
   /**
    * Does a deep traversal of every item in object, calling func on every one.
@@ -10196,7 +10682,7 @@ module.exports = function(AV) {
   AV._traverse = function(object, func, seen) {
     if (object instanceof AV.Object) {
       seen = seen || [];
-      if (AV._.indexOf(seen, object) >= 0) {
+      if (_.indexOf(seen, object) >= 0) {
         // We've already visited this object in this call.
         return;
       }
@@ -10209,8 +10695,8 @@ module.exports = function(AV) {
       // object's parent infinitely, so we catch this case.
       return func(object);
     }
-    if (AV._.isArray(object)) {
-      AV._.each(object, function(child, index) {
+    if (_.isArray(object)) {
+      _.each(object, function(child, index) {
         var newChild = AV._traverse(child, func, seen);
         if (newChild) {
           object[index] = newChild;
@@ -10218,7 +10704,7 @@ module.exports = function(AV) {
       });
       return func(object);
     }
-    if (AV._.isObject(object)) {
+    if (_.isObject(object)) {
       AV._each(object, function(child, key) {
         var newChild = AV._traverse(child, func, seen);
         if (newChild) {
@@ -10236,7 +10722,6 @@ module.exports = function(AV) {
    * * it does work for dictionaries with a "length" attribute.
    */
   AV._objectEach = AV._each = function(obj, callback) {
-    var _ = AV._;
     if (_.isObject(obj)) {
       _.each(_.keys(obj), function(key) {
         callback(obj[key], key);
@@ -10248,14 +10733,25 @@ module.exports = function(AV) {
 
   // Helper function to check null or undefined.
   AV._isNullOrUndefined = function(x) {
-    return AV._.isNull(x) || AV._.isUndefined(x);
+    return _.isNull(x) || _.isUndefined(x);
   };
+
+};
+
+module.exports = {
+
+  init: init
 };
 
 }).call(this,require('_process'))
-},{"./browserify-wrapper/ajax":8,"_process":2,"underscore":4}],30:[function(require,module,exports){
+},{"./browserify-wrapper/ajax":12,"_process":2,"underscore":8}],34:[function(require,module,exports){
+/**
+ * 每位工程师都有保持代码优雅的义务
+ * Each engineer has a duty to keep the code elegant
+**/
+
 'use strict';
 
 module.exports = 'js1.0.0-rc7';
 
-},{}]},{},[6]);
+},{}]},{},[10]);

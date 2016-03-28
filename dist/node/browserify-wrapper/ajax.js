@@ -1,3 +1,8 @@
+/**
+ * 每位工程师都有保持代码优雅的义务
+ * Each engineer has a duty to keep the code elegant
+**/
+
 'use strict';
 
 var http = require('http');
@@ -5,13 +10,19 @@ var https = require('https');
 var url = require('url');
 
 var Promise = require('../promise');
-var AV_VERSION = require('../version');
 
 // `keepAlive` option only work on Node.js 0.12+
 var httpAgent = new http.Agent({ keepAlive: true });
 var httpsAgent = new https.Agent({ keepAlive: true });
 
 module.exports = function _ajax(method, resourceUrl, data, success, error) {
+  if (method.toLowerCase() !== 'post') {
+    data = data || {};
+    data._method = method;
+    method = 'post';
+  }
+  data = JSON.stringify(data);
+
   var parsedUrl = url.parse(resourceUrl);
   var promise = new Promise();
 
@@ -32,7 +43,7 @@ module.exports = function _ajax(method, resourceUrl, data, success, error) {
     agent: transportAgent,
     headers: {
       'Content-Type': 'text/plain',
-      'User-Agent': 'AV/' + AV_VERSION + ' (Node.js' + process.version + ')'
+      'User-Agent': 'AV/' + AV.version + ' (Node.js' + process.version + ')'
     }
   });
 
