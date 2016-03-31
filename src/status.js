@@ -58,7 +58,7 @@ module.exports = function(AV) {
     destroy: function(options){
       if(!this.id)
         return AV.Promise.error('The status id is not exists.')._thenRunCallbacks(options);
-      var request = AV._request("statuses", null, this.id, 'DELETE', options && options.sessionToken);
+      var request = AV._request('statuses', null, this.id, 'DELETE', options && options.sessionToken);
       return request._thenRunCallbacks(options);
     },
     /**
@@ -294,7 +294,7 @@ module.exports = function(AV) {
       return new AV.Status();
     },
     _createRequest: function(params, options){
-      return AV._request("subscribe/statuses", null, null, "GET",
+      return AV._request('subscribe/statuses', null, null, 'GET',
                                    params || this.toJSON(), options && options.sessionToken);
     },
 

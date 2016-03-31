@@ -299,16 +299,14 @@ describe("User", function() {
     it('User#signUp', function() {
       user = new AV.User();
 
-      user.set("username", username);
-      user.set("password", password);
-      user.set("email", email);
+      user.set('username', username);
+      user.set('password', password);
+      user.set('email', email);
 
-      return user.signUp(null, {
-        success: function(user) {
-          expect(user._isCurrentUser).to.be.equal(false);
-          expect(AV.User._currentUser).to.be.equal(null);
-          expect(user._sessionToken).to.be.ok();
-        }
+      return user.signUp().then(function(user) {
+        expect(user._isCurrentUser).to.be.equal(false);
+        expect(AV.User._currentUser).to.be.equal(null);
+        expect(user._sessionToken).to.be.ok();
       });
     });
 
@@ -326,27 +324,21 @@ describe("User", function() {
       });
     });
 
-    it('User#save without token', function(done) {
-      user.save({username: username + 'changed'}, {
-        success: function() {
-          done(new Error('Should not success'));
-        },
-        error: function(err) {
-          expect(err.code).to.be.equal(206);
-          done();
-        }
+    it('User#save without token', function() {
+      return user.save({username: username + 'changed'}).then(function() {
+        throw new Error('Should not success');
+      }, function(err) {
+        expect(err.code).to.be.equal(206);
       });
     });
 
-    it('User#save with token', function(done) {
-      user.save({username: username + 'changed'}, {
-        sessionToken: user.getSessionToken(),
-        success: function() {
-          done();
-        },
-        error: function(err) {
-          done(err);
-        }
+    it('User#save with token', function() {
+      return user.save({
+        username: username + 'changed'
+      }, {sessionToken: user.getSessionToken()}).then(function() {
+        user.fetch().then(function() {
+          expect(user.username).to.be.equal(username + 'changed');
+        });
       });
     });
 

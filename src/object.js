@@ -791,7 +791,7 @@ module.exports = function(AV) {
       }
 
       var self = this;
-      var request = AV._request("classes", this.className, this.id, 'GET',
+      var request = AV._request('classes', this.className, this.id, 'GET',
                                 fetchOptions, options.sessionToken);
       return request.then(function(response) {
         self._finishFetch(self.parse(response), true);
@@ -977,7 +977,7 @@ module.exports = function(AV) {
       }
 
       var request =
-          AV._request("classes", this.className, this.id, 'DELETE', null, options.sessionToken);
+          AV._request('classes', this.className, this.id, 'DELETE', null, options.sessionToken);
       return request.then(function() {
         if (options.wait) {
           triggerDestroy();
@@ -1247,7 +1247,7 @@ module.exports = function(AV) {
           }
       });
       var request =
-          AV._request("classes", className, id, 'DELETE', null, options.sessionToken);
+          AV._request('classes', className, id, 'DELETE', null, options.sessionToken);
       return request._thenRunCallbacks(options);
    };
 

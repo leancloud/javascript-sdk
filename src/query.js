@@ -155,7 +155,7 @@ module.exports = function(AV) {
       options = pvalues;
     }
 
-    var request = AV._request("cloudQuery", null, null, 'GET', params, options && options.sessionToken);
+    var request = AV._request('cloudQuery', null, null, 'GET', params, options && options.sessionToken);
     return request.then(function(response) {
       //query to process results.
       var query = new AV.Query(response.className);
@@ -252,7 +252,7 @@ module.exports = function(AV) {
       return obj;
     },
     _createRequest: function(params, options){
-      return AV._request("classes", this.className, null, "GET",
+      return AV._request('classes', this.className, null, "GET",
                                    params || this.toJSON(), options && options.sessionToken);
     },
 
