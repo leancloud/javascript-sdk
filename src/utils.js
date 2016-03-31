@@ -28,7 +28,10 @@ const init = (AV) => {
     APIServerURL: AVConfig.APIServerURL || '',
 
     // 当前是否为 nodejs 环境
-    isNode: false
+    isNode: false,
+
+    // 禁用 currentUser，通常用于多用户环境
+    disableCurrentUser: false
   });
 
   /**
@@ -154,6 +157,7 @@ const init = (AV) => {
           }
           initialize(options.appId, options.appKey, options.masterKey);
           setRegionServer(options.region);
+          AVConfig.disableCurrentUser = options.disableCurrentUser;
         } else {
           throw new Error('AV.init(): Parameter is not correct.');
         }
@@ -393,7 +397,7 @@ const init = (AV) => {
       // Pass the session token
       if (sessionToken) {
         dataObject._SessionToken = sessionToken;
-      } else if (!AV.User._currentUserDisabled) {
+      } else if (!AV._config.disableCurrentUser) {
         return AV.User.currentAsync().then(function(currentUser) {
           if (currentUser && currentUser._sessionToken) {
             dataObject._SessionToken = currentUser._sessionToken;
@@ -402,7 +406,7 @@ const init = (AV) => {
       }
     }).then(function() {
       // Pass the installation id
-      if (!AV.User._currentUserDisabled) {
+      if (!AV._config.disableCurrentUser) {
         return AV._getInstallationId().then(function(installationId) {
           dataObject._InstallationId = installationId;
         });

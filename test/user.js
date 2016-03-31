@@ -288,7 +288,7 @@ describe("User", function() {
     before(function() {
       originalUser = AV.User._currentUser;
       AV.User._currentUser = null;
-      AV.User._currentUserDisabled = true;
+      AV._config.disableCurrentUser = true;
       AV._useMasterKey = false;
     });
 
@@ -343,7 +343,7 @@ describe("User", function() {
     });
 
     after(function() {
-      AV.User._currentUserDisabled = false;
+      AV._config.disableCurrentUser = false;
       AV._useMasterKey = true;
       AV.User._currentUser = originalUser;
     });

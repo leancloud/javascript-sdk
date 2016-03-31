@@ -96,7 +96,7 @@ module.exports = function(AV) {
 
     _handleSaveResult: function(makeCurrent) {
       // Clean up and synchronize the authData object, removing any unset values
-      if (makeCurrent && !AV.User._currentUserDisabled) {
+      if (makeCurrent && !AV._config.disableCurrentUser) {
         this._isCurrentUser = true;
       }
       this._cleanupAuthData();
@@ -105,7 +105,7 @@ module.exports = function(AV) {
       delete this._serverData.password;
       this._rebuildEstimatedDataForKey("password");
       this._refreshCache();
-      if ((makeCurrent || this.isCurrent()) && !AV.User._currentUserDisabled) {
+      if ((makeCurrent || this.isCurrent()) && !AV._config.disableCurrentUser) {
         // Some old version of leanengine-node-sdk will overwrite
         // AV.User._saveCurrentUser which returns no Promise.
         // So we need a Promise wrapper.
@@ -606,8 +606,6 @@ module.exports = function(AV) {
     // The mapping of auth provider names to actual providers
     _authProviders: {},
 
-    _currentUserDisabled: false,
-
     // Class Methods
 
     /**
@@ -797,7 +795,7 @@ module.exports = function(AV) {
      * <code>current</code> will return <code>null</code>.
      */
     logOut: function() {
-      if (AV.User._currentUserDisabled) {
+      if (AV._config.disableCurrentUser) {
         return console.warn('AV.User\'s currentUser disabled, use User#logOut instead');
       }
 
@@ -978,7 +976,7 @@ module.exports = function(AV) {
      * @return {AV.Promise} resolved with the currently logged in AV.User.
      */
     currentAsync: function() {
-      if (AV.User._currentUserDisabled) {
+      if (AV._config.disableCurrentUser) {
         console.warn('AV.User\'s currentUser disabled, access user from request instead');
         return AV.Promise.as(null);
       }
@@ -1027,7 +1025,7 @@ module.exports = function(AV) {
      * @return {AV.Object} The currently logged in AV.User.
      */
     current: function() {
-      if (AV.User._currentUserDisabled) {
+      if (AV._config.disableCurrentUser) {
         console.warn('AV.User\'s currentUser disabled, access user from request instead');
         return null;
       }
@@ -1065,10 +1063,6 @@ module.exports = function(AV) {
       AV.User._currentUser._refreshCache();
       AV.User._currentUser._opSetQueue = [{}];
       return AV.User._currentUser;
-    },
-
-    disableCurrentUser: function() {
-      AV.User._currentUserDisabled = true;
     },
 
     /**
