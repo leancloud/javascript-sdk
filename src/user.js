@@ -796,7 +796,7 @@ module.exports = function(AV) {
      */
     logOut: function() {
       if (AV._config.disableCurrentUser) {
-        return console.warn('AV.User\'s currentUser disabled, use User#logOut instead');
+        return console.warn('AV.User.current() was disabled in multi-user environment, call logOut() from user object instead');
       }
 
       if (AV.User._currentUser !== null) {
@@ -977,7 +977,7 @@ module.exports = function(AV) {
      */
     currentAsync: function() {
       if (AV._config.disableCurrentUser) {
-        console.warn('AV.User\'s currentUser disabled, access user from request instead');
+        console.warn('AV.User.current() was disabled in multi-user environment, access user from request instead');
         return AV.Promise.as(null);
       }
 
@@ -1026,7 +1026,7 @@ module.exports = function(AV) {
      */
     current: function() {
       if (AV._config.disableCurrentUser) {
-        console.warn('AV.User\'s currentUser disabled, access user from request instead');
+        console.warn('AV.User.current() was disabled in multi-user environment, access user from request instead');
         return null;
       }
 
