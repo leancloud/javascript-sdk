@@ -32,16 +32,6 @@ const ajax = (method, url, data, success, error) => {
   const appKey = AV.applicationKey;
   const masterKey = AV.masterKey;
 
-  // 清理原来多余的数据（如果不清理，会污染数据表）
-  if (data) {
-    delete data._ApplicationId;
-    delete data._ApplicationKey;
-    delete data._ApplicationProduction;
-    delete data._MasterKey;
-    delete data._ClientVersion;
-    delete data._InstallationId;
-  }
-
   let handled = false;
   const xhr = new global.XMLHttpRequest();
   xhr.onreadystatechange = () => {
@@ -82,19 +72,39 @@ const ajax = (method, url, data, success, error) => {
     }
   }
 
-  xhr.open(method, url, true);
-  xhr.setRequestHeader('X-LC-Id', appId);
+  let headers = {
+    'X-LC-Id': appId,
+    'X-LC-UA': 'LC-Web-' + AV.version,
+    'Content-Type': 'application/json;charset=UTF-8'
+  };
 
-  let signature;
-  if (masterKey) {
-    signature = sign(masterKey, true);
-  } else {
-    signature = sign(appKey);
+  // 清理原来多余的数据（如果不清理，会污染数据表）
+  if (data) {
+    delete data._ApplicationId;
+    delete data._ApplicationKey;
+    delete data._ApplicationProduction;
+    delete data._MasterKey;
+    delete data._ClientVersion;
+    delete data._InstallationId;
+
+    if (data._SessionToken) {
+      headers['X-LC-Session'] = data._SessionToken;
+      delete data._SessionToken;
+    }
   }
 
-  xhr.setRequestHeader('X-LC-Sign', signature);
-  xhr.setRequestHeader('X-LC-UA', 'LC-Web-' + AV.version);
-  xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
+  if (masterKey && AV._useMasterKey) {
+    headers['X-LC-Sign'] = sign(masterKey, true);
+  } else {
+    headers['X-LC-Sign'] = sign(appKey);
+  }
+
+  xhr.open(method, url, true);
+
+  for (let name in headers) {
+    xhr.setRequestHeader(name, headers[name]);
+  }
+
   xhr.send(JSON.stringify(data));
   return promise._thenRunCallbacks(options);
 };
