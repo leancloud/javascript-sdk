@@ -96,7 +96,7 @@ module.exports = function(AV) {
 
     _handleSaveResult: function(makeCurrent) {
       // Clean up and synchronize the authData object, removing any unset values
-      if (makeCurrent) {
+      if (makeCurrent && !AV._config.disableCurrentUser) {
         this._isCurrentUser = true;
       }
       this._cleanupAuthData();
@@ -105,7 +105,7 @@ module.exports = function(AV) {
       delete this._serverData.password;
       this._rebuildEstimatedDataForKey("password");
       this._refreshCache();
-      if (makeCurrent || this.isCurrent()) {
+      if ((makeCurrent || this.isCurrent()) && !AV._config.disableCurrentUser) {
         // Some old version of leanengine-node-sdk will overwrite
         // AV.User._saveCurrentUser which returns no Promise.
         // So we need a Promise wrapper.
@@ -196,6 +196,11 @@ module.exports = function(AV) {
       }
       var authData = this.get('authData') || {};
       return !!authData[authType];
+    },
+
+    logOut: function() {
+      this._logOutWithAll();
+      this._isCurrentUser = false;
     },
 
     /**
@@ -408,7 +413,7 @@ module.exports = function(AV) {
           throw "Invalid target user.";
       }
       var route = 'users/' + this.id + '/friendship/' + userObjectId;
-      var request = AV._request(route, null, null, 'POST', null);
+      var request = AV._request(route, null, null, 'POST', null, options && options.sessionToken);
       return request._thenRunCallbacks(options);
     },
 
@@ -432,7 +437,7 @@ module.exports = function(AV) {
           throw "Invalid target user.";
       }
       var route = 'users/' + this.id + '/friendship/' + userObjectId;
-      var request = AV._request(route, null, null, 'DELETE', null);
+      var request = AV._request(route, null, null, 'DELETE', null, options && options.sessionToken);
       return request._thenRunCallbacks(options);
     },
 
@@ -488,7 +493,7 @@ module.exports = function(AV) {
         old_password: oldPassword,
         new_password: newPassword
       };
-      var request = AV._request(route, null, null, 'PUT', params);
+      var request = AV._request(route, null, null, 'PUT', params, options && options.sessionToken);
       return request._thenRunCallbacks(options, this);
     },
 
@@ -578,7 +583,11 @@ module.exports = function(AV) {
     authenticated: function() {
       return !!this._sessionToken &&
           (AV.User.current() && AV.User.current().id === this.id);
-    }
+    },
+
+    getSessionToken: function() {
+      return this._sessionToken;
+    },
 
   }, /** @lends AV.User */ {
     // Class Variables
@@ -596,7 +605,6 @@ module.exports = function(AV) {
 
     // The mapping of auth provider names to actual providers
     _authProviders: {},
-
 
     // Class Methods
 
@@ -787,6 +795,10 @@ module.exports = function(AV) {
      * <code>current</code> will return <code>null</code>.
      */
     logOut: function() {
+      if (AV._config.disableCurrentUser) {
+        return console.warn('AV.User.current() was disabled in multi-user environment, call logOut() from user object instead');
+      }
+
       if (AV.User._currentUser !== null) {
         AV.User._currentUser._logOutWithAll();
         AV.User._currentUser._isCurrentUser = false;
@@ -964,6 +976,11 @@ module.exports = function(AV) {
      * @return {AV.Promise} resolved with the currently logged in AV.User.
      */
     currentAsync: function() {
+      if (AV._config.disableCurrentUser) {
+        console.warn('AV.User.current() was disabled in multi-user environment, access user from request instead');
+        return AV.Promise.as(null);
+      }
+
       if (AV.User._currentUser) {
         return AV.Promise.as(AV.User._currentUser);
       }
@@ -1008,6 +1025,11 @@ module.exports = function(AV) {
      * @return {AV.Object} The currently logged in AV.User.
      */
     current: function() {
+      if (AV._config.disableCurrentUser) {
+        console.warn('AV.User.current() was disabled in multi-user environment, access user from request instead');
+        return null;
+      }
+
       if (AV.User._currentUser) {
         return AV.User._currentUser;
       }

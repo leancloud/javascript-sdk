@@ -28,7 +28,10 @@ const init = (AV) => {
     APIServerURL: AVConfig.APIServerURL || '',
 
     // 当前是否为 nodejs 环境
-    isNode: false
+    isNode: false,
+
+    // 禁用 currentUser，通常用于多用户环境
+    disableCurrentUser: false
   });
 
   /**
@@ -154,6 +157,7 @@ const init = (AV) => {
           }
           initialize(options.appId, options.appKey, options.masterKey);
           setRegionServer(options.region);
+          AVConfig.disableCurrentUser = options.disableCurrentUser;
         } else {
           throw new Error('AV.init(): Parameter is not correct.');
         }
@@ -315,7 +319,7 @@ const init = (AV) => {
    * dataObject is the payload as an object, or null if there is none.
    * @ignore
    */
-  AV._request = function(route, className, objectId, method, dataObject) {
+  AV._request = function(route, className, objectId, method, dataObject, sessionToken) {
     if (!AV.applicationId) {
       throw "You must specify your applicationId using AV.initialize";
     }
@@ -389,15 +393,25 @@ const init = (AV) => {
       dataObject._MasterKey = AV.masterKey;
     }
     dataObject._ClientVersion = AV.version;
-    // Pass the session token on every request.
-    return AV.User.currentAsync().then(function(currentUser) {
-      if (currentUser && currentUser._sessionToken) {
-        dataObject._SessionToken = currentUser._sessionToken;
+    return AV.Promise.as().then(function() {
+      // Pass the session token
+      if (sessionToken) {
+        dataObject._SessionToken = sessionToken;
+      } else if (!AV._config.disableCurrentUser) {
+        return AV.User.currentAsync().then(function(currentUser) {
+          if (currentUser && currentUser._sessionToken) {
+            dataObject._SessionToken = currentUser._sessionToken;
+          }
+        });
       }
-      return AV._getInstallationId();
-    }).then(function(_InstallationId) {
-      dataObject._InstallationId = _InstallationId;
-
+    }).then(function() {
+      // Pass the installation id
+      if (!AV._config.disableCurrentUser) {
+        return AV._getInstallationId().then(function(installationId) {
+          dataObject._InstallationId = installationId;
+        });
+      }
+    }).then(function() {
       return AV._ajax(method, apiURL, dataObject).then(null, function(response) {
         // Transform the error into an instance of AV.Error by trying to parse
         // the error string as JSON.

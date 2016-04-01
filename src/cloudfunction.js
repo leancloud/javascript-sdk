@@ -31,8 +31,8 @@ module.exports = function(AV) {
      * of the function.
      */
     run: function(name, data, options) {
-      var request = AV._request("functions", name, null, 'POST',
-                                   AV._encode(data, null, true));
+      var request = AV._request('functions', name, null, 'POST',
+                                   AV._encode(data, null, true), options && options.sessionToken);
 
       return request.then(function(resp) {
         return AV._decode(null, resp).result;
