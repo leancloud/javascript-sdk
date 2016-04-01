@@ -342,15 +342,20 @@ module.exports = function(AV) {
     // 用来存储转换后要上传的 base64 String
     this._base64 = '';
 
-    var currentUser;
-    try {
-      currentUser = AV.User.current();
+    let owner;
+
+    if (data && data.owner) {
+      owner = data.owner;
+    } else {
+      try {
+        owner = AV.User.current();
+      } catch (e) {
+        console.warn('Get current user failed. It seems this runtime use an async storage system, please new AV.File in the callback of AV.User.currentAsync().');
+      }
     }
-    catch (e) {
-      console.warn('Get current user failed. It seems this runtime use an async storage system, please new AV.File in the callback of AV.User.currentAsync().');
-    }
+
     this._metaData = {
-       owner: (currentUser ? currentUser.id : 'unknown')
+       owner: (owner ? owner.id : 'unknown')
     };
 
     // Guess the content type from the extension if we need to.
