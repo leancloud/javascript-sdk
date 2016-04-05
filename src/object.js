@@ -129,9 +129,12 @@ module.exports = function(AV) {
      * Set whether to enable fetchWhenSave option when updating object.
      * When set true, SDK would fetch the latest object after saving.
      * Default is false.
+     *
+     * @deprecated use AV.Object#save with options.fetchWhenSave instead
      * @param {boolean} enable  true to enable fetchWhenSave option.
      */
     fetchWhenSave: function(enable){
+      console.warn('AV.Object#fetchWhenSave is deprecated, use AV.Object#save with options.fetchWhenSave instead.');
       if (!_.isBoolean(enable)) {
         throw "Expect boolean value for fetchWhenSave";
       }

@@ -313,9 +313,10 @@ describe('Objects', function(){
           person2.set('age', 0);
           person2.increment('age',9);
           person2.save().then(function(person){
-            person.fetchWhenSave(true);
             person.increment('age', 10);
-            person.save().then(function(p){
+            person.save(null, {
+              fetchWhenSave: true
+            }).then(function(p){
               expect(p.get('age')).to.be(19);
               done();
             },function(err){
@@ -328,9 +329,10 @@ describe('Objects', function(){
 
     it("should fetch when save when creating new object.", function(done){
       var p= new Person();
-      p.fetchWhenSave(true);
       p.set('pname', 'dennis');
-      p.save().then(function(person) {
+      p.save(null, {
+        fetchWhenSave: true
+      }).then(function(person) {
         expect(person.get('company')).to.be('leancloud');
         done();
       }).catch(function(err) {
