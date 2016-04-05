@@ -119,6 +119,28 @@ describe('Objects', function(){
         }
       });
     });
+    it('should not update prop when query not match',function(done){
+      gameScore.set('score', 10000);
+      gameScore.save(null, {
+        query: new AV.Query(GameScore).equalTo('score', -1)
+      }).then(function(result) {
+        done(new Error('should not success'));
+      }, function(error) {
+        expect(error.code).to.be.eql(305);
+        done();
+      });
+    });
+    it('should update prop when query match',function(done){
+      gameScore.set('score', 10000);
+      gameScore.save(null, {
+        query: new AV.Query(GameScore).notEqualTo('score', -1),
+        fetchWhenSave: true
+      }).then(function(result) {
+        done();
+      }, function(error) {
+        done(error);
+      });
+    });
   });
 
   describe("Deleting Objects",function(){
@@ -300,9 +322,10 @@ describe('Objects', function(){
           person2.set('age', 0);
           person2.increment('age',9);
           person2.save().then(function(person){
-            person.fetchWhenSave(true);
             person.increment('age', 10);
-            person.save().then(function(p){
+            person.save(null, {
+              fetchWhenSave: true
+            }).then(function(p){
               expect(p.get('age')).to.be(19);
               done();
             },function(err){
@@ -315,9 +338,10 @@ describe('Objects', function(){
 
     it("should fetch when save when creating new object.", function(done){
       var p= new Person();
-      p.fetchWhenSave(true);
       p.set('pname', 'dennis');
-      p.save().then(function(person) {
+      p.save(null, {
+        fetchWhenSave: true
+      }).then(function(person) {
         expect(person.get('company')).to.be('leancloud');
         done();
       }).catch(function(err) {

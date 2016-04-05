@@ -129,9 +129,12 @@ module.exports = function(AV) {
      * Set whether to enable fetchWhenSave option when updating object.
      * When set true, SDK would fetch the latest object after saving.
      * Default is false.
+     *
+     * @deprecated use AV.Object#save with options.fetchWhenSave instead
      * @param {boolean} enable  true to enable fetchWhenSave option.
      */
     fetchWhenSave: function(enable){
+      console.warn('AV.Object#fetchWhenSave is deprecated, use AV.Object#save with options.fetchWhenSave instead.');
       if (!_.isBoolean(enable)) {
         throw "Expect boolean value for fetchWhenSave";
       }
@@ -832,7 +835,9 @@ module.exports = function(AV) {
      *   }, function(error) {
      *     // The save failed.  Error is an instance of AV.Error.
      *   });</pre>
-     *
+     * @param {Object} options Optional Backbone-like options object to be passed in to set.
+     * @param {Boolean} options.fetchWhenSave fetch and update object after save succeeded
+     * @param {AV.Query} options.query Save object only when it matches the query
      * @return {AV.Promise} A promise that is fulfilled when the save
      *     completes.
      * @see AV.Error
@@ -916,6 +921,23 @@ module.exports = function(AV) {
         if(model._fetchWhenSave){
           //Sepcial-case fetchWhenSave when updating object.
           json._fetchWhenSave = true;
+        }
+
+        if (options.fetchWhenSave) {
+          json._fetchWhenSave = true;
+        }
+        if (options.query) {
+          var queryJSON;
+          if (typeof options.query.toJSON === 'function') {
+            queryJSON = options.query.toJSON();
+            if (queryJSON) {
+              json._where = queryJSON.where;
+            }
+          }
+          if (!json._where) {
+            var error = new Error('options.query is not an AV.Query');
+            return AV.Promise.error(error)._thenRunCallbacks(options, model);
+          }
         }
 
         var route = "classes";

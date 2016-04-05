@@ -323,8 +323,8 @@ module.exports = function(AV) {
    * if (fileUploadControl.files.length > 0) {
    *   var file = fileUploadControl.files[0];
    *   var name = "photo.jpg";
-   *   var parseFile = new AV.File(name, file);
-   *   parseFile.save().then(function() {
+   *   var file = new AV.File(name, file);
+   *   file.save().then(function() {
    *     // The file has been saved to AV.
    *   }, function(error) {
    *     // The file either could not be read, or could not be saved to AV.
