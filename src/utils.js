@@ -378,13 +378,14 @@ const init = (AV) => {
     if (objectId) {
       apiURL += "/" + objectId;
     }
-    if ((route ==='users' || route === 'classes') && dataObject){
+    if ((route ==='users' || route === 'classes') && dataObject) {
+      apiURL += '?';
       if (dataObject._fetchWhenSave) {
         delete dataObject._fetchWhenSave;
-        apiURL += '?new=true';
+        apiURL += '&new=true';
       }
       if (dataObject._where) {
-        apiURL += ('?where=' + encodeURIComponent(JSON.stringify(dataObject._where)));
+        apiURL += ('&where=' + encodeURIComponent(JSON.stringify(dataObject._where)));
         delete dataObject._where;
       }
     }

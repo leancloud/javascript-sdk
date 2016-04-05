@@ -927,9 +927,14 @@ module.exports = function(AV) {
           json._fetchWhenSave = true;
         }
         if (options.query) {
-          try {
-            json._where = options.query.toJSON().where;
-          } catch (e) {
+          var queryJSON;
+          if (typeof options.query.toJSON === 'function') {
+            queryJSON = options.query.toJSON();
+            if (queryJSON) {
+              json._where = queryJSON.where;
+            }
+          }
+          if (!json._where) {
             var error = new Error('options.query is not an AV.Query');
             return AV.Promise.error(error)._thenRunCallbacks(options, model);
           }
