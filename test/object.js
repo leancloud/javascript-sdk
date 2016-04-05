@@ -119,6 +119,19 @@ describe('Objects', function(){
         }
       });
     });
+    it("should not update prop when query not match",function(done){
+      gameScore.set("score", 10000);
+      gameScore.save(null, {
+        query: new AV.Query(GameScore).equalTo('score', -1),
+        success: function(result) {
+          done(new Error('should not success'));
+        },
+        error: function(gameScore, error) {
+          expect(error.code).to.be.eql(305);
+          done();
+        }
+      });
+    });
   });
 
   describe("Deleting Objects",function(){

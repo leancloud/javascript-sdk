@@ -378,9 +378,15 @@ const init = (AV) => {
     if (objectId) {
       apiURL += "/" + objectId;
     }
-    if ((route ==='users' || route === 'classes') && dataObject && dataObject._fetchWhenSave){
-      delete dataObject._fetchWhenSave;
-      apiURL += '?new=true';
+    if ((route ==='users' || route === 'classes') && dataObject){
+      if (dataObject._fetchWhenSave) {
+        delete dataObject._fetchWhenSave;
+        apiURL += '?new=true';
+      }
+      if (dataObject._where) {
+        apiURL += ('?where=' + encodeURIComponent(JSON.stringify(dataObject._where)));
+        delete dataObject._where;
+      }
     }
 
     dataObject = _.clone(dataObject || {});

@@ -832,7 +832,9 @@ module.exports = function(AV) {
      *   }, function(error) {
      *     // The save failed.  Error is an instance of AV.Error.
      *   });</pre>
-     *
+     * @param {Object} options Optional Backbone-like options object to be passed in to set.
+     * @param {Boolean} options.fetchWhenSave fetch and update object after save succeeded
+     * @param {AV.Query} options.query Save object only when it matches the query
      * @return {AV.Promise} A promise that is fulfilled when the save
      *     completes.
      * @see AV.Error
@@ -916,6 +918,18 @@ module.exports = function(AV) {
         if(model._fetchWhenSave){
           //Sepcial-case fetchWhenSave when updating object.
           json._fetchWhenSave = true;
+        }
+
+        if (options.fetchWhenSave) {
+          json._fetchWhenSave = true;
+        }
+        if (options.query) {
+          try {
+            json._where = options.query.toJSON().where;
+          } catch (e) {
+            var error = new Error('options.query is not an AV.Query');
+            return AV.Promise.error(error)._thenRunCallbacks(options, model);
+          }
         }
 
         var route = "classes";
