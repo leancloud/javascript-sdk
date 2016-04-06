@@ -1,5 +1,7 @@
 'use strict';
 
+var request = require('superagent');
+
 describe('files', function() {
   describe('Saving base64', function() {
     it('should be saved', function() {
@@ -26,12 +28,8 @@ describe('files', function() {
       return file.save().then(function(data) {
         var url = data.url();
         // check image url has image data.
-        return AV._ajax('get', url).then(function(buffer, state, res) {
-          if (buffer) {
-            expect(buffer.toString('base64')).to.be(base64);
-          } else {
-            expect(res.text.indexOf('GIF89a\u0018\u0000\u0018')).not.to.be(-1);
-          }
+        return request('get', url).end(function(err, res) {
+          expect(res.text.indexOf('GIF89a\u0018\u0000\u0018')).not.to.be(-1);
         });
       });
     });
