@@ -115,6 +115,29 @@ describe('Objects', function(){
         }
       });
     });
+    it('should not update prop when query not match',function(done){
+      gameScore.set('score', 10000);
+      gameScore.save(null, {
+        query: new AV.Query(GameScore).equalTo('score', -1)
+      }).then(function(result) {
+        done(new Error('should not success'));
+      }, function(error) {
+        expect(error.code).to.be.eql(305);
+        done();
+      });
+    });
+    it('should update prop when query match',function(done){
+      gameScore.set('score', 10000);
+      gameScore.save(null, {
+        query: new AV.Query(GameScore).notEqualTo('score', -1),
+        fetchWhenSave: true
+      }).then(function(result) {
+        done();
+      }, function(error) {
+        done(error);
+      });
+    });
+
   });
 
   describe("Deleting Objects",function(){
