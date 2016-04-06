@@ -111,7 +111,7 @@ module.exports = function (AV) {
    * @param {Object} options A Backbone-style callback object.
    */
   AV.Object.saveAll = function (list, options) {
-    return AV.Object._deepSaveAsync(list)._thenRunCallbacks(options);
+    return AV.Object._deepSaveAsync(list, null, options)._thenRunCallbacks(options);
   };
 
   // Attach all inheritable methods to the AV.Object prototype.
@@ -129,9 +129,12 @@ module.exports = function (AV) {
       * Set whether to enable fetchWhenSave option when updating object.
       * When set true, SDK would fetch the latest object after saving.
       * Default is false.
+      *
+      * @deprecated use AV.Object#save with options.fetchWhenSave instead
       * @param {boolean} enable  true to enable fetchWhenSave option.
       */
     fetchWhenSave: function fetchWhenSave(enable) {
+      console.warn('AV.Object#fetchWhenSave is deprecated, use AV.Object#save with options.fetchWhenSave instead.');
       if (!_.isBoolean(enable)) {
         throw "Expect boolean value for fetchWhenSave";
       }
@@ -787,7 +790,7 @@ module.exports = function (AV) {
       }
 
       var self = this;
-      var request = AV._request("classes", this.className, this.id, 'GET', fetchOptions);
+      var request = AV._request('classes', this.className, this.id, 'GET', fetchOptions, options.sessionToken);
       return request.then(function (response) {
         self._finishFetch(self.parse(response), true);
         return self;
@@ -827,7 +830,9 @@ module.exports = function (AV) {
      *   }, function(error) {
      *     // The save failed.  Error is an instance of AV.Error.
      *   });</pre>
-     *
+     * @param {Object} options Optional Backbone-like options object to be passed in to set.
+     * @param {Boolean} options.fetchWhenSave fetch and update object after save succeeded
+     * @param {AV.Query} options.query Save object only when it matches the query
      * @return {AV.Promise} A promise that is fulfilled when the save
      *     completes.
      * @see AV.Error
@@ -890,7 +895,7 @@ module.exports = function (AV) {
       var unsavedFiles = [];
       AV.Object._findUnsavedChildren(model.attributes, unsavedChildren, unsavedFiles);
       if (unsavedChildren.length + unsavedFiles.length > 0) {
-        return AV.Object._deepSaveAsync(this.attributes, model).then(function () {
+        return AV.Object._deepSaveAsync(this.attributes, model, options).then(function () {
           return model.save(null, options);
         }, function (error) {
           return AV.Promise.error(error)._thenRunCallbacks(options, model);
@@ -911,6 +916,23 @@ module.exports = function (AV) {
           json._fetchWhenSave = true;
         }
 
+        if (options.fetchWhenSave) {
+          json._fetchWhenSave = true;
+        }
+        if (options.query) {
+          var queryJSON;
+          if (typeof options.query.toJSON === 'function') {
+            queryJSON = options.query.toJSON();
+            if (queryJSON) {
+              json._where = queryJSON.where;
+            }
+          }
+          if (!json._where) {
+            var error = new Error('options.query is not an AV.Query');
+            return AV.Promise.error(error)._thenRunCallbacks(options, model);
+          }
+        }
+
         var route = "classes";
         var className = model.className;
         if (model.className === "_User" && !model.id) {
@@ -920,7 +942,7 @@ module.exports = function (AV) {
         }
         //hook makeRequest in options.
         var makeRequest = options._makeRequest || AV._request;
-        var request = makeRequest(route, className, model.id, method, json);
+        var request = makeRequest(route, className, model.id, method, json, options.sessionToken);
 
         request = request.then(function (resp) {
           var serverAttrs = model.parse(resp);
@@ -967,7 +989,7 @@ module.exports = function (AV) {
         triggerDestroy();
       }
 
-      var request = AV._request("classes", this.className, this.id, 'DELETE');
+      var request = AV._request('classes', this.className, this.id, 'DELETE', null, options.sessionToken);
       return request.then(function () {
         if (options.wait) {
           triggerDestroy();
@@ -1216,6 +1238,7 @@ module.exports = function (AV) {
    *     completes.
    */
   AV.Object.destroyAll = function (objects, options) {
+    options = options || {};
     if (objects == null || objects.length == 0) {
       return AV.Promise.as()._thenRunCallbacks(options);
     }
@@ -1232,7 +1255,7 @@ module.exports = function (AV) {
         id = id + ',' + obj.id;
       }
     });
-    var request = AV._request("classes", className, id, 'DELETE');
+    var request = AV._request('classes', className, id, 'DELETE', null, options.sessionToken);
     return request._thenRunCallbacks(options);
   };
 
@@ -1396,7 +1419,7 @@ module.exports = function (AV) {
     return canBeSerializedAsValue;
   };
 
-  AV.Object._deepSaveAsync = function (object, model) {
+  AV.Object._deepSaveAsync = function (object, model, options) {
     var unsavedChildren = [];
     var unsavedFiles = [];
     AV.Object._findUnsavedChildren(object, unsavedChildren, unsavedFiles);
@@ -1475,7 +1498,7 @@ module.exports = function (AV) {
               };
             })
 
-          }).then(function (response) {
+          }, options && options.sessionToken).then(function (response) {
             var error;
             AV._arrayEach(batch, function (object, i) {
               if (response[i].success) {

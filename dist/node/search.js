@@ -123,8 +123,8 @@ module.exports = function (AV) {
     _queryString: null,
     _highlights: null,
     _sortBuilder: null,
-    _createRequest: function _createRequest(params) {
-      return AV._request("search/select", null, null, "GET", params || this.toJSON());
+    _createRequest: function _createRequest(params, options) {
+      return AV._request('search/select', null, null, 'GET', params || this.toJSON(), options && options.sessionToken);
     },
 
     /**

@@ -9,6 +9,8 @@ JavaScript SDK for [LeanCloud](http://leancloud.cn/).
 * 0.x.y 版本，是不兼容 React Native 运行时的老版本 SDK，相对稳定，云引擎主要依赖这个分支版本。
 * 1.0.0-x 版本，是我们最新开发的兼容 React Native 运行时的版本，处于开放测试阶段，欢迎大家尝试。我们最终将使用这个分支替代云引擎里的 `0.x.y` 版本。
 
+可以使用以下命令安装 1.0.0-x 版本：`npm install avoscloud-sdk@next`。
+
 ## 贡献
 
 * fork 这个项目

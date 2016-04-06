@@ -155,7 +155,7 @@ module.exports = function (AV) {
       options = pvalues;
     }
 
-    var request = AV._request("cloudQuery", null, null, 'GET', params);
+    var request = AV._request('cloudQuery', null, null, 'GET', params, options && options.sessionToken);
     return request.then(function (response) {
       //query to process results.
       var query = new AV.Query(response.className);
@@ -248,8 +248,8 @@ module.exports = function (AV) {
       }
       return obj;
     },
-    _createRequest: function _createRequest(params) {
-      return AV._request("classes", this.className, null, "GET", params || this.toJSON());
+    _createRequest: function _createRequest(params, options) {
+      return AV._request('classes', this.className, null, "GET", params || this.toJSON(), options && options.sessionToken);
     },
 
     /**
@@ -264,7 +264,7 @@ module.exports = function (AV) {
     find: function find(options) {
       var self = this;
 
-      var request = this._createRequest();
+      var request = this._createRequest(null, options);
 
       return request.then(function (response) {
         return _.map(response.results, function (json) {
@@ -302,7 +302,7 @@ module.exports = function (AV) {
       var params = this.toJSON();
       params.limit = 0;
       params.count = 1;
-      var request = this._createRequest(params);
+      var request = this._createRequest(params, options);
 
       return request.then(function (response) {
         return response.count;
@@ -324,7 +324,7 @@ module.exports = function (AV) {
 
       var params = this.toJSON();
       params.limit = 1;
-      var request = this._createRequest(params);
+      var request = this._createRequest(params, options);
 
       return request.then(function (response) {
         return _.map(response.results, function (json) {

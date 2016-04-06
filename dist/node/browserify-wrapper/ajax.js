@@ -10,6 +10,7 @@ var https = require('https');
 var url = require('url');
 
 var Promise = require('../promise');
+var VERSION = require('../version');
 
 // `keepAlive` option only work on Node.js 0.12+
 var httpAgent = new http.Agent({ keepAlive: true });
@@ -43,7 +44,7 @@ module.exports = function _ajax(method, resourceUrl, data, success, error) {
     agent: transportAgent,
     headers: {
       'Content-Type': 'text/plain',
-      'User-Agent': 'AV/' + AV.version + ' (Node.js' + process.version + ')'
+      'User-Agent': 'AV/' + VERSION + ' (Node.js' + process.version + ')'
     }
   });
 

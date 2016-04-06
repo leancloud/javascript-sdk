@@ -15,102 +15,144 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     s(r[o]);
   }return s;
 })({ 1: [function (require, module, exports) {}, {}], 2: [function (require, module, exports) {
-    // shim for using process in browser
+    var charenc = {
+      // UTF-8 encoding
+      utf8: {
+        // Convert a string to a byte array
+        stringToBytes: function stringToBytes(str) {
+          return charenc.bin.stringToBytes(unescape(encodeURIComponent(str)));
+        },
 
-    var process = module.exports = {};
-    var queue = [];
-    var draining = false;
-    var currentQueue;
-    var queueIndex = -1;
-
-    function cleanUpNextTick() {
-      draining = false;
-      if (currentQueue.length) {
-        queue = currentQueue.concat(queue);
-      } else {
-        queueIndex = -1;
-      }
-      if (queue.length) {
-        drainQueue();
-      }
-    }
-
-    function drainQueue() {
-      if (draining) {
-        return;
-      }
-      var timeout = setTimeout(cleanUpNextTick);
-      draining = true;
-
-      var len = queue.length;
-      while (len) {
-        currentQueue = queue;
-        queue = [];
-        while (++queueIndex < len) {
-          if (currentQueue) {
-            currentQueue[queueIndex].run();
-          }
+        // Convert a byte array to a string
+        bytesToString: function bytesToString(bytes) {
+          return decodeURIComponent(escape(charenc.bin.bytesToString(bytes)));
         }
-        queueIndex = -1;
-        len = queue.length;
-      }
-      currentQueue = null;
-      draining = false;
-      clearTimeout(timeout);
-    }
+      },
 
-    process.nextTick = function (fun) {
-      var args = new Array(arguments.length - 1);
-      if (arguments.length > 1) {
-        for (var i = 1; i < arguments.length; i++) {
-          args[i - 1] = arguments[i];
+      // Binary encoding
+      bin: {
+        // Convert a string to a byte array
+        stringToBytes: function stringToBytes(str) {
+          for (var bytes = [], i = 0; i < str.length; i++) {
+            bytes.push(str.charCodeAt(i) & 0xFF);
+          }return bytes;
+        },
+
+        // Convert a byte array to a string
+        bytesToString: function bytesToString(bytes) {
+          for (var str = [], i = 0; i < bytes.length; i++) {
+            str.push(String.fromCharCode(bytes[i]));
+          }return str.join('');
         }
       }
-      queue.push(new Item(fun, args));
-      if (queue.length === 1 && !draining) {
-        setTimeout(drainQueue, 0);
-      }
     };
 
-    // v8 likes predictible objects
-    function Item(fun, array) {
-      this.fun = fun;
-      this.array = array;
-    }
-    Item.prototype.run = function () {
-      this.fun.apply(null, this.array);
-    };
-    process.title = 'browser';
-    process.browser = true;
-    process.env = {};
-    process.argv = [];
-    process.version = ''; // empty string to avoid regexp issues
-    process.versions = {};
-
-    function noop() {}
-
-    process.on = noop;
-    process.addListener = noop;
-    process.once = noop;
-    process.off = noop;
-    process.removeListener = noop;
-    process.removeAllListeners = noop;
-    process.emit = noop;
-
-    process.binding = function (name) {
-      throw new Error('process.binding is not supported');
-    };
-
-    process.cwd = function () {
-      return '/';
-    };
-    process.chdir = function (dir) {
-      throw new Error('process.chdir is not supported');
-    };
-    process.umask = function () {
-      return 0;
-    };
+    module.exports = charenc;
   }, {}], 3: [function (require, module, exports) {
+    (function () {
+      var base64map = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/',
+          crypt = {
+        // Bit-wise rotation left
+        rotl: function rotl(n, b) {
+          return n << b | n >>> 32 - b;
+        },
+
+        // Bit-wise rotation right
+        rotr: function rotr(n, b) {
+          return n << 32 - b | n >>> b;
+        },
+
+        // Swap big-endian to little-endian and vice versa
+        endian: function endian(n) {
+          // If number given, swap endian
+          if (n.constructor == Number) {
+            return crypt.rotl(n, 8) & 0x00FF00FF | crypt.rotl(n, 24) & 0xFF00FF00;
+          }
+
+          // Else, assume array and swap all items
+          for (var i = 0; i < n.length; i++) {
+            n[i] = crypt.endian(n[i]);
+          }return n;
+        },
+
+        // Generate an array of any length of random bytes
+        randomBytes: function randomBytes(n) {
+          for (var bytes = []; n > 0; n--) {
+            bytes.push(Math.floor(Math.random() * 256));
+          }return bytes;
+        },
+
+        // Convert a byte array to big-endian 32-bit words
+        bytesToWords: function bytesToWords(bytes) {
+          for (var words = [], i = 0, b = 0; i < bytes.length; i++, b += 8) {
+            words[b >>> 5] |= bytes[i] << 24 - b % 32;
+          }return words;
+        },
+
+        // Convert big-endian 32-bit words to a byte array
+        wordsToBytes: function wordsToBytes(words) {
+          for (var bytes = [], b = 0; b < words.length * 32; b += 8) {
+            bytes.push(words[b >>> 5] >>> 24 - b % 32 & 0xFF);
+          }return bytes;
+        },
+
+        // Convert a byte array to a hex string
+        bytesToHex: function bytesToHex(bytes) {
+          for (var hex = [], i = 0; i < bytes.length; i++) {
+            hex.push((bytes[i] >>> 4).toString(16));
+            hex.push((bytes[i] & 0xF).toString(16));
+          }
+          return hex.join('');
+        },
+
+        // Convert a hex string to a byte array
+        hexToBytes: function hexToBytes(hex) {
+          for (var bytes = [], c = 0; c < hex.length; c += 2) {
+            bytes.push(parseInt(hex.substr(c, 2), 16));
+          }return bytes;
+        },
+
+        // Convert a byte array to a base-64 string
+        bytesToBase64: function bytesToBase64(bytes) {
+          for (var base64 = [], i = 0; i < bytes.length; i += 3) {
+            var triplet = bytes[i] << 16 | bytes[i + 1] << 8 | bytes[i + 2];
+            for (var j = 0; j < 4; j++) {
+              if (i * 8 + j * 6 <= bytes.length * 8) base64.push(base64map.charAt(triplet >>> 6 * (3 - j) & 0x3F));else base64.push('=');
+            }
+          }
+          return base64.join('');
+        },
+
+        // Convert a base-64 string to a byte array
+        base64ToBytes: function base64ToBytes(base64) {
+          // Remove non-base-64 characters
+          base64 = base64.replace(/[^A-Z0-9+\/]/ig, '');
+
+          for (var bytes = [], i = 0, imod4 = 0; i < base64.length; imod4 = ++i % 4) {
+            if (imod4 == 0) continue;
+            bytes.push((base64map.indexOf(base64.charAt(i - 1)) & Math.pow(2, -2 * imod4 + 8) - 1) << imod4 * 2 | base64map.indexOf(base64.charAt(i)) >>> 6 - imod4 * 2);
+          }
+          return bytes;
+        }
+      };
+
+      module.exports = crypt;
+    })();
+  }, {}], 4: [function (require, module, exports) {
+    /**
+     * Determine if an object is Buffer
+     *
+     * Author:   Feross Aboukhadijeh <feross@feross.org> <http://feross.org>
+     * License:  MIT
+     *
+     * `npm install is-buffer`
+     */
+
+    module.exports = function (obj) {
+      return !!(obj != null && (obj._isBuffer || // For Safari 5-7 (missing Object.prototype.constructor)
+      obj.constructor && typeof obj.constructor.isBuffer === 'function' && obj.constructor.isBuffer(obj)));
+    };
+  }, {}], 5: [function (require, module, exports) {
     (function (root) {
       var localStorageMemory = {};
       var cache = {};
@@ -193,12 +235,13 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         root.localStorageMemory = localStorageMemory;
       }
     })(this);
-  }, {}], 4: [function (require, module, exports) {
+  }, {}], 6: [function (require, module, exports) {
     (function () {
       var crypt = require('crypt'),
           utf8 = require('charenc').utf8,
           isBuffer = require('is-buffer'),
           bin = require('charenc').bin,
+
 
       // The core
       md5 = function md5(message, options) {
@@ -343,142 +386,101 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         return options && options.asBytes ? digestbytes : options && options.asString ? bin.bytesToString(digestbytes) : crypt.bytesToHex(digestbytes);
       };
     })();
-  }, { "charenc": 5, "crypt": 6, "is-buffer": 7 }], 5: [function (require, module, exports) {
-    var charenc = {
-      // UTF-8 encoding
-      utf8: {
-        // Convert a string to a byte array
-        stringToBytes: function stringToBytes(str) {
-          return charenc.bin.stringToBytes(unescape(encodeURIComponent(str)));
-        },
+  }, { "charenc": 2, "crypt": 3, "is-buffer": 4 }], 7: [function (require, module, exports) {
+    // shim for using process in browser
 
-        // Convert a byte array to a string
-        bytesToString: function bytesToString(bytes) {
-          return decodeURIComponent(escape(charenc.bin.bytesToString(bytes)));
+    var process = module.exports = {};
+    var queue = [];
+    var draining = false;
+    var currentQueue;
+    var queueIndex = -1;
+
+    function cleanUpNextTick() {
+      draining = false;
+      if (currentQueue.length) {
+        queue = currentQueue.concat(queue);
+      } else {
+        queueIndex = -1;
+      }
+      if (queue.length) {
+        drainQueue();
+      }
+    }
+
+    function drainQueue() {
+      if (draining) {
+        return;
+      }
+      var timeout = setTimeout(cleanUpNextTick);
+      draining = true;
+
+      var len = queue.length;
+      while (len) {
+        currentQueue = queue;
+        queue = [];
+        while (++queueIndex < len) {
+          if (currentQueue) {
+            currentQueue[queueIndex].run();
+          }
         }
-      },
+        queueIndex = -1;
+        len = queue.length;
+      }
+      currentQueue = null;
+      draining = false;
+      clearTimeout(timeout);
+    }
 
-      // Binary encoding
-      bin: {
-        // Convert a string to a byte array
-        stringToBytes: function stringToBytes(str) {
-          for (var bytes = [], i = 0; i < str.length; i++) {
-            bytes.push(str.charCodeAt(i) & 0xFF);
-          }return bytes;
-        },
-
-        // Convert a byte array to a string
-        bytesToString: function bytesToString(bytes) {
-          for (var str = [], i = 0; i < bytes.length; i++) {
-            str.push(String.fromCharCode(bytes[i]));
-          }return str.join('');
+    process.nextTick = function (fun) {
+      var args = new Array(arguments.length - 1);
+      if (arguments.length > 1) {
+        for (var i = 1; i < arguments.length; i++) {
+          args[i - 1] = arguments[i];
         }
+      }
+      queue.push(new Item(fun, args));
+      if (queue.length === 1 && !draining) {
+        setTimeout(drainQueue, 0);
       }
     };
 
-    module.exports = charenc;
-  }, {}], 6: [function (require, module, exports) {
-    (function () {
-      var base64map = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/',
-          crypt = {
-        // Bit-wise rotation left
-        rotl: function rotl(n, b) {
-          return n << b | n >>> 32 - b;
-        },
+    // v8 likes predictible objects
+    function Item(fun, array) {
+      this.fun = fun;
+      this.array = array;
+    }
+    Item.prototype.run = function () {
+      this.fun.apply(null, this.array);
+    };
+    process.title = 'browser';
+    process.browser = true;
+    process.env = {};
+    process.argv = [];
+    process.version = ''; // empty string to avoid regexp issues
+    process.versions = {};
 
-        // Bit-wise rotation right
-        rotr: function rotr(n, b) {
-          return n << 32 - b | n >>> b;
-        },
+    function noop() {}
 
-        // Swap big-endian to little-endian and vice versa
-        endian: function endian(n) {
-          // If number given, swap endian
-          if (n.constructor == Number) {
-            return crypt.rotl(n, 8) & 0x00FF00FF | crypt.rotl(n, 24) & 0xFF00FF00;
-          }
+    process.on = noop;
+    process.addListener = noop;
+    process.once = noop;
+    process.off = noop;
+    process.removeListener = noop;
+    process.removeAllListeners = noop;
+    process.emit = noop;
 
-          // Else, assume array and swap all items
-          for (var i = 0; i < n.length; i++) {
-            n[i] = crypt.endian(n[i]);
-          }return n;
-        },
+    process.binding = function (name) {
+      throw new Error('process.binding is not supported');
+    };
 
-        // Generate an array of any length of random bytes
-        randomBytes: function randomBytes(n) {
-          for (var bytes = []; n > 0; n--) {
-            bytes.push(Math.floor(Math.random() * 256));
-          }return bytes;
-        },
-
-        // Convert a byte array to big-endian 32-bit words
-        bytesToWords: function bytesToWords(bytes) {
-          for (var words = [], i = 0, b = 0; i < bytes.length; i++, b += 8) {
-            words[b >>> 5] |= bytes[i] << 24 - b % 32;
-          }return words;
-        },
-
-        // Convert big-endian 32-bit words to a byte array
-        wordsToBytes: function wordsToBytes(words) {
-          for (var bytes = [], b = 0; b < words.length * 32; b += 8) {
-            bytes.push(words[b >>> 5] >>> 24 - b % 32 & 0xFF);
-          }return bytes;
-        },
-
-        // Convert a byte array to a hex string
-        bytesToHex: function bytesToHex(bytes) {
-          for (var hex = [], i = 0; i < bytes.length; i++) {
-            hex.push((bytes[i] >>> 4).toString(16));
-            hex.push((bytes[i] & 0xF).toString(16));
-          }
-          return hex.join('');
-        },
-
-        // Convert a hex string to a byte array
-        hexToBytes: function hexToBytes(hex) {
-          for (var bytes = [], c = 0; c < hex.length; c += 2) {
-            bytes.push(parseInt(hex.substr(c, 2), 16));
-          }return bytes;
-        },
-
-        // Convert a byte array to a base-64 string
-        bytesToBase64: function bytesToBase64(bytes) {
-          for (var base64 = [], i = 0; i < bytes.length; i += 3) {
-            var triplet = bytes[i] << 16 | bytes[i + 1] << 8 | bytes[i + 2];
-            for (var j = 0; j < 4; j++) {
-              if (i * 8 + j * 6 <= bytes.length * 8) base64.push(base64map.charAt(triplet >>> 6 * (3 - j) & 0x3F));else base64.push('=');
-            }
-          }
-          return base64.join('');
-        },
-
-        // Convert a base-64 string to a byte array
-        base64ToBytes: function base64ToBytes(base64) {
-          // Remove non-base-64 characters
-          base64 = base64.replace(/[^A-Z0-9+\/]/ig, '');
-
-          for (var bytes = [], i = 0, imod4 = 0; i < base64.length; imod4 = ++i % 4) {
-            if (imod4 == 0) continue;
-            bytes.push((base64map.indexOf(base64.charAt(i - 1)) & Math.pow(2, -2 * imod4 + 8) - 1) << imod4 * 2 | base64map.indexOf(base64.charAt(i)) >>> 6 - imod4 * 2);
-          }
-          return bytes;
-        }
-      };
-
-      module.exports = crypt;
-    })();
-  }, {}], 7: [function (require, module, exports) {
-    /**
-     * Determine if an object is Buffer
-     *
-     * Author:   Feross Aboukhadijeh <feross@feross.org> <http://feross.org>
-     * License:  MIT
-     *
-     * `npm install is-buffer`
-     */
-
-    module.exports = function (obj) {
-      return !!(obj != null && obj.constructor && typeof obj.constructor.isBuffer === 'function' && obj.constructor.isBuffer(obj));
+    process.cwd = function () {
+      return '/';
+    };
+    process.chdir = function (dir) {
+      throw new Error('process.chdir is not supported');
+    };
+    process.umask = function () {
+      return 0;
     };
   }, {}], 8: [function (require, module, exports) {
     //     Underscore.js 1.8.3
@@ -2410,16 +2412,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         var appKey = AV.applicationKey;
         var masterKey = AV.masterKey;
 
-        // 清理原来多余的数据（如果不清理，会污染数据表）
-        if (data) {
-          delete data._ApplicationId;
-          delete data._ApplicationKey;
-          delete data._ApplicationProduction;
-          delete data._MasterKey;
-          delete data._ClientVersion;
-          delete data._InstallationId;
-        }
-
         var handled = false;
         var xhr = new global.XMLHttpRequest();
         xhr.onreadystatechange = function () {
@@ -2460,26 +2452,46 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           }
         }
 
-        xhr.open(method, url, true);
-        xhr.setRequestHeader('X-LC-Id', appId);
+        var headers = {
+          'X-LC-Id': appId,
+          'X-LC-UA': 'LC-Web-' + AV.version,
+          'Content-Type': 'application/json;charset=UTF-8'
+        };
 
-        var signature = undefined;
-        if (masterKey) {
-          signature = sign(masterKey, true);
-        } else {
-          signature = sign(appKey);
+        // 清理原来多余的数据（如果不清理，会污染数据表）
+        if (data) {
+          delete data._ApplicationId;
+          delete data._ApplicationKey;
+          delete data._ApplicationProduction;
+          delete data._MasterKey;
+          delete data._ClientVersion;
+          delete data._InstallationId;
+
+          if (data._SessionToken) {
+            headers['X-LC-Session'] = data._SessionToken;
+            delete data._SessionToken;
+          }
         }
 
-        xhr.setRequestHeader('X-LC-Sign', signature);
-        xhr.setRequestHeader('X-LC-UA', 'LC-Web-' + AV.version);
-        xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
+        if (masterKey && AV._useMasterKey) {
+          headers['X-LC-Sign'] = sign(masterKey, true);
+        } else {
+          headers['X-LC-Sign'] = sign(appKey);
+        }
+
+        xhr.open(method, url, true);
+
+        for (var name in headers) {
+          xhr.setRequestHeader(name, headers[name]);
+        }
+
         xhr.send(JSON.stringify(data));
         return promise._thenRunCallbacks(options);
       };
 
       module.exports = ajax;
     }).call(this, typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {});
-  }, { "../promise": 25, "md5": 4 }], 13: [function (require, module, exports) {
+  }, { "../promise": 25, "md5": 6 }], 13: [function (require, module, exports) {
     (function (global) {
       /**
        * 每位工程师都有保持代码优雅的义务
@@ -2539,7 +2551,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
       module.exports = Storage;
     }).call(this, typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {});
-  }, { "../promise": 25, "localstorage-memory": 3, "react-native": 1, "underscore": 8 }], 14: [function (require, module, exports) {
+  }, { "../promise": 25, "localstorage-memory": 5, "react-native": 1, "underscore": 8 }], 14: [function (require, module, exports) {
     /**
      * 每位工程师都有保持代码优雅的义务
      * Each engineer has a duty to keep the code elegant
@@ -2672,7 +2684,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
          * of the function.
          */
         run: function run(name, data, options) {
-          var request = AV._request("functions", name, null, 'POST', AV._encode(data, null, true));
+          var request = AV._request('functions', name, null, 'POST', AV._encode(data, null, true), options && options.sessionToken);
 
           return request.then(function (resp) {
             return AV._decode(null, resp).result;
@@ -3582,8 +3594,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
          * if (fileUploadControl.files.length > 0) {
          *   var file = fileUploadControl.files[0];
          *   var name = "photo.jpg";
-         *   var parseFile = new AV.File(name, file);
-         *   parseFile.save().then(function() {
+         *   var file = new AV.File(name, file);
+         *   file.save().then(function() {
          *     // The file has been saved to AV.
          *   }, function(error) {
          *     // The file either could not be read, or could not be saved to AV.
@@ -3601,14 +3613,20 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           // 用来存储转换后要上传的 base64 String
           this._base64 = '';
 
-          var currentUser;
-          try {
-            currentUser = AV.User.current();
-          } catch (e) {
-            console.warn('Get current user failed. It seems this runtime use an async storage system, please new AV.File in the callback of AV.User.currentAsync().');
+          var owner = undefined;
+
+          if (data && data.owner) {
+            owner = data.owner;
+          } else {
+            try {
+              owner = AV.User.current();
+            } catch (e) {
+              console.warn('Get current user failed. It seems this runtime use an async storage system, please new AV.File in the callback of AV.User.currentAsync().');
+            }
           }
+
           this._metaData = {
-            owner: currentUser ? currentUser.id : 'unknown'
+            owner: owner ? owner.id : 'unknown'
           };
 
           // Guess the content type from the extension if we need to.
@@ -3794,7 +3812,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           */
           destroy: function destroy(options) {
             if (!this.id) return AV.Promise.error('The file id is not eixsts.')._thenRunCallbacks(options);
-            var request = AV._request("files", null, this.id, 'DELETE');
+            var request = AV._request("files", null, this.id, 'DELETE', options && options.sessionToken);
             return request._thenRunCallbacks(options);
           },
 
@@ -4410,7 +4428,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
        * @param {Object} options A Backbone-style callback object.
        */
       AV.Object.saveAll = function (list, options) {
-        return AV.Object._deepSaveAsync(list)._thenRunCallbacks(options);
+        return AV.Object._deepSaveAsync(list, null, options)._thenRunCallbacks(options);
       };
 
       // Attach all inheritable methods to the AV.Object prototype.
@@ -4428,9 +4446,12 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           * Set whether to enable fetchWhenSave option when updating object.
           * When set true, SDK would fetch the latest object after saving.
           * Default is false.
+          *
+          * @deprecated use AV.Object#save with options.fetchWhenSave instead
           * @param {boolean} enable  true to enable fetchWhenSave option.
           */
         fetchWhenSave: function fetchWhenSave(enable) {
+          console.warn('AV.Object#fetchWhenSave is deprecated, use AV.Object#save with options.fetchWhenSave instead.');
           if (!_.isBoolean(enable)) {
             throw "Expect boolean value for fetchWhenSave";
           }
@@ -5086,7 +5107,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           }
 
           var self = this;
-          var request = AV._request("classes", this.className, this.id, 'GET', fetchOptions);
+          var request = AV._request('classes', this.className, this.id, 'GET', fetchOptions, options.sessionToken);
           return request.then(function (response) {
             self._finishFetch(self.parse(response), true);
             return self;
@@ -5126,7 +5147,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
          *   }, function(error) {
          *     // The save failed.  Error is an instance of AV.Error.
          *   });</pre>
-         *
+         * @param {Object} options Optional Backbone-like options object to be passed in to set.
+         * @param {Boolean} options.fetchWhenSave fetch and update object after save succeeded
+         * @param {AV.Query} options.query Save object only when it matches the query
          * @return {AV.Promise} A promise that is fulfilled when the save
          *     completes.
          * @see AV.Error
@@ -5189,7 +5212,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           var unsavedFiles = [];
           AV.Object._findUnsavedChildren(model.attributes, unsavedChildren, unsavedFiles);
           if (unsavedChildren.length + unsavedFiles.length > 0) {
-            return AV.Object._deepSaveAsync(this.attributes, model).then(function () {
+            return AV.Object._deepSaveAsync(this.attributes, model, options).then(function () {
               return model.save(null, options);
             }, function (error) {
               return AV.Promise.error(error)._thenRunCallbacks(options, model);
@@ -5210,6 +5233,23 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
               json._fetchWhenSave = true;
             }
 
+            if (options.fetchWhenSave) {
+              json._fetchWhenSave = true;
+            }
+            if (options.query) {
+              var queryJSON;
+              if (typeof options.query.toJSON === 'function') {
+                queryJSON = options.query.toJSON();
+                if (queryJSON) {
+                  json._where = queryJSON.where;
+                }
+              }
+              if (!json._where) {
+                var error = new Error('options.query is not an AV.Query');
+                return AV.Promise.error(error)._thenRunCallbacks(options, model);
+              }
+            }
+
             var route = "classes";
             var className = model.className;
             if (model.className === "_User" && !model.id) {
@@ -5219,7 +5259,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             }
             //hook makeRequest in options.
             var makeRequest = options._makeRequest || AV._request;
-            var request = makeRequest(route, className, model.id, method, json);
+            var request = makeRequest(route, className, model.id, method, json, options.sessionToken);
 
             request = request.then(function (resp) {
               var serverAttrs = model.parse(resp);
@@ -5266,7 +5306,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             triggerDestroy();
           }
 
-          var request = AV._request("classes", this.className, this.id, 'DELETE');
+          var request = AV._request('classes', this.className, this.id, 'DELETE', null, options.sessionToken);
           return request.then(function () {
             if (options.wait) {
               triggerDestroy();
@@ -5515,6 +5555,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
        *     completes.
        */
       AV.Object.destroyAll = function (objects, options) {
+        options = options || {};
         if (objects == null || objects.length == 0) {
           return AV.Promise.as()._thenRunCallbacks(options);
         }
@@ -5531,7 +5572,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             id = id + ',' + obj.id;
           }
         });
-        var request = AV._request("classes", className, id, 'DELETE');
+        var request = AV._request('classes', className, id, 'DELETE', null, options.sessionToken);
         return request._thenRunCallbacks(options);
       };
 
@@ -5695,7 +5736,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         return canBeSerializedAsValue;
       };
 
-      AV.Object._deepSaveAsync = function (object, model) {
+      AV.Object._deepSaveAsync = function (object, model, options) {
         var unsavedChildren = [];
         var unsavedFiles = [];
         AV.Object._findUnsavedChildren(object, unsavedChildren, unsavedFiles);
@@ -5774,7 +5815,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                   };
                 })
 
-              }).then(function (response) {
+              }, options && options.sessionToken).then(function (response) {
                 var error;
                 AV._arrayEach(batch, function (object, i) {
                   if (response[i].success) {
@@ -6933,7 +6974,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
        */
       Promise.prototype.try = Promise.prototype.done;
     }).call(this, require('_process'));
-  }, { "_process": 2, "underscore": 8 }], 26: [function (require, module, exports) {
+  }, { "_process": 7, "underscore": 8 }], 26: [function (require, module, exports) {
     /**
      * 每位工程师都有保持代码优雅的义务
      * Each engineer has a duty to keep the code elegant
@@ -7155,7 +7196,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           options = pvalues;
         }
 
-        var request = AV._request("cloudQuery", null, null, 'GET', params);
+        var request = AV._request('cloudQuery', null, null, 'GET', params, options && options.sessionToken);
         return request.then(function (response) {
           //query to process results.
           var query = new AV.Query(response.className);
@@ -7248,8 +7289,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           }
           return obj;
         },
-        _createRequest: function _createRequest(params) {
-          return AV._request("classes", this.className, null, "GET", params || this.toJSON());
+        _createRequest: function _createRequest(params, options) {
+          return AV._request('classes', this.className, null, "GET", params || this.toJSON(), options && options.sessionToken);
         },
 
         /**
@@ -7264,7 +7305,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         find: function find(options) {
           var self = this;
 
-          var request = this._createRequest();
+          var request = this._createRequest(null, options);
 
           return request.then(function (response) {
             return _.map(response.results, function (json) {
@@ -7302,7 +7343,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           var params = this.toJSON();
           params.limit = 0;
           params.count = 1;
-          var request = this._createRequest(params);
+          var request = this._createRequest(params, options);
 
           return request.then(function (response) {
             return response.count;
@@ -7324,7 +7365,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
           var params = this.toJSON();
           params.limit = 1;
-          var request = this._createRequest(params);
+          var request = this._createRequest(params, options);
 
           return request.then(function (response) {
             return _.map(response.results, function (json) {
@@ -8316,8 +8357,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         _queryString: null,
         _highlights: null,
         _sortBuilder: null,
-        _createRequest: function _createRequest(params) {
-          return AV._request("search/select", null, null, "GET", params || this.toJSON());
+        _createRequest: function _createRequest(params, options) {
+          return AV._request('search/select', null, null, 'GET', params || this.toJSON(), options && options.sessionToken);
         },
 
         /**
@@ -8537,7 +8578,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
          */
         destroy: function destroy(options) {
           if (!this.id) return AV.Promise.error('The status id is not exists.')._thenRunCallbacks(options);
-          var request = AV._request("statuses", null, this.id, 'DELETE');
+          var request = AV._request('statuses', null, this.id, 'DELETE', options && options.sessionToken);
           return request._thenRunCallbacks(options);
         },
         /**
@@ -8590,7 +8631,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           data.data = this._getDataJSON();
           data.inboxType = this.inboxType || 'default';
 
-          var request = AV._request('statuses', null, null, 'POST', data);
+          var request = AV._request('statuses', null, null, 'POST', data, options && options.sessionToken);
           var self = this;
           return request.then(function (response) {
             self.id = response.objectId;
@@ -8647,7 +8688,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         data.data = status._getDataJSON();
         data.inboxType = status.inboxType || 'default';
 
-        var request = AV._request('statuses', null, null, 'POST', data);
+        var request = AV._request('statuses', null, null, 'POST', data, options && options.sessionToken);
         return request.then(function (response) {
           status.id = response.objectId;
           status.createdAt = AV._parseDate(response.createdAt);
@@ -8700,7 +8741,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         data.inboxType = 'private';
         status.inboxType = 'private';
 
-        var request = AV._request('statuses', null, null, 'POST', data);
+        var request = AV._request('statuses', null, null, 'POST', data, options && options.sessionToken);
         return request.then(function (response) {
           status.id = response.objectId;
           status.createdAt = AV._parseDate(response.createdAt);
@@ -8732,7 +8773,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         var params = {};
         params.inboxType = AV._encode(inboxType);
         params.owner = AV._encode(owner);
-        var request = AV._request('subscribe/statuses/count', null, null, 'GET', params);
+        var request = AV._request('subscribe/statuses/count', null, null, 'GET', params, options && options.sessionToken);
         return request._thenRunCallbacks(options);
       };
 
@@ -8771,8 +8812,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         _newObject: function _newObject() {
           return new AV.Status();
         },
-        _createRequest: function _createRequest(params) {
-          return AV._request("subscribe/statuses", null, null, "GET", params || this.toJSON());
+        _createRequest: function _createRequest(params, options) {
+          return AV._request('subscribe/statuses', null, null, 'GET', params || this.toJSON(), options && options.sessionToken);
         },
 
         /**
@@ -8951,7 +8992,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
         _handleSaveResult: function _handleSaveResult(makeCurrent) {
           // Clean up and synchronize the authData object, removing any unset values
-          if (makeCurrent) {
+          if (makeCurrent && !AV._config.disableCurrentUser) {
             this._isCurrentUser = true;
           }
           this._cleanupAuthData();
@@ -8960,7 +9001,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           delete this._serverData.password;
           this._rebuildEstimatedDataForKey("password");
           this._refreshCache();
-          if (makeCurrent || this.isCurrent()) {
+          if ((makeCurrent || this.isCurrent()) && !AV._config.disableCurrentUser) {
             // Some old version of leanengine-node-sdk will overwrite
             // AV.User._saveCurrentUser which returns no Promise.
             // So we need a Promise wrapper.
@@ -9050,6 +9091,11 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           }
           var authData = this.get('authData') || {};
           return !!authData[authType];
+        },
+
+        logOut: function logOut() {
+          this._logOutWithAll();
+          this._isCurrentUser = false;
         },
 
         /**
@@ -9248,7 +9294,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             throw "Invalid target user.";
           }
           var route = 'users/' + this.id + '/friendship/' + userObjectId;
-          var request = AV._request(route, null, null, 'POST', null);
+          var request = AV._request(route, null, null, 'POST', null, options && options.sessionToken);
           return request._thenRunCallbacks(options);
         },
 
@@ -9272,7 +9318,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             throw "Invalid target user.";
           }
           var route = 'users/' + this.id + '/friendship/' + userObjectId;
-          var request = AV._request(route, null, null, 'DELETE', null);
+          var request = AV._request(route, null, null, 'DELETE', null, options && options.sessionToken);
           return request._thenRunCallbacks(options);
         },
 
@@ -9327,7 +9373,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             old_password: oldPassword,
             new_password: newPassword
           };
-          var request = AV._request(route, null, null, 'PUT', params);
+          var request = AV._request(route, null, null, 'PUT', params, options && options.sessionToken);
           return request._thenRunCallbacks(options, this);
         },
 
@@ -9416,6 +9462,10 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
          */
         authenticated: function authenticated() {
           return !!this._sessionToken && AV.User.current() && AV.User.current().id === this.id;
+        },
+
+        getSessionToken: function getSessionToken() {
+          return this._sessionToken;
         }
 
       }, /** @lends AV.User */{
@@ -9617,6 +9667,10 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
          * <code>current</code> will return <code>null</code>.
          */
         logOut: function logOut() {
+          if (AV._config.disableCurrentUser) {
+            return console.warn('AV.User.current() was disabled in multi-user environment, call logOut() from user object instead');
+          }
+
           if (AV.User._currentUser !== null) {
             AV.User._currentUser._logOutWithAll();
             AV.User._currentUser._isCurrentUser = false;
@@ -9784,6 +9838,11 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
          * @return {AV.Promise} resolved with the currently logged in AV.User.
          */
         currentAsync: function currentAsync() {
+          if (AV._config.disableCurrentUser) {
+            console.warn('AV.User.current() was disabled in multi-user environment, access user from request instead');
+            return AV.Promise.as(null);
+          }
+
           if (AV.User._currentUser) {
             return AV.Promise.as(AV.User._currentUser);
           }
@@ -9825,6 +9884,11 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
          * @return {AV.Object} The currently logged in AV.User.
          */
         current: function current() {
+          if (AV._config.disableCurrentUser) {
+            console.warn('AV.User.current() was disabled in multi-user environment, access user from request instead');
+            return null;
+          }
+
           if (AV.User._currentUser) {
             return AV.User._currentUser;
           }
@@ -9936,7 +10000,10 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           APIServerURL: AVConfig.APIServerURL || '',
 
           // 当前是否为 nodejs 环境
-          isNode: false
+          isNode: false,
+
+          // 禁用 currentUser，通常用于多用户环境
+          disableCurrentUser: false
         });
 
         /**
@@ -10061,6 +10128,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 }
                 initialize(options.appId, options.appKey, options.masterKey);
                 setRegionServer(options.region);
+                AVConfig.disableCurrentUser = options.disableCurrentUser;
               } else {
                 throw new Error('AV.init(): Parameter is not correct.');
               }
@@ -10213,7 +10281,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
          * dataObject is the payload as an object, or null if there is none.
          * @ignore
          */
-        AV._request = function (route, className, objectId, method, dataObject) {
+        AV._request = function (route, className, objectId, method, dataObject, sessionToken) {
           if (!AV.applicationId) {
             throw "You must specify your applicationId using AV.initialize";
           }
@@ -10242,9 +10310,16 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           if (objectId) {
             apiURL += "/" + objectId;
           }
-          if ((route === 'users' || route === 'classes') && dataObject && dataObject._fetchWhenSave) {
-            delete dataObject._fetchWhenSave;
-            apiURL += '?new=true';
+          if ((route === 'users' || route === 'classes') && dataObject) {
+            apiURL += '?';
+            if (dataObject._fetchWhenSave) {
+              delete dataObject._fetchWhenSave;
+              apiURL += '&new=true';
+            }
+            if (dataObject._where) {
+              apiURL += '&where=' + encodeURIComponent(JSON.stringify(dataObject._where));
+              delete dataObject._where;
+            }
           }
 
           dataObject = _.clone(dataObject || {});
@@ -10257,15 +10332,25 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             dataObject._MasterKey = AV.masterKey;
           }
           dataObject._ClientVersion = AV.version;
-          // Pass the session token on every request.
-          return AV.User.currentAsync().then(function (currentUser) {
-            if (currentUser && currentUser._sessionToken) {
-              dataObject._SessionToken = currentUser._sessionToken;
+          return AV.Promise.as().then(function () {
+            // Pass the session token
+            if (sessionToken) {
+              dataObject._SessionToken = sessionToken;
+            } else if (!AV._config.disableCurrentUser) {
+              return AV.User.currentAsync().then(function (currentUser) {
+                if (currentUser && currentUser._sessionToken) {
+                  dataObject._SessionToken = currentUser._sessionToken;
+                }
+              });
             }
-            return AV._getInstallationId();
-          }).then(function (_InstallationId) {
-            dataObject._InstallationId = _InstallationId;
-
+          }).then(function () {
+            // Pass the installation id
+            if (!AV._config.disableCurrentUser) {
+              return AV._getInstallationId().then(function (installationId) {
+                dataObject._InstallationId = installationId;
+              });
+            }
+          }).then(function () {
             return AV._ajax(method, apiURL, dataObject).then(null, function (response) {
               // Transform the error into an instance of AV.Error by trying to parse
               // the error string as JSON.
@@ -10538,7 +10623,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         init: init
       };
     }).call(this, require('_process'));
-  }, { "./browserify-wrapper/ajax": 12, "_process": 2, "underscore": 8 }], 34: [function (require, module, exports) {
+  }, { "./browserify-wrapper/ajax": 12, "_process": 7, "underscore": 8 }], 34: [function (require, module, exports) {
     /**
      * 每位工程师都有保持代码优雅的义务
      * Each engineer has a duty to keep the code elegant
@@ -10546,5 +10631,5 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
     'use strict';
 
-    module.exports = 'js1.0.0-rc7';
+    module.exports = 'js1.0.0-rc8';
   }, {}] }, {}, [10]);

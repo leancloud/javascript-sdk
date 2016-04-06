@@ -1,3 +1,19 @@
+# 1.0.0-rc8 日期：2016 年 4 月 6 日
+* **(BREAKING)** 添加了 AV.init 方法，该方法接收一个名为 options 的参数字典，废弃 AV.initialize 方法。
+* **(BREAKING)** 为 AV.Object#save 方法的 options 参数添加了 fetchWhenSave 选项，废弃 AV.Object#fetchWhenSave 方法。
+* **(BREAKING)** 添加了 disableCurrentUser 选项（可在 AV.init 方法中设置），当开启时：
+  * AV.User.current 和 AV.User.currentAsync 打印警告并返回 null。
+  * signUp, logIn, fetch, become 等方法不再写入全局状态。
+  * 发起请求时不再向服务器发送 installationId。
+  * AV.File 不再会自动设置 owner, 请在 data 参数中传入 owner 选项（AV.User 对象）。
+* 为所有会发起网络请求的操作（save 等）的 options 参数添加了 sessionToken 选项，可通过传入该选项指定请求所使用的 sessionToken。
+* 添加了 AV.User.getSessionToken 方法。
+* 添加了 AV.User#logOut 这个实例方法（之前只有类方法）。
+* 为 AV.Object#save 方法的 options 参数添加了 query 选项，该次更新操作在对象最新状态满足 query 时才会执行。
+*	修正了在某些错误情况下返回值格式不正确的错误。
+* 使用了更加安全的鉴权机制，以降低 App Key 在传输过程中泄露的风险。
+* 移除了特殊跨域兼容实现，现在遵循 CORS。
+
 # 1.0.0-rc7 日期：2016 年 2 月 16 日
 * 添加 AV.Cloud.rpc 方法
 * 修复了 `AV.User#fetch` 不会运行回调函数的 bug。

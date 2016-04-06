@@ -1,6 +1,6 @@
 {
   "name": "avoscloud-sdk",
-  "version": "1.0.0-rc7",
+  "version": "1.0.0-rc8",
   "main": "./dist/node/av.js",
   "description": "LeanCloud JavaScript SDK.",
   "repository": {
