@@ -2835,6 +2835,9 @@ module.exports = function(AV) {
      *     // The save failed.  Error is an instance of AV.Error.
      *   });</pre>
      *
+     * @param {Object} options Optional Backbone-like options object to be passed in to set.
+     * @param {Boolean} options.fetchWhenSave fetch and update object after save succeeded
+     * @param {AV.Query} options.query Save object only when it matches the query
      * @return {AV.Promise} A promise that is fulfilled when the save
      *     completes.
      * @see AV.Error
@@ -2920,6 +2923,23 @@ module.exports = function(AV) {
         if(model._fetchWhenSave){
           //Sepcial-case fetchWhenSave when updating object.
           json._fetchWhenSave = true;
+        }
+
+        if (options.fetchWhenSave) {
+          json._fetchWhenSave = true;
+        }
+        if (options.query) {
+          var queryJSON;
+          if (typeof options.query.toJSON === 'function') {
+            queryJSON = options.query.toJSON();
+            if (queryJSON) {
+              json._where = queryJSON.where;
+            }
+          }
+          if (!json._where) {
+            var error = new Error('options.query is not an AV.Query');
+            return AV.Promise.error(error)._thenRunCallbacks(options, model);
+          }
         }
 
         var route = "classes";
@@ -7985,9 +8005,16 @@ module.exports = function(AV) {
     if (objectId) {
       url += "/" + objectId;
     }
-    if ((route ==='users' || route === 'classes') && dataObject && dataObject._fetchWhenSave){
-      delete dataObject._fetchWhenSave;
-      url += '?new=true';
+    if ((route ==='users' || route === 'classes') && dataObject) {
+      url += '?';
+      if (dataObject._fetchWhenSave) {
+        delete dataObject._fetchWhenSave;
+        url += '&new=true';
+      }
+      if (dataObject._where) {
+        url += ('&where=' + encodeURIComponent(JSON.stringify(dataObject._where)));
+        delete dataObject._where;
+      }
     }
 
     dataObject = AV._.clone(dataObject || {});
@@ -8266,7 +8293,7 @@ module.exports = function(AV) {
 },{"_process":28,"underscore":29}],25:[function(require,module,exports){
 'use strict';
 
-module.exports = "js0.6.9";
+module.exports = "js0.6.10";
 
 },{}],26:[function(require,module,exports){
 (function(root) {
