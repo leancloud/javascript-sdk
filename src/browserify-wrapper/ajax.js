@@ -44,7 +44,7 @@ module.exports = function _ajax(method, resourceUrl, data, success, error) {
     agent: transportAgent,
     headers: {
       'Content-Type': 'text/plain',
-      'User-Agent': 'AV/' + VERSION + ' (Node.js' + process.version + ')'
+      'User-Agent': _ajax.userAgent || 'AV/' + VERSION + '; Node.js/' + process.version
     }
   });
 
