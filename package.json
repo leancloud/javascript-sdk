@@ -52,10 +52,10 @@
     "./src/browserify-wrapper/upload.js": "./src/browserify-wrapper/upload-browser.js",
     "./src/browserify-wrapper/localStorage.js": "./src/browserify-wrapper/localstorage-browser.js",
     "./src/browserify-wrapper/parse-base64.js": "./src/browserify-wrapper/parse-base64-browser.js",
-    "./dist/browserify-wrapper/ajax.js": "./dist/node/browserify-wrapper/ajax-browser.js",
-    "./dist/browserify-wrapper/upload.js": "./dist/node/browserify-wrapper/upload-browser.js",
-    "./dist/browserify-wrapper/localStorage.js": "./dist/node/browserify-wrapper/localstorage-browser.js",
-    "./dist/browserify-wrapper/parse-base64.js": "./dist/node/browserify-wrapper/parse-base64-browser.js"
+    "./dist/node/browserify-wrapper/ajax.js": "./dist/node/browserify-wrapper/ajax-browser.js",
+    "./dist/node/browserify-wrapper/upload.js": "./dist/node/browserify-wrapper/upload-browser.js",
+    "./dist/node/browserify-wrapper/localStorage.js": "./dist/node/browserify-wrapper/localstorage-browser.js",
+    "./dist/node/browserify-wrapper/parse-base64.js": "./dist/node/browserify-wrapper/parse-base64-browser.js"
   },
   "eslintConfig": {
     "env": {
