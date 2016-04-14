@@ -271,7 +271,14 @@ module.exports = function(AV) {
      * @param {String} attr The string name of an attribute.
      */
     get: function(attr) {
-      return this.attributes[attr];
+      switch (attr) {
+        case 'objectId':
+        // 兼容 objectId
+        return this.id;
+        default:
+        // 兼容 createdAt、updatedAt
+        return this.attributes[attr] || this[attr];
+      }
     },
 
     /**
@@ -1249,9 +1256,9 @@ module.exports = function(AV) {
     *     completes.
     */
    AV.Object.destroyAll = function(objects, options){
-      options = options || {}
-      if(objects == null || objects.length == 0){
-		  return AV.Promise.as()._thenRunCallbacks(options);
+      options = options || {};
+      if (!objects || objects.length === 0){
+		    return AV.Promise.as()._thenRunCallbacks(options);
       }
       var className = objects[0].className;
       var id = "";
