@@ -32,3 +32,10 @@ file.save().then(function (data) {
 }).catch(function (error) {
   console.log(error);
 });
+
+// 查找文件
+var query = new AV.Query(TestClass);
+query.equalTo('name', 'hjiang');
+query.find().then(function (list) {
+  console.log(list);
+});
