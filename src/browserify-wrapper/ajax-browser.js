@@ -59,19 +59,6 @@ const ajax = (method, url, data, success, error) => {
     }
   };
 
-  if (method.toLowerCase() === 'get') {
-    let i = 0;
-    for (let k in data) {
-      if (i === 0) {
-        url = url + '?';
-      } else {
-        url = url + '&';
-      }
-      url = url + k + '=' + encodeURIComponent(JSON.stringify(data[k]));
-      i ++;
-    }
-  }
-
   let headers = {
     'X-LC-Id': appId,
     'X-LC-UA': 'LC-Web-' + AV.version,
@@ -90,6 +77,24 @@ const ajax = (method, url, data, success, error) => {
     if (data._SessionToken) {
       headers['X-LC-Session'] = data._SessionToken;
       delete data._SessionToken;
+    }
+  }
+
+  if (method.toLowerCase() === 'get') {
+    let i = 0;
+    for (let k in data) {
+      if (i === 0) {
+        url = url + '?';
+      } else {
+        url = url + '&';
+      }
+
+      if (typeof data[k] === 'object') {
+        data[k] = JSON.stringify(data[k]);
+      }
+
+      url = url + k + '=' + encodeURIComponent(data[k]);
+      i ++;
     }
   }
 
