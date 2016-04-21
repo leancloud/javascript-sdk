@@ -277,7 +277,11 @@ module.exports = function(AV) {
         return this.id;
         default:
         // 兼容 createdAt、updatedAt
-        return this.attributes[attr] || this[attr];
+        if (this.attributes[attr] === undefined) {
+          return this[attr];
+        } else {
+          return this.attributes[attr];
+        }
       }
     },
 

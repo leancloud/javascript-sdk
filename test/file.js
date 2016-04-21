@@ -13,6 +13,11 @@ describe('files', function() {
         expect(file.ownerId()).to.be.ok();
         expect(file.id).to.be.ok();
         expect(file.metaData('format')).to.be('txt file');
+
+        expect(file.url()).to.be(file.get('url'));
+        expect(file.name()).to.be(file.get('name'));
+        expect(file.metaData()).to.be(file.get('metaData'));
+
         file.destroy().then(function() {
           done();
         }, function(error) {
@@ -21,30 +26,6 @@ describe('files', function() {
       }, function(error) {
         done(error);
       });
-    });
-
-    it('url should equal', function(done) {
-      if (file.url() === file.get('url')) {
-        done();
-      } else {
-        done('failed.');
-      }
-    });
-
-    it('name should equal', function(done) {
-      if (file.name() === file.get('name')) {
-        done();
-      } else {
-        done('failed.');
-      }
-    });
-
-    it('metaData should equal', function(done) {
-      if (file.metaData() === file.get('metaData')) {
-        done();
-      } else {
-        done('failed.');
-      }
     });
   });
 
