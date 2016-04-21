@@ -2,11 +2,9 @@
 
 describe('files', function() {
   describe('Saving base64', function() {
-
-    var base64 = 'd29ya2luZyBhdCBhdm9zY2xvdWQgaXMgZ3JlYXQh';
-    var file = new AV.File('myfile.txt', { base64: base64 });
-
     it('should be saved', function(done) {
+      var base64 = 'd29ya2luZyBhdCBhdm9zY2xvdWQgaXMgZ3JlYXQh';
+      var file = new AV.File('myfile.txt', { base64: base64 });
       file.metaData('format', 'txt file');
       file.setACL(new AV.ACL());
       file.save().then(function() {
