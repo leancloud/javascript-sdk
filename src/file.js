@@ -479,7 +479,17 @@ module.exports = function(AV) {
     * @returns {String|Number|Array|Object}
     */
     get: function(attrName) {
-      return this.attributes[attrName] || this.attributes.metaData[attrName];
+      switch (attrName) {
+        case 'objectId':
+        // 兼容 objectId
+        return this.id;
+        default:
+        if (this.attributes[attrName] === undefined) {
+          return this.attributes.metaData[attrName];
+        } else {
+          return this.attributes[attrName];
+        }
+      }
     },
 
     /**

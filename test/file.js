@@ -12,10 +12,6 @@ describe('files', function() {
         expect(file.id).to.be.ok();
         expect(file.metaData('format')).to.be('txt file');
 
-        expect(file.url()).to.be(file.get('url'));
-        expect(file.name()).to.be(file.get('name'));
-        expect(file.metaData()).to.be(file.get('metaData'));
-
         file.destroy().then(function() {
           done();
         }, function(error) {
@@ -171,4 +167,32 @@ describe('files', function() {
       });
     });
   });
+
+  describe('File get and set', function() {
+    it('should be equal', function(done) {
+      var base64 = 'd29ya2luZyBhdCBhdm9zY2xvdWQgaXMgZ3JlYXQh';
+      var file = new AV.File('myfile.txt', { base64: base64 });
+      file.set('format','txt file');
+      file.set('name', 'tttt');
+      file.save().then(function() {
+
+        expect(file.url()).to.be(file.get('url'));
+        expect(file.name()).to.be('tttt');
+        expect(file.metaData()).to.be(file.get('metaData'));
+        expect(file.get('objectId')).to.be(file.id);
+        expect(file.get('metaData').format).to.be('txt file');
+        expect(file.get('createdAt')).to.be(file.createdAt);
+        expect(file.get('updatedAt')).to.be(file.updatedAt);
+
+        file.destroy().then(function() {
+          done();
+        }, function(error) {
+          done(error);
+        });
+      }, function(error) {
+        done(error);
+      });
+    });
+  });
+
 });
