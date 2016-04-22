@@ -31,3 +31,11 @@ file.save().then((data) => {
   console.log(error);
 });
 
+// 查找文件
+const query = new AV.Query(TestClass);
+query.equalTo('name', 'hjiang');
+query.find().then((list) => {
+  console.log(list);
+});
+
+

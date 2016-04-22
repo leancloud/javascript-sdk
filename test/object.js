@@ -95,6 +95,7 @@ describe('Objects', function(){
       query.get(objId, {
         success: function(gameScore) {
           expect(gameScore.id).to.be.ok();
+          expect(gameScore.get('objectId')).to.be(gameScore.id);
           done();
           // The object was retrieved successfully.
         },

@@ -7,23 +7,22 @@
 
 module.exports = function upload(file, AV, saveOptions) {
   //use /files endpoint.
-  var self = file;
   var dataFormat;
-  self._previousSave = self._source.then(function(data, type) {
+  file._previousSave = file._source.then(function(data, type) {
     dataFormat = data;
-    return self._qiniuToken(type);
+    return file._qiniuToken(type);
   }).then(function(response) {
-    self._url = response.url;
-    self._bucket = response.bucket;
-    self.id = response.objectId;
+    file.attributes.url = response.url;
+    file._bucket = response.bucket;
+    file.id = response.objectId;
     //Get the uptoken to upload files to qiniu.
     var uptoken = response.token;
 
     var data = new FormData();
-    data.append("file", dataFormat);
-    data.append('name', self._name);
-    data.append("key", self._qiniu_key);
-    data.append("token", uptoken);
+    data.append('file', dataFormat);
+    data.append('name', file.attributes.name);
+    data.append('key', file._qiniu_key);
+    data.append('token', uptoken);
 
     var promise = new AV.Promise();
     var handled = false;
@@ -41,23 +40,23 @@ module.exports = function upload(file, AV, saveOptions) {
         }
         handled = true;
 
-        delete self._qiniu_key;
+        delete file._qiniu_key;
         if (xhr.status >= 200 && xhr.status < 300) {
           var response;
           try {
             response = JSON.parse(xhr.responseText);
           } catch (e) {
             promise.reject(e);
-            self.destroy();
+            file.destroy();
           }
           if (response) {
-            promise.resolve(self);
+            promise.resolve(file);
           } else {
             promise.reject(response);
           }
         } else {
           promise.reject(xhr);
-          self.destroy();
+          file.destroy();
         }
       }
     };

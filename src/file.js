@@ -7,18 +7,18 @@
 
 const _ = require('underscore');
 
-// port from browserify path module
-// since react-native packager won't shim node modules.
-function extname(path) {
-  return path.match(/^(\/?|)([\s\S]*?)((?:\.{1,2}|[^\/]+?|)(\.[^.\/]*|))(?:[\/]*)$/)[4];
-}
-
 module.exports = function(AV) {
 
   // 挂载一些配置
   let avConfig = AV._config;
 
-  var b64Digit = function(number) {
+  // port from browserify path module
+  // since react-native packager won't shim node modules.
+  const extname = (path) => {
+    return path.match(/^(\/?|)([\s\S]*?)((?:\.{1,2}|[^\/]+?|)(\.[^.\/]*|))(?:[\/]*)$/)[4];
+  };
+
+  const b64Digit = (number) => {
     if (number < 26) {
       return String.fromCharCode(65 + number);
     }
@@ -29,12 +29,12 @@ module.exports = function(AV) {
       return String.fromCharCode(48 + (number - 52));
     }
     if (number === 62) {
-      return "+";
+      return '+';
     }
     if (number === 63) {
-      return "/";
+      return '/';
     }
-    throw "Tried to encode large digit " + number + " in base64.";
+    throw new Error('Tried to encode large digit ' + number + ' in base64.');
   };
 
   var encodeBase64 = function(array) {
@@ -337,13 +337,16 @@ module.exports = function(AV) {
    *     extension.
    */
   AV.File = function(name, data, type) {
-    this._name = name;
 
-    // 用来存储转换后要上传的 base64 String
-    this._base64 = '';
+    this.attributes = {
+      name: name,
+      url: '',
+      metaData: {},
+      // 用来存储转换后要上传的 base64 String
+      base64: ''
+    };
 
     let owner;
-
     if (data && data.owner) {
       owner = data.owner;
     } else {
@@ -354,8 +357,8 @@ module.exports = function(AV) {
       }
     }
 
-    this._metaData = {
-       owner: (owner ? owner.id : 'unknown')
+    this.attributes.metaData = {
+      owner: (owner ? owner.id : 'unknown')
     };
 
     // Guess the content type from the extension if we need to.
@@ -367,23 +370,23 @@ module.exports = function(AV) {
     this._guessedType = guessedType;
 
     if (_.isArray(data)) {
-      this._base64 = encodeBase64(data);
-      this._source = AV.Promise.as(this._base64, guessedType);
-      this._metaData.size = data.length;
+      this.attributes.base64 = encodeBase64(data);
+      this._source = AV.Promise.as(this.attributes.base64, guessedType);
+      this.attributes.metaData.size = data.length;
     } else if (data && data.base64) {
       var parseBase64 = require('./browserify-wrapper/parse-base64');
       var dataBase64 = parseBase64(data.base64, guessedType);
-      this._base64 = dataURLToBase64(data.base64);
+      this.attributes.base64 = dataURLToBase64(data.base64);
       this._source = AV.Promise.as(dataBase64, guessedType);
     } else if (data && data.blob) {
       this._source = AV.Promise.as(data.blob, guessedType);
     } else if (typeof(File) !== "undefined" && data instanceof global.File) {
       this._source = AV.Promise.as(data, guessedType);
-    } else if(avConfig.isNode && global.Buffer.isBuffer(data)) {
+    } else if (avConfig.isNode && global.Buffer.isBuffer(data)) {
       // use global.Buffer to prevent browserify pack Buffer module
-      this._base64 = data.toString('base64');
-      this._source = AV.Promise.as(this._base64, guessedType);
-      this._metaData.size = data.length;
+      this.attributes.base64 = data.toString('base64');
+      this._source = AV.Promise.as(this.attributes.base64, guessedType);
+      this.attributes.metaData.size = data.length;
     } else if (_.isString(data)) {
       throw "Creating a AV.File from a String is not yet supported.";
     }
@@ -399,21 +402,21 @@ module.exports = function(AV) {
    *     extension.
    * @return {AV.File} the file object
    */
-  AV.File.withURL = function(name, url, metaData, type){
-    if(!name || !url){
+  AV.File.withURL = function(name, url, metaData, type) {
+    if (!name || !url){
       throw "Please provide file name and url";
     }
     var file = new AV.File(name, null, type);
     //copy metaData properties to file.
-    if(metaData){
+    if (metaData){
       for(var prop in metaData){
-        if(!file._metaData[prop])
-          file._metaData[prop] = metaData[prop];
+        if (!file.attributes.metaData[prop])
+          file.attributes.metaData[prop] = metaData[prop];
       }
     }
-    file._url = url;
+    file.attributes.url = url;
     //Mark the file is from external source.
-    file._metaData.__source = 'external';
+    file.attributes.metaData.__source = 'external';
     return file;
   };
 
@@ -422,14 +425,13 @@ module.exports = function(AV) {
    * @param {String} objectId The objectId string
    * @return {AV.File} the file object
    */
-  AV.File.createWithoutData = function(objectId){
+  AV.File.createWithoutData = function(objectId) {
     var file = new AV.File();
     file.id = objectId;
     return file;
   };
 
   AV.File.prototype = {
-
     toJSON: function() {
       return AV._encode(this);
     },
@@ -447,9 +449,8 @@ module.exports = function(AV) {
      * @param {AV.ACL} acl An instance of AV.ACL.
      */
     setACL: function(acl) {
-        if(!(acl instanceof AV.ACL)) {
-          return new AV.Error(AV.Error.OTHER_CAUSE,
-                               "ACL must be a AV.ACL.");
+        if (!(acl instanceof AV.ACL)) {
+          return new AV.Error(AV.Error.OTHER_CAUSE, 'ACL must be a AV.ACL.');
         }
         this._acl = acl;
     },
@@ -460,7 +461,7 @@ module.exports = function(AV) {
      * unique identifier.
      */
     name: function() {
-      return this._name;
+      return this.get('name');
     },
 
     /**
@@ -469,7 +470,62 @@ module.exports = function(AV) {
      * @return {String}
      */
     url: function() {
-      return this._url;
+      return this.get('url');
+    },
+
+    /**
+    * Gets the attributs of the file object.
+    * @param {String} The attribute name which want to get.
+    * @returns {String|Number|Array|Object}
+    */
+    get: function(attrName) {
+      switch (attrName) {
+        case 'objectId':
+        // 兼容 objectId
+        return this.id;
+        default:
+        if (this.attributes[attrName] === undefined) {
+          return this.attributes.metaData[attrName];
+        } else {
+          return this.attributes[attrName];
+        }
+      }
+    },
+
+    /**
+    * Set the metaData of the file object.
+    * @param {Object} Object is an key value Object for setting metaData.
+    * @param {String} attr is an optional metadata key.
+    * @param {Object} value is an optional metadata value.
+    * @returns {String|Number|Array|Object}
+    */
+    set: function(...args) {
+      const set = (attrName, value) => {
+        switch (attrName) {
+          case 'name':
+          case 'url':
+          case 'base64':
+          case 'metaData':
+            this.attributes[attrName] = value;
+          break;
+          default:
+            // File 并非一个 AVObject，不能完全自定义其他属性，所以只能都放在 metaData 上面
+            this.attributes.metaData[attrName] = value;
+          break;
+        }
+      };
+
+      switch (args.length) {
+        case 1:
+          // 传入一个 Object
+          for (var k in args[0]) {
+            set(k, args[0][k]);
+          }
+        break;
+        case 2:
+          set(args[0], args[1]);
+        break;
+      }
     },
 
     /**
@@ -486,12 +542,12 @@ module.exports = function(AV) {
     **/
     metaData: function(attr, value) {
       if (attr && value) {
-        this._metaData[attr] = value;
+        this.attributes.metaData[attr] = value;
         return this;
       } else if (attr && !value) {
-        return this._metaData[attr];
+        return this.attributes.metaData[attr];
       } else {
-        return this._metaData;
+        return this.attributes.metaData;
       }
     },
 
@@ -504,28 +560,30 @@ module.exports = function(AV) {
     * @param {Number} scaleToFit 是否将图片自适应大小。默认为true。
     * @param {String} fmt 格式，默认为png，也可以为jpeg,gif等格式。
     */
-   thumbnailURL: function(width, height, quality, scaleToFit, fmt){
-     if(!this.url()){
-       throw "Invalid url.";
-     }
-     if(!width || !height || width<=0 || height <=0 ){
-       throw "Invalid width or height value.";
-     }
-     quality = quality || 100;
-     scaleToFit = !scaleToFit ? true : scaleToFit;
-     if(quality <= 0 || quality > 100){
-       throw "Invalid quality value.";
-     }
-     fmt = fmt || 'png';
-     var mode = scaleToFit ? 2: 1;
-     return this.url() + '?imageView/' + mode + '/w/' + width + '/h/' + height + '/q/' + quality + '/format/' + fmt;
-   },
+
+    thumbnailURL: function(width, height, quality, scaleToFit, fmt) {
+      const url = this.attributes.url;
+      if (!url) {
+        throw new Error('Invalid url.');
+      }
+      if (!width || !height || width <= 0 || height <= 0 ) {
+        throw new Error('Invalid width or height value.');
+      }
+      quality = quality || 100;
+      scaleToFit = !scaleToFit ? true : scaleToFit;
+      if (quality <= 0 || quality > 100) {
+        throw new Error('Invalid quality value.');
+      }
+      fmt = fmt || 'png';
+      const mode = scaleToFit ? 2: 1;
+      return url + '?imageView/' + mode + '/w/' + width + '/h/' + height + '/q/' + quality + '/format/' + fmt;
+    },
 
     /**
     * Returns the file's size.
     * @return {Number} The file's size in bytes.
     **/
-    size: function(){
+    size: function() {
       return this.metaData().size;
     },
 
@@ -533,17 +591,19 @@ module.exports = function(AV) {
      * Returns the file's owner.
      * @return {String} The file's owner id.
      */
-    ownerId: function(){
+    ownerId: function() {
       return this.metaData().owner;
     },
+
      /**
      * Destroy the file.
      * @return {AV.Promise} A promise that is fulfilled when the destroy
      *     completes.
      */
-    destroy: function(options){
-      if(!this.id)
+    destroy: function(options) {
+      if (!this.id) {
         return AV.Promise.error('The file id is not eixsts.')._thenRunCallbacks(options);
+      }
       var request = AV._request("files", null, this.id, 'DELETE', options && options.sessionToken);
       return request._thenRunCallbacks(options);
     },
@@ -555,24 +615,24 @@ module.exports = function(AV) {
      * @private
      */
     _qiniuToken: function(type) {
-      var self = this;
+      const name = this.attributes.name;
       //Create 16-bits uuid as qiniu key.
-      var extName = extname(self._name);
-      var hexOctet = function() {
+      const extName = extname(name);
+      const hexOctet = function() {
         return Math.floor((1+Math.random())*0x10000).toString(16).substring(1);
       };
-      var key = hexOctet() + hexOctet() + hexOctet() + hexOctet() + hexOctet() + extName;
-
-      var data = {
+      const key = hexOctet() + hexOctet() + hexOctet() + hexOctet() + hexOctet() + extName;
+      const data = {
         key: key,
-        ACL: self._acl,
-        name:self._name,
+        ACL: this._acl,
+        name: name,
         mime_type: type,
-        metaData: self._metaData
+        metaData: this.attributes.metaData
       };
-      if(type && !self._metaData.mime_type)
-        self._metaData.mime_type = type;
-      self._qiniu_key = key;
+      if (type && !this.attributes.metaData.mime_type) {
+        this.attributes.metaData.mime_type = type;
+      }
+      this._qiniu_key = key;
       return AV._request("qiniu", null, null, 'POST', data);
     },
 
@@ -587,77 +647,79 @@ module.exports = function(AV) {
      * @param {Object} options A Backbone-style options object.
      * @return {AV.Promise} Promise that is resolved when the save finishes.
      */
-    save: function() {
+    save: function(...args) {
       if (this.id) {
         throw new Error('File already saved. If you want to manipulate a file, use AV.Query to get it.');
       }
-      var options = null;
-      var saveOptions = {};
-      if(arguments.length === 1) {
-        options = arguments[0];
-      } else if(arguments.length === 2) {
-        saveOptions = arguments[0];
-        options = arguments[1];
+      let options;
+      let saveOptions = {};
+      switch (args.length) {
+        case 1:
+          options = args[0];
+        break;
+        case 2:
+          saveOptions = args[0];
+          options = args[1];
+        break;
       }
-      var self = this;
-      if (!self._previousSave) {
+      if (!this._previousSave) {
         // 如果是国内节点
         var isCnNodeFlag = isCnNode();
-        if(self._source && isCnNodeFlag) {
+        if (this._source && isCnNodeFlag) {
           // 通过国内 CDN 服务商上传
           var upload = require('./browserify-wrapper/upload');
-          upload(self, AV, saveOptions);
-        } else if (self._url && self._metaData.__source === 'external') {
+          upload(this, AV, saveOptions);
+        } else if (this.attributes.url && this.attributes.metaData.__source === 'external') {
           //external link file.
           var data = {
-            name: self._name,
-            ACL: self._acl,
-            metaData: self._metaData,
-            mime_type: self._guessedType,
-            url: self._url
+            name: this.attributes.name,
+            ACL: this._acl,
+            metaData: this.attributes.metaData,
+            mime_type: this._guessedType,
+            url: this.attributes.url
           };
-          self._previousSave = AV._request('files', self._name, null, 'POST', data).then(function(response) {
-            self._name = response.name;
-            self._url = response.url;
-            self.id = response.objectId;
-            if(response.size) {
-              self._metaData.size = response.size;
+          this._previousSave = AV._request('files', this.attributes.name, null, 'post', data).then((response) => {
+            this.attributes.name = response.name;
+            this.attributes.url = response.url;
+            this.id = response.objectId;
+            if (response.size) {
+              this.attributes.metaData.size = response.size;
             }
-            return self;
+            return this;
           });
         } else if (!isCnNodeFlag) {
           // 海外节点，通过 LeanCloud 服务器中转
-          self._previousSave = self._source.then(function(file, type) {
+          this._previousSave = this._source.then((file, type) => {
             var data = {
               base64: '',
               _ContentType: type,
-              ACL: self._acl,
+              ACL: this._acl,
               mime_type: type,
-              metaData: self._metaData,
+              metaData: this.attributes.metaData,
             };
             // 判断是否数据已经是 base64
-            if (self._base64) {
-              data.base64 = self._base64;
-              return AV._request('files', self._name, null, 'POST', data);
+            if (this.attributes.base64) {
+              data.base64 = this.attributes.base64;
+              return AV._request('files', this.attributes.name, null, 'POST', data);
             } else {
               return readAsync(file).then(function(base64) {
                 data.base64 = base64;
-                return AV._request('files', self._name, null, 'POST', data);
+                return AV._request('files', this.attributes.name, null, 'POST', data);
               });
             }
-          }).then(function(response) {
-            self._name = response.name;
-            self._url = response.url;
-            self.id = response.objectId;
-            if(response.size)
-              self._metaData.size = response.size;
-            return self;
+          }).then((response) => {
+            this.attributes.name = response.name;
+            this.attributes.url = response.url;
+            this.id = response.objectId;
+            if (response.size) {
+              this.attributes.metaData.size = response.size;
+            }
+            return this;
           });
         }
       }
-      return self._previousSave._thenRunCallbacks(options);
+      return this._previousSave._thenRunCallbacks(options);
     },
-
     /**
     * fetch the file from server. If the server's representation of the
     * model differs from its current attributes, they will be overriden,
@@ -671,27 +733,28 @@ module.exports = function(AV) {
     fetch: function() {
         var options = null;
         var fetchOptions = {};
-        if(arguments.length === 1) {
+        if (arguments.length === 1) {
           options = arguments[0];
-        } else if(arguments.length === 2) {
+        } else if (arguments.length === 2) {
           fetchOptions = arguments[0];
           options = arguments[1];
         }
 
-        var self = this;
-        var request = AV._request('files', null, this.id, 'GET',
-                                  fetchOptions);
-        return request.then(function(response) {
+        var request = AV._request('files', null, this.id, 'GET', fetchOptions);
+        return request.then((response) => {
           var value = AV.Object.prototype.parse(response);
-          value._metaData = value.metaData || {};
-          value._url = value.url;
-          value._name = value.name;
+          value.attributes = {
+            name: value.name,
+            url: value.url
+          };
+          value.attributes.metaData = value.metaData || {};
+          // clean
           delete value.objectId;
           delete value.metaData;
           delete value.url;
           delete value.name;
-          _.extend(self, value);
-          return self;
+          _.extend(this, value);
+          return this;
         })._thenRunCallbacks(options);
     }
   };
