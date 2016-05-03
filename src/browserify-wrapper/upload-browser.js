@@ -60,7 +60,7 @@ module.exports = function upload(file, AV, saveOptions) {
         }
       }
     };
-    xhr.open('POST', 'http://upload.qiniu.com', true);
+    xhr.open('POST', 'https://up.qbox.me', true);
     xhr.send(data);
 
     return promise;
