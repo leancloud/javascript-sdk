@@ -7,6 +7,7 @@
 
 const _ = require('underscore');
 const ajax = require('./browserify-wrapper/ajax');
+const Cache = require('./cache');
 
 const init = (AV) => {
 
@@ -115,7 +116,29 @@ const init = (AV) => {
     AV._useMasterKey = false;
   };
 
-  const setRegionServer = (region) => {
+  const setRegionServer = (region = 'cn') => {
+    // AVConfig.region = region;
+    // AVConfig.APIServerURL = API_HOST[region];
+    // if (region === 'cn') {
+    //   Cache.get('APIServerURL').then(cachedServerURL => {
+    //     if (cachedServerURL) {
+    //       return cachedServerURL;
+    //     } else {
+    //       return ajax('get', `http://app-router.leancloud.cn/route?appId=${AV.applicationId}`)
+    //         .then(servers => {
+    //           if (servers.api_server) {
+    //             Cache.set('APIServerURL', servers.api_server, 30 * 24 * 3600000);
+    //             return servers.api_server;
+    //           }
+    //         });
+    //     }
+    //   }).then(serverURL => {
+    //     if (AVConfig.APIServerURL === API_HOST[region]) {
+    //       AVConfig.APIServerURL = serverURL;
+    //     }
+    //   })
+    // }
+
     // 服务器地区选项，默认为中国大陆
     switch (region) {
       case 'us':

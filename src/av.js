@@ -19,6 +19,7 @@ AV._ = require('underscore');
 AV.version = require('./version');
 AV.Promise = require('./promise');
 AV.localStorage = require('./localstorage');
+AV.Cache = require('./Cache');
 
 // 挂载所有内部配置项
 AV._config = AV._config || {};
