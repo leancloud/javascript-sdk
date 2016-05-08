@@ -8,6 +8,19 @@
 const _ = require('underscore');
 const ajax = require('./browserify-wrapper/ajax');
 const Cache = require('./cache');
+const md5 = require('md5');
+const debug = require('debug')('utils');
+
+// 计算 X-LC-Sign 的签名方法
+const sign = (key, isMasterKey) => {
+  const now = new Date().getTime();
+  const signature = md5(now + key);
+  if (isMasterKey) {
+    return signature + ',' + now + ',master';
+  } else {
+    return signature + ',' + now;
+  }
+};
 
 const init = (AV) => {
 
@@ -413,36 +426,44 @@ const init = (AV) => {
       }
     }
 
-    dataObject = _.clone(dataObject || {});
-    dataObject._ApplicationId = AV.applicationId;
-    dataObject._ApplicationKey = AV.applicationKey;
+    if (method.toLowerCase() === 'get') {
+      if (apiURL.indexOf('?') === -1) {
+        apiURL += '?';
+      }
+      for (let k in dataObject) {
+        if (typeof dataObject[k] === 'object') {
+          dataObject[k] = JSON.stringify(dataObject[k]);
+        }
+        apiURL += '&' + k + '=' + encodeURIComponent(dataObject[k]);
+      }
+    }
+
+    var headers = {
+      'X-LC-Id': AV.applicationId,
+      'X-LC-UA': 'LC-Web-' + AV.version,
+      'Content-Type': 'application/json;charset=UTF-8'
+    };
+    if (AV.masterKey && AV._useMasterKey) {
+      headers['X-LC-Sign'] = sign(AV.masterKey, true);
+    } else {
+      headers['X-LC-Sign'] = sign(AV.applicationKey);
+    }
     if (!AV._isNullOrUndefined(AV.applicationProduction)) {
-      dataObject._ApplicationProduction = AV.applicationProduction;
+      headers['X-LC-Prod'] = AV.applicationProduction;
     }
-    if (AV._useMasterKey) {
-      dataObject._MasterKey = AV.masterKey;
-    }
-    dataObject._ClientVersion = AV.version;
     return AV.Promise.as().then(function() {
       // Pass the session token
       if (sessionToken) {
-        dataObject._SessionToken = sessionToken;
+        headers['X-LC-Session'] = sessionToken;
       } else if (!AV._config.disableCurrentUser) {
         return AV.User.currentAsync().then(function(currentUser) {
           if (currentUser && currentUser._sessionToken) {
-            dataObject._SessionToken = currentUser._sessionToken;
+            headers['X-LC-Session'] = currentUser._sessionToken;
           }
         });
       }
     }).then(function() {
-      // Pass the installation id
-      if (!AV._config.disableCurrentUser) {
-        return AV._getInstallationId().then(function(installationId) {
-          dataObject._InstallationId = installationId;
-        });
-      }
-    }).then(function() {
-      return AV._ajax(method, apiURL, dataObject).then(null, function(response) {
+      return AV._ajax(method, apiURL, dataObject, headers).then(null, function(response) {
         // Transform the error into an instance of AV.Error by trying to parse
         // the error string as JSON.
         var error;

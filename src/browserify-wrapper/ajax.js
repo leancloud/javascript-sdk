@@ -8,44 +8,33 @@
 const http = require('http');
 const https = require('https');
 const url = require('url');
+const debug = require('debug')('ajax');
 
 const Promise = require('../promise');
 const VERSION = require('../version');
 
-// `keepAlive` option only work on Node.js 0.12+
-var httpAgent = new http.Agent({keepAlive: true});
-var httpsAgent = new https.Agent({keepAlive: true});
-
-module.exports = function _ajax(method, resourceUrl, data, success, error) {
-  if (method.toLowerCase() !== 'post') {
-    data = data || {};
-    data._method = method;
-    method = 'post';
-  }
-  data = JSON.stringify(data);
+module.exports = function _ajax(method, resourceUrl, data, headers = {}) {
+  debug(method, resourceUrl, data, headers);
 
   var parsedUrl = url.parse(resourceUrl);
+
   var promise = new Promise();
 
   var transportModule = http;
-  var transportAgent = httpAgent;
 
   if (parsedUrl.protocol === 'https:') {
     transportModule = https;
-    transportAgent = httpsAgent;
   }
 
+  delete headers['X-LC-UA'];
+  headers['User-Agent'] = _ajax.userAgent || 'AV/' + VERSION + '; Node.js/' + process.version;
   var req = transportModule.request({
     method: method,
     protocol: parsedUrl.protocol,
     hostname: parsedUrl.hostname,
     port: parsedUrl.port,
     path: parsedUrl.path,
-    agent: transportAgent,
-    headers: {
-      'Content-Type': 'text/plain',
-      'User-Agent': _ajax.userAgent || 'AV/' + VERSION + '; Node.js/' + process.version
-    }
+    headers,
   });
 
   req.on('response', function(res) {
@@ -56,6 +45,7 @@ module.exports = function _ajax(method, resourceUrl, data, success, error) {
     });
 
     res.on('end', function() {
+      debug(res.statusCode, responseText);
       if (res.statusCode >= 200 && res.statusCode < 300) {
         try {
           promise.resolve(JSON.parse(responseText), res.statusCode, res);
@@ -74,9 +64,7 @@ module.exports = function _ajax(method, resourceUrl, data, success, error) {
     promise.reject(err);
   });
 
-  req.end(data);
-  return promise._thenRunCallbacks({
-    success: success,
-    error: error
-  });
+  req.end(JSON.stringify(data));
+  debug(req);
+  return promise;
 };
