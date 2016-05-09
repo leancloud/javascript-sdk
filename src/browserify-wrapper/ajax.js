@@ -65,6 +65,5 @@ module.exports = function _ajax(method, resourceUrl, data, headers = {}) {
   });
 
   req.end(JSON.stringify(data));
-  debug(req);
   return promise;
 };

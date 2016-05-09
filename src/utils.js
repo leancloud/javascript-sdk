@@ -130,39 +130,31 @@ const init = (AV) => {
   };
 
   const setRegionServer = (region = 'cn') => {
-    // AVConfig.region = region;
-    // AVConfig.APIServerURL = API_HOST[region];
-    // if (region === 'cn') {
-    //   Cache.get('APIServerURL').then(cachedServerURL => {
-    //     if (cachedServerURL) {
-    //       return cachedServerURL;
-    //     } else {
-    //       return ajax('get', `http://app-router.leancloud.cn/route?appId=${AV.applicationId}`)
-    //         .then(servers => {
-    //           if (servers.api_server) {
-    //             Cache.set('APIServerURL', servers.api_server, 30 * 24 * 3600000);
-    //             return servers.api_server;
-    //           }
-    //         });
-    //     }
-    //   }).then(serverURL => {
-    //     if (AVConfig.APIServerURL === API_HOST[region]) {
-    //       AVConfig.APIServerURL = serverURL;
-    //     }
-    //   })
-    // }
-
-    // 服务器地区选项，默认为中国大陆
-    switch (region) {
-      case 'us':
-        AVConfig.region = 'us';
-      break;
-      default:
-        AVConfig.region = 'cn';
-      break;
+    AVConfig.region = region;
+    // 如果用户在 init 之前设置了 APIServerURL，则跳请求 router
+    if (AVConfig.APIServerURL) {
+      return;
     }
-    if (!AVConfig.APIServerURL) {
-      AVConfig.APIServerURL = API_HOST[AVConfig.region];
+    AVConfig.APIServerURL = API_HOST[region];
+    if (region === 'cn') {
+      Cache.get('APIServerURL').then(cachedServerURL => {
+        if (cachedServerURL) {
+          return cachedServerURL;
+        } else {
+          return ajax('get', `https://app-router.leancloud.cn/1/route?appId=${AV.applicationId}`)
+            .then(servers => {
+              if (servers.api_server) {
+                Cache.set('APIServerURL', servers.api_server, (servers.ttl || 3600) * 1000);
+                return servers.api_server;
+              }
+            });
+        }
+      }).then(serverURL => {
+        // 如果用户在 init 之后设置了 APIServerURL，保持用户设置
+        if (AVConfig.APIServerURL === API_HOST[region]) {
+          AVConfig.APIServerURL = `https://${serverURL}`;
+        }
+      })
     }
   };
 
