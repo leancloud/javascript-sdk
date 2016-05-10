@@ -6,31 +6,12 @@
 'use strict';
 
 const AVPromise = require('../promise');
-const md5 = require('md5');
+const debug = require('debug')('ajax');
 
-// 计算 X-LC-Sign 的签名方法
-const sign = (key, isMasterKey) => {
-  const now = new Date().getTime();
-  const signature = md5(now + key);
-  if (isMasterKey) {
-    return signature + ',' + now + ',master';
-  } else {
-    return signature + ',' + now;
-  }
-};
-
-const ajax = (method, url, data, success, error) => {
-  const AV = global.AV;
+const ajax = (method, url, data, headers = {}) => {
+  debug(method, url, data, headers);
 
   const promise = new AVPromise();
-  const options = {
-    success: success,
-    error: error
-  };
-
-  const appId = AV.applicationId;
-  const appKey = AV.applicationKey;
-  const masterKey = AV.masterKey;
 
   let handled = false;
   const xhr = new global.XMLHttpRequest();
@@ -40,6 +21,8 @@ const ajax = (method, url, data, success, error) => {
         return;
       }
       handled = true;
+
+      debug(xhr.status, xhr.responseText);
 
       if (xhr.status >= 200 && xhr.status < 300) {
         let response;
@@ -59,51 +42,6 @@ const ajax = (method, url, data, success, error) => {
     }
   };
 
-  let headers = {
-    'X-LC-Id': appId,
-    'X-LC-UA': 'LC-Web-' + AV.version,
-    'Content-Type': 'application/json;charset=UTF-8'
-  };
-
-  // 清理原来多余的数据（如果不清理，会污染数据表）
-  if (data) {
-    delete data._ApplicationId;
-    delete data._ApplicationKey;
-    delete data._ApplicationProduction;
-    delete data._MasterKey;
-    delete data._ClientVersion;
-    delete data._InstallationId;
-
-    if (data._SessionToken) {
-      headers['X-LC-Session'] = data._SessionToken;
-      delete data._SessionToken;
-    }
-  }
-
-  if (method.toLowerCase() === 'get') {
-    let i = 0;
-    for (let k in data) {
-      if (i === 0) {
-        url = url + '?';
-      } else {
-        url = url + '&';
-      }
-
-      if (typeof data[k] === 'object') {
-        data[k] = JSON.stringify(data[k]);
-      }
-
-      url = url + k + '=' + encodeURIComponent(data[k]);
-      i ++;
-    }
-  }
-
-  if (masterKey && AV._useMasterKey) {
-    headers['X-LC-Sign'] = sign(masterKey, true);
-  } else {
-    headers['X-LC-Sign'] = sign(appKey);
-  }
-
   xhr.open(method, url, true);
 
   for (let name in headers) {
@@ -111,7 +49,7 @@ const ajax = (method, url, data, success, error) => {
   }
 
   xhr.send(JSON.stringify(data));
-  return promise._thenRunCallbacks(options);
+  return promise;
 };
 
 module.exports = ajax;

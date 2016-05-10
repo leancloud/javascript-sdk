@@ -255,4 +255,3 @@ gulp.task('dev', [
     'babel-demo'
   ]).on('change', reload);
 });
-
