@@ -8,13 +8,18 @@
 const AVPromise = require('../promise');
 const debug = require('debug')('ajax');
 
-const ajax = (method, url, data, headers = {}) => {
+const ajax = (method, url, data, headers = {}, onprogress) => {
   debug(method, url, data, headers);
 
   const promise = new AVPromise();
 
   let handled = false;
   const xhr = new global.XMLHttpRequest();
+
+  if (onprogress && xhr.upload) {
+    xhr.upload.onprogress = onprogress;
+  }
+
   xhr.onreadystatechange = () => {
     if (xhr.readyState === 4) {
       if (handled) {
@@ -48,7 +53,7 @@ const ajax = (method, url, data, headers = {}) => {
     xhr.setRequestHeader(name, headers[name]);
   }
 
-  xhr.send(JSON.stringify(data));
+  xhr.send(data);
   return promise;
 };
 
