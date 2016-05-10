@@ -379,6 +379,9 @@ module.exports = function(AV) {
       this.attributes.base64 = dataURLToBase64(data.base64);
       this._source = AV.Promise.as(dataBase64, guessedType);
     } else if (data && data.blob) {
+      if (!data.blob.type) {
+        data.blob.type = guessedType;
+      }
       this._source = AV.Promise.as(data.blob, guessedType);
     } else if (typeof(File) !== "undefined" && data instanceof global.File) {
       this._source = AV.Promise.as(data, guessedType);
