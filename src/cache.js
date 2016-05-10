@@ -2,6 +2,8 @@
 const storage = require('./localstorage');
 const AV = require('./av');
 
+const remove = exports.remove = storage.removeItemAsync.bind(storage);
+
 exports.get = (key) => {
   return storage.getItemAsync(`${AV.applicationId}/${key}`)
     .then(cache => {
@@ -15,6 +17,7 @@ exports.get = (key) => {
         if (!expired) {
           return cache.value;
         }
+        return remove(key).then(() => null);
       }
       return null;
     });

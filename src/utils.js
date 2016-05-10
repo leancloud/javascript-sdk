@@ -131,7 +131,7 @@ const init = (AV) => {
 
   const setRegionServer = (region = 'cn') => {
     AVConfig.region = region;
-    // 如果用户在 init 之前设置了 APIServerURL，则跳请求 router
+    // 如果用户在 init 之前设置了 APIServerURL，则跳过请求 router
     if (AVConfig.APIServerURL) {
       return;
     }
@@ -144,7 +144,10 @@ const init = (AV) => {
           return ajax('get', `https://app-router.leancloud.cn/1/route?appId=${AV.applicationId}`)
             .then(servers => {
               if (servers.api_server) {
-                Cache.set('APIServerURL', servers.api_server, (servers.ttl || 3600) * 1000);
+                Cache.set(
+                  'APIServerURL',
+                  servers.api_server,
+                  (typeof servers.ttl ==='number' ? servers.ttl : 3600) * 1000);
                 return servers.api_server;
               }
             });
