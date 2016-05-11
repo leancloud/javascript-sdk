@@ -5,15 +5,15 @@
 
 'use strict';
 
-var ajax = require('../browserify-wrapper/ajax.js');
+const ajax = require('../browserify-wrapper/ajax.js');
 
 module.exports = function upload(uploadInfo, data, file, saveOptions) {
     file.attributes.url = uploadInfo.url;
     file._bucket = uploadInfo.bucket;
     file.id = uploadInfo.objectId;
     //Get the uptoken to upload files to qiniu.
-    var uptoken = uploadInfo.token;
-    var formData = new FormData();
+    const uptoken = uploadInfo.token;
+    const formData = new FormData();
     formData.append('file', data);
     formData.append('name', file.attributes.name);
     formData.append('key', file._qiniu_key);

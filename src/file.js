@@ -616,7 +616,7 @@ module.exports = function(AV) {
      * @return {AV.Promise} Resolved with the response
      * @private
      */
-    _fileToken: function(type, route = "fileTokens") {
+    _fileToken: function(type, route = 'fileTokens') {
       const name = this.attributes.name;
       //Create 16-bits uuid as qiniu key.
       const extName = extname(name);

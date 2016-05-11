@@ -1,24 +1,24 @@
 'use strict';
-var FormData = require('form-data');
+const FormData = require('form-data');
 
-var ajax = require('../browserify-wrapper/ajax.js');
-var Promise = require('../promise');
-var debug = require('debug')('cos');
+const ajax = require('../browserify-wrapper/ajax.js');
+const Promise = require('../promise');
+const debug = require('debug')('cos');
 
 module.exports =function upload(uploadInfo, data, file) {
   file.attributes.url = uploadInfo.url;
   file._bucket = uploadInfo.bucket;
   file.id = uploadInfo.objectId;
-  var uploadUrl = uploadInfo.upload_url;
-  var body = new Buffer(data, 'base64');
+  const uploadUrl = uploadInfo.upload_url;
+  const body = new Buffer(data, 'base64');
   debug(uploadUrl, data);
-  var formData = new FormData();
+  const formData = new FormData();
   formData.append('fileContent', body);
   formData.append('op', 'upload');
 
-  var promise = new Promise();
+  const promise = new Promise();
 
-  var request = formData.submit(uploadUrl, function(err, res) {
+  const request = formData.submit(uploadUrl, function(err, res) {
     debug(err, res.statusCode);
     if (err) {
       promise.reject(err);

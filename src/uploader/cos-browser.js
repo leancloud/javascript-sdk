@@ -1,13 +1,13 @@
 'use strict';
 
-var ajax = require('../browserify-wrapper/ajax.js');
+const ajax = require('../browserify-wrapper/ajax.js');
 
 module.exports =function upload(uploadInfo, data, file, saveOptions) {
   file.attributes.url = uploadInfo.url;
   file._bucket = uploadInfo.bucket;
   file.id = uploadInfo.objectId;
-  var uploadUrl = uploadInfo.upload_url + "?sign=" + encodeURIComponent(uploadInfo.token);
-  var formData = new FormData();
+  const uploadUrl = uploadInfo.upload_url + "?sign=" + encodeURIComponent(uploadInfo.token);
+  const formData = new FormData();
   formData.append('fileContent', data);
   formData.append('op', 'upload');
 
