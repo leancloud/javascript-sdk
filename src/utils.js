@@ -382,6 +382,7 @@ const init = (AV) => {
         route !== "usersByMobilePhone" &&
         route !== "cloudQuery" &&
         route !== "qiniu" &&
+        route !== "fileTokens" &&
         route !== "statuses" &&
         route !== "bigquery" &&
         route !== 'search/select' &&
@@ -458,7 +459,7 @@ const init = (AV) => {
         });
       }
     }).then(function() {
-      return AV._ajax(method, apiURL, dataObject, headers).then(null, function(response) {
+      return AV._ajax(method, apiURL, JSON.stringify(dataObject), headers).then(null, function(response) {
         // Transform the error into an instance of AV.Error by trying to parse
         // the error string as JSON.
         var error;

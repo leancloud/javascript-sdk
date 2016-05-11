@@ -64,6 +64,6 @@ module.exports = function _ajax(method, resourceUrl, data, headers = {}) {
     promise.reject(err);
   });
 
-  req.end(JSON.stringify(data));
+  req.end(data);
   return promise;
 };

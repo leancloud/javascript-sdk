@@ -6,6 +6,8 @@
 'use strict';
 
 const _ = require('underscore');
+const cos = require('./uploader/cos');
+const qiniu = require('./uploader/qiniu');
 
 module.exports = function(AV) {
 
@@ -617,7 +619,7 @@ module.exports = function(AV) {
      * @return {AV.Promise} Resolved with the response
      * @private
      */
-    _qiniuToken: function(type) {
+    _fileToken: function(type, route = 'fileTokens') {
       const name = this.attributes.name;
       //Create 16-bits uuid as qiniu key.
       const extName = extname(name);
@@ -636,7 +638,7 @@ module.exports = function(AV) {
         this.attributes.metaData.mime_type = type;
       }
       this._qiniu_key = key;
-      return AV._request("qiniu", null, null, 'POST', data);
+      return AV._request(route, null, null, 'POST', data);
     },
 
     /**
@@ -670,8 +672,22 @@ module.exports = function(AV) {
         var isCnNodeFlag = isCnNode();
         if (this._source && isCnNodeFlag) {
           // 通过国内 CDN 服务商上传
-          var upload = require('./browserify-wrapper/upload');
-          upload(this, AV, saveOptions);
+          this._previousSave = this._source.then((data, type) => {
+            return this._fileToken(type).catch(() => this._fileToken(type, 'qiniu'))
+              .then(uploadInfo => {
+                let uploadPromise;
+                if (uploadInfo.provider === 'qcloud') {
+                  uploadPromise = cos(uploadInfo, data, this, saveOptions);
+                } else {
+                  uploadPromise = qiniu(uploadInfo, data, this, saveOptions);
+                }
+                return uploadPromise.catch(err => {
+                  //destroy this file object when upload fails.
+                  this.destroy();
+                  throw err;
+                });
+              });
+          });
         } else if (this.attributes.url && this.attributes.metaData.__source === 'external') {
           //external link file.
           var data = {
