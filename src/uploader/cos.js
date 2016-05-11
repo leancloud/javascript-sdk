@@ -10,9 +10,10 @@ module.exports =function upload(uploadInfo, data, file) {
   file._bucket = uploadInfo.bucket;
   file.id = uploadInfo.objectId;
   var uploadUrl = uploadInfo.upload_url;
+  var body = new Buffer(data, 'base64');
   debug(uploadUrl, data);
   var formData = new FormData();
-  formData.append('fileContent', data);
+  formData.append('fileContent', body);
   formData.append('op', 'upload');
 
   var promise = new Promise();
