@@ -21,6 +21,7 @@ module.exports = function _ajax(method, resourceUrl, data, headers = {}, onprogr
     .end((err, res) => {
       debug(res.status, res.body, res.text);
       if (err) {
+        err.statusCode = res.status;
         err.responseText = res.text;
         err.response = res.body;
         return promise.reject(err);
