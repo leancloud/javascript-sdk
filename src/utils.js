@@ -6,7 +6,7 @@
 'use strict';
 
 const _ = require('underscore');
-const ajax = require('./browserify-wrapper/ajax');
+const ajax = require('./ajax');
 const Cache = require('./cache');
 const md5 = require('md5');
 const debug = require('debug')('utils');
@@ -394,6 +394,8 @@ const init = (AV) => {
       throw "Bad route: '" + route + "'.";
     }
 
+    dataObject = dataObject || {};
+
     // 兼容 AV.serverURL 旧方式设置 API Host，后续去掉
     let apiURL = AV.serverURL || AVConfig.APIServerURL;
     if (AV.serverURL) {
@@ -422,21 +424,8 @@ const init = (AV) => {
       }
     }
 
-    if (method.toLowerCase() === 'get') {
-      if (apiURL.indexOf('?') === -1) {
-        apiURL += '?';
-      }
-      for (let k in dataObject) {
-        if (typeof dataObject[k] === 'object') {
-          dataObject[k] = JSON.stringify(dataObject[k]);
-        }
-        apiURL += '&' + k + '=' + encodeURIComponent(dataObject[k]);
-      }
-    }
-
     var headers = {
       'X-LC-Id': AV.applicationId,
-      'X-LC-UA': 'LC-Web-' + AV.version,
       'Content-Type': 'application/json;charset=UTF-8'
     };
     if (AV.masterKey && AV._useMasterKey) {
@@ -447,6 +436,8 @@ const init = (AV) => {
     if (!AV._isNullOrUndefined(AV.applicationProduction)) {
       headers['X-LC-Prod'] = AV.applicationProduction;
     }
+    headers['User-Agent'] = AV._config.userAgent || `AV/${AV.version}; Node.js/${process.version}`;
+
     return AV.Promise.as().then(function() {
       // Pass the session token
       if (sessionToken) {
@@ -459,18 +450,60 @@ const init = (AV) => {
         });
       }
     }).then(function() {
-      return AV._ajax(method, apiURL, JSON.stringify(dataObject), headers).then(null, function(response) {
+      // redirection for request with pre-flight is not supported by browser
+      // fallback to plain POST
+      if (!AVConfig.isNode) {
+        try {
+          if (_.isObject(dataObject)) {
+            if (method.toLowerCase() !== 'post') {
+              dataObject._method = method;
+              method = 'post';
+            }
+            dataObject._ApplicationId = headers['X-LC-Id'];
+            // TODO: use X-LC-Sign
+            dataObject._ApplicationKey = AV.applicationKey;
+            if (AV._useMasterKey) {
+              dataObject._MasterKey = AV.masterKey;
+            }
+            dataObject._ApplicationProduction = headers['X-LC-Prod'];
+            dataObject._ClientVersion = 'LC-Web-' + AV.version;
+            dataObject._SessionToken = headers['X-LC-Session'];
+            headers = {
+              'content-type': 'text/plain',
+            };
+            dataObject = JSON.stringify(dataObject);
+          }
+        } catch (e) {}
+      }
+
+      if (method.toLowerCase() === 'get') {
+        if (apiURL.indexOf('?') === -1) {
+          apiURL += '?';
+        }
+        for (let k in dataObject) {
+          if (typeof dataObject[k] === 'object') {
+            dataObject[k] = JSON.stringify(dataObject[k]);
+          }
+          apiURL += '&' + k + '=' + encodeURIComponent(dataObject[k]);
+        }
+      }
+
+      return AV._ajax(method, apiURL, dataObject, headers).then(null, function(response) {
         // Transform the error into an instance of AV.Error by trying to parse
         // the error string as JSON.
         var error;
-        if (response && response.responseText) {
-          try {
-            var errorJSON = JSON.parse(response.responseText);
-            if (errorJSON) {
-              error = new AV.Error(errorJSON.code, errorJSON.error);
+        if (response) {
+          if (response.response) {
+            error = new AV.Error(response.response.code, response.response.error);
+          } else if (response.responseText) {
+            try {
+              var errorJSON = JSON.parse(response.responseText);
+              if (errorJSON) {
+                error = new AV.Error(errorJSON.code, errorJSON.error);
+              }
+            } catch (e) {
+              // If we fail to parse the error text, that's okay.
             }
-          } catch (e) {
-            // If we fail to parse the error text, that's okay.
           }
         }
         error = error || new AV.Error(-1, response.responseText);

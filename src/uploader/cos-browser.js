@@ -1,6 +1,6 @@
 'use strict';
 
-const ajax = require('../browserify-wrapper/ajax.js');
+const ajax = require('../ajax.js');
 
 module.exports =function upload(uploadInfo, data, file, saveOptions) {
   file.attributes.url = uploadInfo.url;

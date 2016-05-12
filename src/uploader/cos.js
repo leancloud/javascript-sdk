@@ -1,7 +1,7 @@
 'use strict';
 const FormData = require('form-data');
 
-const ajax = require('../browserify-wrapper/ajax.js');
+const ajax = require('../ajax.js');
 const Promise = require('../promise');
 const debug = require('debug')('cos');
 
