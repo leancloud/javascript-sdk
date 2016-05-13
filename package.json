@@ -12,7 +12,6 @@
   },
   "dependencies": {
     "debug": "^2.2.0",
-    "form-data": "^1.0.0-rc4",
     "localstorage-memory": "^1.0.1",
     "md5": "^2.0.0",
     "qiniu": "6.1.3",

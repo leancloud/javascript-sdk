@@ -2,23 +2,16 @@
 
 describe('files', function() {
   describe('Saving base64', function() {
-    it('should be saved', function(done) {
+    it('should be saved', function() {
       var base64 = 'd29ya2luZyBhdCBhdm9zY2xvdWQgaXMgZ3JlYXQh';
       var file = new AV.File('myfile.txt', { base64: base64 });
       file.metaData('format', 'txt file');
       file.setACL(new AV.ACL());
-      file.save().then(function() {
+      return file.save().then(function() {
         expect(file.ownerId()).to.be.ok();
         expect(file.id).to.be.ok();
         expect(file.metaData('format')).to.be('txt file');
-
-        file.destroy().then(function() {
-          done();
-        }, function(error) {
-          done(error);
-        });
-      }, function(error) {
-        done(error);
+        return file.destroy();
       });
     });
   });

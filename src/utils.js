@@ -137,6 +137,10 @@ const init = (AV) => {
     }
     AVConfig.APIServerURL = API_HOST[region];
     if (region === 'cn') {
+      // TODO: remove appId match hack
+      if (AV.applicationId.indexOf('-9Nh9j0Va') !== -1) {
+        AVConfig.APIServerURL = 'https://e1-api.leancloud.cn';
+      }
       Cache.get('APIServerURL').then(cachedServerURL => {
         if (cachedServerURL) {
           return cachedServerURL;
