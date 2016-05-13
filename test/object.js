@@ -350,6 +350,19 @@ describe('Objects', function(){
       });
     });
 
+    it('should fetch include authors successfully', function() {
+      var myPost = new Post();
+      myPost.set('author1', new Person({name: '1'}));
+      myPost.set('author2', new Person({name: '2'}));
+      return myPost.save().then(function() {
+        myPost = AV.Object.createWithoutData('Post', myPost.id);
+        return myPost.fetch({include: ['author1', 'author2']}, {}).then(function() {
+          expect(myPost.get('author1').get('name')).to.be('1');
+          expect(myPost.get('author2').get('name')).to.be('2');
+        });
+      });
+    });
+
     /*
 
        it("it should fetch relation post",function(done){
