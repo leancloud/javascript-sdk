@@ -795,13 +795,17 @@ module.exports = function(AV) {
      *     completes.
      */
     fetch: function() {
-      var options = null;
+      var options = {};
       var fetchOptions = {};
       if(arguments.length === 1) {
         options = arguments[0];
       } else if(arguments.length === 2) {
         fetchOptions = arguments[0];
-        options = arguments[1];
+        options = arguments[1] || {};
+      }
+
+      if (fetchOptions && fetchOptions.include && fetchOptions.include.length > 0) {
+        fetchOptions.include = fetchOptions.include.join(',');
       }
 
       var self = this;
