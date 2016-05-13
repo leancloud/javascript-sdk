@@ -440,7 +440,11 @@ const init = (AV) => {
     if (!AV._isNullOrUndefined(AV.applicationProduction)) {
       headers['X-LC-Prod'] = AV.applicationProduction;
     }
-    headers['User-Agent'] = AV._config.userAgent || `AV/${AV.version}; Node.js/${process.version}`;
+    if (!AVConfig.isNode) {
+      headers['X-LC-UA'] = `AV/${AV.version}`;
+    } else {
+      headers['User-Agent'] = AV._config.userAgent || `AV/${AV.version}; Node.js/${process.version}`;
+    }
 
     return AV.Promise.as().then(function() {
       // Pass the session token
@@ -454,32 +458,6 @@ const init = (AV) => {
         });
       }
     }).then(function() {
-      // redirection for request with pre-flight is not supported by browser
-      // fallback to plain POST
-      if (!AVConfig.isNode) {
-        try {
-          if (_.isObject(dataObject)) {
-            if (method.toLowerCase() !== 'post') {
-              dataObject._method = method;
-              method = 'post';
-            }
-            dataObject._ApplicationId = headers['X-LC-Id'];
-            // TODO: use X-LC-Sign
-            dataObject._ApplicationKey = AV.applicationKey;
-            if (AV._useMasterKey) {
-              dataObject._MasterKey = AV.masterKey;
-            }
-            dataObject._ApplicationProduction = headers['X-LC-Prod'];
-            dataObject._ClientVersion = 'LC-Web-' + AV.version;
-            dataObject._SessionToken = headers['X-LC-Session'];
-            headers = {
-              'content-type': 'text/plain',
-            };
-            dataObject = JSON.stringify(dataObject);
-          }
-        } catch (e) {}
-      }
-
       if (method.toLowerCase() === 'get') {
         if (apiURL.indexOf('?') === -1) {
           apiURL += '?';
