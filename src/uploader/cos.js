@@ -1,31 +1,40 @@
+/**
+ * 每位工程师都有保持代码优雅的义务
+ * Each engineer has a duty to keep the code elegant
+ **/
+
 'use strict';
-const FormData = require('form-data');
 
-const ajax = require('../ajax.js');
+const request = require('superagent');
 const Promise = require('../promise');
-const debug = require('debug')('cos');
 
-module.exports =function upload(uploadInfo, data, file) {
+module.exports = function upload(uploadInfo, data, file, saveOptions = {}) {
   file.attributes.url = uploadInfo.url;
   file._bucket = uploadInfo.bucket;
   file.id = uploadInfo.objectId;
-  const uploadUrl = uploadInfo.upload_url;
-  const body = new Buffer(data, 'base64');
-  debug(uploadUrl, data);
-  const formData = new FormData();
-  formData.append('fileContent', body);
-  formData.append('op', 'upload');
+  const uploadUrl = uploadInfo.upload_url + "?sign=" + encodeURIComponent(uploadInfo.token);
 
   const promise = new Promise();
 
-  const request = formData.submit(uploadUrl, function(err, res) {
-    debug(err, res.statusCode);
-    if (err) {
-      promise.reject(err);
-    } else {
+  const req = request('POST', uploadUrl)
+    .field('fileContent', data)
+    .field('op', 'upload')
+    .end((err, res) => {
+      if (res) {
+        debug(res.status, res.body, res.text);
+      }
+      if (err) {
+        if (res) {
+          err.statusCode = res.status;
+          err.responseText = res.text;
+          err.response = res.body;
+        }
+        return promise.reject(err);
+      }
       promise.resolve(file);
-    }
-  });
-  request.setHeader('Authorization', uploadInfo.token);
+    });
+  if (saveOptions.onprogress) {
+    req.on('progress', saveOptions.onprogress);
+  }
   return promise;
 };
