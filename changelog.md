@@ -1,3 +1,12 @@
+# 1.0.0-rc9  日期：2016 年 5 月 16  日
+* 修复了错误的 `package.browser` 字段引起的部分打包工具异常。
+* 修复浏览器中 ajax 方法中错误的转码方式。
+* 修复 `AV.Object#get` 方法返回部分字段类型异常。
+* 修复 `AV.Object#fetch` 方法 `read sessionToken from undefined` 的错误。
+* 支持节点动态路由。
+* 文件上传使用 https 协议。
+* 文件上传支持 React Native for Android。
+
 # 1.0.0-rc8 日期：2016 年 4 月 6 日
 * **(BREAKING)** 添加了 AV.init 方法，该方法接收一个名为 options 的参数字典，废弃 AV.initialize 方法。
 * **(BREAKING)** 为 AV.Object#save 方法的 options 参数添加了 fetchWhenSave 选项，废弃 AV.Object#fetchWhenSave 方法。

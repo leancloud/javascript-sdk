@@ -5,4 +5,4 @@
 
 'use strict';
 
-module.exports = 'js1.0.0-rc8';
+module.exports = 'js1.0.0-rc9';

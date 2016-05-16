@@ -272,7 +272,18 @@ module.exports = function (AV) {
      * @param {String} attr The string name of an attribute.
      */
     get: function get(attr) {
-      return this.attributes[attr];
+      switch (attr) {
+        case 'objectId':
+          // 兼容 objectId
+          return this.id;
+        default:
+          // 兼容 createdAt、updatedAt
+          if (this.attributes[attr] === undefined) {
+            return this[attr];
+          } else {
+            return this.attributes[attr];
+          }
+      }
     },
 
     /**
@@ -780,13 +791,17 @@ module.exports = function (AV) {
      *     completes.
      */
     fetch: function fetch() {
-      var options = null;
+      var options = {};
       var fetchOptions = {};
       if (arguments.length === 1) {
         options = arguments[0];
       } else if (arguments.length === 2) {
         fetchOptions = arguments[0];
-        options = arguments[1];
+        options = arguments[1] || {};
+      }
+
+      if (fetchOptions && fetchOptions.include && fetchOptions.include.length > 0) {
+        fetchOptions.include = fetchOptions.include.join(',');
       }
 
       var self = this;
@@ -1239,7 +1254,7 @@ module.exports = function (AV) {
    */
   AV.Object.destroyAll = function (objects, options) {
     options = options || {};
-    if (objects == null || objects.length == 0) {
+    if (!objects || objects.length === 0) {
       return AV.Promise.as()._thenRunCallbacks(options);
     }
     var className = objects[0].className;

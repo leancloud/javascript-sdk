@@ -1,6 +1,6 @@
 {
   "name": "avoscloud-sdk",
-  "version": "1.0.0-rc8",
+  "version": "1.0.0-rc9",
   "homepage": "https://github.com/leancloud/javascript-sdk",
   "authors": [
     "killme2008 <xzhuang@leancloud.rocks>"

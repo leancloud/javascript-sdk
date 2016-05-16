@@ -8,7 +8,21 @@
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
 var _ = require('underscore');
-var ajax = require('./browserify-wrapper/ajax');
+var ajax = require('./ajax');
+var Cache = require('./cache');
+var md5 = require('md5');
+var debug = require('debug')('utils');
+
+// 计算 X-LC-Sign 的签名方法
+var sign = function sign(key, isMasterKey) {
+  var now = new Date().getTime();
+  var signature = md5(now + key);
+  if (isMasterKey) {
+    return signature + ',' + now + ',master';
+  } else {
+    return signature + ',' + now;
+  }
+};
 
 var init = function init(AV) {
 
@@ -118,18 +132,37 @@ var init = function init(AV) {
     AV._useMasterKey = false;
   };
 
-  var setRegionServer = function setRegionServer(region) {
-    // 服务器地区选项，默认为中国大陆
-    switch (region) {
-      case 'us':
-        AVConfig.region = 'us';
-        break;
-      default:
-        AVConfig.region = 'cn';
-        break;
+  var setRegionServer = function setRegionServer() {
+    var region = arguments.length <= 0 || arguments[0] === undefined ? 'cn' : arguments[0];
+
+    AVConfig.region = region;
+    // 如果用户在 init 之前设置了 APIServerURL，则跳过请求 router
+    if (AVConfig.APIServerURL) {
+      return;
     }
-    if (!AVConfig.APIServerURL) {
-      AVConfig.APIServerURL = API_HOST[AVConfig.region];
+    AVConfig.APIServerURL = API_HOST[region];
+    if (region === 'cn') {
+      // TODO: remove appId match hack
+      if (AV.applicationId.indexOf('-9Nh9j0Va') !== -1) {
+        AVConfig.APIServerURL = 'https://e1-api.leancloud.cn';
+      }
+      Cache.get('APIServerURL').then(function (cachedServerURL) {
+        if (cachedServerURL) {
+          return cachedServerURL;
+        } else {
+          return ajax('get', 'https://app-router.leancloud.cn/1/route?appId=' + AV.applicationId).then(function (servers) {
+            if (servers.api_server) {
+              Cache.set('APIServerURL', servers.api_server, (typeof servers.ttl === 'number' ? servers.ttl : 3600) * 1000);
+              return servers.api_server;
+            }
+          });
+        }
+      }).then(function (serverURL) {
+        // 如果用户在 init 之后设置了 APIServerURL，保持用户设置
+        if (AVConfig.APIServerURL === API_HOST[region]) {
+          AVConfig.APIServerURL = 'https://' + serverURL;
+        }
+      });
     }
   };
 
@@ -320,9 +353,11 @@ var init = function init(AV) {
       throw "You must specify a key using AV.initialize";
     }
 
-    if (route !== "batch" && route !== "classes" && route !== "files" && route !== "date" && route !== "functions" && route !== "call" && route !== "login" && route !== "push" && route !== "search/select" && route !== "requestPasswordReset" && route !== "requestEmailVerify" && route !== "requestPasswordResetBySmsCode" && route !== "resetPasswordBySmsCode" && route !== "requestMobilePhoneVerify" && route !== "requestLoginSmsCode" && route !== "verifyMobilePhone" && route !== "requestSmsCode" && route !== "verifySmsCode" && route !== "users" && route !== "usersByMobilePhone" && route !== "cloudQuery" && route !== "qiniu" && route !== "statuses" && route !== "bigquery" && route !== 'search/select' && route !== 'subscribe/statuses/count' && route !== 'subscribe/statuses' && route !== 'installations' && !/users\/[^\/]+\/updatePassword/.test(route) && !/users\/[^\/]+\/friendship\/[^\/]+/.test(route)) {
+    if (route !== "batch" && route !== "classes" && route !== "files" && route !== "date" && route !== "functions" && route !== "call" && route !== "login" && route !== "push" && route !== "search/select" && route !== "requestPasswordReset" && route !== "requestEmailVerify" && route !== "requestPasswordResetBySmsCode" && route !== "resetPasswordBySmsCode" && route !== "requestMobilePhoneVerify" && route !== "requestLoginSmsCode" && route !== "verifyMobilePhone" && route !== "requestSmsCode" && route !== "verifySmsCode" && route !== "users" && route !== "usersByMobilePhone" && route !== "cloudQuery" && route !== "qiniu" && route !== "fileTokens" && route !== "statuses" && route !== "bigquery" && route !== 'search/select' && route !== 'subscribe/statuses/count' && route !== 'subscribe/statuses' && route !== 'installations' && !/users\/[^\/]+\/updatePassword/.test(route) && !/users\/[^\/]+\/friendship\/[^\/]+/.test(route)) {
       throw "Bad route: '" + route + "'.";
     }
+
+    dataObject = dataObject || {};
 
     // 兼容 AV.serverURL 旧方式设置 API Host，后续去掉
     var apiURL = AV.serverURL || AVConfig.APIServerURL;
@@ -352,47 +387,64 @@ var init = function init(AV) {
       }
     }
 
-    dataObject = _.clone(dataObject || {});
-    dataObject._ApplicationId = AV.applicationId;
-    dataObject._ApplicationKey = AV.applicationKey;
+    var headers = {
+      'X-LC-Id': AV.applicationId,
+      'Content-Type': 'application/json;charset=UTF-8'
+    };
+    if (AV.masterKey && AV._useMasterKey) {
+      headers['X-LC-Sign'] = sign(AV.masterKey, true);
+    } else {
+      headers['X-LC-Sign'] = sign(AV.applicationKey);
+    }
     if (!AV._isNullOrUndefined(AV.applicationProduction)) {
-      dataObject._ApplicationProduction = AV.applicationProduction;
+      headers['X-LC-Prod'] = AV.applicationProduction;
     }
-    if (AV._useMasterKey) {
-      dataObject._MasterKey = AV.masterKey;
+    if (!AVConfig.isNode) {
+      headers['X-LC-UA'] = 'AV/' + AV.version;
+    } else {
+      headers['User-Agent'] = AV._config.userAgent || 'AV/' + AV.version + '; Node.js/' + process.version;
     }
-    dataObject._ClientVersion = AV.version;
+
     return AV.Promise.as().then(function () {
       // Pass the session token
       if (sessionToken) {
-        dataObject._SessionToken = sessionToken;
+        headers['X-LC-Session'] = sessionToken;
       } else if (!AV._config.disableCurrentUser) {
         return AV.User.currentAsync().then(function (currentUser) {
           if (currentUser && currentUser._sessionToken) {
-            dataObject._SessionToken = currentUser._sessionToken;
+            headers['X-LC-Session'] = currentUser._sessionToken;
           }
         });
       }
     }).then(function () {
-      // Pass the installation id
-      if (!AV._config.disableCurrentUser) {
-        return AV._getInstallationId().then(function (installationId) {
-          dataObject._InstallationId = installationId;
-        });
+      if (method.toLowerCase() === 'get') {
+        if (apiURL.indexOf('?') === -1) {
+          apiURL += '?';
+        }
+        for (var k in dataObject) {
+          if (_typeof(dataObject[k]) === 'object') {
+            dataObject[k] = JSON.stringify(dataObject[k]);
+          }
+          apiURL += '&' + k + '=' + encodeURIComponent(dataObject[k]);
+        }
       }
-    }).then(function () {
-      return AV._ajax(method, apiURL, dataObject).then(null, function (response) {
+
+      return AV._ajax(method, apiURL, dataObject, headers).then(null, function (response) {
         // Transform the error into an instance of AV.Error by trying to parse
         // the error string as JSON.
         var error;
-        if (response && response.responseText) {
-          try {
-            var errorJSON = JSON.parse(response.responseText);
-            if (errorJSON) {
-              error = new AV.Error(errorJSON.code, errorJSON.error);
+        if (response) {
+          if (response.response) {
+            error = new AV.Error(response.response.code, response.response.error);
+          } else if (response.responseText) {
+            try {
+              var errorJSON = JSON.parse(response.responseText);
+              if (errorJSON) {
+                error = new AV.Error(errorJSON.code, errorJSON.error);
+              }
+            } catch (e) {
+              // If we fail to parse the error text, that's okay.
             }
-          } catch (e) {
-            // If we fail to parse the error text, that's okay.
           }
         }
         error = error || new AV.Error(-1, response.responseText);
@@ -547,10 +599,10 @@ var init = function init(AV) {
       relation.targetClassName = value.className;
       return relation;
     }
-    if (value.__type === "File") {
+    if (value.__type === 'File') {
       var file = new AV.File(value.name);
-      file._metaData = value.metaData || {};
-      file._url = value.url;
+      file.attributes.metaData = value.metaData || {};
+      file.attributes.url = value.url;
       file.id = value.objectId;
       return file;
     }

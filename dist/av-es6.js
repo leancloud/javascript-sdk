@@ -1,4 +1,4 @@
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.AV = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 
 },{}],2:[function(require,module,exports){
 var charenc = {
@@ -134,6 +134,375 @@ module.exports = charenc;
 })();
 
 },{}],4:[function(require,module,exports){
+
+/**
+ * This is the web browser implementation of `debug()`.
+ *
+ * Expose `debug()` as the module.
+ */
+
+exports = module.exports = require('./debug');
+exports.log = log;
+exports.formatArgs = formatArgs;
+exports.save = save;
+exports.load = load;
+exports.useColors = useColors;
+exports.storage = 'undefined' != typeof chrome
+               && 'undefined' != typeof chrome.storage
+                  ? chrome.storage.local
+                  : localstorage();
+
+/**
+ * Colors.
+ */
+
+exports.colors = [
+  'lightseagreen',
+  'forestgreen',
+  'goldenrod',
+  'dodgerblue',
+  'darkorchid',
+  'crimson'
+];
+
+/**
+ * Currently only WebKit-based Web Inspectors, Firefox >= v31,
+ * and the Firebug extension (any Firefox version) are known
+ * to support "%c" CSS customizations.
+ *
+ * TODO: add a `localStorage` variable to explicitly enable/disable colors
+ */
+
+function useColors() {
+  // is webkit? http://stackoverflow.com/a/16459606/376773
+  return ('WebkitAppearance' in document.documentElement.style) ||
+    // is firebug? http://stackoverflow.com/a/398120/376773
+    (window.console && (console.firebug || (console.exception && console.table))) ||
+    // is firefox >= v31?
+    // https://developer.mozilla.org/en-US/docs/Tools/Web_Console#Styling_messages
+    (navigator.userAgent.toLowerCase().match(/firefox\/(\d+)/) && parseInt(RegExp.$1, 10) >= 31);
+}
+
+/**
+ * Map %j to `JSON.stringify()`, since no Web Inspectors do that by default.
+ */
+
+exports.formatters.j = function(v) {
+  return JSON.stringify(v);
+};
+
+
+/**
+ * Colorize log arguments if enabled.
+ *
+ * @api public
+ */
+
+function formatArgs() {
+  var args = arguments;
+  var useColors = this.useColors;
+
+  args[0] = (useColors ? '%c' : '')
+    + this.namespace
+    + (useColors ? ' %c' : ' ')
+    + args[0]
+    + (useColors ? '%c ' : ' ')
+    + '+' + exports.humanize(this.diff);
+
+  if (!useColors) return args;
+
+  var c = 'color: ' + this.color;
+  args = [args[0], c, 'color: inherit'].concat(Array.prototype.slice.call(args, 1));
+
+  // the final "%c" is somewhat tricky, because there could be other
+  // arguments passed either before or after the %c, so we need to
+  // figure out the correct index to insert the CSS into
+  var index = 0;
+  var lastC = 0;
+  args[0].replace(/%[a-z%]/g, function(match) {
+    if ('%%' === match) return;
+    index++;
+    if ('%c' === match) {
+      // we only are interested in the *last* %c
+      // (the user may have provided their own)
+      lastC = index;
+    }
+  });
+
+  args.splice(lastC, 0, c);
+  return args;
+}
+
+/**
+ * Invokes `console.log()` when available.
+ * No-op when `console.log` is not a "function".
+ *
+ * @api public
+ */
+
+function log() {
+  // this hackery is required for IE8/9, where
+  // the `console.log` function doesn't have 'apply'
+  return 'object' === typeof console
+    && console.log
+    && Function.prototype.apply.call(console.log, console, arguments);
+}
+
+/**
+ * Save `namespaces`.
+ *
+ * @param {String} namespaces
+ * @api private
+ */
+
+function save(namespaces) {
+  try {
+    if (null == namespaces) {
+      exports.storage.removeItem('debug');
+    } else {
+      exports.storage.debug = namespaces;
+    }
+  } catch(e) {}
+}
+
+/**
+ * Load `namespaces`.
+ *
+ * @return {String} returns the previously persisted debug modes
+ * @api private
+ */
+
+function load() {
+  var r;
+  try {
+    r = exports.storage.debug;
+  } catch(e) {}
+  return r;
+}
+
+/**
+ * Enable namespaces listed in `localStorage.debug` initially.
+ */
+
+exports.enable(load());
+
+/**
+ * Localstorage attempts to return the localstorage.
+ *
+ * This is necessary because safari throws
+ * when a user disables cookies/localstorage
+ * and you attempt to access it.
+ *
+ * @return {LocalStorage}
+ * @api private
+ */
+
+function localstorage(){
+  try {
+    return window.localStorage;
+  } catch (e) {}
+}
+
+},{"./debug":5}],5:[function(require,module,exports){
+
+/**
+ * This is the common logic for both the Node.js and web browser
+ * implementations of `debug()`.
+ *
+ * Expose `debug()` as the module.
+ */
+
+exports = module.exports = debug;
+exports.coerce = coerce;
+exports.disable = disable;
+exports.enable = enable;
+exports.enabled = enabled;
+exports.humanize = require('ms');
+
+/**
+ * The currently active debug mode names, and names to skip.
+ */
+
+exports.names = [];
+exports.skips = [];
+
+/**
+ * Map of special "%n" handling functions, for the debug "format" argument.
+ *
+ * Valid key names are a single, lowercased letter, i.e. "n".
+ */
+
+exports.formatters = {};
+
+/**
+ * Previously assigned color.
+ */
+
+var prevColor = 0;
+
+/**
+ * Previous log timestamp.
+ */
+
+var prevTime;
+
+/**
+ * Select a color.
+ *
+ * @return {Number}
+ * @api private
+ */
+
+function selectColor() {
+  return exports.colors[prevColor++ % exports.colors.length];
+}
+
+/**
+ * Create a debugger with the given `namespace`.
+ *
+ * @param {String} namespace
+ * @return {Function}
+ * @api public
+ */
+
+function debug(namespace) {
+
+  // define the `disabled` version
+  function disabled() {
+  }
+  disabled.enabled = false;
+
+  // define the `enabled` version
+  function enabled() {
+
+    var self = enabled;
+
+    // set `diff` timestamp
+    var curr = +new Date();
+    var ms = curr - (prevTime || curr);
+    self.diff = ms;
+    self.prev = prevTime;
+    self.curr = curr;
+    prevTime = curr;
+
+    // add the `color` if not set
+    if (null == self.useColors) self.useColors = exports.useColors();
+    if (null == self.color && self.useColors) self.color = selectColor();
+
+    var args = Array.prototype.slice.call(arguments);
+
+    args[0] = exports.coerce(args[0]);
+
+    if ('string' !== typeof args[0]) {
+      // anything else let's inspect with %o
+      args = ['%o'].concat(args);
+    }
+
+    // apply any `formatters` transformations
+    var index = 0;
+    args[0] = args[0].replace(/%([a-z%])/g, function(match, format) {
+      // if we encounter an escaped % then don't increase the array index
+      if (match === '%%') return match;
+      index++;
+      var formatter = exports.formatters[format];
+      if ('function' === typeof formatter) {
+        var val = args[index];
+        match = formatter.call(self, val);
+
+        // now we need to remove `args[index]` since it's inlined in the `format`
+        args.splice(index, 1);
+        index--;
+      }
+      return match;
+    });
+
+    if ('function' === typeof exports.formatArgs) {
+      args = exports.formatArgs.apply(self, args);
+    }
+    var logFn = enabled.log || exports.log || console.log.bind(console);
+    logFn.apply(self, args);
+  }
+  enabled.enabled = true;
+
+  var fn = exports.enabled(namespace) ? enabled : disabled;
+
+  fn.namespace = namespace;
+
+  return fn;
+}
+
+/**
+ * Enables a debug mode by namespaces. This can include modes
+ * separated by a colon and wildcards.
+ *
+ * @param {String} namespaces
+ * @api public
+ */
+
+function enable(namespaces) {
+  exports.save(namespaces);
+
+  var split = (namespaces || '').split(/[\s,]+/);
+  var len = split.length;
+
+  for (var i = 0; i < len; i++) {
+    if (!split[i]) continue; // ignore empty strings
+    namespaces = split[i].replace(/\*/g, '.*?');
+    if (namespaces[0] === '-') {
+      exports.skips.push(new RegExp('^' + namespaces.substr(1) + '$'));
+    } else {
+      exports.names.push(new RegExp('^' + namespaces + '$'));
+    }
+  }
+}
+
+/**
+ * Disable debug output.
+ *
+ * @api public
+ */
+
+function disable() {
+  exports.enable('');
+}
+
+/**
+ * Returns true if the given mode name is enabled, false otherwise.
+ *
+ * @param {String} name
+ * @return {Boolean}
+ * @api public
+ */
+
+function enabled(name) {
+  var i, len;
+  for (i = 0, len = exports.skips.length; i < len; i++) {
+    if (exports.skips[i].test(name)) {
+      return false;
+    }
+  }
+  for (i = 0, len = exports.names.length; i < len; i++) {
+    if (exports.names[i].test(name)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Coerce `val`.
+ *
+ * @param {Mixed} val
+ * @return {Mixed}
+ * @api private
+ */
+
+function coerce(val) {
+  if (val instanceof Error) return val.stack || val.message;
+  return val;
+}
+
+},{"ms":9}],6:[function(require,module,exports){
 /**
  * Determine if an object is Buffer
  *
@@ -152,7 +521,7 @@ module.exports = function (obj) {
     ))
 }
 
-},{}],5:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 (function(root) {
   var localStorageMemory = {};
   var cache = {};
@@ -236,7 +605,7 @@ module.exports = function (obj) {
   }
 })(this);
 
-},{}],6:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 (function(){
   var crypt = require('crypt'),
       utf8 = require('charenc').utf8,
@@ -398,7 +767,134 @@ module.exports = function (obj) {
 
 })();
 
-},{"charenc":2,"crypt":3,"is-buffer":4}],7:[function(require,module,exports){
+},{"charenc":2,"crypt":3,"is-buffer":6}],9:[function(require,module,exports){
+/**
+ * Helpers.
+ */
+
+var s = 1000;
+var m = s * 60;
+var h = m * 60;
+var d = h * 24;
+var y = d * 365.25;
+
+/**
+ * Parse or format the given `val`.
+ *
+ * Options:
+ *
+ *  - `long` verbose formatting [false]
+ *
+ * @param {String|Number} val
+ * @param {Object} options
+ * @return {String|Number}
+ * @api public
+ */
+
+module.exports = function(val, options){
+  options = options || {};
+  if ('string' == typeof val) return parse(val);
+  return options.long
+    ? long(val)
+    : short(val);
+};
+
+/**
+ * Parse the given `str` and return milliseconds.
+ *
+ * @param {String} str
+ * @return {Number}
+ * @api private
+ */
+
+function parse(str) {
+  str = '' + str;
+  if (str.length > 10000) return;
+  var match = /^((?:\d+)?\.?\d+) *(milliseconds?|msecs?|ms|seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|days?|d|years?|yrs?|y)?$/i.exec(str);
+  if (!match) return;
+  var n = parseFloat(match[1]);
+  var type = (match[2] || 'ms').toLowerCase();
+  switch (type) {
+    case 'years':
+    case 'year':
+    case 'yrs':
+    case 'yr':
+    case 'y':
+      return n * y;
+    case 'days':
+    case 'day':
+    case 'd':
+      return n * d;
+    case 'hours':
+    case 'hour':
+    case 'hrs':
+    case 'hr':
+    case 'h':
+      return n * h;
+    case 'minutes':
+    case 'minute':
+    case 'mins':
+    case 'min':
+    case 'm':
+      return n * m;
+    case 'seconds':
+    case 'second':
+    case 'secs':
+    case 'sec':
+    case 's':
+      return n * s;
+    case 'milliseconds':
+    case 'millisecond':
+    case 'msecs':
+    case 'msec':
+    case 'ms':
+      return n;
+  }
+}
+
+/**
+ * Short format for `ms`.
+ *
+ * @param {Number} ms
+ * @return {String}
+ * @api private
+ */
+
+function short(ms) {
+  if (ms >= d) return Math.round(ms / d) + 'd';
+  if (ms >= h) return Math.round(ms / h) + 'h';
+  if (ms >= m) return Math.round(ms / m) + 'm';
+  if (ms >= s) return Math.round(ms / s) + 's';
+  return ms + 'ms';
+}
+
+/**
+ * Long format for `ms`.
+ *
+ * @param {Number} ms
+ * @return {String}
+ * @api private
+ */
+
+function long(ms) {
+  return plural(ms, d, 'day')
+    || plural(ms, h, 'hour')
+    || plural(ms, m, 'minute')
+    || plural(ms, s, 'second')
+    || ms + ' ms';
+}
+
+/**
+ * Pluralization helper.
+ */
+
+function plural(ms, n, name) {
+  if (ms < n) return;
+  if (ms < n * 1.5) return Math.floor(ms / n) + ' ' + name;
+  return Math.ceil(ms / n) + ' ' + name + 's';
+}
+
+},{}],10:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -491,7 +987,1570 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],8:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
+
+/**
+ * Reduce `arr` with `fn`.
+ *
+ * @param {Array} arr
+ * @param {Function} fn
+ * @param {Mixed} initial
+ *
+ * TODO: combatible error handling?
+ */
+
+module.exports = function(arr, fn, initial){  
+  var idx = 0;
+  var len = arr.length;
+  var curr = arguments.length == 3
+    ? initial
+    : arr[idx++];
+
+  while (idx < len) {
+    curr = fn.call(null, curr, arr[idx], ++idx, arr);
+  }
+  
+  return curr;
+};
+},{}],12:[function(require,module,exports){
+/**
+ * Module dependencies.
+ */
+
+var Emitter = require('emitter');
+var reduce = require('reduce');
+var requestBase = require('./request-base');
+var isObject = require('./is-object');
+
+/**
+ * Root reference for iframes.
+ */
+
+var root;
+if (typeof window !== 'undefined') { // Browser window
+  root = window;
+} else if (typeof self !== 'undefined') { // Web Worker
+  root = self;
+} else { // Other environments
+  root = this;
+}
+
+/**
+ * Noop.
+ */
+
+function noop(){};
+
+/**
+ * Expose `request`.
+ */
+
+var request = module.exports = require('./request').bind(null, Request);
+
+/**
+ * Determine XHR.
+ */
+
+request.getXHR = function () {
+  if (root.XMLHttpRequest
+      && (!root.location || 'file:' != root.location.protocol
+          || !root.ActiveXObject)) {
+    return new XMLHttpRequest;
+  } else {
+    try { return new ActiveXObject('Microsoft.XMLHTTP'); } catch(e) {}
+    try { return new ActiveXObject('Msxml2.XMLHTTP.6.0'); } catch(e) {}
+    try { return new ActiveXObject('Msxml2.XMLHTTP.3.0'); } catch(e) {}
+    try { return new ActiveXObject('Msxml2.XMLHTTP'); } catch(e) {}
+  }
+  return false;
+};
+
+/**
+ * Removes leading and trailing whitespace, added to support IE.
+ *
+ * @param {String} s
+ * @return {String}
+ * @api private
+ */
+
+var trim = ''.trim
+  ? function(s) { return s.trim(); }
+  : function(s) { return s.replace(/(^\s*|\s*$)/g, ''); };
+
+/**
+ * Serialize the given `obj`.
+ *
+ * @param {Object} obj
+ * @return {String}
+ * @api private
+ */
+
+function serialize(obj) {
+  if (!isObject(obj)) return obj;
+  var pairs = [];
+  for (var key in obj) {
+    if (null != obj[key]) {
+      pushEncodedKeyValuePair(pairs, key, obj[key]);
+    }
+  }
+  return pairs.join('&');
+}
+
+/**
+ * Helps 'serialize' with serializing arrays.
+ * Mutates the pairs array.
+ *
+ * @param {Array} pairs
+ * @param {String} key
+ * @param {Mixed} val
+ */
+
+function pushEncodedKeyValuePair(pairs, key, val) {
+  if (Array.isArray(val)) {
+    return val.forEach(function(v) {
+      pushEncodedKeyValuePair(pairs, key, v);
+    });
+  } else if (isObject(val)) {
+    for(var subkey in val) {
+      pushEncodedKeyValuePair(pairs, key + '[' + subkey + ']', val[subkey]);
+    }
+    return;
+  }
+  pairs.push(encodeURIComponent(key)
+    + '=' + encodeURIComponent(val));
+}
+
+/**
+ * Expose serialization method.
+ */
+
+ request.serializeObject = serialize;
+
+ /**
+  * Parse the given x-www-form-urlencoded `str`.
+  *
+  * @param {String} str
+  * @return {Object}
+  * @api private
+  */
+
+function parseString(str) {
+  var obj = {};
+  var pairs = str.split('&');
+  var pair;
+  var pos;
+
+  for (var i = 0, len = pairs.length; i < len; ++i) {
+    pair = pairs[i];
+    pos = pair.indexOf('=');
+    if (pos == -1) {
+      obj[decodeURIComponent(pair)] = '';
+    } else {
+      obj[decodeURIComponent(pair.slice(0, pos))] =
+        decodeURIComponent(pair.slice(pos + 1));
+    }
+  }
+
+  return obj;
+}
+
+/**
+ * Expose parser.
+ */
+
+request.parseString = parseString;
+
+/**
+ * Default MIME type map.
+ *
+ *     superagent.types.xml = 'application/xml';
+ *
+ */
+
+request.types = {
+  html: 'text/html',
+  json: 'application/json',
+  xml: 'application/xml',
+  urlencoded: 'application/x-www-form-urlencoded',
+  'form': 'application/x-www-form-urlencoded',
+  'form-data': 'application/x-www-form-urlencoded'
+};
+
+/**
+ * Default serialization map.
+ *
+ *     superagent.serialize['application/xml'] = function(obj){
+ *       return 'generated xml here';
+ *     };
+ *
+ */
+
+ request.serialize = {
+   'application/x-www-form-urlencoded': serialize,
+   'application/json': JSON.stringify
+ };
+
+ /**
+  * Default parsers.
+  *
+  *     superagent.parse['application/xml'] = function(str){
+  *       return { object parsed from str };
+  *     };
+  *
+  */
+
+request.parse = {
+  'application/x-www-form-urlencoded': parseString,
+  'application/json': JSON.parse
+};
+
+/**
+ * Parse the given header `str` into
+ * an object containing the mapped fields.
+ *
+ * @param {String} str
+ * @return {Object}
+ * @api private
+ */
+
+function parseHeader(str) {
+  var lines = str.split(/\r?\n/);
+  var fields = {};
+  var index;
+  var line;
+  var field;
+  var val;
+
+  lines.pop(); // trailing CRLF
+
+  for (var i = 0, len = lines.length; i < len; ++i) {
+    line = lines[i];
+    index = line.indexOf(':');
+    field = line.slice(0, index).toLowerCase();
+    val = trim(line.slice(index + 1));
+    fields[field] = val;
+  }
+
+  return fields;
+}
+
+/**
+ * Check if `mime` is json or has +json structured syntax suffix.
+ *
+ * @param {String} mime
+ * @return {Boolean}
+ * @api private
+ */
+
+function isJSON(mime) {
+  return /[\/+]json\b/.test(mime);
+}
+
+/**
+ * Return the mime type for the given `str`.
+ *
+ * @param {String} str
+ * @return {String}
+ * @api private
+ */
+
+function type(str){
+  return str.split(/ *; */).shift();
+};
+
+/**
+ * Return header field parameters.
+ *
+ * @param {String} str
+ * @return {Object}
+ * @api private
+ */
+
+function params(str){
+  return reduce(str.split(/ *; */), function(obj, str){
+    var parts = str.split(/ *= */)
+      , key = parts.shift()
+      , val = parts.shift();
+
+    if (key && val) obj[key] = val;
+    return obj;
+  }, {});
+};
+
+/**
+ * Initialize a new `Response` with the given `xhr`.
+ *
+ *  - set flags (.ok, .error, etc)
+ *  - parse header
+ *
+ * Examples:
+ *
+ *  Aliasing `superagent` as `request` is nice:
+ *
+ *      request = superagent;
+ *
+ *  We can use the promise-like API, or pass callbacks:
+ *
+ *      request.get('/').end(function(res){});
+ *      request.get('/', function(res){});
+ *
+ *  Sending data can be chained:
+ *
+ *      request
+ *        .post('/user')
+ *        .send({ name: 'tj' })
+ *        .end(function(res){});
+ *
+ *  Or passed to `.send()`:
+ *
+ *      request
+ *        .post('/user')
+ *        .send({ name: 'tj' }, function(res){});
+ *
+ *  Or passed to `.post()`:
+ *
+ *      request
+ *        .post('/user', { name: 'tj' })
+ *        .end(function(res){});
+ *
+ * Or further reduced to a single call for simple cases:
+ *
+ *      request
+ *        .post('/user', { name: 'tj' }, function(res){});
+ *
+ * @param {XMLHTTPRequest} xhr
+ * @param {Object} options
+ * @api private
+ */
+
+function Response(req, options) {
+  options = options || {};
+  this.req = req;
+  this.xhr = this.req.xhr;
+  // responseText is accessible only if responseType is '' or 'text' and on older browsers
+  this.text = ((this.req.method !='HEAD' && (this.xhr.responseType === '' || this.xhr.responseType === 'text')) || typeof this.xhr.responseType === 'undefined')
+     ? this.xhr.responseText
+     : null;
+  this.statusText = this.req.xhr.statusText;
+  this._setStatusProperties(this.xhr.status);
+  this.header = this.headers = parseHeader(this.xhr.getAllResponseHeaders());
+  // getAllResponseHeaders sometimes falsely returns "" for CORS requests, but
+  // getResponseHeader still works. so we get content-type even if getting
+  // other headers fails.
+  this.header['content-type'] = this.xhr.getResponseHeader('content-type');
+  this._setHeaderProperties(this.header);
+  this.body = this.req.method != 'HEAD'
+    ? this._parseBody(this.text ? this.text : this.xhr.response)
+    : null;
+}
+
+/**
+ * Get case-insensitive `field` value.
+ *
+ * @param {String} field
+ * @return {String}
+ * @api public
+ */
+
+Response.prototype.get = function(field){
+  return this.header[field.toLowerCase()];
+};
+
+/**
+ * Set header related properties:
+ *
+ *   - `.type` the content type without params
+ *
+ * A response of "Content-Type: text/plain; charset=utf-8"
+ * will provide you with a `.type` of "text/plain".
+ *
+ * @param {Object} header
+ * @api private
+ */
+
+Response.prototype._setHeaderProperties = function(header){
+  // content-type
+  var ct = this.header['content-type'] || '';
+  this.type = type(ct);
+
+  // params
+  var obj = params(ct);
+  for (var key in obj) this[key] = obj[key];
+};
+
+/**
+ * Parse the given body `str`.
+ *
+ * Used for auto-parsing of bodies. Parsers
+ * are defined on the `superagent.parse` object.
+ *
+ * @param {String} str
+ * @return {Mixed}
+ * @api private
+ */
+
+Response.prototype._parseBody = function(str){
+  var parse = request.parse[this.type];
+  if (!parse && isJSON(this.type)) {
+    parse = request.parse['application/json'];
+  }
+  return parse && str && (str.length || str instanceof Object)
+    ? parse(str)
+    : null;
+};
+
+/**
+ * Set flags such as `.ok` based on `status`.
+ *
+ * For example a 2xx response will give you a `.ok` of __true__
+ * whereas 5xx will be __false__ and `.error` will be __true__. The
+ * `.clientError` and `.serverError` are also available to be more
+ * specific, and `.statusType` is the class of error ranging from 1..5
+ * sometimes useful for mapping respond colors etc.
+ *
+ * "sugar" properties are also defined for common cases. Currently providing:
+ *
+ *   - .noContent
+ *   - .badRequest
+ *   - .unauthorized
+ *   - .notAcceptable
+ *   - .notFound
+ *
+ * @param {Number} status
+ * @api private
+ */
+
+Response.prototype._setStatusProperties = function(status){
+  // handle IE9 bug: http://stackoverflow.com/questions/10046972/msie-returns-status-code-of-1223-for-ajax-request
+  if (status === 1223) {
+    status = 204;
+  }
+
+  var type = status / 100 | 0;
+
+  // status / class
+  this.status = this.statusCode = status;
+  this.statusType = type;
+
+  // basics
+  this.info = 1 == type;
+  this.ok = 2 == type;
+  this.clientError = 4 == type;
+  this.serverError = 5 == type;
+  this.error = (4 == type || 5 == type)
+    ? this.toError()
+    : false;
+
+  // sugar
+  this.accepted = 202 == status;
+  this.noContent = 204 == status;
+  this.badRequest = 400 == status;
+  this.unauthorized = 401 == status;
+  this.notAcceptable = 406 == status;
+  this.notFound = 404 == status;
+  this.forbidden = 403 == status;
+};
+
+/**
+ * Return an `Error` representative of this response.
+ *
+ * @return {Error}
+ * @api public
+ */
+
+Response.prototype.toError = function(){
+  var req = this.req;
+  var method = req.method;
+  var url = req.url;
+
+  var msg = 'cannot ' + method + ' ' + url + ' (' + this.status + ')';
+  var err = new Error(msg);
+  err.status = this.status;
+  err.method = method;
+  err.url = url;
+
+  return err;
+};
+
+/**
+ * Expose `Response`.
+ */
+
+request.Response = Response;
+
+/**
+ * Initialize a new `Request` with the given `method` and `url`.
+ *
+ * @param {String} method
+ * @param {String} url
+ * @api public
+ */
+
+function Request(method, url) {
+  var self = this;
+  this._query = this._query || [];
+  this.method = method;
+  this.url = url;
+  this.header = {}; // preserves header name case
+  this._header = {}; // coerces header names to lowercase
+  this.on('end', function(){
+    var err = null;
+    var res = null;
+
+    try {
+      res = new Response(self);
+    } catch(e) {
+      err = new Error('Parser is unable to parse the response');
+      err.parse = true;
+      err.original = e;
+      // issue #675: return the raw response if the response parsing fails
+      err.rawResponse = self.xhr && self.xhr.responseText ? self.xhr.responseText : null;
+      // issue #876: return the http status code if the response parsing fails
+      err.statusCode = self.xhr && self.xhr.status ? self.xhr.status : null;
+      return self.callback(err);
+    }
+
+    self.emit('response', res);
+
+    if (err) {
+      return self.callback(err, res);
+    }
+
+    if (res.status >= 200 && res.status < 300) {
+      return self.callback(err, res);
+    }
+
+    var new_err = new Error(res.statusText || 'Unsuccessful HTTP response');
+    new_err.original = err;
+    new_err.response = res;
+    new_err.status = res.status;
+
+    self.callback(new_err, res);
+  });
+}
+
+/**
+ * Mixin `Emitter` and `requestBase`.
+ */
+
+Emitter(Request.prototype);
+for (var key in requestBase) {
+  Request.prototype[key] = requestBase[key];
+}
+
+/**
+ * Set Content-Type to `type`, mapping values from `request.types`.
+ *
+ * Examples:
+ *
+ *      superagent.types.xml = 'application/xml';
+ *
+ *      request.post('/')
+ *        .type('xml')
+ *        .send(xmlstring)
+ *        .end(callback);
+ *
+ *      request.post('/')
+ *        .type('application/xml')
+ *        .send(xmlstring)
+ *        .end(callback);
+ *
+ * @param {String} type
+ * @return {Request} for chaining
+ * @api public
+ */
+
+Request.prototype.type = function(type){
+  this.set('Content-Type', request.types[type] || type);
+  return this;
+};
+
+/**
+ * Set responseType to `val`. Presently valid responseTypes are 'blob' and
+ * 'arraybuffer'.
+ *
+ * Examples:
+ *
+ *      req.get('/')
+ *        .responseType('blob')
+ *        .end(callback);
+ *
+ * @param {String} val
+ * @return {Request} for chaining
+ * @api public
+ */
+
+Request.prototype.responseType = function(val){
+  this._responseType = val;
+  return this;
+};
+
+/**
+ * Set Accept to `type`, mapping values from `request.types`.
+ *
+ * Examples:
+ *
+ *      superagent.types.json = 'application/json';
+ *
+ *      request.get('/agent')
+ *        .accept('json')
+ *        .end(callback);
+ *
+ *      request.get('/agent')
+ *        .accept('application/json')
+ *        .end(callback);
+ *
+ * @param {String} accept
+ * @return {Request} for chaining
+ * @api public
+ */
+
+Request.prototype.accept = function(type){
+  this.set('Accept', request.types[type] || type);
+  return this;
+};
+
+/**
+ * Set Authorization field value with `user` and `pass`.
+ *
+ * @param {String} user
+ * @param {String} pass
+ * @param {Object} options with 'type' property 'auto' or 'basic' (default 'basic')
+ * @return {Request} for chaining
+ * @api public
+ */
+
+Request.prototype.auth = function(user, pass, options){
+  if (!options) {
+    options = {
+      type: 'basic'
+    }
+  }
+
+  switch (options.type) {
+    case 'basic':
+      var str = btoa(user + ':' + pass);
+      this.set('Authorization', 'Basic ' + str);
+    break;
+
+    case 'auto':
+      this.username = user;
+      this.password = pass;
+    break;
+  }
+  return this;
+};
+
+/**
+* Add query-string `val`.
+*
+* Examples:
+*
+*   request.get('/shoes')
+*     .query('size=10')
+*     .query({ color: 'blue' })
+*
+* @param {Object|String} val
+* @return {Request} for chaining
+* @api public
+*/
+
+Request.prototype.query = function(val){
+  if ('string' != typeof val) val = serialize(val);
+  if (val) this._query.push(val);
+  return this;
+};
+
+/**
+ * Queue the given `file` as an attachment to the specified `field`,
+ * with optional `filename`.
+ *
+ * ``` js
+ * request.post('/upload')
+ *   .attach('content', new Blob(['<a id="a"><b id="b">hey!</b></a>'], { type: "text/html"}))
+ *   .end(callback);
+ * ```
+ *
+ * @param {String} field
+ * @param {Blob|File} file
+ * @param {String} filename
+ * @return {Request} for chaining
+ * @api public
+ */
+
+Request.prototype.attach = function(field, file, filename){
+  this._getFormData().append(field, file, filename || file.name);
+  return this;
+};
+
+Request.prototype._getFormData = function(){
+  if (!this._formData) {
+    this._formData = new root.FormData();
+  }
+  return this._formData;
+};
+
+/**
+ * Invoke the callback with `err` and `res`
+ * and handle arity check.
+ *
+ * @param {Error} err
+ * @param {Response} res
+ * @api private
+ */
+
+Request.prototype.callback = function(err, res){
+  var fn = this._callback;
+  this.clearTimeout();
+  fn(err, res);
+};
+
+/**
+ * Invoke callback with x-domain error.
+ *
+ * @api private
+ */
+
+Request.prototype.crossDomainError = function(){
+  var err = new Error('Request has been terminated\nPossible causes: the network is offline, Origin is not allowed by Access-Control-Allow-Origin, the page is being unloaded, etc.');
+  err.crossDomain = true;
+
+  err.status = this.status;
+  err.method = this.method;
+  err.url = this.url;
+
+  this.callback(err);
+};
+
+/**
+ * Invoke callback with timeout error.
+ *
+ * @api private
+ */
+
+Request.prototype._timeoutError = function(){
+  var timeout = this._timeout;
+  var err = new Error('timeout of ' + timeout + 'ms exceeded');
+  err.timeout = timeout;
+  this.callback(err);
+};
+
+/**
+ * Compose querystring to append to req.url
+ *
+ * @api private
+ */
+
+Request.prototype._appendQueryString = function(){
+  var query = this._query.join('&');
+  if (query) {
+    this.url += ~this.url.indexOf('?')
+      ? '&' + query
+      : '?' + query;
+  }
+};
+
+/**
+ * Initiate request, invoking callback `fn(res)`
+ * with an instanceof `Response`.
+ *
+ * @param {Function} fn
+ * @return {Request} for chaining
+ * @api public
+ */
+
+Request.prototype.end = function(fn){
+  var self = this;
+  var xhr = this.xhr = request.getXHR();
+  var timeout = this._timeout;
+  var data = this._formData || this._data;
+
+  // store callback
+  this._callback = fn || noop;
+
+  // state change
+  xhr.onreadystatechange = function(){
+    if (4 != xhr.readyState) return;
+
+    // In IE9, reads to any property (e.g. status) off of an aborted XHR will
+    // result in the error "Could not complete the operation due to error c00c023f"
+    var status;
+    try { status = xhr.status } catch(e) { status = 0; }
+
+    if (0 == status) {
+      if (self.timedout) return self._timeoutError();
+      if (self._aborted) return;
+      return self.crossDomainError();
+    }
+    self.emit('end');
+  };
+
+  // progress
+  var handleProgress = function(e){
+    if (e.total > 0) {
+      e.percent = e.loaded / e.total * 100;
+    }
+    e.direction = 'download';
+    self.emit('progress', e);
+  };
+  if (this.hasListeners('progress')) {
+    xhr.onprogress = handleProgress;
+  }
+  try {
+    if (xhr.upload && this.hasListeners('progress')) {
+      xhr.upload.onprogress = handleProgress;
+    }
+  } catch(e) {
+    // Accessing xhr.upload fails in IE from a web worker, so just pretend it doesn't exist.
+    // Reported here:
+    // https://connect.microsoft.com/IE/feedback/details/837245/xmlhttprequest-upload-throws-invalid-argument-when-used-from-web-worker-context
+  }
+
+  // timeout
+  if (timeout && !this._timer) {
+    this._timer = setTimeout(function(){
+      self.timedout = true;
+      self.abort();
+    }, timeout);
+  }
+
+  // querystring
+  this._appendQueryString();
+
+  // initiate request
+  if (this.username && this.password) {
+    xhr.open(this.method, this.url, true, this.username, this.password);
+  } else {
+    xhr.open(this.method, this.url, true);
+  }
+
+  // CORS
+  if (this._withCredentials) xhr.withCredentials = true;
+
+  // body
+  if ('GET' != this.method && 'HEAD' != this.method && 'string' != typeof data && !this._isHost(data)) {
+    // serialize stuff
+    var contentType = this._header['content-type'];
+    var serialize = this._serializer || request.serialize[contentType ? contentType.split(';')[0] : ''];
+    if (!serialize && isJSON(contentType)) serialize = request.serialize['application/json'];
+    if (serialize) data = serialize(data);
+  }
+
+  // set header fields
+  for (var field in this.header) {
+    if (null == this.header[field]) continue;
+    xhr.setRequestHeader(field, this.header[field]);
+  }
+
+  if (this._responseType) {
+    xhr.responseType = this._responseType;
+  }
+
+  // send stuff
+  this.emit('request', this);
+
+  // IE11 xhr.send(undefined) sends 'undefined' string as POST payload (instead of nothing)
+  // We need null here if data is undefined
+  xhr.send(typeof data !== 'undefined' ? data : null);
+  return this;
+};
+
+
+/**
+ * Expose `Request`.
+ */
+
+request.Request = Request;
+
+/**
+ * GET `url` with optional callback `fn(res)`.
+ *
+ * @param {String} url
+ * @param {Mixed|Function} data or fn
+ * @param {Function} fn
+ * @return {Request}
+ * @api public
+ */
+
+request.get = function(url, data, fn){
+  var req = request('GET', url);
+  if ('function' == typeof data) fn = data, data = null;
+  if (data) req.query(data);
+  if (fn) req.end(fn);
+  return req;
+};
+
+/**
+ * HEAD `url` with optional callback `fn(res)`.
+ *
+ * @param {String} url
+ * @param {Mixed|Function} data or fn
+ * @param {Function} fn
+ * @return {Request}
+ * @api public
+ */
+
+request.head = function(url, data, fn){
+  var req = request('HEAD', url);
+  if ('function' == typeof data) fn = data, data = null;
+  if (data) req.send(data);
+  if (fn) req.end(fn);
+  return req;
+};
+
+/**
+ * OPTIONS query to `url` with optional callback `fn(res)`.
+ *
+ * @param {String} url
+ * @param {Mixed|Function} data or fn
+ * @param {Function} fn
+ * @return {Request}
+ * @api public
+ */
+
+request.options = function(url, data, fn){
+  var req = request('OPTIONS', url);
+  if ('function' == typeof data) fn = data, data = null;
+  if (data) req.send(data);
+  if (fn) req.end(fn);
+  return req;
+};
+
+/**
+ * DELETE `url` with optional callback `fn(res)`.
+ *
+ * @param {String} url
+ * @param {Function} fn
+ * @return {Request}
+ * @api public
+ */
+
+function del(url, fn){
+  var req = request('DELETE', url);
+  if (fn) req.end(fn);
+  return req;
+};
+
+request['del'] = del;
+request['delete'] = del;
+
+/**
+ * PATCH `url` with optional `data` and callback `fn(res)`.
+ *
+ * @param {String} url
+ * @param {Mixed} data
+ * @param {Function} fn
+ * @return {Request}
+ * @api public
+ */
+
+request.patch = function(url, data, fn){
+  var req = request('PATCH', url);
+  if ('function' == typeof data) fn = data, data = null;
+  if (data) req.send(data);
+  if (fn) req.end(fn);
+  return req;
+};
+
+/**
+ * POST `url` with optional `data` and callback `fn(res)`.
+ *
+ * @param {String} url
+ * @param {Mixed} data
+ * @param {Function} fn
+ * @return {Request}
+ * @api public
+ */
+
+request.post = function(url, data, fn){
+  var req = request('POST', url);
+  if ('function' == typeof data) fn = data, data = null;
+  if (data) req.send(data);
+  if (fn) req.end(fn);
+  return req;
+};
+
+/**
+ * PUT `url` with optional `data` and callback `fn(res)`.
+ *
+ * @param {String} url
+ * @param {Mixed|Function} data or fn
+ * @param {Function} fn
+ * @return {Request}
+ * @api public
+ */
+
+request.put = function(url, data, fn){
+  var req = request('PUT', url);
+  if ('function' == typeof data) fn = data, data = null;
+  if (data) req.send(data);
+  if (fn) req.end(fn);
+  return req;
+};
+
+},{"./is-object":13,"./request":15,"./request-base":14,"emitter":16,"reduce":11}],13:[function(require,module,exports){
+/**
+ * Check if `obj` is an object.
+ *
+ * @param {Object} obj
+ * @return {Boolean}
+ * @api private
+ */
+
+function isObject(obj) {
+  return null !== obj && 'object' === typeof obj;
+}
+
+module.exports = isObject;
+
+},{}],14:[function(require,module,exports){
+/**
+ * Module of mixed-in functions shared between node and client code
+ */
+var isObject = require('./is-object');
+
+/**
+ * Clear previous timeout.
+ *
+ * @return {Request} for chaining
+ * @api public
+ */
+
+exports.clearTimeout = function _clearTimeout(){
+  this._timeout = 0;
+  clearTimeout(this._timer);
+  return this;
+};
+
+/**
+ * Override default response body parser
+ *
+ * This function will be called to convert incoming data into request.body
+ *
+ * @param {Function}
+ * @api public
+ */
+
+exports.parse = function parse(fn){
+  this._parser = fn;
+  return this;
+};
+
+/**
+ * Override default request body serializer
+ *
+ * This function will be called to convert data set via .send or .attach into payload to send
+ *
+ * @param {Function}
+ * @api public
+ */
+
+exports.serialize = function serialize(fn){
+  this._serializer = fn;
+  return this;
+};
+
+/**
+ * Set timeout to `ms`.
+ *
+ * @param {Number} ms
+ * @return {Request} for chaining
+ * @api public
+ */
+
+exports.timeout = function timeout(ms){
+  this._timeout = ms;
+  return this;
+};
+
+/**
+ * Promise support
+ *
+ * @param {Function} resolve
+ * @param {Function} reject
+ * @return {Request}
+ */
+
+exports.then = function then(resolve, reject) {
+  if (!this._fullfilledPromise) {
+    var self = this;
+    this._fullfilledPromise = new Promise(function(innerResolve, innerReject){
+      self.end(function(err, res){
+        if (err) innerReject(err); else innerResolve(res);
+      });
+    });
+  }
+  return this._fullfilledPromise.then(resolve, reject);
+}
+
+/**
+ * Allow for extension
+ */
+
+exports.use = function use(fn) {
+  fn(this);
+  return this;
+}
+
+
+/**
+ * Get request header `field`.
+ * Case-insensitive.
+ *
+ * @param {String} field
+ * @return {String}
+ * @api public
+ */
+
+exports.get = function(field){
+  return this._header[field.toLowerCase()];
+};
+
+/**
+ * Get case-insensitive header `field` value.
+ * This is a deprecated internal API. Use `.get(field)` instead.
+ *
+ * (getHeader is no longer used internally by the superagent code base)
+ *
+ * @param {String} field
+ * @return {String}
+ * @api private
+ * @deprecated
+ */
+
+exports.getHeader = exports.get;
+
+/**
+ * Set header `field` to `val`, or multiple fields with one object.
+ * Case-insensitive.
+ *
+ * Examples:
+ *
+ *      req.get('/')
+ *        .set('Accept', 'application/json')
+ *        .set('X-API-Key', 'foobar')
+ *        .end(callback);
+ *
+ *      req.get('/')
+ *        .set({ Accept: 'application/json', 'X-API-Key': 'foobar' })
+ *        .end(callback);
+ *
+ * @param {String|Object} field
+ * @param {String} val
+ * @return {Request} for chaining
+ * @api public
+ */
+
+exports.set = function(field, val){
+  if (isObject(field)) {
+    for (var key in field) {
+      this.set(key, field[key]);
+    }
+    return this;
+  }
+  this._header[field.toLowerCase()] = val;
+  this.header[field] = val;
+  return this;
+};
+
+/**
+ * Remove header `field`.
+ * Case-insensitive.
+ *
+ * Example:
+ *
+ *      req.get('/')
+ *        .unset('User-Agent')
+ *        .end(callback);
+ *
+ * @param {String} field
+ */
+exports.unset = function(field){
+  delete this._header[field.toLowerCase()];
+  delete this.header[field];
+  return this;
+};
+
+/**
+ * Write the field `name` and `val` for "multipart/form-data"
+ * request bodies.
+ *
+ * ``` js
+ * request.post('/upload')
+ *   .field('foo', 'bar')
+ *   .end(callback);
+ * ```
+ *
+ * @param {String} name
+ * @param {String|Blob|File|Buffer|fs.ReadStream} val
+ * @return {Request} for chaining
+ * @api public
+ */
+exports.field = function(name, val) {
+  this._getFormData().append(name, val);
+  return this;
+};
+
+/**
+ * Abort the request, and clear potential timeout.
+ *
+ * @return {Request}
+ * @api public
+ */
+exports.abort = function(){
+  if (this._aborted) {
+    return this;
+  }
+  this._aborted = true;
+  this.xhr && this.xhr.abort(); // browser
+  this.req && this.req.abort(); // node
+  this.clearTimeout();
+  this.emit('abort');
+  return this;
+};
+
+/**
+ * Enable transmission of cookies with x-domain requests.
+ *
+ * Note that for this to work the origin must not be
+ * using "Access-Control-Allow-Origin" with a wildcard,
+ * and also must set "Access-Control-Allow-Credentials"
+ * to "true".
+ *
+ * @api public
+ */
+
+exports.withCredentials = function(){
+  // This is browser-only functionality. Node side is no-op.
+  this._withCredentials = true;
+  return this;
+};
+
+/**
+ * Set the max redirects to `n`. Does noting in browser XHR implementation.
+ *
+ * @param {Number} n
+ * @return {Request} for chaining
+ * @api public
+ */
+
+exports.redirects = function(n){
+  this._maxRedirects = n;
+  return this;
+};
+
+/**
+ * Convert to a plain javascript object (not JSON string) of scalar properties.
+ * Note as this method is designed to return a useful non-this value,
+ * it cannot be chained.
+ *
+ * @return {Object} describing method, url, and data of this request
+ * @api public
+ */
+
+exports.toJSON = function(){
+  return {
+    method: this.method,
+    url: this.url,
+    data: this._data
+  };
+};
+
+/**
+ * Check if `obj` is a host object,
+ * we don't want to serialize these :)
+ *
+ * TODO: future proof, move to compoent land
+ *
+ * @param {Object} obj
+ * @return {Boolean}
+ * @api private
+ */
+
+exports._isHost = function _isHost(obj) {
+  var str = {}.toString.call(obj);
+
+  switch (str) {
+    case '[object File]':
+    case '[object Blob]':
+    case '[object FormData]':
+      return true;
+    default:
+      return false;
+  }
+}
+
+/**
+ * Send `data` as the request body, defaulting the `.type()` to "json" when
+ * an object is given.
+ *
+ * Examples:
+ *
+ *       // manual json
+ *       request.post('/user')
+ *         .type('json')
+ *         .send('{"name":"tj"}')
+ *         .end(callback)
+ *
+ *       // auto json
+ *       request.post('/user')
+ *         .send({ name: 'tj' })
+ *         .end(callback)
+ *
+ *       // manual x-www-form-urlencoded
+ *       request.post('/user')
+ *         .type('form')
+ *         .send('name=tj')
+ *         .end(callback)
+ *
+ *       // auto x-www-form-urlencoded
+ *       request.post('/user')
+ *         .type('form')
+ *         .send({ name: 'tj' })
+ *         .end(callback)
+ *
+ *       // defaults to x-www-form-urlencoded
+ *      request.post('/user')
+ *        .send('name=tobi')
+ *        .send('species=ferret')
+ *        .end(callback)
+ *
+ * @param {String|Object} data
+ * @return {Request} for chaining
+ * @api public
+ */
+
+exports.send = function(data){
+  var obj = isObject(data);
+  var type = this._header['content-type'];
+
+  // merge
+  if (obj && isObject(this._data)) {
+    for (var key in data) {
+      this._data[key] = data[key];
+    }
+  } else if ('string' == typeof data) {
+    // default to x-www-form-urlencoded
+    if (!type) this.type('form');
+    type = this._header['content-type'];
+    if ('application/x-www-form-urlencoded' == type) {
+      this._data = this._data
+        ? this._data + '&' + data
+        : data;
+    } else {
+      this._data = (this._data || '') + data;
+    }
+  } else {
+    this._data = data;
+  }
+
+  if (!obj || this._isHost(data)) return this;
+
+  // default to json
+  if (!type) this.type('json');
+  return this;
+};
+
+},{"./is-object":13}],15:[function(require,module,exports){
+// The node and browser modules expose versions of this with the
+// appropriate constructor function bound as first argument
+/**
+ * Issue a request:
+ *
+ * Examples:
+ *
+ *    request('GET', '/users').end(callback)
+ *    request('/users').end(callback)
+ *    request('/users', callback)
+ *
+ * @param {String} method
+ * @param {String|Function} url or callback
+ * @return {Request}
+ * @api public
+ */
+
+function request(RequestConstructor, method, url) {
+  // callback
+  if ('function' == typeof url) {
+    return new RequestConstructor('GET', method).end(url);
+  }
+
+  // url first
+  if (2 == arguments.length) {
+    return new RequestConstructor('GET', method);
+  }
+
+  return new RequestConstructor(method, url);
+}
+
+module.exports = request;
+
+},{}],16:[function(require,module,exports){
+
+/**
+ * Expose `Emitter`.
+ */
+
+if (typeof module !== 'undefined') {
+  module.exports = Emitter;
+}
+
+/**
+ * Initialize a new `Emitter`.
+ *
+ * @api public
+ */
+
+function Emitter(obj) {
+  if (obj) return mixin(obj);
+};
+
+/**
+ * Mixin the emitter properties.
+ *
+ * @param {Object} obj
+ * @return {Object}
+ * @api private
+ */
+
+function mixin(obj) {
+  for (var key in Emitter.prototype) {
+    obj[key] = Emitter.prototype[key];
+  }
+  return obj;
+}
+
+/**
+ * Listen on the given `event` with `fn`.
+ *
+ * @param {String} event
+ * @param {Function} fn
+ * @return {Emitter}
+ * @api public
+ */
+
+Emitter.prototype.on =
+Emitter.prototype.addEventListener = function(event, fn){
+  this._callbacks = this._callbacks || {};
+  (this._callbacks['$' + event] = this._callbacks['$' + event] || [])
+    .push(fn);
+  return this;
+};
+
+/**
+ * Adds an `event` listener that will be invoked a single
+ * time then automatically removed.
+ *
+ * @param {String} event
+ * @param {Function} fn
+ * @return {Emitter}
+ * @api public
+ */
+
+Emitter.prototype.once = function(event, fn){
+  function on() {
+    this.off(event, on);
+    fn.apply(this, arguments);
+  }
+
+  on.fn = fn;
+  this.on(event, on);
+  return this;
+};
+
+/**
+ * Remove the given callback for `event` or all
+ * registered callbacks.
+ *
+ * @param {String} event
+ * @param {Function} fn
+ * @return {Emitter}
+ * @api public
+ */
+
+Emitter.prototype.off =
+Emitter.prototype.removeListener =
+Emitter.prototype.removeAllListeners =
+Emitter.prototype.removeEventListener = function(event, fn){
+  this._callbacks = this._callbacks || {};
+
+  // all
+  if (0 == arguments.length) {
+    this._callbacks = {};
+    return this;
+  }
+
+  // specific event
+  var callbacks = this._callbacks['$' + event];
+  if (!callbacks) return this;
+
+  // remove all handlers
+  if (1 == arguments.length) {
+    delete this._callbacks['$' + event];
+    return this;
+  }
+
+  // remove specific handler
+  var cb;
+  for (var i = 0; i < callbacks.length; i++) {
+    cb = callbacks[i];
+    if (cb === fn || cb.fn === fn) {
+      callbacks.splice(i, 1);
+      break;
+    }
+  }
+  return this;
+};
+
+/**
+ * Emit `event` with the given args.
+ *
+ * @param {String} event
+ * @param {Mixed} ...
+ * @return {Emitter}
+ */
+
+Emitter.prototype.emit = function(event){
+  this._callbacks = this._callbacks || {};
+  var args = [].slice.call(arguments, 1)
+    , callbacks = this._callbacks['$' + event];
+
+  if (callbacks) {
+    callbacks = callbacks.slice(0);
+    for (var i = 0, len = callbacks.length; i < len; ++i) {
+      callbacks[i].apply(this, args);
+    }
+  }
+
+  return this;
+};
+
+/**
+ * Return array of callbacks for `event`.
+ *
+ * @param {String} event
+ * @return {Array}
+ * @api public
+ */
+
+Emitter.prototype.listeners = function(event){
+  this._callbacks = this._callbacks || {};
+  return this._callbacks['$' + event] || [];
+};
+
+/**
+ * Check if this emitter has `event` handlers.
+ *
+ * @param {String} event
+ * @return {Boolean}
+ * @api public
+ */
+
+Emitter.prototype.hasListeners = function(event){
+  return !! this.listeners(event).length;
+};
+
+},{}],17:[function(require,module,exports){
 //     Underscore.js 1.8.3
 //     http://underscorejs.org
 //     (c) 2009-2015 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
@@ -2041,7 +4100,7 @@ process.umask = function() { return 0; };
   }
 }.call(this));
 
-},{}],9:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -2308,8 +4367,7 @@ module.exports = function(AV) {
 
 };
 
-},{"underscore":8}],10:[function(require,module,exports){
-(function (global){
+},{"underscore":17}],19:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -2317,11 +4375,41 @@ module.exports = function(AV) {
 
 'use strict';
 
-const AV = require('./av');
-global.AV = AV._.extend(AV, global.AV);
+const request = require('superagent');
+const debug = require('debug')('ajax');
 
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./av":11}],11:[function(require,module,exports){
+const Promise = require('./promise');
+
+module.exports = function _ajax(method, resourceUrl, data, headers = {}, onprogress) {
+  debug(method, resourceUrl, data, headers);
+
+  var promise = new Promise();
+
+  const req = request(method, resourceUrl)
+    .set(headers)
+    .send(data)
+    .end((err, res) => {
+      if (res) {
+        debug(res.status, res.body, res.text);
+      }
+      if (err) {
+        if (res) {
+          err.statusCode = res.status;
+          err.responseText = res.text;
+          err.response = res.body;
+        }
+        return promise.reject(err);
+      }
+      promise.resolve(res.body, res.status, res);
+    });
+  if (onprogress) {
+    req.on('progress', onprogress);
+  }
+
+  return promise;
+};
+
+},{"./promise":33,"debug":4,"superagent":12}],20:[function(require,module,exports){
 /*!
  * AVOSCloud JavaScript SDK
  * Built: Mon Jun 03 2013 13:45:00
@@ -2343,6 +4431,7 @@ AV._ = require('underscore');
 AV.version = require('./version');
 AV.Promise = require('./promise');
 AV.localStorage = require('./localstorage');
+AV.Cache = require('./cache');
 
 // 挂载所有内部配置项
 AV._config = AV._config || {};
@@ -2369,123 +4458,7 @@ require('./insight')(AV);
 // Backward compatibility
 AV.AV = AV;
 
-},{"./acl":9,"./cloudfunction":16,"./error":17,"./event":18,"./file":19,"./geopoint":20,"./insight":21,"./localstorage":22,"./object":23,"./op":24,"./promise":25,"./push":26,"./query":27,"./relation":28,"./role":29,"./search":30,"./status":31,"./user":32,"./utils":33,"./version":34,"underscore":8}],12:[function(require,module,exports){
-(function (global){
-/**
- * 每位工程师都有保持代码优雅的义务
- * Each engineer has a duty to keep the code elegant
-**/
-
-'use strict';
-
-const AVPromise = require('../promise');
-const md5 = require('md5');
-
-// 计算 X-LC-Sign 的签名方法
-const sign = (key, isMasterKey) => {
-  const now = new Date().getTime();
-  const signature = md5(now + key);
-  if (isMasterKey) {
-    return signature + ',' + now + ',master';
-  } else {
-    return signature + ',' + now;
-  }
-};
-
-const ajax = (method, url, data, success, error) => {
-  const AV = global.AV;
-
-  const promise = new AVPromise();
-  const options = {
-    success: success,
-    error: error
-  };
-
-  const appId = AV.applicationId;
-  const appKey = AV.applicationKey;
-  const masterKey = AV.masterKey;
-
-  let handled = false;
-  const xhr = new global.XMLHttpRequest();
-  xhr.onreadystatechange = () => {
-    if (xhr.readyState === 4) {
-      if (handled) {
-        return;
-      }
-      handled = true;
-
-      if (xhr.status >= 200 && xhr.status < 300) {
-        let response;
-        try {
-          response = JSON.parse(xhr.responseText);
-        } catch (e) {
-          e.statusCode = xhr.status;
-          e.responseText = xhr.responseText;
-          promise.reject(e);
-        }
-        if (response) {
-          promise.resolve(response, xhr.status, xhr);
-        }
-      } else {
-        promise.reject(xhr);
-      }
-    }
-  };
-
-  if (method.toLowerCase() === 'get') {
-    let i = 0;
-    for (let k in data) {
-      if (i === 0) {
-        url = url + '?';
-      } else {
-        url = url + '&';
-      }
-      url = url + k + '=' + encodeURIComponent(JSON.stringify(data[k]));
-      i ++;
-    }
-  }
-
-  let headers = {
-    'X-LC-Id': appId,
-    'X-LC-UA': 'LC-Web-' + AV.version,
-    'Content-Type': 'application/json;charset=UTF-8'
-  };
-
-  // 清理原来多余的数据（如果不清理，会污染数据表）
-  if (data) {
-    delete data._ApplicationId;
-    delete data._ApplicationKey;
-    delete data._ApplicationProduction;
-    delete data._MasterKey;
-    delete data._ClientVersion;
-    delete data._InstallationId;
-
-    if (data._SessionToken) {
-      headers['X-LC-Session'] = data._SessionToken;
-      delete data._SessionToken;
-    }
-  }
-
-  if (masterKey && AV._useMasterKey) {
-    headers['X-LC-Sign'] = sign(masterKey, true);
-  } else {
-    headers['X-LC-Sign'] = sign(appKey);
-  }
-
-  xhr.open(method, url, true);
-
-  for (let name in headers) {
-    xhr.setRequestHeader(name, headers[name]);
-  }
-
-  xhr.send(JSON.stringify(data));
-  return promise._thenRunCallbacks(options);
-};
-
-module.exports = ajax;
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../promise":25,"md5":6}],13:[function(require,module,exports){
+},{"./acl":18,"./cache":23,"./cloudfunction":24,"./error":25,"./event":26,"./file":27,"./geopoint":28,"./insight":29,"./localstorage":30,"./object":31,"./op":32,"./promise":33,"./push":34,"./query":35,"./relation":36,"./role":37,"./search":38,"./status":39,"./user":42,"./utils":43,"./version":44,"underscore":17}],21:[function(require,module,exports){
 (function (global){
 /**
  * 每位工程师都有保持代码优雅的义务
@@ -2551,7 +4524,7 @@ if (global.localStorage) {
 module.exports = Storage;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../promise":25,"localstorage-memory":5,"react-native":1,"underscore":8}],14:[function(require,module,exports){
+},{"../promise":33,"localstorage-memory":7,"react-native":1,"underscore":17}],22:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -2581,78 +4554,46 @@ var dataURItoBlob = function(dataURI, type) {
 
 module.exports = dataURItoBlob;
 
-},{}],15:[function(require,module,exports){
-/**
- * 每位工程师都有保持代码优雅的义务
- * Each engineer has a duty to keep the code elegant
-**/
-
+},{}],23:[function(require,module,exports){
 'use strict';
+const storage = require('./localstorage');
+const AV = require('./av');
 
-module.exports = function upload(file, AV, saveOptions) {
-  //use /files endpoint.
-  var self = file;
-  var dataFormat;
-  self._previousSave = self._source.then(function(data, type) {
-    dataFormat = data;
-    return self._qiniuToken(type);
-  }).then(function(response) {
-    self._url = response.url;
-    self._bucket = response.bucket;
-    self.id = response.objectId;
-    //Get the uptoken to upload files to qiniu.
-    var uptoken = response.token;
+const remove = exports.remove = storage.removeItemAsync.bind(storage);
 
-    var data = new FormData();
-    data.append("file", dataFormat);
-    data.append('name', self._name);
-    data.append("key", self._qiniu_key);
-    data.append("token", uptoken);
-
-    var promise = new AV.Promise();
-    var handled = false;
-
-    var xhr = new XMLHttpRequest();
-
-    if (xhr.upload) {
-      xhr.upload.onprogress = saveOptions.onProgress;
-    }
-
-    xhr.onreadystatechange = function() {
-      if (xhr.readyState === 4) {
-        if (handled) {
-          return;
-        }
-        handled = true;
-
-        delete self._qiniu_key;
-        if (xhr.status >= 200 && xhr.status < 300) {
-          var response;
-          try {
-            response = JSON.parse(xhr.responseText);
-          } catch (e) {
-            promise.reject(e);
-            self.destroy();
-          }
-          if (response) {
-            promise.resolve(self);
-          } else {
-            promise.reject(response);
-          }
-        } else {
-          promise.reject(xhr);
-          self.destroy();
-        }
+exports.get = (key) => {
+  return storage.getItemAsync(`${AV.applicationId}/${key}`)
+    .then(cache => {
+      try {
+        cache = JSON.parse(cache);
+      } catch (e) {
+        return null;
       }
-    };
-    xhr.open('POST', 'http://upload.qiniu.com', true);
-    xhr.send(data);
-
-    return promise;
-  });
+      if (cache) {
+        const expired = cache.expiredAt && cache.expiredAt < Date.now();
+        if (!expired) {
+          return cache.value;
+        }
+        return remove(key).then(() => null);
+      }
+      return null;
+    });
 };
 
-},{}],16:[function(require,module,exports){
+exports.set = (key, value, ttl) => {
+  const cache = {
+    value
+  };
+  if (typeof ttl === 'number') {
+    cache.expiredAt = Date.now() + ttl;
+  }
+  return storage.setItemAsync(
+    `${AV.applicationId}/${key}`,
+     JSON.stringify(cache)
+   );
+};
+
+},{"./av":20,"./localstorage":30}],24:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -2778,7 +4719,7 @@ module.exports = function(AV) {
   });
 };
 
-},{"underscore":8}],17:[function(require,module,exports){
+},{"underscore":17}],25:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -3131,7 +5072,7 @@ module.exports = function(AV) {
 
 };
 
-},{"underscore":8}],18:[function(require,module,exports){
+},{"underscore":17}],26:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -3291,7 +5232,7 @@ module.exports = function(AV) {
   AV.Events.unbind = AV.Events.off;
 };
 
-},{}],19:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 (function (global){
 /**
  * 每位工程师都有保持代码优雅的义务
@@ -3301,19 +5242,21 @@ module.exports = function(AV) {
 'use strict';
 
 const _ = require('underscore');
-
-// port from browserify path module
-// since react-native packager won't shim node modules.
-function extname(path) {
-  return path.match(/^(\/?|)([\s\S]*?)((?:\.{1,2}|[^\/]+?|)(\.[^.\/]*|))(?:[\/]*)$/)[4];
-}
+const cos = require('./uploader/cos');
+const qiniu = require('./uploader/qiniu');
 
 module.exports = function(AV) {
 
   // 挂载一些配置
   let avConfig = AV._config;
 
-  var b64Digit = function(number) {
+  // port from browserify path module
+  // since react-native packager won't shim node modules.
+  const extname = (path) => {
+    return path.match(/^(\/?|)([\s\S]*?)((?:\.{1,2}|[^\/]+?|)(\.[^.\/]*|))(?:[\/]*)$/)[4];
+  };
+
+  const b64Digit = (number) => {
     if (number < 26) {
       return String.fromCharCode(65 + number);
     }
@@ -3324,12 +5267,12 @@ module.exports = function(AV) {
       return String.fromCharCode(48 + (number - 52));
     }
     if (number === 62) {
-      return "+";
+      return '+';
     }
     if (number === 63) {
-      return "/";
+      return '/';
     }
-    throw "Tried to encode large digit " + number + " in base64.";
+    throw new Error('Tried to encode large digit ' + number + ' in base64.');
   };
 
   var encodeBase64 = function(array) {
@@ -3632,13 +5575,16 @@ module.exports = function(AV) {
    *     extension.
    */
   AV.File = function(name, data, type) {
-    this._name = name;
 
-    // 用来存储转换后要上传的 base64 String
-    this._base64 = '';
+    this.attributes = {
+      name: name,
+      url: '',
+      metaData: {},
+      // 用来存储转换后要上传的 base64 String
+      base64: ''
+    };
 
     let owner;
-
     if (data && data.owner) {
       owner = data.owner;
     } else {
@@ -3649,8 +5595,8 @@ module.exports = function(AV) {
       }
     }
 
-    this._metaData = {
-       owner: (owner ? owner.id : 'unknown')
+    this.attributes.metaData = {
+      owner: (owner ? owner.id : 'unknown')
     };
 
     // Guess the content type from the extension if we need to.
@@ -3662,23 +5608,26 @@ module.exports = function(AV) {
     this._guessedType = guessedType;
 
     if (_.isArray(data)) {
-      this._base64 = encodeBase64(data);
-      this._source = AV.Promise.as(this._base64, guessedType);
-      this._metaData.size = data.length;
+      this.attributes.base64 = encodeBase64(data);
+      this._source = AV.Promise.as(this.attributes.base64, guessedType);
+      this.attributes.metaData.size = data.length;
     } else if (data && data.base64) {
       var parseBase64 = require('./browserify-wrapper/parse-base64');
       var dataBase64 = parseBase64(data.base64, guessedType);
-      this._base64 = dataURLToBase64(data.base64);
+      this.attributes.base64 = dataURLToBase64(data.base64);
       this._source = AV.Promise.as(dataBase64, guessedType);
     } else if (data && data.blob) {
+      if (!data.blob.type) {
+        data.blob.type = guessedType;
+      }
       this._source = AV.Promise.as(data.blob, guessedType);
     } else if (typeof(File) !== "undefined" && data instanceof global.File) {
       this._source = AV.Promise.as(data, guessedType);
-    } else if(avConfig.isNode && global.Buffer.isBuffer(data)) {
+    } else if (avConfig.isNode && global.Buffer.isBuffer(data)) {
       // use global.Buffer to prevent browserify pack Buffer module
-      this._base64 = data.toString('base64');
-      this._source = AV.Promise.as(this._base64, guessedType);
-      this._metaData.size = data.length;
+      this.attributes.base64 = data.toString('base64');
+      this._source = AV.Promise.as(this.attributes.base64, guessedType);
+      this.attributes.metaData.size = data.length;
     } else if (_.isString(data)) {
       throw "Creating a AV.File from a String is not yet supported.";
     }
@@ -3694,21 +5643,21 @@ module.exports = function(AV) {
    *     extension.
    * @return {AV.File} the file object
    */
-  AV.File.withURL = function(name, url, metaData, type){
-    if(!name || !url){
+  AV.File.withURL = function(name, url, metaData, type) {
+    if (!name || !url){
       throw "Please provide file name and url";
     }
     var file = new AV.File(name, null, type);
     //copy metaData properties to file.
-    if(metaData){
+    if (metaData){
       for(var prop in metaData){
-        if(!file._metaData[prop])
-          file._metaData[prop] = metaData[prop];
+        if (!file.attributes.metaData[prop])
+          file.attributes.metaData[prop] = metaData[prop];
       }
     }
-    file._url = url;
+    file.attributes.url = url;
     //Mark the file is from external source.
-    file._metaData.__source = 'external';
+    file.attributes.metaData.__source = 'external';
     return file;
   };
 
@@ -3717,14 +5666,13 @@ module.exports = function(AV) {
    * @param {String} objectId The objectId string
    * @return {AV.File} the file object
    */
-  AV.File.createWithoutData = function(objectId){
+  AV.File.createWithoutData = function(objectId) {
     var file = new AV.File();
     file.id = objectId;
     return file;
   };
 
   AV.File.prototype = {
-
     toJSON: function() {
       return AV._encode(this);
     },
@@ -3742,9 +5690,8 @@ module.exports = function(AV) {
      * @param {AV.ACL} acl An instance of AV.ACL.
      */
     setACL: function(acl) {
-        if(!(acl instanceof AV.ACL)) {
-          return new AV.Error(AV.Error.OTHER_CAUSE,
-                               "ACL must be a AV.ACL.");
+        if (!(acl instanceof AV.ACL)) {
+          return new AV.Error(AV.Error.OTHER_CAUSE, 'ACL must be a AV.ACL.');
         }
         this._acl = acl;
     },
@@ -3755,7 +5702,7 @@ module.exports = function(AV) {
      * unique identifier.
      */
     name: function() {
-      return this._name;
+      return this.get('name');
     },
 
     /**
@@ -3764,7 +5711,62 @@ module.exports = function(AV) {
      * @return {String}
      */
     url: function() {
-      return this._url;
+      return this.get('url');
+    },
+
+    /**
+    * Gets the attributs of the file object.
+    * @param {String} The attribute name which want to get.
+    * @returns {String|Number|Array|Object}
+    */
+    get: function(attrName) {
+      switch (attrName) {
+        case 'objectId':
+        // 兼容 objectId
+        return this.id;
+        default:
+        if (this.attributes[attrName] === undefined) {
+          return this.attributes.metaData[attrName];
+        } else {
+          return this.attributes[attrName];
+        }
+      }
+    },
+
+    /**
+    * Set the metaData of the file object.
+    * @param {Object} Object is an key value Object for setting metaData.
+    * @param {String} attr is an optional metadata key.
+    * @param {Object} value is an optional metadata value.
+    * @returns {String|Number|Array|Object}
+    */
+    set: function(...args) {
+      const set = (attrName, value) => {
+        switch (attrName) {
+          case 'name':
+          case 'url':
+          case 'base64':
+          case 'metaData':
+            this.attributes[attrName] = value;
+          break;
+          default:
+            // File 并非一个 AVObject，不能完全自定义其他属性，所以只能都放在 metaData 上面
+            this.attributes.metaData[attrName] = value;
+          break;
+        }
+      };
+
+      switch (args.length) {
+        case 1:
+          // 传入一个 Object
+          for (var k in args[0]) {
+            set(k, args[0][k]);
+          }
+        break;
+        case 2:
+          set(args[0], args[1]);
+        break;
+      }
     },
 
     /**
@@ -3781,12 +5783,12 @@ module.exports = function(AV) {
     **/
     metaData: function(attr, value) {
       if (attr && value) {
-        this._metaData[attr] = value;
+        this.attributes.metaData[attr] = value;
         return this;
       } else if (attr && !value) {
-        return this._metaData[attr];
+        return this.attributes.metaData[attr];
       } else {
-        return this._metaData;
+        return this.attributes.metaData;
       }
     },
 
@@ -3799,28 +5801,30 @@ module.exports = function(AV) {
     * @param {Number} scaleToFit 是否将图片自适应大小。默认为true。
     * @param {String} fmt 格式，默认为png，也可以为jpeg,gif等格式。
     */
-   thumbnailURL: function(width, height, quality, scaleToFit, fmt){
-     if(!this.url()){
-       throw "Invalid url.";
-     }
-     if(!width || !height || width<=0 || height <=0 ){
-       throw "Invalid width or height value.";
-     }
-     quality = quality || 100;
-     scaleToFit = !scaleToFit ? true : scaleToFit;
-     if(quality <= 0 || quality > 100){
-       throw "Invalid quality value.";
-     }
-     fmt = fmt || 'png';
-     var mode = scaleToFit ? 2: 1;
-     return this.url() + '?imageView/' + mode + '/w/' + width + '/h/' + height + '/q/' + quality + '/format/' + fmt;
-   },
+
+    thumbnailURL: function(width, height, quality, scaleToFit, fmt) {
+      const url = this.attributes.url;
+      if (!url) {
+        throw new Error('Invalid url.');
+      }
+      if (!width || !height || width <= 0 || height <= 0 ) {
+        throw new Error('Invalid width or height value.');
+      }
+      quality = quality || 100;
+      scaleToFit = !scaleToFit ? true : scaleToFit;
+      if (quality <= 0 || quality > 100) {
+        throw new Error('Invalid quality value.');
+      }
+      fmt = fmt || 'png';
+      const mode = scaleToFit ? 2: 1;
+      return url + '?imageView/' + mode + '/w/' + width + '/h/' + height + '/q/' + quality + '/format/' + fmt;
+    },
 
     /**
     * Returns the file's size.
     * @return {Number} The file's size in bytes.
     **/
-    size: function(){
+    size: function() {
       return this.metaData().size;
     },
 
@@ -3828,17 +5832,19 @@ module.exports = function(AV) {
      * Returns the file's owner.
      * @return {String} The file's owner id.
      */
-    ownerId: function(){
+    ownerId: function() {
       return this.metaData().owner;
     },
+
      /**
      * Destroy the file.
      * @return {AV.Promise} A promise that is fulfilled when the destroy
      *     completes.
      */
-    destroy: function(options){
-      if(!this.id)
+    destroy: function(options) {
+      if (!this.id) {
         return AV.Promise.error('The file id is not eixsts.')._thenRunCallbacks(options);
+      }
       var request = AV._request("files", null, this.id, 'DELETE', options && options.sessionToken);
       return request._thenRunCallbacks(options);
     },
@@ -3849,26 +5855,26 @@ module.exports = function(AV) {
      * @return {AV.Promise} Resolved with the response
      * @private
      */
-    _qiniuToken: function(type) {
-      var self = this;
+    _fileToken: function(type, route = 'fileTokens') {
+      const name = this.attributes.name;
       //Create 16-bits uuid as qiniu key.
-      var extName = extname(self._name);
-      var hexOctet = function() {
+      const extName = extname(name);
+      const hexOctet = function() {
         return Math.floor((1+Math.random())*0x10000).toString(16).substring(1);
       };
-      var key = hexOctet() + hexOctet() + hexOctet() + hexOctet() + hexOctet() + extName;
-
-      var data = {
+      const key = hexOctet() + hexOctet() + hexOctet() + hexOctet() + hexOctet() + extName;
+      const data = {
         key: key,
-        ACL: self._acl,
-        name:self._name,
+        ACL: this._acl,
+        name: name,
         mime_type: type,
-        metaData: self._metaData
+        metaData: this.attributes.metaData
       };
-      if(type && !self._metaData.mime_type)
-        self._metaData.mime_type = type;
-      self._qiniu_key = key;
-      return AV._request("qiniu", null, null, 'POST', data);
+      if (type && !this.attributes.metaData.mime_type) {
+        this.attributes.metaData.mime_type = type;
+      }
+      this._qiniu_key = key;
+      return AV._request(route, null, null, 'POST', data);
     },
 
     /**
@@ -3882,77 +5888,93 @@ module.exports = function(AV) {
      * @param {Object} options A Backbone-style options object.
      * @return {AV.Promise} Promise that is resolved when the save finishes.
      */
-    save: function() {
+    save: function(...args) {
       if (this.id) {
         throw new Error('File already saved. If you want to manipulate a file, use AV.Query to get it.');
       }
-      var options = null;
-      var saveOptions = {};
-      if(arguments.length === 1) {
-        options = arguments[0];
-      } else if(arguments.length === 2) {
-        saveOptions = arguments[0];
-        options = arguments[1];
+      let options;
+      let saveOptions = {};
+      switch (args.length) {
+        case 1:
+          options = args[0];
+        break;
+        case 2:
+          saveOptions = args[0];
+          options = args[1];
+        break;
       }
-      var self = this;
-      if (!self._previousSave) {
+      if (!this._previousSave) {
         // 如果是国内节点
         var isCnNodeFlag = isCnNode();
-        if(self._source && isCnNodeFlag) {
+        if (this._source && isCnNodeFlag) {
           // 通过国内 CDN 服务商上传
-          var upload = require('./browserify-wrapper/upload');
-          upload(self, AV, saveOptions);
-        } else if (self._url && self._metaData.__source === 'external') {
+          this._previousSave = this._source.then((data, type) => {
+            return this._fileToken(type).catch(() => this._fileToken(type, 'qiniu'))
+              .then(uploadInfo => {
+                let uploadPromise;
+                if (uploadInfo.provider === 'qcloud') {
+                  uploadPromise = cos(uploadInfo, data, this, saveOptions);
+                } else {
+                  uploadPromise = qiniu(uploadInfo, data, this, saveOptions);
+                }
+                return uploadPromise.catch(err => {
+                  //destroy this file object when upload fails.
+                  this.destroy();
+                  throw err;
+                });
+              });
+          });
+        } else if (this.attributes.url && this.attributes.metaData.__source === 'external') {
           //external link file.
           var data = {
-            name: self._name,
-            ACL: self._acl,
-            metaData: self._metaData,
-            mime_type: self._guessedType,
-            url: self._url
+            name: this.attributes.name,
+            ACL: this._acl,
+            metaData: this.attributes.metaData,
+            mime_type: this._guessedType,
+            url: this.attributes.url
           };
-          self._previousSave = AV._request('files', self._name, null, 'POST', data).then(function(response) {
-            self._name = response.name;
-            self._url = response.url;
-            self.id = response.objectId;
-            if(response.size) {
-              self._metaData.size = response.size;
+          this._previousSave = AV._request('files', this.attributes.name, null, 'post', data).then((response) => {
+            this.attributes.name = response.name;
+            this.attributes.url = response.url;
+            this.id = response.objectId;
+            if (response.size) {
+              this.attributes.metaData.size = response.size;
             }
-            return self;
+            return this;
           });
         } else if (!isCnNodeFlag) {
           // 海外节点，通过 LeanCloud 服务器中转
-          self._previousSave = self._source.then(function(file, type) {
+          this._previousSave = this._source.then((file, type) => {
             var data = {
               base64: '',
               _ContentType: type,
-              ACL: self._acl,
+              ACL: this._acl,
               mime_type: type,
-              metaData: self._metaData,
+              metaData: this.attributes.metaData,
             };
             // 判断是否数据已经是 base64
-            if (self._base64) {
-              data.base64 = self._base64;
-              return AV._request('files', self._name, null, 'POST', data);
+            if (this.attributes.base64) {
+              data.base64 = this.attributes.base64;
+              return AV._request('files', this.attributes.name, null, 'POST', data);
             } else {
               return readAsync(file).then(function(base64) {
                 data.base64 = base64;
-                return AV._request('files', self._name, null, 'POST', data);
+                return AV._request('files', this.attributes.name, null, 'POST', data);
               });
             }
-          }).then(function(response) {
-            self._name = response.name;
-            self._url = response.url;
-            self.id = response.objectId;
-            if(response.size)
-              self._metaData.size = response.size;
-            return self;
+          }).then((response) => {
+            this.attributes.name = response.name;
+            this.attributes.url = response.url;
+            this.id = response.objectId;
+            if (response.size) {
+              this.attributes.metaData.size = response.size;
+            }
+            return this;
           });
         }
       }
-      return self._previousSave._thenRunCallbacks(options);
+      return this._previousSave._thenRunCallbacks(options);
     },
-
     /**
     * fetch the file from server. If the server's representation of the
     * model differs from its current attributes, they will be overriden,
@@ -3966,27 +5988,28 @@ module.exports = function(AV) {
     fetch: function() {
         var options = null;
         var fetchOptions = {};
-        if(arguments.length === 1) {
+        if (arguments.length === 1) {
           options = arguments[0];
-        } else if(arguments.length === 2) {
+        } else if (arguments.length === 2) {
           fetchOptions = arguments[0];
           options = arguments[1];
         }
 
-        var self = this;
-        var request = AV._request('files', null, this.id, 'GET',
-                                  fetchOptions);
-        return request.then(function(response) {
+        var request = AV._request('files', null, this.id, 'GET', fetchOptions);
+        return request.then((response) => {
           var value = AV.Object.prototype.parse(response);
-          value._metaData = value.metaData || {};
-          value._url = value.url;
-          value._name = value.name;
+          value.attributes = {
+            name: value.name,
+            url: value.url
+          };
+          value.attributes.metaData = value.metaData || {};
+          // clean
           delete value.objectId;
           delete value.metaData;
           delete value.url;
           delete value.name;
-          _.extend(self, value);
-          return self;
+          _.extend(this, value);
+          return this;
         })._thenRunCallbacks(options);
     }
   };
@@ -3994,7 +6017,7 @@ module.exports = function(AV) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./browserify-wrapper/parse-base64":14,"./browserify-wrapper/upload":15,"underscore":8}],20:[function(require,module,exports){
+},{"./browserify-wrapper/parse-base64":22,"./uploader/cos":40,"./uploader/qiniu":41,"underscore":17}],28:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -4173,7 +6196,7 @@ module.exports = function(AV) {
   };
 };
 
-},{"underscore":8}],21:[function(require,module,exports){
+},{"underscore":17}],29:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -4321,7 +6344,7 @@ module.exports = function(AV) {
 
 };
 
-},{"underscore":8}],22:[function(require,module,exports){
+},{"underscore":17}],30:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -4361,7 +6384,7 @@ if (!localStorage.async) {
 
 module.exports = localStorage;
 
-},{"./browserify-wrapper/localStorage":13,"./promise":25,"underscore":8}],23:[function(require,module,exports){
+},{"./browserify-wrapper/localStorage":21,"./promise":33,"underscore":17}],31:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -4635,7 +6658,18 @@ module.exports = function(AV) {
      * @param {String} attr The string name of an attribute.
      */
     get: function(attr) {
-      return this.attributes[attr];
+      switch (attr) {
+        case 'objectId':
+        // 兼容 objectId
+        return this.id;
+        default:
+        // 兼容 createdAt、updatedAt
+        if (this.attributes[attr] === undefined) {
+          return this[attr];
+        } else {
+          return this.attributes[attr];
+        }
+      }
     },
 
     /**
@@ -5148,13 +7182,17 @@ module.exports = function(AV) {
      *     completes.
      */
     fetch: function() {
-      var options = null;
+      var options = {};
       var fetchOptions = {};
       if(arguments.length === 1) {
         options = arguments[0];
       } else if(arguments.length === 2) {
         fetchOptions = arguments[0];
-        options = arguments[1];
+        options = arguments[1] || {};
+      }
+
+      if (fetchOptions && fetchOptions.include && fetchOptions.include.length > 0) {
+        fetchOptions.include = fetchOptions.include.join(',');
       }
 
       var self = this;
@@ -5613,9 +7651,9 @@ module.exports = function(AV) {
     *     completes.
     */
    AV.Object.destroyAll = function(objects, options){
-      options = options || {}
-      if(objects == null || objects.length == 0){
-		  return AV.Promise.as()._thenRunCallbacks(options);
+      options = options || {};
+      if (!objects || objects.length === 0){
+		    return AV.Promise.as()._thenRunCallbacks(options);
       }
       var className = objects[0].className;
       var id = "";
@@ -5913,7 +7951,7 @@ module.exports = function(AV) {
 
 };
 
-},{"underscore":8}],24:[function(require,module,exports){
+},{"underscore":17}],32:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -6450,7 +8488,7 @@ module.exports = function(AV) {
 
 };
 
-},{"underscore":8}],25:[function(require,module,exports){
+},{"underscore":17}],33:[function(require,module,exports){
 (function (process){
 /**
  * 每位工程师都有保持代码优雅的义务
@@ -7058,7 +9096,7 @@ Promise.prototype.finally = Promise.prototype.always;
 Promise.prototype.try = Promise.prototype.done;
 
 }).call(this,require('_process'))
-},{"_process":7,"underscore":8}],26:[function(require,module,exports){
+},{"_process":10,"underscore":17}],34:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -7123,7 +9161,7 @@ module.exports = function(AV) {
   };
 };
 
-},{}],27:[function(require,module,exports){
+},{}],35:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -8067,7 +10105,7 @@ module.exports = function(AV) {
    });
 };
 
-},{"underscore":8}],28:[function(require,module,exports){
+},{"underscore":17}],36:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -8189,7 +10227,7 @@ module.exports = function(AV) {
   };
 };
 
-},{"underscore":8}],29:[function(require,module,exports){
+},{"underscore":17}],37:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -8333,7 +10371,7 @@ module.exports = function(AV) {
   });
 };
 
-},{"underscore":8}],30:[function(require,module,exports){
+},{"underscore":17}],38:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -8624,7 +10662,7 @@ module.exports = function(AV) {
   });
 };
 
-},{"underscore":8}],31:[function(require,module,exports){
+},{"underscore":17}],39:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -9006,7 +11044,94 @@ module.exports = function(AV) {
 
 };
 
-},{"underscore":8}],32:[function(require,module,exports){
+},{"underscore":17}],40:[function(require,module,exports){
+/**
+ * 每位工程师都有保持代码优雅的义务
+ * Each engineer has a duty to keep the code elegant
+ **/
+
+'use strict';
+
+const request = require('superagent');
+const Promise = require('../promise');
+
+module.exports = function upload(uploadInfo, data, file, saveOptions = {}) {
+  file.attributes.url = uploadInfo.url;
+  file._bucket = uploadInfo.bucket;
+  file.id = uploadInfo.objectId;
+  const uploadUrl = uploadInfo.upload_url + "?sign=" + encodeURIComponent(uploadInfo.token);
+
+  const promise = new Promise();
+
+  const req = request('POST', uploadUrl)
+    .field('fileContent', data)
+    .field('op', 'upload')
+    .end((err, res) => {
+      if (res) {
+        debug(res.status, res.body, res.text);
+      }
+      if (err) {
+        if (res) {
+          err.statusCode = res.status;
+          err.responseText = res.text;
+          err.response = res.body;
+        }
+        return promise.reject(err);
+      }
+      promise.resolve(file);
+    });
+  if (saveOptions.onprogress) {
+    req.on('progress', saveOptions.onprogress);
+  }
+  return promise;
+};
+
+},{"../promise":33,"superagent":12}],41:[function(require,module,exports){
+/**
+ * 每位工程师都有保持代码优雅的义务
+ * Each engineer has a duty to keep the code elegant
+**/
+
+'use strict';
+
+const request = require('superagent');
+const Promise = require('../promise');
+
+module.exports = function upload(uploadInfo, data, file, saveOptions = {}) {
+  file.attributes.url = uploadInfo.url;
+  file._bucket = uploadInfo.bucket;
+  file.id = uploadInfo.objectId;
+  //Get the uptoken to upload files to qiniu.
+  const uptoken = uploadInfo.token;
+
+  const promise = new Promise();
+
+  const req = request('POST', 'https://up.qbox.me')
+    .field('file', data)
+    .field('name', file.attributes.name)
+    .field('key', file._qiniu_key)
+    .field('token', uptoken)
+    .end((err, res) => {
+      if (res) {
+        debug(res.status, res.body, res.text);
+      }
+      if (err) {
+        if (res) {
+          err.statusCode = res.status;
+          err.responseText = res.text;
+          err.response = res.body;
+        }
+        return promise.reject(err);
+      }
+      promise.resolve(file);
+    });
+  if (saveOptions.onprogress) {
+    req.on('progress', saveOptions.onprogress);
+  }
+  return promise;
+};
+
+},{"../promise":33,"superagent":12}],42:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -10124,7 +12249,7 @@ function filterOutCallbacks(options) {
   return newOptions;
 }
 
-},{"underscore":8}],33:[function(require,module,exports){
+},{"underscore":17}],43:[function(require,module,exports){
 (function (process){
 /**
  * 每位工程师都有保持代码优雅的义务
@@ -10134,7 +12259,21 @@ function filterOutCallbacks(options) {
 'use strict';
 
 const _ = require('underscore');
-const ajax = require('./browserify-wrapper/ajax');
+const ajax = require('./ajax');
+const Cache = require('./cache');
+const md5 = require('md5');
+const debug = require('debug')('utils');
+
+// 计算 X-LC-Sign 的签名方法
+const sign = (key, isMasterKey) => {
+  const now = new Date().getTime();
+  const signature = md5(now + key);
+  if (isMasterKey) {
+    return signature + ',' + now + ',master';
+  } else {
+    return signature + ',' + now;
+  }
+};
 
 const init = (AV) => {
 
@@ -10243,18 +12382,39 @@ const init = (AV) => {
     AV._useMasterKey = false;
   };
 
-  const setRegionServer = (region) => {
-    // 服务器地区选项，默认为中国大陆
-    switch (region) {
-      case 'us':
-        AVConfig.region = 'us';
-      break;
-      default:
-        AVConfig.region = 'cn';
-      break;
+  const setRegionServer = (region = 'cn') => {
+    AVConfig.region = region;
+    // 如果用户在 init 之前设置了 APIServerURL，则跳过请求 router
+    if (AVConfig.APIServerURL) {
+      return;
     }
-    if (!AVConfig.APIServerURL) {
-      AVConfig.APIServerURL = API_HOST[AVConfig.region];
+    AVConfig.APIServerURL = API_HOST[region];
+    if (region === 'cn') {
+      // TODO: remove appId match hack
+      if (AV.applicationId.indexOf('-9Nh9j0Va') !== -1) {
+        AVConfig.APIServerURL = 'https://e1-api.leancloud.cn';
+      }
+      Cache.get('APIServerURL').then(cachedServerURL => {
+        if (cachedServerURL) {
+          return cachedServerURL;
+        } else {
+          return ajax('get', `https://app-router.leancloud.cn/1/route?appId=${AV.applicationId}`)
+            .then(servers => {
+              if (servers.api_server) {
+                Cache.set(
+                  'APIServerURL',
+                  servers.api_server,
+                  (typeof servers.ttl ==='number' ? servers.ttl : 3600) * 1000);
+                return servers.api_server;
+              }
+            });
+        }
+      }).then(serverURL => {
+        // 如果用户在 init 之后设置了 APIServerURL，保持用户设置
+        if (AVConfig.APIServerURL === API_HOST[region]) {
+          AVConfig.APIServerURL = `https://${serverURL}`;
+        }
+      })
     }
   };
 
@@ -10479,6 +12639,7 @@ const init = (AV) => {
         route !== "usersByMobilePhone" &&
         route !== "cloudQuery" &&
         route !== "qiniu" &&
+        route !== "fileTokens" &&
         route !== "statuses" &&
         route !== "bigquery" &&
         route !== 'search/select' &&
@@ -10489,6 +12650,8 @@ const init = (AV) => {
         !(/users\/[^\/]+\/friendship\/[^\/]+/.test(route))) {
       throw "Bad route: '" + route + "'.";
     }
+
+    dataObject = dataObject || {};
 
     // 兼容 AV.serverURL 旧方式设置 API Host，后续去掉
     let apiURL = AV.serverURL || AVConfig.APIServerURL;
@@ -10518,47 +12681,64 @@ const init = (AV) => {
       }
     }
 
-    dataObject = _.clone(dataObject || {});
-    dataObject._ApplicationId = AV.applicationId;
-    dataObject._ApplicationKey = AV.applicationKey;
+    var headers = {
+      'X-LC-Id': AV.applicationId,
+      'Content-Type': 'application/json;charset=UTF-8'
+    };
+    if (AV.masterKey && AV._useMasterKey) {
+      headers['X-LC-Sign'] = sign(AV.masterKey, true);
+    } else {
+      headers['X-LC-Sign'] = sign(AV.applicationKey);
+    }
     if (!AV._isNullOrUndefined(AV.applicationProduction)) {
-      dataObject._ApplicationProduction = AV.applicationProduction;
+      headers['X-LC-Prod'] = AV.applicationProduction;
     }
-    if (AV._useMasterKey) {
-      dataObject._MasterKey = AV.masterKey;
+    if (!AVConfig.isNode) {
+      headers['X-LC-UA'] = `AV/${AV.version}`;
+    } else {
+      headers['User-Agent'] = AV._config.userAgent || `AV/${AV.version}; Node.js/${process.version}`;
     }
-    dataObject._ClientVersion = AV.version;
+
     return AV.Promise.as().then(function() {
       // Pass the session token
       if (sessionToken) {
-        dataObject._SessionToken = sessionToken;
+        headers['X-LC-Session'] = sessionToken;
       } else if (!AV._config.disableCurrentUser) {
         return AV.User.currentAsync().then(function(currentUser) {
           if (currentUser && currentUser._sessionToken) {
-            dataObject._SessionToken = currentUser._sessionToken;
+            headers['X-LC-Session'] = currentUser._sessionToken;
           }
         });
       }
     }).then(function() {
-      // Pass the installation id
-      if (!AV._config.disableCurrentUser) {
-        return AV._getInstallationId().then(function(installationId) {
-          dataObject._InstallationId = installationId;
-        });
+      if (method.toLowerCase() === 'get') {
+        if (apiURL.indexOf('?') === -1) {
+          apiURL += '?';
+        }
+        for (let k in dataObject) {
+          if (typeof dataObject[k] === 'object') {
+            dataObject[k] = JSON.stringify(dataObject[k]);
+          }
+          apiURL += '&' + k + '=' + encodeURIComponent(dataObject[k]);
+        }
       }
-    }).then(function() {
-      return AV._ajax(method, apiURL, dataObject).then(null, function(response) {
+
+      return AV._ajax(method, apiURL, dataObject, headers).then(null, function(response) {
         // Transform the error into an instance of AV.Error by trying to parse
         // the error string as JSON.
         var error;
-        if (response && response.responseText) {
-          try {
-            var errorJSON = JSON.parse(response.responseText);
-            if (errorJSON) {
-              error = new AV.Error(errorJSON.code, errorJSON.error);
+        if (response) {
+          if (response.response) {
+            error = new AV.Error(response.response.code, response.response.error);
+          } else if (response.responseText) {
+            try {
+              var errorJSON = JSON.parse(response.responseText);
+              if (errorJSON) {
+                error = new AV.Error(errorJSON.code, errorJSON.error);
+              }
+            } catch (e) {
+              // If we fail to parse the error text, that's okay.
             }
-          } catch (e) {
-            // If we fail to parse the error text, that's okay.
           }
         }
         error = error || new AV.Error(-1, response.responseText);
@@ -10715,10 +12895,10 @@ const init = (AV) => {
       relation.targetClassName = value.className;
       return relation;
     }
-    if (value.__type === "File") {
+    if (value.__type === 'File') {
       var file = new AV.File(value.name);
-      file._metaData = value.metaData || {};
-      file._url = value.url;
+      file.attributes.metaData = value.metaData || {};
+      file.attributes.url = value.url;
       file.id = value.objectId;
       return file;
     }
@@ -10823,7 +13003,7 @@ module.exports = {
 };
 
 }).call(this,require('_process'))
-},{"./browserify-wrapper/ajax":12,"_process":7,"underscore":8}],34:[function(require,module,exports){
+},{"./ajax":19,"./cache":23,"_process":10,"debug":4,"md5":8,"underscore":17}],44:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -10831,6 +13011,7 @@ module.exports = {
 
 'use strict';
 
-module.exports = 'js1.0.0-rc8';
+module.exports = 'js1.0.0-rc9';
 
-},{}]},{},[10]);
+},{}]},{},[20])(20)
+});
