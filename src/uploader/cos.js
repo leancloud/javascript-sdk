@@ -6,6 +6,7 @@
 'use strict';
 
 const request = require('superagent');
+const debug = require('debug')('cos');
 const Promise = require('../promise');
 
 module.exports = function upload(uploadInfo, data, file, saveOptions = {}) {
