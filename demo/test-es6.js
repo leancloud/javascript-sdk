@@ -1,10 +1,7 @@
 // 初始化
 const appId = 'a5CDnmOX94uSth8foK9mjHfq-gzGzoHsz';
 const appKey = 'Ue3h6la9zH0IxkUJmyhLjk9h';
-AV.init({
-  appId: appId,
-  appKey: appKey
-});
+AV.init({ appId, appKey });
 
 // 基本存储
 const TestClass = AV.Object.extend('TestClass');
@@ -37,5 +34,4 @@ query.equalTo('name', 'hjiang');
 query.find().then((list) => {
   console.log(list);
 });
-
 

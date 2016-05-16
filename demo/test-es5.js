@@ -3,10 +3,7 @@
 // 初始化
 var appId = 'a5CDnmOX94uSth8foK9mjHfq-gzGzoHsz';
 var appKey = 'Ue3h6la9zH0IxkUJmyhLjk9h';
-AV.init({
-  appId: appId,
-  appKey: appKey
-});
+AV.init({ appId: appId, appKey: appKey });
 
 // 基本存储
 var TestClass = AV.Object.extend('TestClass');
