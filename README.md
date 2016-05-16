@@ -26,7 +26,7 @@ JavaScript SDK for [LeanCloud](http://leancloud.cn/).
 
 ```
 ├── README.md                          // 说明文档
-├── demo                               // demo 目录中有一些代码片段，主要用户开发与调试
+├── demo                               // demo 目录中有一些代码片段，主要用于开发与调试
 ├── changelog.md
 ├── dist                               // 编译之后生成的文件将会在此目录下
 │   ├── av-es6.js                      // 合并后的完整源码（ES6 版本）

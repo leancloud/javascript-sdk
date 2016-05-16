@@ -339,7 +339,7 @@ const init = (AV) => {
   };
 
   AV._ajax = (...args) => {
-    console.warn('Please do not use AV._ajax, it will be deprecated.');
+    console.warn('AV._ajax is deprecated, and will be removed in next release.');
     ajax(...args);
   };
 
