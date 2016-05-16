@@ -61,7 +61,10 @@ gulp.task('clean-dist', () => {
 });
 
 gulp.task('browserify', ['clean-dist'], () => {
-  const bundle = browserify({entries: './src/av-browser.js'});
+  const bundle = browserify({
+    entries: './src/av.js',
+    standalone: 'AV'
+  });
   return bundle.bundle()
     .pipe(source('av-es6.js'))
     .pipe(gulp.dest('dist'));

@@ -11,10 +11,11 @@
     "test": "gulp test"
   },
   "dependencies": {
-    "form-data": "^1.0.0-rc4",
+    "debug": "^2.2.0",
     "localstorage-memory": "^1.0.1",
     "md5": "^2.0.0",
     "qiniu": "6.1.3",
+    "superagent": "^2.0.0-alpha.2",
     "underscore": "^1.8.3"
   },
   "devDependencies": {
@@ -22,7 +23,6 @@
     "babel-preset-es2015": "^6.3.13",
     "browser-sync": "^2.2.1",
     "browserify": "^11.0.1",
-    "debug": "^2.1.1",
     "expect.js": "0.2.0",
     "gulp": "^3.8.10",
     "gulp-babel": "^6.1.1",
@@ -49,16 +49,12 @@
   },
   "browser": {
     "react-native": false,
-    "./src/browserify-wrapper/ajax.js": "./src/browserify-wrapper/ajax-browser.js",
     "./src/uploader/qiniu.js": "./src/uploader/qiniu-browser.js",
     "./src/browserify-wrapper/localStorage.js": "./src/browserify-wrapper/localstorage-browser.js",
     "./src/browserify-wrapper/parse-base64.js": "./src/browserify-wrapper/parse-base64-browser.js",
-    "./src/uploader/cos.js": "./src/uploader/cos-browser.js",
-    "./dist/node/browserify-wrapper/ajax.js": "./dist/node/browserify-wrapper/ajax-browser.js",
     "./dist/node/uploader/qiniu.js": "./dist/node/uploader/qiniu-browser.js",
     "./dist/node/browserify-wrapper/localStorage.js": "./dist/node/browserify-wrapper/localstorage-browser.js",
-    "./dist/node/browserify-wrapper/parse-base64.js": "./dist/node/browserify-wrapper/parse-base64-browser.js",
-    "./dist/node/uploader/cos.js": "./dist/node/uploader/cos-browser.js"
+    "./dist/node/browserify-wrapper/parse-base64.js": "./dist/node/browserify-wrapper/parse-base64-browser.js"
   },
   "eslintConfig": {
     "env": {
