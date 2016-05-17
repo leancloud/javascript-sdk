@@ -3,7 +3,7 @@
   "version": "1.0.0-rc9.1",
   "homepage": "https://github.com/leancloud/javascript-sdk",
   "authors": [
-    "killme2008 <xzhuang@leancloud.rocks>"
+    "LeanCloud <support@leancloud.rocks>"
   ],
   "description": "LeanCloud JavaScript SDK",
   "main": "dist/av.js",

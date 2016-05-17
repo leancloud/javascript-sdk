@@ -144,7 +144,7 @@ gulp.task('clean-demo', () => {
 
 // 编译 Demo 中的代码
 gulp.task('babel-demo', ['clean-demo'], () => {
-  return gulp.src('demo/**/*.js')
+  return gulp.src('demo/*.js')
     // .pipe(sourcemaps.init())
     .pipe(babel())
     .pipe(concat('test-es5.js'))

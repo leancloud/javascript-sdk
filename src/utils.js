@@ -3,13 +3,10 @@
  * Each engineer has a duty to keep the code elegant
 **/
 
-'use strict';
-
 const _ = require('underscore');
 const ajax = require('./ajax');
 const Cache = require('./cache');
 const md5 = require('md5');
-const debug = require('debug')('utils');
 
 // 计算 X-LC-Sign 的签名方法
 const sign = (key, isMasterKey) => {
@@ -30,7 +27,7 @@ const init = (AV) => {
   // 服务器请求的节点 host
   const API_HOST = {
     cn: 'https://api.leancloud.cn',
-    us: 'https://us-api.leancloud.cn'
+    us: 'https://us-api.leancloud.cn',
   };
 
   _.extend(AVConfig, {
@@ -45,7 +42,10 @@ const init = (AV) => {
     isNode: false,
 
     // 禁用 currentUser，通常用于多用户环境
-    disableCurrentUser: false
+    disableCurrentUser: false,
+
+    // Internal config can modifie the UserAgent
+    userAgent: null,
   });
 
   /**
@@ -338,7 +338,10 @@ const init = (AV) => {
     return new Date(Date.UTC(year, month, day, hour, minute, second, milli));
   };
 
-  AV._ajax = ajax;
+  AV._ajax = (...args) => {
+    console.warn('AV._ajax is deprecated, and will be removed in next release.');
+    ajax(...args);
+  };
 
   // A self-propagating extend function.
   AV._extend = function(protoProps, classProps) {
@@ -470,7 +473,7 @@ const init = (AV) => {
         }
       }
 
-      return AV._ajax(method, apiURL, dataObject, headers).then(null, function(response) {
+      return ajax(method, apiURL, dataObject, headers).then(null, function(response) {
         // Transform the error into an instance of AV.Error by trying to parse
         // the error string as JSON.
         var error;
