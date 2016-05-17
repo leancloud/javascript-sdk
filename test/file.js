@@ -35,7 +35,7 @@ describe('files', function() {
         // check image url has image data.
         request('get', url).end(function(err, res) {
           var data = res.text || res.body;
-          expect(data.indexOf('GIF89a\u0018\u0000\u0018')).not.to.be(-1);
+          expect(String(data).indexOf('GIF89a\u0018\u0000\u0018')).not.to.be(-1);
           done();
         });
       });
