@@ -374,13 +374,12 @@ module.exports = function (AV) {
       this._source = AV.Promise.as(data.blob, guessedType);
     } else if (typeof File !== "undefined" && data instanceof global.File) {
       this._source = AV.Promise.as(data, guessedType);
-    } else if (avConfig.isNode && global.Buffer.isBuffer(data)) {
+    } else if (typeof global.Buffer !== "undefined" && global.Buffer.isBuffer(data)) {
       // use global.Buffer to prevent browserify pack Buffer module
-      this.attributes.base64 = data.toString('base64');
-      this._source = AV.Promise.as(this.attributes.base64, guessedType);
       this.attributes.metaData.size = data.length;
+      this._source = AV.Promise.as(data, guessedType);
     } else if (_.isString(data)) {
-      throw "Creating a AV.File from a String is not yet supported.";
+      throw new Error("Creating a AV.File from a String is not yet supported.");
     }
   };
 
@@ -712,6 +711,9 @@ module.exports = function (AV) {
             // 判断是否数据已经是 base64
             if (_this2.attributes.base64) {
               data.base64 = _this2.attributes.base64;
+              return AV._request('files', _this2.attributes.name, null, 'POST', data);
+            } else if (typeof global.Buffer !== "undefined" && global.Buffer.isBuffer(file)) {
+              data.base64 = file.toString('base64');
               return AV._request('files', _this2.attributes.name, null, 'POST', data);
             } else {
               return readAsync(file).then(function (base64) {

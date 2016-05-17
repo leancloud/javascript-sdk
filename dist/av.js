@@ -5578,13 +5578,12 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
               this._source = AV.Promise.as(data.blob, guessedType);
             } else if (typeof File !== "undefined" && data instanceof global.File) {
               this._source = AV.Promise.as(data, guessedType);
-            } else if (avConfig.isNode && global.Buffer.isBuffer(data)) {
+            } else if (typeof global.Buffer !== "undefined" && global.Buffer.isBuffer(data)) {
               // use global.Buffer to prevent browserify pack Buffer module
-              this.attributes.base64 = data.toString('base64');
-              this._source = AV.Promise.as(this.attributes.base64, guessedType);
               this.attributes.metaData.size = data.length;
+              this._source = AV.Promise.as(data, guessedType);
             } else if (_.isString(data)) {
-              throw "Creating a AV.File from a String is not yet supported.";
+              throw new Error("Creating a AV.File from a String is not yet supported.");
             }
           };
 
@@ -5916,6 +5915,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                     // 判断是否数据已经是 base64
                     if (_this2.attributes.base64) {
                       data.base64 = _this2.attributes.base64;
+                      return AV._request('files', _this2.attributes.name, null, 'POST', data);
+                    } else if (typeof global.Buffer !== "undefined" && global.Buffer.isBuffer(file)) {
+                      data.base64 = file.toString('base64');
                       return AV._request('files', _this2.attributes.name, null, 'POST', data);
                     } else {
                       return readAsync(file).then(function (base64) {
@@ -10934,6 +10936,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       'use strict';
 
       var request = require('superagent');
+      var debug = require('debug')('cos');
       var Promise = require('../promise');
 
       module.exports = function upload(uploadInfo, data, file) {
@@ -10965,7 +10968,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         }
         return promise;
       };
-    }, { "../promise": 33, "superagent": 12 }], 41: [function (require, module, exports) {
+    }, { "../promise": 33, "debug": 4, "superagent": 12 }], 41: [function (require, module, exports) {
       /**
        * 每位工程师都有保持代码优雅的义务
        * Each engineer has a duty to keep the code elegant
@@ -12795,6 +12798,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
       'use strict';
 
-      module.exports = 'js1.0.0-rc9';
+      module.exports = 'js1.0.0-rc9.1';
     }, {}] }, {}, [20])(20);
 });
