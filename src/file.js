@@ -387,7 +387,7 @@ module.exports = function(AV) {
       this._source = AV.Promise.as(data.blob, guessedType);
     } else if (typeof File !== "undefined" && data instanceof global.File) {
       this._source = AV.Promise.as(data, guessedType);
-    } else if (typeof Buffer !== "undefined" && global.Buffer.isBuffer(data)) {
+    } else if (typeof global.Buffer !== "undefined" && global.Buffer.isBuffer(data)) {
       // use global.Buffer to prevent browserify pack Buffer module
       this.attributes.metaData.size = data.length;
       this._source = AV.Promise.as(data, guessedType);
@@ -719,7 +719,7 @@ module.exports = function(AV) {
             if (this.attributes.base64) {
               data.base64 = this.attributes.base64;
               return AV._request('files', this.attributes.name, null, 'POST', data);
-            } else if (typeof Buffer !== "undefined" && global.Buffer.isBuffer(file)) {
+            } else if (typeof global.Buffer !== "undefined" && global.Buffer.isBuffer(file)) {
               data.base64 = file.toString('base64');
               return AV._request('files', this.attributes.name, null, 'POST', data);
             } else {
