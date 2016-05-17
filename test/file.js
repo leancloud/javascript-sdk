@@ -53,22 +53,15 @@ describe('files', function() {
     });
   });
 
-  if(AV._isNode){
+  if(typeof Buffer !== 'undefined'){
     describe('Saving buffer in node.js', function() {
-      it('should be saved', function(done) {
+      it('should be saved', function() {
           var file = new AV.File('myfile.txt', new Buffer('hello world'));
-          file.save().then(function() {
+          return file.save().then(function() {
             expect(file.size()).to.be(11);
             expect(file.ownerId()).to.be.ok();
             expect(file.id).to.be.ok();
-            expect(file.thumbnailURL(200, 100)).to.be(file.url() + '?imageView/2/w/200/h/100/q/100/format/png');
-            file.destroy().then(function() {
-              done();
-            }, function(error) {
-              done(error);
-            });
-          }, function(error) {
-            done(error);
+            return file.destroy();
           });
       });
     });
