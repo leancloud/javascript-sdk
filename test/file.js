@@ -78,56 +78,48 @@ describe('files', function() {
 
 
   describe('Saving array', function() {
-    it('should be saved', function(done) {
-      setTimeout(function() {
-        var bytes = [ 0xBE, 0xEF, 0xCA, 0xFE ];
+    it('should be saved', function() {
+        var bytes = [108,101,97,110,99,108,111,117,100];
         var file = new AV.File('myfile.txt', bytes);
-        file.save().then(function() {
-          expect(file.size()).to.be(4);
+        return file.save().then(function() {
+          expect(file.size()).to.be(9);
           expect(file.ownerId()).to.be.ok();
           expect(file.id).to.be.ok();
-          file.destroy().then(function() {
-            done();
-          }, function(error) {
-            done(error);
+          return new AV.Promise(function(resolve, reject) {
+            request(file.url()).end(function(err, res) {
+              if (err) {
+                return reject(err);
+              }
+              resolve(res);
+            });
           });
-        }, function(error) {
-          done(error);
+        }).then(function(res) {
+          expect(res.text).to.be('leancloud');
+          return file.destroy();
         });
-      }, 1000);
     });
   });
 
   describe('Saving file with object', function() {
-    it('should be saved', function(done) {
-      var bytes = [ 0xBE, 0xEF, 0xCA, 0xFE ];
+    it('should be saved', function() {
+      var bytes = [108,101,97,110,99,108,111,117,100];
       var file = new AV.File('myfile.txt', bytes);
-      file.save().then(function() {
+      return file.save().then(function() {
         var jobApplication = new AV.Object('JobApplication');
         jobApplication.set('applicantName', 'Joe Smith');
         jobApplication.set('applicantResumeFile', file);
-        jobApplication.save().then(function(result) {
+        return jobApplication.save().then(function(result) {
           expect(result.id).to.be.ok();
           var query = new AV.Query('JobApplication');
-          query.get(result.id).then(function(ja) {
+          return query.get(result.id).then(function(ja) {
             expect(ja.id).to.be.ok();
             var arf = ja.get('applicantResumeFile');
             expect(arf).to.be.ok();
-            expect(arf.size()).to.be(4);
+            expect(arf.size()).to.be(9);
             expect(arf.ownerId()).to.be.ok();
-            file.destroy().then(function() {
-              done();
-            }, function(error) {
-              done(error);
-            });
-          }).catch(function(error) {
-            done(error);
+            return file.destroy();
           });
-        }, function(obj, error) {
-          done(error);
         });
-      }, function(error) {
-        done(error);
       });
     });
   });
