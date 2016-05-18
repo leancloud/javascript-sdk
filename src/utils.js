@@ -4,20 +4,8 @@
 **/
 
 const _ = require('underscore');
-const ajax = require('./ajax');
 const Cache = require('./cache');
-const md5 = require('md5');
-
-// 计算 X-LC-Sign 的签名方法
-const sign = (key, isMasterKey) => {
-  const now = new Date().getTime();
-  const signature = md5(now + key);
-  if (isMasterKey) {
-    return signature + ',' + now + ',master';
-  } else {
-    return signature + ',' + now;
-  }
-};
+const ajax = require('./request').ajax;
 
 const init = (AV) => {
 
@@ -350,168 +338,6 @@ const init = (AV) => {
     return child;
   };
 
-  // When the request returns http response status 410, need redirect to new location
-  const redirectRequest = (url) => {
-
-  };
-
-  const checkRouter = (router) => {
-    const routerList = [
-      'batch',
-      'classes',
-      'files',
-      'date',
-      'functions',
-      'call',
-      'login',
-      'push',
-      'search/select',
-      'requestPasswordReset',
-      'requestEmailVerify',
-      'requestPasswordResetBySmsCode',
-      'resetPasswordBySmsCode',
-      'requestMobilePhoneVerify',
-      'requestLoginSmsCode',
-      'verifyMobilePhone',
-      'requestSmsCode',
-      'verifySmsCode',
-      'users',
-      'usersByMobilePhone',
-      'cloudQuery',
-      'qiniu',
-      'fileTokens',
-      'statuses',
-      'bigquery',
-      'search/select',
-      'subscribe/statuses/count',
-      'subscribe/statuses',
-      'installations',
-    ];
-
-    if (routerList.indexOf(router) === -1 &&
-      !(/users\/[^\/]+\/updatePassword/.test(router)) &&
-      !(/users\/[^\/]+\/friendship\/[^\/]+/.test(router))
-    ) {
-      throw new Error(`Bad router: ${router}.`);
-    }
-  };
-
-  /**
-   * route is classes, users, login, etc.
-   * objectId is null if there is no associated objectId.
-   * method is the http method for the REST API.
-   * dataObject is the payload as an object, or null if there is none.
-   * @ignore
-   */
-  AV._request = (route, className, objectId, method, dataObject, sessionToken) => {
-    if (!AV.applicationId) {
-      throw new Error('You must specify your applicationId using AV.init()');
-    }
-
-    if (!AV.applicationKey && !AV.masterKey) {
-      throw new Error('You must specify a AppKey using AV.init()');
-    }
-
-    checkRouter(route);
-
-    dataObject = dataObject || {};
-
-    // 兼容 AV.serverURL 旧方式设置 API Host，后续去掉
-    let apiURL = AV.serverURL || AVConfig.APIServerURL;
-    if (AV.serverURL) {
-      AVConfig.APIServerURL = AV.serverURL;
-      console.warn('Please use AV._config.APIServerURL to replace AV.serverURL .');
-    }
-    if (apiURL.charAt(apiURL.length - 1) !== "/") {
-      apiURL += "/";
-    }
-    apiURL += "1.1/" + route;
-    if (className) {
-      apiURL += "/" + className;
-    }
-    if (objectId) {
-      apiURL += "/" + objectId;
-    }
-    if ((route ==='users' || route === 'classes') && dataObject) {
-      apiURL += '?';
-      if (dataObject._fetchWhenSave) {
-        delete dataObject._fetchWhenSave;
-        apiURL += '&new=true';
-      }
-      if (dataObject._where) {
-        apiURL += ('&where=' + encodeURIComponent(JSON.stringify(dataObject._where)));
-        delete dataObject._where;
-      }
-    }
-
-    var headers = {
-      'X-LC-Id': AV.applicationId,
-      'Content-Type': 'application/json;charset=UTF-8'
-    };
-    if (AV.masterKey && AV._useMasterKey) {
-      headers['X-LC-Sign'] = sign(AV.masterKey, true);
-    } else {
-      headers['X-LC-Sign'] = sign(AV.applicationKey);
-    }
-    if (!AV._isNullOrUndefined(AV.applicationProduction)) {
-      headers['X-LC-Prod'] = AV.applicationProduction;
-    }
-    if (!AVConfig.isNode) {
-      headers['X-LC-UA'] = `AV/${AV.version}`;
-    } else {
-      headers['User-Agent'] = AV._config.userAgent || `AV/${AV.version}; Node.js/${process.version}`;
-    }
-
-    return AV.Promise.as().then(function() {
-      // Pass the session token
-      if (sessionToken) {
-        headers['X-LC-Session'] = sessionToken;
-      } else if (!AV._config.disableCurrentUser) {
-        return AV.User.currentAsync().then(function(currentUser) {
-          if (currentUser && currentUser._sessionToken) {
-            headers['X-LC-Session'] = currentUser._sessionToken;
-          }
-        });
-      }
-    }).then(function() {
-      if (method.toLowerCase() === 'get') {
-        if (apiURL.indexOf('?') === -1) {
-          apiURL += '?';
-        }
-        for (let k in dataObject) {
-          if (typeof dataObject[k] === 'object') {
-            dataObject[k] = JSON.stringify(dataObject[k]);
-          }
-          apiURL += '&' + k + '=' + encodeURIComponent(dataObject[k]);
-        }
-      }
-
-      return ajax(method, apiURL, dataObject, headers).then(null, function(response) {
-        // Transform the error into an instance of AV.Error by trying to parse
-        // the error string as JSON.
-        var error;
-        if (response) {
-          if (response.response) {
-            error = new AV.Error(response.response.code, response.response.error);
-          } else if (response.responseText) {
-            try {
-              var errorJSON = JSON.parse(response.responseText);
-              if (errorJSON) {
-                error = new AV.Error(errorJSON.code, errorJSON.error);
-              }
-            } catch (e) {
-              // If we fail to parse the error text, that's okay.
-            }
-          }
-        }
-        error = error || new AV.Error(-1, response.responseText);
-        // By explicitly returning a rejected Promise, this will work with
-        // either jQuery or Promises/A semantics.
-        return AV.Promise.error(error);
-      });
-    });
-  };
-
   // Helper function to get a value from a Backbone object as a property
   // or as a function.
   AV._getValue = function(object, prop) {
@@ -757,10 +583,8 @@ const init = (AV) => {
   AV._isNullOrUndefined = function(x) {
     return _.isNull(x) || _.isUndefined(x);
   };
-
 };
 
 module.exports = {
-
-  init: init
+  init,
 };
