@@ -350,6 +350,52 @@ const init = (AV) => {
     return child;
   };
 
+  // When the request returns http response status 410, need redirect to new location
+  const redirectRequest = (url) => {
+
+  };
+
+  const checkRouter = (router) => {
+    const routerList = [
+      'batch',
+      'classes',
+      'files',
+      'date',
+      'functions',
+      'call',
+      'login',
+      'push',
+      'search/select',
+      'requestPasswordReset',
+      'requestEmailVerify',
+      'requestPasswordResetBySmsCode',
+      'resetPasswordBySmsCode',
+      'requestMobilePhoneVerify',
+      'requestLoginSmsCode',
+      'verifyMobilePhone',
+      'requestSmsCode',
+      'verifySmsCode',
+      'users',
+      'usersByMobilePhone',
+      'cloudQuery',
+      'qiniu',
+      'fileTokens',
+      'statuses',
+      'bigquery',
+      'search/select',
+      'subscribe/statuses/count',
+      'subscribe/statuses',
+      'installations',
+    ];
+
+    if (routerList.indexOf(router) === -1 &&
+      !(/users\/[^\/]+\/updatePassword/.test(router)) &&
+      !(/users\/[^\/]+\/friendship\/[^\/]+/.test(router))
+    ) {
+      throw new Error(`Bad router: ${router}.`);
+    }
+  };
+
   /**
    * route is classes, users, login, etc.
    * objectId is null if there is no associated objectId.
@@ -357,49 +403,16 @@ const init = (AV) => {
    * dataObject is the payload as an object, or null if there is none.
    * @ignore
    */
-  AV._request = function(route, className, objectId, method, dataObject, sessionToken) {
+  AV._request = (route, className, objectId, method, dataObject, sessionToken) => {
     if (!AV.applicationId) {
-      throw "You must specify your applicationId using AV.initialize";
+      throw new Error('You must specify your applicationId using AV.init()');
     }
 
     if (!AV.applicationKey && !AV.masterKey) {
-      throw "You must specify a key using AV.initialize";
+      throw new Error('You must specify a AppKey using AV.init()');
     }
 
-
-    if (route !== "batch" &&
-        route !== "classes" &&
-        route !== "files" &&
-        route !== "date" &&
-        route !== "functions" &&
-        route !== "call" &&
-        route !== "login" &&
-        route !== "push" &&
-        route !== "search/select" &&
-        route !== "requestPasswordReset" &&
-        route !== "requestEmailVerify" &&
-        route !== "requestPasswordResetBySmsCode" &&
-        route !== "resetPasswordBySmsCode" &&
-        route !== "requestMobilePhoneVerify" &&
-        route !== "requestLoginSmsCode" &&
-        route !== "verifyMobilePhone" &&
-        route !== "requestSmsCode" &&
-        route !== "verifySmsCode" &&
-        route !== "users" &&
-        route !== "usersByMobilePhone" &&
-        route !== "cloudQuery" &&
-        route !== "qiniu" &&
-        route !== "fileTokens" &&
-        route !== "statuses" &&
-        route !== "bigquery" &&
-        route !== 'search/select' &&
-        route !== 'subscribe/statuses/count' &&
-        route !== 'subscribe/statuses' &&
-        route !== 'installations' &&
-        !(/users\/[^\/]+\/updatePassword/.test(route)) &&
-        !(/users\/[^\/]+\/friendship\/[^\/]+/.test(route))) {
-      throw "Bad route: '" + route + "'.";
-    }
+    checkRouter(route);
 
     dataObject = dataObject || {};
 

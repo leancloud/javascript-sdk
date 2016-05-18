@@ -3,18 +3,14 @@
  * Each engineer has a duty to keep the code elegant
 **/
 
-'use strict';
-
 const request = require('superagent');
 const debug = require('debug')('ajax');
-
 const Promise = require('./promise');
 
 module.exports = function _ajax(method, resourceUrl, data, headers = {}, onprogress) {
   debug(method, resourceUrl, data, headers);
 
-  var promise = new Promise();
-
+  const promise = new Promise();
   const req = request(method, resourceUrl)
     .set(headers)
     .send(data)
@@ -30,11 +26,10 @@ module.exports = function _ajax(method, resourceUrl, data, headers = {}, onprogr
         }
         return promise.reject(err);
       }
-      promise.resolve(res.body, res.status, res);
+      return promise.resolve(res.body, res.status, res);
     });
   if (onprogress) {
     req.on('progress', onprogress);
   }
-
   return promise;
 };
