@@ -125,10 +125,6 @@ const init = (AV) => {
     }
     AVConfig.APIServerURL = API_HOST[region];
     if (region === 'cn') {
-      // TODO: remove appId match hack
-      if (AV.applicationId.indexOf('-9Nh9j0Va') !== -1) {
-        AVConfig.APIServerURL = 'https://e1-api.leancloud.cn';
-      }
       Cache.get('APIServerURL').then(cachedServerURL => {
         if (cachedServerURL) {
           return cachedServerURL;
@@ -136,10 +132,11 @@ const init = (AV) => {
           return ajax('get', `https://app-router.leancloud.cn/1/route?appId=${AV.applicationId}`)
             .then(servers => {
               if (servers.api_server) {
-                Cache.set(
-                  'APIServerURL',
-                  servers.api_server,
-                  (typeof servers.ttl ==='number' ? servers.ttl : 3600) * 1000);
+                let ttl = 3600;
+                if (typeof servers.ttl === 'number') {
+                  ttl = servers.ttl;
+                }
+                Cache.set('APIServerURL', servers.api_server, ttl * 1000);
                 return servers.api_server;
               }
             });
@@ -149,7 +146,7 @@ const init = (AV) => {
         if (AVConfig.APIServerURL === API_HOST[region]) {
           AVConfig.APIServerURL = `https://${serverURL}`;
         }
-      })
+      });
     }
   };
 
@@ -326,6 +323,7 @@ const init = (AV) => {
     return new Date(Date.UTC(year, month, day, hour, minute, second, milli));
   };
 
+  // TODO: Next version remove
   AV._ajax = (...args) => {
     console.warn('AV._ajax is deprecated, and will be removed in next release.');
     ajax(...args);

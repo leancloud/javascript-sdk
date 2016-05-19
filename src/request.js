@@ -87,8 +87,7 @@ const ajax = (method, resourceUrl, data, headers = {}, onprogress) => {
 };
 
 const init = (AV) => {
-
-  let AVConfig = AV._config;
+  const AVConfig = AV._config;
 
   /**
    * route is classes, users, login, etc.
@@ -110,21 +109,25 @@ const init = (AV) => {
 
     dataObject = dataObject || {};
 
-    // 兼容 AV.serverURL 旧方式设置 API Host，后续去掉
-    let apiURL = AV.serverURL || AVConfig.APIServerURL;
+    // TODO: 兼容 AV.serverURL 旧方式设置 API Host，后续去掉
     if (AV.serverURL) {
       AVConfig.APIServerURL = AV.serverURL;
-      console.warn('Please use AVConfig.APIServerURL to replace AV.serverURL .');
+      console.warn('Please use AV._config.APIServerURL to replace AV.serverURL, and it is an internal interface.');
     }
+
+    let apiURL = AV.serverURL || AVConfig.APIServerURL;
+
+    apiURL = 'https://e1-api.leancloud.cn';
+
     if (apiURL.charAt(apiURL.length - 1) !== '/') {
       apiURL += '/';
     }
-    apiURL += '1.1/' + route;
+    apiURL += `1.1/${route}`;
     if (className) {
-      apiURL += '/' + className;
+      apiURL += `/${className}`;
     }
     if (objectId) {
-      apiURL += '/' + objectId;
+      apiURL += `/${objectId}`;
     }
     if ((route === 'users' || route === 'classes') && dataObject) {
       apiURL += '?';
@@ -133,7 +136,7 @@ const init = (AV) => {
         apiURL += '&new=true';
       }
       if (dataObject._where) {
-        apiURL += ('&where=' + encodeURIComponent(JSON.stringify(dataObject._where)));
+        apiURL += `&where=${encodeURIComponent(JSON.stringify(dataObject._where))}`;
         delete dataObject._where;
       }
     }
@@ -172,11 +175,11 @@ const init = (AV) => {
         if (apiURL.indexOf('?') === -1) {
           apiURL += '?';
         }
-        for (let k in dataObject) {
+        for (const k in dataObject) {
           if (typeof dataObject[k] === 'object') {
             dataObject[k] = JSON.stringify(dataObject[k]);
           }
-          apiURL += '&' + k + '=' + encodeURIComponent(dataObject[k]);
+          apiURL += `&${k}=${encodeURIComponent(dataObject[k])}`;
         }
       }
 
