@@ -136,9 +136,6 @@ const createApiUrl = (AV, route, className, objectId, method, dataObject) => {
 
   let apiURL = AV._config.APIServerURL;
 
-  // Test Data
-  apiURL = 'https://e1-api.leancloud.cn';
-
   if (apiURL.charAt(apiURL.length - 1) !== '/') {
     apiURL += '/';
   }
@@ -192,7 +189,8 @@ const handleError = (AV, res) => {
     so API server response http status 410 and the param "location" for this case.
   */
   if (res.statusCode === 410) {
-
+    cacheServerURL(res.response.api_server, res.response.ttl);
+    promise.resolve(res.response.location);
   } else {
     let errorJSON = { code: -1, error: res.responseText };
     if (res.response && res.response.code) {
@@ -207,7 +205,7 @@ const handleError = (AV, res) => {
 
     // Transform the error into an instance of AV.Error by trying to parse
     // the error string as JSON.
-    const error = AV.Error(errorJSON.code, errorJSON.error);
+    const error = new AV.Error(errorJSON.code, errorJSON.error);
     promise.reject(error);
   }
   return promise;
@@ -271,8 +269,10 @@ const init = (AV) => {
 
     return setHeaders(AV, sessionToken).then(
       headers => ajax(method, apiURL, dataObject, headers)
-        .then(null, (res) =>
-          handleError(AV, res)
+        .then(
+          null,
+          res => handleError(AV, res)
+            .then(location => ajax(method, location, dataObject, headers))
         )
     );
   };
