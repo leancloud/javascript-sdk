@@ -107,7 +107,7 @@ const init = (AV) => {
    * @param {String} applicationId Your AV Application ID.
    * @param {String} applicationKey Your AV Application Key
    */
-   const initialize = (appId, appKey, masterKey) => {
+  const initialize = (appId, appKey, masterKey) => {
     if (AV.applicationId && appId !== AV.applicationId && appKey !== AV.applicationKey && masterKey !== AV.masterKey) {
       console.warn('LeanCloud SDK is already initialized, please do not reinitialize it.');
     }

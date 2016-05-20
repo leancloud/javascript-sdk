@@ -86,6 +86,46 @@ const ajax = (method, resourceUrl, data, headers = {}, onprogress) => {
   return promise;
 };
 
+const setHeaders = (AV, sessionToken) => {
+
+  const headers = {
+    'X-LC-Id': AV.applicationId,
+    'Content-Type': 'application/json;charset=UTF-8',
+  };
+  if (AV.masterKey && AV._useMasterKey) {
+    headers['X-LC-Sign'] = sign(AV.masterKey, true);
+  } else {
+    headers['X-LC-Sign'] = sign(AV.applicationKey);
+  }
+  if (!AV._isNullOrUndefined(AV.applicationProduction)) {
+    headers['X-LC-Prod'] = AV.applicationProduction;
+  }
+  if (!AV._config.isNode) {
+    headers['X-LC-UA'] = `AV/${AV.version}`;
+  } else {
+    // LeanEngine need use AV._config.userAgent
+    headers['User-Agent'] = AV._config.userAgent || `AV/${AV.version}; Node.js/${process.version}`;
+  }
+
+  const promise = new Promise();
+
+  // Pass the session token
+  if (sessionToken) {
+    headers['X-LC-Session'] = sessionToken;
+    promise.resolve(headers);
+  } else if (!AV._config.disableCurrentUser) {
+    AV.User.currentAsync().then((currentUser) => {
+      if (currentUser && currentUser._sessionToken) {
+        headers['X-LC-Session'] = currentUser._sessionToken;
+      }
+      promise.resolve(headers);
+    });
+  } else {
+    promise.resolve(headers);
+  }
+
+  return promise;
+};
 
 const createApiUrl = (AV, route, className, objectId, method, dataObject) => {
   // TODO: 兼容 AV.serverURL 旧方式设置 API Host，后续去掉
@@ -146,8 +186,6 @@ const createApiUrl = (AV, route, className, objectId, method, dataObject) => {
 // };
 
 const init = (AV) => {
-  const AVConfig = AV._config;
-
   /**
    * route is classes, users, login, etc.
    * objectId is null if there is no associated objectId.
@@ -155,7 +193,7 @@ const init = (AV) => {
    * dataObject is the payload as an object, or null if there is none.
    * @ignore
    */
-  AV._request = (route, className, objectId, method, dataObject, sessionToken) => {
+  AV._request = (route, className, objectId, method, dataObject = {}, sessionToken) => {
     if (!AV.applicationId) {
       throw new Error('You must specify your applicationId using AV.init()');
     }
@@ -165,65 +203,35 @@ const init = (AV) => {
     }
 
     checkRouter(route);
+    const apiURL = createApiUrl(AV, route, className, objectId, method, dataObject);
 
-    dataObject = dataObject || {};
-
-    const headers = {
-      'X-LC-Id': AV.applicationId,
-      'Content-Type': 'application/json;charset=UTF-8',
-    };
-    if (AV.masterKey && AV._useMasterKey) {
-      headers['X-LC-Sign'] = sign(AV.masterKey, true);
-    } else {
-      headers['X-LC-Sign'] = sign(AV.applicationKey);
-    }
-    if (!AV._isNullOrUndefined(AV.applicationProduction)) {
-      headers['X-LC-Prod'] = AV.applicationProduction;
-    }
-    if (!AVConfig.isNode) {
-      headers['X-LC-UA'] = `AV/${AV.version}`;
-    } else {
-      headers['User-Agent'] = AVConfig.userAgent || `AV/${AV.version}; Node.js/${process.version}`;
-    }
-
-    return AV.Promise.as().then(() => {
-      // Pass the session token
-      if (sessionToken) {
-        headers['X-LC-Session'] = sessionToken;
-      } else if (!AVConfig.disableCurrentUser) {
-        return AV.User.currentAsync().then((currentUser) => {
-          if (currentUser && currentUser._sessionToken) {
-            headers['X-LC-Session'] = currentUser._sessionToken;
-          }
-        });
-      }
-    }).then(() => {
-      const apiURL = createApiUrl(AV, route, className, objectId, method, dataObject);
-
-      return ajax(method, apiURL, dataObject, headers).then(null, (response) => {
-        // Transform the error into an instance of AV.Error by trying to parse
-        // the error string as JSON.
-        let error;
-        if (response) {
-          if (response.response) {
-            error = new AV.Error(response.response.code, response.response.error);
-          } else if (response.responseText) {
-            try {
-              const errorJSON = JSON.parse(response.responseText);
-              if (errorJSON) {
-                error = new AV.Error(errorJSON.code, errorJSON.error);
+    return setHeaders(AV, sessionToken).then(
+      headers => ajax(method, apiURL, dataObject, headers)
+        .then(null, (response) => {
+          // Transform the error into an instance of AV.Error by trying to parse
+          // the error string as JSON.
+          let error;
+          if (response) {
+            if (response.response) {
+              error = new AV.Error(response.response.code, response.response.error);
+            } else if (response.responseText) {
+              try {
+                const errorJSON = JSON.parse(response.responseText);
+                if (errorJSON) {
+                  error = new AV.Error(errorJSON.code, errorJSON.error);
+                }
+              } catch (e) {
+                // If we fail to parse the error text, that's okay.
               }
-            } catch (e) {
-              // If we fail to parse the error text, that's okay.
             }
           }
-        }
-        error = error || new AV.Error(-1, response.responseText);
-        // By explicitly returning a rejected Promise, this will work with
-        // either jQuery or Promises/A semantics.
-        return AV.Promise.error(error);
-      });
-    });
+          error = error || new AV.Error(-1, response.responseText);
+
+          // By explicitly returning a rejected Promise, this will work with
+          // either jQuery or Promises/A semantics.
+          return Promise.error(error);
+        })
+    );
   };
 };
 
