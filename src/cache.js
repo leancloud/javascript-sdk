@@ -1,11 +1,15 @@
-'use strict';
+/**
+ * 每位工程师都有保持代码优雅的义务
+ * Each engineer has a duty to keep the code elegant
+**/
+
 const storage = require('./localstorage');
 const AV = require('./av');
 
 const remove = exports.remove = storage.removeItemAsync.bind(storage);
 
-exports.get = (key) => {
-  return storage.getItemAsync(`${AV.applicationId}/${key}`)
+exports.get = (key) =>
+  storage.getItemAsync(`${AV.applicationId}/${key}`)
     .then(cache => {
       try {
         cache = JSON.parse(cache);
@@ -21,12 +25,9 @@ exports.get = (key) => {
       }
       return null;
     });
-};
 
 exports.set = (key, value, ttl) => {
-  const cache = {
-    value
-  };
+  const cache = { value };
   if (typeof ttl === 'number') {
     cache.expiredAt = Date.now() + ttl;
   }

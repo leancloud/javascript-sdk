@@ -7,6 +7,7 @@ const request = require('superagent');
 const debug = require('debug')('request');
 const md5 = require('md5');
 const Promise = require('./promise');
+const Cache = require('./cache');
 
 // 计算 X-LC-Sign 的签名方法
 const sign = (key, isMasterKey) => {
@@ -87,7 +88,6 @@ const ajax = (method, resourceUrl, data, headers = {}, onprogress) => {
 };
 
 const setHeaders = (AV, sessionToken) => {
-
   const headers = {
     'X-LC-Id': AV.applicationId,
     'Content-Type': 'application/json;charset=UTF-8',
@@ -137,7 +137,7 @@ const createApiUrl = (AV, route, className, objectId, method, dataObject) => {
   let apiURL = AV._config.APIServerURL;
 
   // Test Data
-  // apiURL = 'https://e1-api.leancloud.cn';
+  apiURL = 'https://e1-api.leancloud.cn';
 
   if (apiURL.charAt(apiURL.length - 1) !== '/') {
     apiURL += '/';
@@ -176,14 +176,78 @@ const createApiUrl = (AV, route, className, objectId, method, dataObject) => {
   return apiURL;
 };
 
-/**
-  When API request need to redirect to the right location,
-  can't use browser redirect by http status 307, as the reason of CORS,
-  so API server response http status 410 and the param "location" for this case.
-*/
-// const retryRequest = () => {
+const cacheServerURL = (serverURL, ttl) => {
+  if (typeof ttl !== 'number') {
+    ttl = 3600;
+  }
+  Cache.set('APIServerURL', serverURL, ttl * 1000);
+};
 
-// };
+// handle AV._request Error
+const handleError = (AV, res) => {
+  const promise = new Promise();
+  /**
+    When API request need to redirect to the right location,
+    can't use browser redirect by http status 307, as the reason of CORS,
+    so API server response http status 410 and the param "location" for this case.
+  */
+  if (res.statusCode === 410) {
+
+  } else {
+    let errorJSON = { code: -1, error: res.responseText };
+    if (res.response && res.response.code) {
+      errorJSON = res.response;
+    } else if (res.responseText) {
+      try {
+        errorJSON = JSON.parse(res.responseText);
+      } catch (e) {
+        // If we fail to parse the error text, that's okay.
+      }
+    }
+
+    // Transform the error into an instance of AV.Error by trying to parse
+    // the error string as JSON.
+    const error = AV.Error(errorJSON.code, errorJSON.error);
+    promise.reject(error);
+  }
+  return promise;
+};
+
+const setRegionServer = (AV, region = 'cn') => {
+  // 服务器请求的节点 host
+  const API_HOST = {
+    cn: 'https://api.leancloud.cn',
+    us: 'https://us-api.leancloud.cn',
+  };
+
+  const AVConfig = AV._config;
+  AVConfig.region = region;
+  // 如果用户在 init 之前设置了 APIServerURL，则跳过请求 router
+  if (AVConfig.APIServerURL) {
+    return;
+  }
+  AVConfig.APIServerURL = API_HOST[region];
+  if (region === 'cn') {
+    Cache.get('APIServerURL').then(cachedServerURL => {
+      if (cachedServerURL) {
+        return cachedServerURL;
+      } else {
+        return ajax('get', `https://app-router.leancloud.cn/1/route?appId=${AV.applicationId}`)
+          .then(servers => {
+            if (servers.api_server) {
+              cacheServerURL(servers.api_server, servers.ttl);
+              return servers.api_server;
+            }
+          });
+      }
+    }).then(serverURL => {
+      // 如果用户在 init 之后设置了 APIServerURL，保持用户设置
+      if (AVConfig.APIServerURL === API_HOST[region]) {
+        AVConfig.APIServerURL = `https://${serverURL}`;
+      }
+    });
+  }
+};
 
 const init = (AV) => {
   /**
@@ -207,30 +271,9 @@ const init = (AV) => {
 
     return setHeaders(AV, sessionToken).then(
       headers => ajax(method, apiURL, dataObject, headers)
-        .then(null, (response) => {
-          // Transform the error into an instance of AV.Error by trying to parse
-          // the error string as JSON.
-          let error;
-          if (response) {
-            if (response.response) {
-              error = new AV.Error(response.response.code, response.response.error);
-            } else if (response.responseText) {
-              try {
-                const errorJSON = JSON.parse(response.responseText);
-                if (errorJSON) {
-                  error = new AV.Error(errorJSON.code, errorJSON.error);
-                }
-              } catch (e) {
-                // If we fail to parse the error text, that's okay.
-              }
-            }
-          }
-          error = error || new AV.Error(-1, response.responseText);
-
-          // By explicitly returning a rejected Promise, this will work with
-          // either jQuery or Promises/A semantics.
-          return Promise.error(error);
-        })
+        .then(null, (res) =>
+          handleError(AV, res)
+        )
     );
   };
 };
@@ -238,4 +281,5 @@ const init = (AV) => {
 module.exports = {
   init,
   ajax,
+  setRegionServer,
 };
