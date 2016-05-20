@@ -86,6 +86,15 @@ const ajax = (method, resourceUrl, data, headers = {}, onprogress) => {
   return promise;
 };
 
+
+/**
+  When API request need to redirect to the right location,
+  can't use browser redirect by http status 307, as the reason of CORS,
+  so API server response http status 410 and the param "location" for this case.
+*/
+const retryRequest = () => {
+};
+
 const init = (AV) => {
   const AVConfig = AV._config;
 
@@ -117,7 +126,7 @@ const init = (AV) => {
 
     let apiURL = AV.serverURL || AVConfig.APIServerURL;
 
-    apiURL = 'https://e1-api.leancloud.cn';
+    // apiURL = 'https://e1-api.leancloud.cn';
 
     if (apiURL.charAt(apiURL.length - 1) !== '/') {
       apiURL += '/';
