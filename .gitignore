@@ -7,3 +7,4 @@ coverage
 *.swp
 dist/js-sdk-api-docs
 npm-debug.log
+demo/test-es5.js
