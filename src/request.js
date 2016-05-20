@@ -87,13 +87,63 @@ const ajax = (method, resourceUrl, data, headers = {}, onprogress) => {
 };
 
 
+const createApiUrl = (AV, route, className, objectId, method, dataObject) => {
+  // TODO: 兼容 AV.serverURL 旧方式设置 API Host，后续去掉
+  if (AV.serverURL) {
+    AV._config.APIServerURL = AV.serverURL;
+    console.warn('Please use AV._config.APIServerURL to replace AV.serverURL, and it is an internal interface.');
+  }
+
+  let apiURL = AV._config.APIServerURL;
+
+  // Test Data
+  // apiURL = 'https://e1-api.leancloud.cn';
+
+  if (apiURL.charAt(apiURL.length - 1) !== '/') {
+    apiURL += '/';
+  }
+  apiURL += `1.1/${route}`;
+  if (className) {
+    apiURL += `/${className}`;
+  }
+  if (objectId) {
+    apiURL += `/${objectId}`;
+  }
+  if ((route === 'users' || route === 'classes') && dataObject) {
+    apiURL += '?';
+    if (dataObject._fetchWhenSave) {
+      delete dataObject._fetchWhenSave;
+      apiURL += '&new=true';
+    }
+    if (dataObject._where) {
+      apiURL += `&where=${encodeURIComponent(JSON.stringify(dataObject._where))}`;
+      delete dataObject._where;
+    }
+  }
+
+  if (method.toLowerCase() === 'get') {
+    if (apiURL.indexOf('?') === -1) {
+      apiURL += '?';
+    }
+    for (const k in dataObject) {
+      if (typeof dataObject[k] === 'object') {
+        dataObject[k] = JSON.stringify(dataObject[k]);
+      }
+      apiURL += `&${k}=${encodeURIComponent(dataObject[k])}`;
+    }
+  }
+
+  return apiURL;
+};
+
 /**
   When API request need to redirect to the right location,
   can't use browser redirect by http status 307, as the reason of CORS,
   so API server response http status 410 and the param "location" for this case.
 */
-const retryRequest = () => {
-};
+// const retryRequest = () => {
+
+// };
 
 const init = (AV) => {
   const AVConfig = AV._config;
@@ -117,38 +167,6 @@ const init = (AV) => {
     checkRouter(route);
 
     dataObject = dataObject || {};
-
-    // TODO: 兼容 AV.serverURL 旧方式设置 API Host，后续去掉
-    if (AV.serverURL) {
-      AVConfig.APIServerURL = AV.serverURL;
-      console.warn('Please use AV._config.APIServerURL to replace AV.serverURL, and it is an internal interface.');
-    }
-
-    let apiURL = AV.serverURL || AVConfig.APIServerURL;
-
-    // apiURL = 'https://e1-api.leancloud.cn';
-
-    if (apiURL.charAt(apiURL.length - 1) !== '/') {
-      apiURL += '/';
-    }
-    apiURL += `1.1/${route}`;
-    if (className) {
-      apiURL += `/${className}`;
-    }
-    if (objectId) {
-      apiURL += `/${objectId}`;
-    }
-    if ((route === 'users' || route === 'classes') && dataObject) {
-      apiURL += '?';
-      if (dataObject._fetchWhenSave) {
-        delete dataObject._fetchWhenSave;
-        apiURL += '&new=true';
-      }
-      if (dataObject._where) {
-        apiURL += `&where=${encodeURIComponent(JSON.stringify(dataObject._where))}`;
-        delete dataObject._where;
-      }
-    }
 
     const headers = {
       'X-LC-Id': AV.applicationId,
@@ -180,17 +198,7 @@ const init = (AV) => {
         });
       }
     }).then(() => {
-      if (method.toLowerCase() === 'get') {
-        if (apiURL.indexOf('?') === -1) {
-          apiURL += '?';
-        }
-        for (const k in dataObject) {
-          if (typeof dataObject[k] === 'object') {
-            dataObject[k] = JSON.stringify(dataObject[k]);
-          }
-          apiURL += `&${k}=${encodeURIComponent(dataObject[k])}`;
-        }
-      }
+      const apiURL = createApiUrl(AV, route, className, objectId, method, dataObject);
 
       return ajax(method, apiURL, dataObject, headers).then(null, (response) => {
         // Transform the error into an instance of AV.Error by trying to parse
