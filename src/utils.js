@@ -134,7 +134,7 @@ const init = (AV) => {
             masterKeyWarn();
           }
           initialize(options.appId, options.appKey, options.masterKey);
-          request.setRegionServer(AV, options.region);
+          request.setServerUrlByRegion(AV, options.region);
           AVConfig.disableCurrentUser = options.disableCurrentUser;
         } else {
           throw new Error('AV.init(): Parameter is not correct.');
@@ -148,7 +148,7 @@ const init = (AV) => {
           masterKeyWarn();
         }
         initialize(...args);
-        request.setRegionServer(AV, 'cn');
+        request.setServerUrlByRegion(AV, 'cn');
       break;
     }
   };
@@ -191,7 +191,7 @@ const init = (AV) => {
   **/
   // TODO: 后续不再暴露此接口
   AV.useAVCloudCN = function(){
-    request.setRegionServer(AV, 'cn');
+    request.setServerUrlByRegion(AV, 'cn');
     console.warn('Do not use AV.useAVCloudCN. Please use AV.init(), you can set the region of server.');
   };
 
@@ -200,7 +200,7 @@ const init = (AV) => {
   **/
   // TODO: 后续不再暴露此接口
   AV.useAVCloudUS = function(){
-    request.setRegionServer(AV, 'us');
+    request.setServerUrlByRegion(AV, 'us');
     console.warn('Do not use AV.useAVCloudUS. Please use AV.init(), you can set the region of server.');
   };
 

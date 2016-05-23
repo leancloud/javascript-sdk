@@ -211,7 +211,7 @@ const handleError = (AV, res) => {
   return promise;
 };
 
-const setRegionServer = (AV, region = 'cn') => {
+const setServerUrlByRegion = (AV, region = 'cn') => {
   // 服务器请求的节点 host
   const API_HOST = {
     cn: 'https://api.leancloud.cn',
@@ -281,5 +281,5 @@ const init = (AV) => {
 module.exports = {
   init,
   ajax,
-  setRegionServer,
+  setServerUrlByRegion,
 };
