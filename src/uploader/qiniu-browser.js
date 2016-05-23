@@ -7,6 +7,7 @@
 
 const request = require('superagent');
 const Promise = require('../promise');
+const debug = require('debug')('qiniu');
 
 module.exports = function upload(uploadInfo, data, file, saveOptions = {}) {
   file.attributes.url = uploadInfo.url;
