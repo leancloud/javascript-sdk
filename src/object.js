@@ -3,9 +3,8 @@
  * Each engineer has a duty to keep the code elegant
 **/
 
-'use strict';
-
-var _ = require('underscore');
+const _ = require('underscore');
+const AVError = require('./error');
 
 // AV.Object is analogous to the Java AVObject.
 // It also implements the same interface as a Backbone model.
@@ -575,7 +574,7 @@ module.exports = function(AV) {
      *     <code>error</code>, and <code>promise</code>.
      * @return {Boolean} true if the set succeeded.
      * @see AV.Object#validate
-     * @see AV.Error
+     * @see AVError
      */
     set: function(key, value, options) {
       var attrs, attr;
@@ -838,7 +837,7 @@ module.exports = function(AV) {
      *       // The save was successful.
      *     },
      *     error: function(gameTurnAgain, error) {
-     *       // The save failed.  Error is an instance of AV.Error.
+     *       // The save failed.  Error is an instance of AVError.
      *     }
      *   });</pre>
      * or with promises:<pre>
@@ -848,14 +847,14 @@ module.exports = function(AV) {
      *   }).then(function(gameTurnAgain) {
      *     // The save was successful.
      *   }, function(error) {
-     *     // The save failed.  Error is an instance of AV.Error.
+     *     // The save failed.  Error is an instance of AVError.
      *   });</pre>
      * @param {Object} options Optional Backbone-like options object to be passed in to set.
      * @param {Boolean} options.fetchWhenSave fetch and update object after save succeeded
      * @param {AV.Query} options.query Save object only when it matches the query
      * @return {AV.Promise} A promise that is fulfilled when the save
      *     completes.
-     * @see AV.Error
+     * @see AVError
      */
     save: function(arg1, arg2, arg3) {
       var i, attrs, current, options, saved;
@@ -1191,7 +1190,7 @@ module.exports = function(AV) {
      */
     validate: function(attrs, options) {
       if (_.has(attrs, "ACL") && !(attrs.ACL instanceof AV.ACL)) {
-        return new AV.Error(AV.Error.OTHER_CAUSE,
+        return new AVError(AVError.OTHER_CAUSE,
                                "ACL must be a AV.ACL.");
       }
       return false;
@@ -1497,7 +1496,7 @@ module.exports = function(AV) {
         // If we can't save any objects, there must be a circular reference.
         if (batch.length === 0) {
           return AV.Promise.error(
-            new AV.Error(AV.Error.OTHER_CAUSE,
+            new AVError(AVError.OTHER_CAUSE,
                             "Tried to save a batch with a cycle."));
         }
 
@@ -1545,7 +1544,7 @@ module.exports = function(AV) {
             });
             if (error) {
               return AV.Promise.error(
-                new AV.Error(error.code, error.error));
+                new AVError(error.code, error.error));
             }
 
           }).then(function(results) {

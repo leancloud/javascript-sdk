@@ -8,6 +8,7 @@ const debug = require('debug')('request');
 const md5 = require('md5');
 const Promise = require('./promise');
 const Cache = require('./cache');
+const AVError = require('./error').error;
 
 // 计算 X-LC-Sign 的签名方法
 const sign = (key, isMasterKey) => {
@@ -203,9 +204,9 @@ const handleError = (AV, res) => {
       }
     }
 
-    // Transform the error into an instance of AV.Error by trying to parse
+    // Transform the error into an instance of AVError by trying to parse
     // the error string as JSON.
-    const error = new AV.Error(errorJSON.code, errorJSON.error);
+    const error = new AVError(errorJSON.code, errorJSON.error);
     promise.reject(error);
   }
   return promise;

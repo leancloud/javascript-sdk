@@ -22,9 +22,7 @@ AV.Cache = require('./cache');
 AV._config = AV._config || {};
 
 require('./utils').init(AV);
-require('./request').init(AV);
 
-require('./error')(AV);
 require('./event')(AV);
 require('./geopoint')(AV);
 require('./acl')(AV);

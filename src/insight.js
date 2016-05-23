@@ -3,9 +3,8 @@
  * Each engineer has a duty to keep the code elegant
 **/
 
-'use strict';
-
-var _ = require('underscore');
+const _ = require('underscore');
+const AVError = require('./error');
 
 module.exports = function(AV) {
   /**
@@ -135,7 +134,7 @@ module.exports = function(AV) {
       var self = this;
       return request.then(function(response) {
         if(response.error) {
-          return AV.Promise.error(new AV.Error(response.code, response.error));
+          return AV.Promise.error(new AVError(response.code, response.error));
         }
         return AV.Promise.as(response);
       })._thenRunCallbacks(options);

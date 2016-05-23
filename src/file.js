@@ -3,11 +3,10 @@
  * Each engineer has a duty to keep the code elegant
 **/
 
-'use strict';
-
 const _ = require('underscore');
 const cos = require('./uploader/cos');
 const qiniu = require('./uploader/qiniu');
+const AVError = require('./error');
 
 module.exports = function(AV) {
 
@@ -284,14 +283,14 @@ module.exports = function(AV) {
     var promise = new AV.Promise();
 
     if (typeof(FileReader) === "undefined") {
-      return AV.Promise.error(new AV.Error(
+      return AV.Promise.error(new AVError(
           -1, "Attempted to use a FileReader on an unsupported browser."));
     }
 
     var reader = new global.FileReader();
     reader.onloadend = function() {
       if (reader.readyState !== 2) {
-        promise.reject(new AV.Error(-1, "Error reading file."));
+        promise.reject(new AVError(-1, "Error reading file."));
         return;
       }
 
@@ -299,7 +298,7 @@ module.exports = function(AV) {
       var matches = /^data:([^;]*);base64,(.*)$/.exec(dataURL);
       if (!matches) {
         promise.reject(
-            new AV.Error(-1, "Unable to interpret data URL: " + dataURL));
+            new AVError(-1, "Unable to interpret data URL: " + dataURL));
         return;
       }
 
@@ -374,7 +373,7 @@ module.exports = function(AV) {
     if (_.isArray(data)) {
       this.attributes.metaData.size = data.length;
       data = { base64: encodeBase64(data) };
-    } 
+    }
     if (data && data.base64) {
       var parseBase64 = require('./browserify-wrapper/parse-base64');
       var dataBase64 = parseBase64(data.base64, guessedType);
@@ -454,7 +453,7 @@ module.exports = function(AV) {
      */
     setACL: function(acl) {
         if (!(acl instanceof AV.ACL)) {
-          return new AV.Error(AV.Error.OTHER_CAUSE, 'ACL must be a AV.ACL.');
+          return new AVError(AVError.OTHER_CAUSE, 'ACL must be a AV.ACL.');
         }
         this._acl = acl;
     },

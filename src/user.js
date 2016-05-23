@@ -3,9 +3,8 @@
  * Each engineer has a duty to keep the code elegant
 **/
 
-'use strict';
-
-var _ = require('underscore');
+const _ = require('underscore');
+const AVError = require('./error');
 
 module.exports = function(AV) {
   /**
@@ -255,8 +254,8 @@ module.exports = function(AV) {
 
       var username = (attrs && attrs.username) || this.get("username");
       if (!username || (username === "")) {
-        error = new AV.Error(
-            AV.Error.OTHER_CAUSE,
+        error = new AVError(
+            AVError.OTHER_CAUSE,
             "Cannot sign up user with an empty name.");
         if (options && options.error) {
           options.error(this, error);
@@ -266,8 +265,8 @@ module.exports = function(AV) {
 
       var password = (attrs && attrs.password) || this.get("password");
       if (!password || (password === "")) {
-        error = new AV.Error(
-            AV.Error.OTHER_CAUSE,
+        error = new AVError(
+            AVError.OTHER_CAUSE,
             "Cannot sign up user with an empty password.");
         if (options && options.error) {
           options.error(this, error);
@@ -307,8 +306,8 @@ module.exports = function(AV) {
       var mobilePhoneNumber = (attrs && attrs.mobilePhoneNumber) ||
                               this.get("mobilePhoneNumber");
       if (!mobilePhoneNumber || (mobilePhoneNumber === "")) {
-        error = new AV.Error(
-            AV.Error.OTHER_CAUSE,
+        error = new AVError(
+            AVError.OTHER_CAUSE,
             "Cannot sign up or login user by mobilePhoneNumber " +
             "with an empty mobilePhoneNumber.");
         if (options && options.error) {
@@ -319,8 +318,8 @@ module.exports = function(AV) {
 
       var smsCode = (attrs && attrs.smsCode) || this.get("smsCode");
       if (!smsCode || (smsCode === "")) {
-        error = new AV.Error(
-            AV.Error.OTHER_CAUSE,
+        error = new AVError(
+            AVError.OTHER_CAUSE,
              "Cannot sign up or login user by mobilePhoneNumber  " +
              "with an empty smsCode.");
         if (options && options.error) {
@@ -761,7 +760,7 @@ module.exports = function(AV) {
      *
      * @param {Object} data The response json data returned from third party token.
      * @param {string} platform Available platform for sign up.
-     * @param {Object} [callback] An object that has an optional success function, that takes no arguments and will be called on a successful puSH. and an error function that takes a AV.Error and will be called if the push failed.
+     * @param {Object} [callback] An object that has an optional success function, that takes no arguments and will be called on a successful puSH. and an error function that takes a AVError and will be called if the push failed.
      * @return {AV.Promise} A promise that is fulfilled with the user when
      *     the login completes.
      * @example AV.User.signUpOrlogInWithAuthData(data, platform, {

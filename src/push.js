@@ -33,7 +33,7 @@ module.exports = function(AV) {
    *   <ol>
    * @param {Object} options An object that has an optional success function,
    * that takes no arguments and will be called on a successful push, and
-   * an error function that takes a AV.Error and will be called if the push
+   * an error function that takes a AVError and will be called if the push
    * failed.
    */
   AV.Push.send = function(data, options) {

@@ -3,9 +3,8 @@
  * Each engineer has a duty to keep the code elegant
 **/
 
-'use strict';
-
-var _ = require('underscore');
+const _ = require('underscore');
+const AVError = require('./error');
 
 module.exports = function(AV) {
   /**
@@ -120,15 +119,15 @@ module.exports = function(AV) {
           // Check to see if the objectId being set matches this.id.
           // This happens during a fetch -- the id is set before calling fetch.
           // Let the name be set in this case.
-          return new AV.Error(AV.Error.OTHER_CAUSE,
+          return new AVError(AVError.OTHER_CAUSE,
               "A role's name can only be set before it has been saved.");
         }
         if (!_.isString(newName)) {
-          return new AV.Error(AV.Error.OTHER_CAUSE,
+          return new AVError(AVError.OTHER_CAUSE,
               "A role's name must be a String.");
         }
         if (!(/^[0-9a-zA-Z\-_ ]+$/).test(newName)) {
-          return new AV.Error(AV.Error.OTHER_CAUSE,
+          return new AVError(AVError.OTHER_CAUSE,
               "A role's name can only contain alphanumeric characters, _," +
               " -, and spaces.");
         }
