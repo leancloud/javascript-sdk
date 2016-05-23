@@ -359,10 +359,10 @@ module.exports = function (AV) {
     this._guessedType = guessedType;
 
     if (_.isArray(data)) {
-      this.attributes.base64 = encodeBase64(data);
-      this._source = AV.Promise.as(this.attributes.base64, guessedType);
       this.attributes.metaData.size = data.length;
-    } else if (data && data.base64) {
+      data = { base64: encodeBase64(data) };
+    }
+    if (data && data.base64) {
       var parseBase64 = require('./browserify-wrapper/parse-base64');
       var dataBase64 = parseBase64(data.base64, guessedType);
       this.attributes.base64 = dataURLToBase64(data.base64);

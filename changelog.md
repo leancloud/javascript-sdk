@@ -1,3 +1,7 @@
+# 1.0.0-rc9.2  日期：2016 年 5 月 23 日
+* 修复了上传文件成功却进入失败回调的问题。
+* 修复 `AV.Object#fetch` 在某些情况下抛出 `fetchOptions.include.join is not a function` 异常的问题。
+
 # 1.0.0-rc9.1  日期：2016 年 5 月 17 日
 * 修复了上传文件到 COS 时报错的问题。
 

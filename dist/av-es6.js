@@ -4368,55 +4368,12 @@ module.exports = function(AV) {
 };
 
 },{"underscore":17}],19:[function(require,module,exports){
-/**
- * 每位工程师都有保持代码优雅的义务
- * Each engineer has a duty to keep the code elegant
-**/
-
-'use strict';
-
-const request = require('superagent');
-const debug = require('debug')('ajax');
-
-const Promise = require('./promise');
-
-module.exports = function _ajax(method, resourceUrl, data, headers = {}, onprogress) {
-  debug(method, resourceUrl, data, headers);
-
-  var promise = new Promise();
-
-  const req = request(method, resourceUrl)
-    .set(headers)
-    .send(data)
-    .end((err, res) => {
-      if (res) {
-        debug(res.status, res.body, res.text);
-      }
-      if (err) {
-        if (res) {
-          err.statusCode = res.status;
-          err.responseText = res.text;
-          err.response = res.body;
-        }
-        return promise.reject(err);
-      }
-      promise.resolve(res.body, res.status, res);
-    });
-  if (onprogress) {
-    req.on('progress', onprogress);
-  }
-
-  return promise;
-};
-
-},{"./promise":33,"debug":4,"superagent":12}],20:[function(require,module,exports){
 /*!
- * AVOSCloud JavaScript SDK
- * Built: Mon Jun 03 2013 13:45:00
+ * LeanCloud JavaScript SDK
  * https://leancloud.cn
  *
- * Copyright 2015 LeanCloud.cn, Inc.
- * The AVOS Cloud JavaScript SDK is freely distributable under the MIT license.
+ * Copyright 2016 LeanCloud.cn, Inc.
+ * The LeanCloud JavaScript SDK is freely distributable under the MIT license.
  */
 
 /**
@@ -4424,20 +4381,19 @@ module.exports = function _ajax(method, resourceUrl, data, headers = {}, onprogr
  * Each engineer has a duty to keep the code elegant
 **/
 
-'use strict';
-
-let AV = module.exports = {};
+const AV = module.exports = {};
 AV._ = require('underscore');
 AV.version = require('./version');
 AV.Promise = require('./promise');
 AV.localStorage = require('./localstorage');
 AV.Cache = require('./cache');
 
-// 挂载所有内部配置项
+// All internal configuration items
 AV._config = AV._config || {};
 
-// 以下模块为了兼容原有代码，使用这种加载方式。
 require('./utils').init(AV);
+require('./request').init(AV);
+
 require('./error')(AV);
 require('./event')(AV);
 require('./geopoint')(AV);
@@ -4455,10 +4411,7 @@ require('./status')(AV);
 require('./search')(AV);
 require('./insight')(AV);
 
-// Backward compatibility
-AV.AV = AV;
-
-},{"./acl":18,"./cache":23,"./cloudfunction":24,"./error":25,"./event":26,"./file":27,"./geopoint":28,"./insight":29,"./localstorage":30,"./object":31,"./op":32,"./promise":33,"./push":34,"./query":35,"./relation":36,"./role":37,"./search":38,"./status":39,"./user":42,"./utils":43,"./version":44,"underscore":17}],21:[function(require,module,exports){
+},{"./acl":18,"./cache":22,"./cloudfunction":23,"./error":24,"./event":25,"./file":26,"./geopoint":27,"./insight":28,"./localstorage":29,"./object":30,"./op":31,"./promise":32,"./push":33,"./query":34,"./relation":35,"./request":36,"./role":37,"./search":38,"./status":39,"./user":42,"./utils":43,"./version":44,"underscore":17}],20:[function(require,module,exports){
 (function (global){
 /**
  * 每位工程师都有保持代码优雅的义务
@@ -4524,7 +4477,7 @@ if (global.localStorage) {
 module.exports = Storage;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../promise":33,"localstorage-memory":7,"react-native":1,"underscore":17}],22:[function(require,module,exports){
+},{"../promise":32,"localstorage-memory":7,"react-native":1,"underscore":17}],21:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -4554,7 +4507,7 @@ var dataURItoBlob = function(dataURI, type) {
 
 module.exports = dataURItoBlob;
 
-},{}],23:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 'use strict';
 const storage = require('./localstorage');
 const AV = require('./av');
@@ -4593,7 +4546,7 @@ exports.set = (key, value, ttl) => {
    );
 };
 
-},{"./av":20,"./localstorage":30}],24:[function(require,module,exports){
+},{"./av":19,"./localstorage":29}],23:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -4719,7 +4672,7 @@ module.exports = function(AV) {
   });
 };
 
-},{"underscore":17}],25:[function(require,module,exports){
+},{"underscore":17}],24:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -5072,7 +5025,7 @@ module.exports = function(AV) {
 
 };
 
-},{"underscore":17}],26:[function(require,module,exports){
+},{"underscore":17}],25:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -5232,7 +5185,7 @@ module.exports = function(AV) {
   AV.Events.unbind = AV.Events.off;
 };
 
-},{}],27:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 (function (global){
 /**
  * 每位工程师都有保持代码优雅的义务
@@ -5608,10 +5561,10 @@ module.exports = function(AV) {
     this._guessedType = guessedType;
 
     if (_.isArray(data)) {
-      this.attributes.base64 = encodeBase64(data);
-      this._source = AV.Promise.as(this.attributes.base64, guessedType);
       this.attributes.metaData.size = data.length;
-    } else if (data && data.base64) {
+      data = { base64: encodeBase64(data) };
+    } 
+    if (data && data.base64) {
       var parseBase64 = require('./browserify-wrapper/parse-base64');
       var dataBase64 = parseBase64(data.base64, guessedType);
       this.attributes.base64 = dataURLToBase64(data.base64);
@@ -6019,7 +5972,7 @@ module.exports = function(AV) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./browserify-wrapper/parse-base64":22,"./uploader/cos":40,"./uploader/qiniu":41,"underscore":17}],28:[function(require,module,exports){
+},{"./browserify-wrapper/parse-base64":21,"./uploader/cos":40,"./uploader/qiniu":41,"underscore":17}],27:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -6198,7 +6151,7 @@ module.exports = function(AV) {
   };
 };
 
-},{"underscore":17}],29:[function(require,module,exports){
+},{"underscore":17}],28:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -6346,7 +6299,7 @@ module.exports = function(AV) {
 
 };
 
-},{"underscore":17}],30:[function(require,module,exports){
+},{"underscore":17}],29:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -6386,7 +6339,7 @@ if (!localStorage.async) {
 
 module.exports = localStorage;
 
-},{"./browserify-wrapper/localStorage":21,"./promise":33,"underscore":17}],31:[function(require,module,exports){
+},{"./browserify-wrapper/localStorage":20,"./promise":32,"underscore":17}],30:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -7193,7 +7146,7 @@ module.exports = function(AV) {
         options = arguments[1] || {};
       }
 
-      if (fetchOptions && fetchOptions.include && fetchOptions.include.length > 0) {
+      if (fetchOptions && fetchOptions.include && _.isArray(fetchOptions.include)) {
         fetchOptions.include = fetchOptions.include.join(',');
       }
 
@@ -7953,7 +7906,7 @@ module.exports = function(AV) {
 
 };
 
-},{"underscore":17}],32:[function(require,module,exports){
+},{"underscore":17}],31:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -8490,7 +8443,7 @@ module.exports = function(AV) {
 
 };
 
-},{"underscore":17}],33:[function(require,module,exports){
+},{"underscore":17}],32:[function(require,module,exports){
 (function (process){
 /**
  * 每位工程师都有保持代码优雅的义务
@@ -9098,7 +9051,7 @@ Promise.prototype.finally = Promise.prototype.always;
 Promise.prototype.try = Promise.prototype.done;
 
 }).call(this,require('_process'))
-},{"_process":10,"underscore":17}],34:[function(require,module,exports){
+},{"_process":10,"underscore":17}],33:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -9163,7 +9116,7 @@ module.exports = function(AV) {
   };
 };
 
-},{}],35:[function(require,module,exports){
+},{}],34:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -10107,7 +10060,7 @@ module.exports = function(AV) {
    });
 };
 
-},{"underscore":17}],36:[function(require,module,exports){
+},{"underscore":17}],35:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -10229,7 +10182,252 @@ module.exports = function(AV) {
   };
 };
 
-},{"underscore":17}],37:[function(require,module,exports){
+},{"underscore":17}],36:[function(require,module,exports){
+(function (process){
+/**
+ * 每位工程师都有保持代码优雅的义务
+ * Each engineer has a duty to keep the code elegant
+**/
+
+const request = require('superagent');
+const debug = require('debug')('request');
+const md5 = require('md5');
+const Promise = require('./promise');
+
+// 计算 X-LC-Sign 的签名方法
+const sign = (key, isMasterKey) => {
+  const now = new Date().getTime();
+  const signature = md5(now + key);
+  if (isMasterKey) {
+    return `${signature},${now},master`;
+  }
+  return `${signature},${now}`;
+};
+
+const checkRouter = (router) => {
+  const routerList = [
+    'batch',
+    'classes',
+    'files',
+    'date',
+    'functions',
+    'call',
+    'login',
+    'push',
+    'search/select',
+    'requestPasswordReset',
+    'requestEmailVerify',
+    'requestPasswordResetBySmsCode',
+    'resetPasswordBySmsCode',
+    'requestMobilePhoneVerify',
+    'requestLoginSmsCode',
+    'verifyMobilePhone',
+    'requestSmsCode',
+    'verifySmsCode',
+    'users',
+    'usersByMobilePhone',
+    'cloudQuery',
+    'qiniu',
+    'fileTokens',
+    'statuses',
+    'bigquery',
+    'search/select',
+    'subscribe/statuses/count',
+    'subscribe/statuses',
+    'installations',
+  ];
+
+  if (routerList.indexOf(router) === -1 &&
+    !(/users\/[^\/]+\/updatePassword/.test(router)) &&
+    !(/users\/[^\/]+\/friendship\/[^\/]+/.test(router))
+  ) {
+    throw new Error(`Bad router: ${router}.`);
+  }
+};
+
+const ajax = (method, resourceUrl, data, headers = {}, onprogress) => {
+  debug(method, resourceUrl, data, headers);
+
+  const promise = new Promise();
+  const req = request(method, resourceUrl)
+    .set(headers)
+    .send(data)
+    .end((err, res) => {
+      if (res) {
+        debug(res.status, res.body, res.text);
+      }
+      if (err) {
+        if (res) {
+          err.statusCode = res.status;
+          err.responseText = res.text;
+          err.response = res.body;
+        }
+        return promise.reject(err);
+      }
+      return promise.resolve(res.body, res.status, res);
+    });
+  if (onprogress) {
+    req.on('progress', onprogress);
+  }
+  return promise;
+};
+
+const setHeaders = (AV, sessionToken) => {
+
+  const headers = {
+    'X-LC-Id': AV.applicationId,
+    'Content-Type': 'application/json;charset=UTF-8',
+  };
+  if (AV.masterKey && AV._useMasterKey) {
+    headers['X-LC-Sign'] = sign(AV.masterKey, true);
+  } else {
+    headers['X-LC-Sign'] = sign(AV.applicationKey);
+  }
+  if (!AV._isNullOrUndefined(AV.applicationProduction)) {
+    headers['X-LC-Prod'] = AV.applicationProduction;
+  }
+  if (!AV._config.isNode) {
+    headers['X-LC-UA'] = `AV/${AV.version}`;
+  } else {
+    // LeanEngine need use AV._config.userAgent
+    headers['User-Agent'] = AV._config.userAgent || `AV/${AV.version}; Node.js/${process.version}`;
+  }
+
+  const promise = new Promise();
+
+  // Pass the session token
+  if (sessionToken) {
+    headers['X-LC-Session'] = sessionToken;
+    promise.resolve(headers);
+  } else if (!AV._config.disableCurrentUser) {
+    AV.User.currentAsync().then((currentUser) => {
+      if (currentUser && currentUser._sessionToken) {
+        headers['X-LC-Session'] = currentUser._sessionToken;
+      }
+      promise.resolve(headers);
+    });
+  } else {
+    promise.resolve(headers);
+  }
+
+  return promise;
+};
+
+const createApiUrl = (AV, route, className, objectId, method, dataObject) => {
+  // TODO: 兼容 AV.serverURL 旧方式设置 API Host，后续去掉
+  if (AV.serverURL) {
+    AV._config.APIServerURL = AV.serverURL;
+    console.warn('Please use AV._config.APIServerURL to replace AV.serverURL, and it is an internal interface.');
+  }
+
+  let apiURL = AV._config.APIServerURL;
+
+  // Test Data
+  // apiURL = 'https://e1-api.leancloud.cn';
+
+  if (apiURL.charAt(apiURL.length - 1) !== '/') {
+    apiURL += '/';
+  }
+  apiURL += `1.1/${route}`;
+  if (className) {
+    apiURL += `/${className}`;
+  }
+  if (objectId) {
+    apiURL += `/${objectId}`;
+  }
+  if ((route === 'users' || route === 'classes') && dataObject) {
+    apiURL += '?';
+    if (dataObject._fetchWhenSave) {
+      delete dataObject._fetchWhenSave;
+      apiURL += '&new=true';
+    }
+    if (dataObject._where) {
+      apiURL += `&where=${encodeURIComponent(JSON.stringify(dataObject._where))}`;
+      delete dataObject._where;
+    }
+  }
+
+  if (method.toLowerCase() === 'get') {
+    if (apiURL.indexOf('?') === -1) {
+      apiURL += '?';
+    }
+    for (const k in dataObject) {
+      if (typeof dataObject[k] === 'object') {
+        dataObject[k] = JSON.stringify(dataObject[k]);
+      }
+      apiURL += `&${k}=${encodeURIComponent(dataObject[k])}`;
+    }
+  }
+
+  return apiURL;
+};
+
+/**
+  When API request need to redirect to the right location,
+  can't use browser redirect by http status 307, as the reason of CORS,
+  so API server response http status 410 and the param "location" for this case.
+*/
+// const retryRequest = () => {
+
+// };
+
+const init = (AV) => {
+  /**
+   * route is classes, users, login, etc.
+   * objectId is null if there is no associated objectId.
+   * method is the http method for the REST API.
+   * dataObject is the payload as an object, or null if there is none.
+   * @ignore
+   */
+  AV._request = (route, className, objectId, method, dataObject = {}, sessionToken) => {
+    if (!AV.applicationId) {
+      throw new Error('You must specify your applicationId using AV.init()');
+    }
+
+    if (!AV.applicationKey && !AV.masterKey) {
+      throw new Error('You must specify a AppKey using AV.init()');
+    }
+
+    checkRouter(route);
+    const apiURL = createApiUrl(AV, route, className, objectId, method, dataObject);
+
+    return setHeaders(AV, sessionToken).then(
+      headers => ajax(method, apiURL, dataObject, headers)
+        .then(null, (response) => {
+          // Transform the error into an instance of AV.Error by trying to parse
+          // the error string as JSON.
+          let error;
+          if (response) {
+            if (response.response) {
+              error = new AV.Error(response.response.code, response.response.error);
+            } else if (response.responseText) {
+              try {
+                const errorJSON = JSON.parse(response.responseText);
+                if (errorJSON) {
+                  error = new AV.Error(errorJSON.code, errorJSON.error);
+                }
+              } catch (e) {
+                // If we fail to parse the error text, that's okay.
+              }
+            }
+          }
+          error = error || new AV.Error(-1, response.responseText);
+
+          // By explicitly returning a rejected Promise, this will work with
+          // either jQuery or Promises/A semantics.
+          return Promise.error(error);
+        })
+    );
+  };
+};
+
+module.exports = {
+  init,
+  ajax,
+};
+
+}).call(this,require('_process'))
+},{"./promise":32,"_process":10,"debug":4,"md5":8,"superagent":12}],37:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -11089,7 +11287,7 @@ module.exports = function upload(uploadInfo, data, file, saveOptions = {}) {
   return promise;
 };
 
-},{"../promise":33,"debug":4,"superagent":12}],41:[function(require,module,exports){
+},{"../promise":32,"debug":4,"superagent":12}],41:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -11099,6 +11297,7 @@ module.exports = function upload(uploadInfo, data, file, saveOptions = {}) {
 
 const request = require('superagent');
 const Promise = require('../promise');
+const debug = require('debug')('qiniu');
 
 module.exports = function upload(uploadInfo, data, file, saveOptions = {}) {
   file.attributes.url = uploadInfo.url;
@@ -11134,7 +11333,7 @@ module.exports = function upload(uploadInfo, data, file, saveOptions = {}) {
   return promise;
 };
 
-},{"../promise":33,"superagent":12}],42:[function(require,module,exports){
+},{"../promise":32,"debug":4,"superagent":12}],42:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -12259,24 +12458,9 @@ function filterOutCallbacks(options) {
  * Each engineer has a duty to keep the code elegant
 **/
 
-'use strict';
-
 const _ = require('underscore');
-const ajax = require('./ajax');
 const Cache = require('./cache');
-const md5 = require('md5');
-const debug = require('debug')('utils');
-
-// 计算 X-LC-Sign 的签名方法
-const sign = (key, isMasterKey) => {
-  const now = new Date().getTime();
-  const signature = md5(now + key);
-  if (isMasterKey) {
-    return signature + ',' + now + ',master';
-  } else {
-    return signature + ',' + now;
-  }
-};
+const ajax = require('./request').ajax;
 
 const init = (AV) => {
 
@@ -12286,7 +12470,7 @@ const init = (AV) => {
   // 服务器请求的节点 host
   const API_HOST = {
     cn: 'https://api.leancloud.cn',
-    us: 'https://us-api.leancloud.cn'
+    us: 'https://us-api.leancloud.cn',
   };
 
   _.extend(AVConfig, {
@@ -12301,7 +12485,10 @@ const init = (AV) => {
     isNode: false,
 
     // 禁用 currentUser，通常用于多用户环境
-    disableCurrentUser: false
+    disableCurrentUser: false,
+
+    // Internal config can modifie the UserAgent
+    userAgent: null,
   });
 
   /**
@@ -12375,7 +12562,7 @@ const init = (AV) => {
    * @param {String} applicationId Your AV Application ID.
    * @param {String} applicationKey Your AV Application Key
    */
-   const initialize = (appId, appKey, masterKey) => {
+  const initialize = (appId, appKey, masterKey) => {
     if (AV.applicationId && appId !== AV.applicationId && appKey !== AV.applicationKey && masterKey !== AV.masterKey) {
       console.warn('LeanCloud SDK is already initialized, please do not reinitialize it.');
     }
@@ -12397,6 +12584,7 @@ const init = (AV) => {
       if (AV.applicationId.indexOf('-9Nh9j0Va') !== -1) {
         AVConfig.APIServerURL = 'https://e1-api.leancloud.cn';
       }
+
       Cache.get('APIServerURL').then(cachedServerURL => {
         if (cachedServerURL) {
           return cachedServerURL;
@@ -12404,10 +12592,11 @@ const init = (AV) => {
           return ajax('get', `https://app-router.leancloud.cn/1/route?appId=${AV.applicationId}`)
             .then(servers => {
               if (servers.api_server) {
-                Cache.set(
-                  'APIServerURL',
-                  servers.api_server,
-                  (typeof servers.ttl ==='number' ? servers.ttl : 3600) * 1000);
+                let ttl = 3600;
+                if (typeof servers.ttl === 'number') {
+                  ttl = servers.ttl;
+                }
+                Cache.set('APIServerURL', servers.api_server, ttl * 1000);
                 return servers.api_server;
               }
             });
@@ -12417,7 +12606,7 @@ const init = (AV) => {
         if (AVConfig.APIServerURL === API_HOST[region]) {
           AVConfig.APIServerURL = `https://${serverURL}`;
         }
-      })
+      });
     }
   };
 
@@ -12594,162 +12783,17 @@ const init = (AV) => {
     return new Date(Date.UTC(year, month, day, hour, minute, second, milli));
   };
 
-  AV._ajax = ajax;
+  // TODO: Next version remove
+  AV._ajax = (...args) => {
+    console.warn('AV._ajax is deprecated, and will be removed in next release.');
+    ajax(...args);
+  };
 
   // A self-propagating extend function.
   AV._extend = function(protoProps, classProps) {
     var child = inherits(this, protoProps, classProps);
     child.extend = this.extend;
     return child;
-  };
-
-  /**
-   * route is classes, users, login, etc.
-   * objectId is null if there is no associated objectId.
-   * method is the http method for the REST API.
-   * dataObject is the payload as an object, or null if there is none.
-   * @ignore
-   */
-  AV._request = function(route, className, objectId, method, dataObject, sessionToken) {
-    if (!AV.applicationId) {
-      throw "You must specify your applicationId using AV.initialize";
-    }
-
-    if (!AV.applicationKey && !AV.masterKey) {
-      throw "You must specify a key using AV.initialize";
-    }
-
-
-    if (route !== "batch" &&
-        route !== "classes" &&
-        route !== "files" &&
-        route !== "date" &&
-        route !== "functions" &&
-        route !== "call" &&
-        route !== "login" &&
-        route !== "push" &&
-        route !== "search/select" &&
-        route !== "requestPasswordReset" &&
-        route !== "requestEmailVerify" &&
-        route !== "requestPasswordResetBySmsCode" &&
-        route !== "resetPasswordBySmsCode" &&
-        route !== "requestMobilePhoneVerify" &&
-        route !== "requestLoginSmsCode" &&
-        route !== "verifyMobilePhone" &&
-        route !== "requestSmsCode" &&
-        route !== "verifySmsCode" &&
-        route !== "users" &&
-        route !== "usersByMobilePhone" &&
-        route !== "cloudQuery" &&
-        route !== "qiniu" &&
-        route !== "fileTokens" &&
-        route !== "statuses" &&
-        route !== "bigquery" &&
-        route !== 'search/select' &&
-        route !== 'subscribe/statuses/count' &&
-        route !== 'subscribe/statuses' &&
-        route !== 'installations' &&
-        !(/users\/[^\/]+\/updatePassword/.test(route)) &&
-        !(/users\/[^\/]+\/friendship\/[^\/]+/.test(route))) {
-      throw "Bad route: '" + route + "'.";
-    }
-
-    dataObject = dataObject || {};
-
-    // 兼容 AV.serverURL 旧方式设置 API Host，后续去掉
-    let apiURL = AV.serverURL || AVConfig.APIServerURL;
-    if (AV.serverURL) {
-      AVConfig.APIServerURL = AV.serverURL;
-      console.warn('Please use AV._config.APIServerURL to replace AV.serverURL .');
-    }
-    if (apiURL.charAt(apiURL.length - 1) !== "/") {
-      apiURL += "/";
-    }
-    apiURL += "1.1/" + route;
-    if (className) {
-      apiURL += "/" + className;
-    }
-    if (objectId) {
-      apiURL += "/" + objectId;
-    }
-    if ((route ==='users' || route === 'classes') && dataObject) {
-      apiURL += '?';
-      if (dataObject._fetchWhenSave) {
-        delete dataObject._fetchWhenSave;
-        apiURL += '&new=true';
-      }
-      if (dataObject._where) {
-        apiURL += ('&where=' + encodeURIComponent(JSON.stringify(dataObject._where)));
-        delete dataObject._where;
-      }
-    }
-
-    var headers = {
-      'X-LC-Id': AV.applicationId,
-      'Content-Type': 'application/json;charset=UTF-8'
-    };
-    if (AV.masterKey && AV._useMasterKey) {
-      headers['X-LC-Sign'] = sign(AV.masterKey, true);
-    } else {
-      headers['X-LC-Sign'] = sign(AV.applicationKey);
-    }
-    if (!AV._isNullOrUndefined(AV.applicationProduction)) {
-      headers['X-LC-Prod'] = AV.applicationProduction;
-    }
-    if (!AVConfig.isNode) {
-      headers['X-LC-UA'] = `AV/${AV.version}`;
-    } else {
-      headers['User-Agent'] = AV._config.userAgent || `AV/${AV.version}; Node.js/${process.version}`;
-    }
-
-    return AV.Promise.as().then(function() {
-      // Pass the session token
-      if (sessionToken) {
-        headers['X-LC-Session'] = sessionToken;
-      } else if (!AV._config.disableCurrentUser) {
-        return AV.User.currentAsync().then(function(currentUser) {
-          if (currentUser && currentUser._sessionToken) {
-            headers['X-LC-Session'] = currentUser._sessionToken;
-          }
-        });
-      }
-    }).then(function() {
-      if (method.toLowerCase() === 'get') {
-        if (apiURL.indexOf('?') === -1) {
-          apiURL += '?';
-        }
-        for (let k in dataObject) {
-          if (typeof dataObject[k] === 'object') {
-            dataObject[k] = JSON.stringify(dataObject[k]);
-          }
-          apiURL += '&' + k + '=' + encodeURIComponent(dataObject[k]);
-        }
-      }
-
-      return AV._ajax(method, apiURL, dataObject, headers).then(null, function(response) {
-        // Transform the error into an instance of AV.Error by trying to parse
-        // the error string as JSON.
-        var error;
-        if (response) {
-          if (response.response) {
-            error = new AV.Error(response.response.code, response.response.error);
-          } else if (response.responseText) {
-            try {
-              var errorJSON = JSON.parse(response.responseText);
-              if (errorJSON) {
-                error = new AV.Error(errorJSON.code, errorJSON.error);
-              }
-            } catch (e) {
-              // If we fail to parse the error text, that's okay.
-            }
-          }
-        }
-        error = error || new AV.Error(-1, response.responseText);
-        // By explicitly returning a rejected Promise, this will work with
-        // either jQuery or Promises/A semantics.
-        return AV.Promise.error(error);
-      });
-    });
   };
 
   // Helper function to get a value from a Backbone object as a property
@@ -12997,16 +13041,14 @@ const init = (AV) => {
   AV._isNullOrUndefined = function(x) {
     return _.isNull(x) || _.isUndefined(x);
   };
-
 };
 
 module.exports = {
-
-  init: init
+  init,
 };
 
 }).call(this,require('_process'))
-},{"./ajax":19,"./cache":23,"_process":10,"debug":4,"md5":8,"underscore":17}],44:[function(require,module,exports){
+},{"./cache":22,"./request":36,"_process":10,"underscore":17}],44:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -13014,7 +13056,7 @@ module.exports = {
 
 'use strict';
 
-module.exports = 'js1.0.0-rc9.1';
+module.exports = 'js1.0.0-rc9.2';
 
-},{}]},{},[20])(20)
+},{}]},{},[19])(19)
 });

@@ -800,7 +800,7 @@ module.exports = function (AV) {
         options = arguments[1] || {};
       }
 
-      if (fetchOptions && fetchOptions.include && fetchOptions.include.length > 0) {
+      if (fetchOptions && fetchOptions.include && _.isArray(fetchOptions.include)) {
         fetchOptions.include = fetchOptions.include.join(',');
       }
 

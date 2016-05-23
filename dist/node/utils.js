@@ -1,28 +1,15 @@
+'use strict';
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
 **/
 
-'use strict';
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
-
 var _ = require('underscore');
-var ajax = require('./ajax');
 var Cache = require('./cache');
-var md5 = require('md5');
-var debug = require('debug')('utils');
-
-// 计算 X-LC-Sign 的签名方法
-var sign = function sign(key, isMasterKey) {
-  var now = new Date().getTime();
-  var signature = md5(now + key);
-  if (isMasterKey) {
-    return signature + ',' + now + ',master';
-  } else {
-    return signature + ',' + now;
-  }
-};
+var ajax = require('./request').ajax;
 
 var init = function init(AV) {
 
@@ -47,7 +34,10 @@ var init = function init(AV) {
     isNode: false,
 
     // 禁用 currentUser，通常用于多用户环境
-    disableCurrentUser: false
+    disableCurrentUser: false,
+
+    // Internal config can modifie the UserAgent
+    userAgent: null
   });
 
   /**
@@ -146,13 +136,18 @@ var init = function init(AV) {
       if (AV.applicationId.indexOf('-9Nh9j0Va') !== -1) {
         AVConfig.APIServerURL = 'https://e1-api.leancloud.cn';
       }
+
       Cache.get('APIServerURL').then(function (cachedServerURL) {
         if (cachedServerURL) {
           return cachedServerURL;
         } else {
           return ajax('get', 'https://app-router.leancloud.cn/1/route?appId=' + AV.applicationId).then(function (servers) {
             if (servers.api_server) {
-              Cache.set('APIServerURL', servers.api_server, (typeof servers.ttl === 'number' ? servers.ttl : 3600) * 1000);
+              var ttl = 3600;
+              if (typeof servers.ttl === 'number') {
+                ttl = servers.ttl;
+              }
+              Cache.set('APIServerURL', servers.api_server, ttl * 1000);
               return servers.api_server;
             }
           });
@@ -328,131 +323,17 @@ var init = function init(AV) {
     return new Date(Date.UTC(year, month, day, hour, minute, second, milli));
   };
 
-  AV._ajax = ajax;
+  // TODO: Next version remove
+  AV._ajax = function () {
+    console.warn('AV._ajax is deprecated, and will be removed in next release.');
+    ajax.apply(undefined, arguments);
+  };
 
   // A self-propagating extend function.
   AV._extend = function (protoProps, classProps) {
     var child = inherits(this, protoProps, classProps);
     child.extend = this.extend;
     return child;
-  };
-
-  /**
-   * route is classes, users, login, etc.
-   * objectId is null if there is no associated objectId.
-   * method is the http method for the REST API.
-   * dataObject is the payload as an object, or null if there is none.
-   * @ignore
-   */
-  AV._request = function (route, className, objectId, method, dataObject, sessionToken) {
-    if (!AV.applicationId) {
-      throw "You must specify your applicationId using AV.initialize";
-    }
-
-    if (!AV.applicationKey && !AV.masterKey) {
-      throw "You must specify a key using AV.initialize";
-    }
-
-    if (route !== "batch" && route !== "classes" && route !== "files" && route !== "date" && route !== "functions" && route !== "call" && route !== "login" && route !== "push" && route !== "search/select" && route !== "requestPasswordReset" && route !== "requestEmailVerify" && route !== "requestPasswordResetBySmsCode" && route !== "resetPasswordBySmsCode" && route !== "requestMobilePhoneVerify" && route !== "requestLoginSmsCode" && route !== "verifyMobilePhone" && route !== "requestSmsCode" && route !== "verifySmsCode" && route !== "users" && route !== "usersByMobilePhone" && route !== "cloudQuery" && route !== "qiniu" && route !== "fileTokens" && route !== "statuses" && route !== "bigquery" && route !== 'search/select' && route !== 'subscribe/statuses/count' && route !== 'subscribe/statuses' && route !== 'installations' && !/users\/[^\/]+\/updatePassword/.test(route) && !/users\/[^\/]+\/friendship\/[^\/]+/.test(route)) {
-      throw "Bad route: '" + route + "'.";
-    }
-
-    dataObject = dataObject || {};
-
-    // 兼容 AV.serverURL 旧方式设置 API Host，后续去掉
-    var apiURL = AV.serverURL || AVConfig.APIServerURL;
-    if (AV.serverURL) {
-      AVConfig.APIServerURL = AV.serverURL;
-      console.warn('Please use AV._config.APIServerURL to replace AV.serverURL .');
-    }
-    if (apiURL.charAt(apiURL.length - 1) !== "/") {
-      apiURL += "/";
-    }
-    apiURL += "1.1/" + route;
-    if (className) {
-      apiURL += "/" + className;
-    }
-    if (objectId) {
-      apiURL += "/" + objectId;
-    }
-    if ((route === 'users' || route === 'classes') && dataObject) {
-      apiURL += '?';
-      if (dataObject._fetchWhenSave) {
-        delete dataObject._fetchWhenSave;
-        apiURL += '&new=true';
-      }
-      if (dataObject._where) {
-        apiURL += '&where=' + encodeURIComponent(JSON.stringify(dataObject._where));
-        delete dataObject._where;
-      }
-    }
-
-    var headers = {
-      'X-LC-Id': AV.applicationId,
-      'Content-Type': 'application/json;charset=UTF-8'
-    };
-    if (AV.masterKey && AV._useMasterKey) {
-      headers['X-LC-Sign'] = sign(AV.masterKey, true);
-    } else {
-      headers['X-LC-Sign'] = sign(AV.applicationKey);
-    }
-    if (!AV._isNullOrUndefined(AV.applicationProduction)) {
-      headers['X-LC-Prod'] = AV.applicationProduction;
-    }
-    if (!AVConfig.isNode) {
-      headers['X-LC-UA'] = 'AV/' + AV.version;
-    } else {
-      headers['User-Agent'] = AV._config.userAgent || 'AV/' + AV.version + '; Node.js/' + process.version;
-    }
-
-    return AV.Promise.as().then(function () {
-      // Pass the session token
-      if (sessionToken) {
-        headers['X-LC-Session'] = sessionToken;
-      } else if (!AV._config.disableCurrentUser) {
-        return AV.User.currentAsync().then(function (currentUser) {
-          if (currentUser && currentUser._sessionToken) {
-            headers['X-LC-Session'] = currentUser._sessionToken;
-          }
-        });
-      }
-    }).then(function () {
-      if (method.toLowerCase() === 'get') {
-        if (apiURL.indexOf('?') === -1) {
-          apiURL += '?';
-        }
-        for (var k in dataObject) {
-          if (_typeof(dataObject[k]) === 'object') {
-            dataObject[k] = JSON.stringify(dataObject[k]);
-          }
-          apiURL += '&' + k + '=' + encodeURIComponent(dataObject[k]);
-        }
-      }
-
-      return AV._ajax(method, apiURL, dataObject, headers).then(null, function (response) {
-        // Transform the error into an instance of AV.Error by trying to parse
-        // the error string as JSON.
-        var error;
-        if (response) {
-          if (response.response) {
-            error = new AV.Error(response.response.code, response.response.error);
-          } else if (response.responseText) {
-            try {
-              var errorJSON = JSON.parse(response.responseText);
-              if (errorJSON) {
-                error = new AV.Error(errorJSON.code, errorJSON.error);
-              }
-            } catch (e) {
-              // If we fail to parse the error text, that's okay.
-            }
-          }
-        }
-        error = error || new AV.Error(-1, response.responseText);
-        // By explicitly returning a rejected Promise, this will work with
-        // either jQuery or Promises/A semantics.
-        return AV.Promise.error(error);
-      });
-    });
   };
 
   // Helper function to get a value from a Backbone object as a property
@@ -701,6 +582,5 @@ var init = function init(AV) {
 };
 
 module.exports = {
-
   init: init
 };

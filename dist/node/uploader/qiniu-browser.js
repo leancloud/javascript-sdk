@@ -7,6 +7,7 @@
 
 var request = require('superagent');
 var Promise = require('../promise');
+var debug = require('debug')('qiniu');
 
 module.exports = function upload(uploadInfo, data, file) {
   var saveOptions = arguments.length <= 3 || arguments[3] === undefined ? {} : arguments[3];

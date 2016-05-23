@@ -1,18 +1,17 @@
+'use strict';
+
 /*!
- * AVOSCloud JavaScript SDK
- * Built: Mon Jun 03 2013 13:45:00
+ * LeanCloud JavaScript SDK
  * https://leancloud.cn
  *
- * Copyright 2015 LeanCloud.cn, Inc.
- * The AVOS Cloud JavaScript SDK is freely distributable under the MIT license.
+ * Copyright 2016 LeanCloud.cn, Inc.
+ * The LeanCloud JavaScript SDK is freely distributable under the MIT license.
  */
 
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
 **/
-
-'use strict';
 
 var AV = module.exports = {};
 AV._ = require('underscore');
@@ -21,11 +20,12 @@ AV.Promise = require('./promise');
 AV.localStorage = require('./localstorage');
 AV.Cache = require('./cache');
 
-// 挂载所有内部配置项
+// All internal configuration items
 AV._config = AV._config || {};
 
-// 以下模块为了兼容原有代码，使用这种加载方式。
 require('./utils').init(AV);
+require('./request').init(AV);
+
 require('./error')(AV);
 require('./event')(AV);
 require('./geopoint')(AV);
@@ -42,6 +42,3 @@ require('./push')(AV);
 require('./status')(AV);
 require('./search')(AV);
 require('./insight')(AV);
-
-// Backward compatibility
-AV.AV = AV;
