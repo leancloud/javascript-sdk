@@ -3,9 +3,8 @@
  * Each engineer has a duty to keep the code elegant
 **/
 
-'use strict';
-
-var _ = require('underscore');
+const _ = require('underscore');
+const AVRequest = require('./request').request;
 
 module.exports = function(AV) {
   /**
@@ -31,7 +30,7 @@ module.exports = function(AV) {
      * of the function.
      */
     run: function(name, data, options) {
-      var request = AV._request('functions', name, null, 'POST',
+      var request = AVRequest('functions', name, null, 'POST',
                                    AV._encode(data, null, true), options && options.sessionToken);
 
       return request.then(function(resp) {
@@ -53,7 +52,7 @@ module.exports = function(AV) {
           ._thenRunCallbacks(options);
       }
 
-      return AV._request('call', name, null, 'POST', AV._encodeObjectOrArray(data)).then(function(resp) {
+      return AVRequest('call', name, null, 'POST', AV._encodeObjectOrArray(data)).then(function(resp) {
         return AV._decode('', resp).result;
       })._thenRunCallbacks(options);
     },
@@ -70,7 +69,7 @@ module.exports = function(AV) {
      * @since 0.5.9
      */
     getServerDate: function(options) {
-      var request = AV._request("date", null, null, 'GET');
+      var request = AVRequest("date", null, null, 'GET');
 
       return request.then(function(resp) {
         return AV._decode(null, resp);
@@ -92,7 +91,7 @@ module.exports = function(AV) {
       if(!data.mobilePhoneNumber) {
         throw "Missing mobilePhoneNumber.";
       }
-      var request = AV._request("requestSmsCode", null, null, 'POST',
+      var request = AVRequest("requestSmsCode", null, null, 'POST',
                                     data);
       return request._thenRunCallbacks(options);
     },
@@ -116,7 +115,7 @@ module.exports = function(AV) {
          options = phone;
       }
 
-      var request = AV._request("verifySmsCode", code, null, 'POST',
+      var request = AVRequest("verifySmsCode", code, null, 'POST',
                                    params);
       return request._thenRunCallbacks(options);
     }

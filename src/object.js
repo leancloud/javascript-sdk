@@ -5,6 +5,7 @@
 
 const _ = require('underscore');
 const AVError = require('./error');
+const AVRequest = require('./request').request;
 
 // AV.Object is analogous to the Java AVObject.
 // It also implements the same interface as a Backbone model.
@@ -808,7 +809,7 @@ module.exports = function(AV) {
       }
 
       var self = this;
-      var request = AV._request('classes', this.className, this.id, 'GET',
+      var request = AVRequest('classes', this.className, this.id, 'GET',
                                 fetchOptions, options.sessionToken);
       return request.then(function(response) {
         self._finishFetch(self.parse(response), true);
@@ -962,7 +963,7 @@ module.exports = function(AV) {
           className = null;
         }
         //hook makeRequest in options.
-        var makeRequest = options._makeRequest || AV._request;
+        var makeRequest = options._makeRequest || AVRequest;
         var request = makeRequest(route, className, model.id, method, json, options.sessionToken);
 
         request = request.then(function(resp) {
@@ -1013,7 +1014,7 @@ module.exports = function(AV) {
       }
 
       var request =
-          AV._request('classes', this.className, this.id, 'DELETE', null, options.sessionToken);
+          AVRequest('classes', this.className, this.id, 'DELETE', null, options.sessionToken);
       return request.then(function() {
         if (options.wait) {
           triggerDestroy();
@@ -1283,7 +1284,7 @@ module.exports = function(AV) {
           }
       });
       var request =
-          AV._request('classes', className, id, 'DELETE', null, options.sessionToken);
+          AVRequest('classes', className, id, 'DELETE', null, options.sessionToken);
       return request._thenRunCallbacks(options);
    };
 
@@ -1511,7 +1512,7 @@ module.exports = function(AV) {
 
         // Save a single batch, whether previous saves succeeded or failed.
         return readyToStart._continueWith(function() {
-          return AV._request("batch", null, null, "POST", {
+          return AVRequest("batch", null, null, "POST", {
             requests: _.map(batch, function(object) {
               var json = object._getSaveJSON();
               var method = "POST";

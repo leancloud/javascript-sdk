@@ -3,9 +3,8 @@
  * Each engineer has a duty to keep the code elegant
 **/
 
-'use strict';
-
-var _ = require('underscore');
+const _ = require('underscore');
+const AVRequest = require('./request').request;
 
 module.exports = function(AV) {
   /**
@@ -125,7 +124,7 @@ module.exports = function(AV) {
      _highlights: null,
      _sortBuilder: null,
     _createRequest: function(params, options){
-      return AV._request('search/select', null, null, 'GET',
+      return AVRequest('search/select', null, null, 'GET',
                                    params || this.toJSON(), options && options.sessionToken);
     },
 

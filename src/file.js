@@ -7,6 +7,7 @@ const _ = require('underscore');
 const cos = require('./uploader/cos');
 const qiniu = require('./uploader/qiniu');
 const AVError = require('./error');
+const AVRequest = require('./request').request;
 
 module.exports = function(AV) {
 
@@ -607,7 +608,7 @@ module.exports = function(AV) {
       if (!this.id) {
         return AV.Promise.error('The file id is not eixsts.')._thenRunCallbacks(options);
       }
-      var request = AV._request("files", null, this.id, 'DELETE', options && options.sessionToken);
+      var request = AVRequest("files", null, this.id, 'DELETE', options && options.sessionToken);
       return request._thenRunCallbacks(options);
     },
 
@@ -636,7 +637,7 @@ module.exports = function(AV) {
         this.attributes.metaData.mime_type = type;
       }
       this._qiniu_key = key;
-      return AV._request(route, null, null, 'POST', data);
+      return AVRequest(route, null, null, 'POST', data);
     },
 
     /**
@@ -695,7 +696,7 @@ module.exports = function(AV) {
             mime_type: this._guessedType,
             url: this.attributes.url
           };
-          this._previousSave = AV._request('files', this.attributes.name, null, 'post', data).then((response) => {
+          this._previousSave = AVRequest('files', this.attributes.name, null, 'post', data).then((response) => {
             this.attributes.name = response.name;
             this.attributes.url = response.url;
             this.id = response.objectId;
@@ -717,14 +718,14 @@ module.exports = function(AV) {
             // 判断是否数据已经是 base64
             if (this.attributes.base64) {
               data.base64 = this.attributes.base64;
-              return AV._request('files', this.attributes.name, null, 'POST', data);
+              return AVRequest('files', this.attributes.name, null, 'POST', data);
             } else if (typeof global.Buffer !== "undefined" && global.Buffer.isBuffer(file)) {
               data.base64 = file.toString('base64');
-              return AV._request('files', this.attributes.name, null, 'POST', data);
+              return AVRequest('files', this.attributes.name, null, 'POST', data);
             } else {
               return readAsync(file).then(function(base64) {
                 data.base64 = base64;
-                return AV._request('files', this.attributes.name, null, 'POST', data);
+                return AVRequest('files', this.attributes.name, null, 'POST', data);
               });
             }
           }).then((response) => {
@@ -760,7 +761,7 @@ module.exports = function(AV) {
           options = arguments[1];
         }
 
-        var request = AV._request('files', null, this.id, 'GET', fetchOptions);
+        var request = AVRequest('files', null, this.id, 'GET', fetchOptions);
         return request.then((response) => {
           var value = AV.Object.prototype.parse(response);
           value.attributes = {

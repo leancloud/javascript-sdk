@@ -3,7 +3,7 @@
  * Each engineer has a duty to keep the code elegant
 **/
 
-'use strict';
+const AVRequest = require('./request').request;
 
 module.exports = function(AV) {
   AV.Installation = AV.Object.extend("_Installation");
@@ -57,7 +57,7 @@ module.exports = function(AV) {
       throw "Both expiration_time and expiration_time_interval can't be set";
     }
 
-    var request = AV._request('push', null, null, 'POST', data);
+    var request = AVRequest('push', null, null, 'POST', data);
     return request._thenRunCallbacks(options);
   };
 };

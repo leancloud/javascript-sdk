@@ -5,6 +5,7 @@
 
 const _ = require('underscore');
 const AVError = require('./error');
+const AVRequest = require('./request').request;
 
 // AV.Query is a way to create a list of AV.Objects.
 module.exports = function(AV) {
@@ -154,7 +155,7 @@ module.exports = function(AV) {
       options = pvalues;
     }
 
-    var request = AV._request('cloudQuery', null, null, 'GET', params, options && options.sessionToken);
+    var request = AVRequest('cloudQuery', null, null, 'GET', params, options && options.sessionToken);
     return request.then(function(response) {
       //query to process results.
       var query = new AV.Query(response.className);
@@ -251,7 +252,7 @@ module.exports = function(AV) {
       return obj;
     },
     _createRequest: function(params, options){
-      return AV._request('classes', this.className, null, "GET",
+      return AVRequest('classes', this.className, null, "GET",
                                    params || this.toJSON(), options && options.sessionToken);
     },
 

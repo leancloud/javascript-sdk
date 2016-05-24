@@ -8,7 +8,8 @@ const debug = require('debug')('request');
 const md5 = require('md5');
 const Promise = require('./promise');
 const Cache = require('./cache');
-const AVError = require('./error').error;
+const AVError = require('./error');
+const AV = require('./av');
 
 // 计算 X-LC-Sign 的签名方法
 const sign = (key, isMasterKey) => {
@@ -88,7 +89,7 @@ const ajax = (method, resourceUrl, data, headers = {}, onprogress) => {
   return promise;
 };
 
-const setHeaders = (AV, sessionToken) => {
+const setHeaders = (sessionToken) => {
   const headers = {
     'X-LC-Id': AV.applicationId,
     'Content-Type': 'application/json;charset=UTF-8',
@@ -128,7 +129,7 @@ const setHeaders = (AV, sessionToken) => {
   return promise;
 };
 
-const createApiUrl = (AV, route, className, objectId, method, dataObject) => {
+const createApiUrl = (route, className, objectId, method, dataObject) => {
   // TODO: 兼容 AV.serverURL 旧方式设置 API Host，后续去掉
   if (AV.serverURL) {
     AV._config.APIServerURL = AV.serverURL;
@@ -182,7 +183,7 @@ const cacheServerURL = (serverURL, ttl) => {
 };
 
 // handle AV._request Error
-const handleError = (AV, res) => {
+const handleError = (res) => {
   const promise = new Promise();
   /**
     When API request need to redirect to the right location,
@@ -212,7 +213,7 @@ const handleError = (AV, res) => {
   return promise;
 };
 
-const setServerUrlByRegion = (AV, region = 'cn') => {
+const setServerUrlByRegion = (region = 'cn') => {
   // 服务器请求的节点 host
   const API_HOST = {
     cn: 'https://api.leancloud.cn',
@@ -248,39 +249,37 @@ const setServerUrlByRegion = (AV, region = 'cn') => {
   }
 };
 
-const init = (AV) => {
-  /**
-   * route is classes, users, login, etc.
-   * objectId is null if there is no associated objectId.
-   * method is the http method for the REST API.
-   * dataObject is the payload as an object, or null if there is none.
-   * @ignore
-   */
-  AV._request = (route, className, objectId, method, dataObject = {}, sessionToken) => {
-    if (!AV.applicationId) {
-      throw new Error('You must specify your applicationId using AV.init()');
-    }
+/**
+ * route is classes, users, login, etc.
+ * objectId is null if there is no associated objectId.
+ * method is the http method for the REST API.
+ * dataObject is the payload as an object, or null if there is none.
+ * @ignore
+ */
+const AVRequest = (route, className, objectId, method, dataObject = {}, sessionToken) => {
+  if (!AV.applicationId) {
+    throw new Error('You must specify your applicationId using AV.init()');
+  }
 
-    if (!AV.applicationKey && !AV.masterKey) {
-      throw new Error('You must specify a AppKey using AV.init()');
-    }
+  if (!AV.applicationKey && !AV.masterKey) {
+    throw new Error('You must specify a AppKey using AV.init()');
+  }
 
-    checkRouter(route);
-    const apiURL = createApiUrl(AV, route, className, objectId, method, dataObject);
+  checkRouter(route);
+  const apiURL = createApiUrl(route, className, objectId, method, dataObject);
 
-    return setHeaders(AV, sessionToken).then(
-      headers => ajax(method, apiURL, dataObject, headers)
-        .then(
-          null,
-          res => handleError(AV, res)
-            .then(location => ajax(method, location, dataObject, headers))
-        )
-    );
-  };
+  return setHeaders(sessionToken).then(
+    headers => ajax(method, apiURL, dataObject, headers)
+      .then(
+        null,
+        res => handleError(res)
+          .then(location => ajax(method, location, dataObject, headers))
+      )
+  );
 };
 
 module.exports = {
-  init,
   ajax,
+  request: AVRequest,
   setServerUrlByRegion,
 };
