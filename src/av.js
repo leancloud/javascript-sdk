@@ -38,3 +38,13 @@ require('./push')(AV);
 require('./status')(AV);
 require('./search')(AV);
 require('./insight')(AV);
+
+// TODO: deprecated AV.Error()
+const AVError = require('./error');
+/**
+ * @deprecated AV.Error() is deprecated, and will be removed in next release.
+ */
+AV.Error = (...args) => {
+  console.warn('AV.Error() is deprecated, and will be removed in next release.');
+  new AVError(...args);
+};

@@ -5,7 +5,6 @@
 
 const _ = require('underscore');
 const request = require('./request');
-const AVError = require('./error');
 
 const init = (AV) => {
   // 挂载一些配置
@@ -292,14 +291,6 @@ const init = (AV) => {
   AV._request = (...args) => {
     console.warn('AV._request is deprecated, and will be removed in next release.');
     request.request(...args);
-  };
-
-  /**
-   * @deprecated AV.Error() is deprecated, and will be removed in next release.
-   */
-  AV.Error = (...args) => {
-    console.warn('AV.Error() is deprecated, and will be removed in next release.');
-    new AVError(...args);
   };
 
   // A self-propagating extend function.
