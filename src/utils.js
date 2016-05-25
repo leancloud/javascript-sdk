@@ -26,6 +26,9 @@ const init = (AV) => {
 
     // Internal config can modifie the UserAgent
     userAgent: null,
+
+    // set production environment or test environment, 1: production environment
+    applicationProduction: 1,
   });
 
   /**
@@ -177,13 +180,12 @@ const init = (AV) => {
    * @param {Boolean} production True is production environment,and
    *  it's true by default.
    */
-  AV.setProduction = function(production){
-    if(!AV._isNullOrUndefined(production)) {
-      //make sure it's a number
-      production = production ? 1 : 0;
+  AV.setProduction = (production) => {
+    if (!AV._isNullOrUndefined(production)) {
+      AVConfig.applicationProduction = production ? 1 : 0;
+    } else {
+      console.warn('AV.setProduction() need a boolean param.');
     }
-    //default is 1
-    AV.applicationProduction = AV._isNullOrUndefined(production) ? 1: production;
   };
 
   /**
