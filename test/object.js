@@ -67,7 +67,7 @@ describe('Objects', function(){
     it('should validate failed.', function(done){
       var TestObject = AV.Object.extend('TestObject', {
         validate: function (attrs, options){
-          return { code: 1, message: 'test' };
+          return new Error('test');
         }
       });
       var testObject = new TestObject();
