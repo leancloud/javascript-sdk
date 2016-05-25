@@ -3,9 +3,8 @@
  * Each engineer has a duty to keep the code elegant
 **/
 
-'use strict';
-
-var _ = require('underscore');
+const _ = require('underscore');
+const AVRequest = require('./request').request;
 
 module.exports = function(AV) {
   /**
@@ -58,7 +57,7 @@ module.exports = function(AV) {
     destroy: function(options){
       if(!this.id)
         return AV.Promise.error('The status id is not exists.')._thenRunCallbacks(options);
-      var request = AV._request('statuses', null, this.id, 'DELETE', options && options.sessionToken);
+      var request = AVRequest('statuses', null, this.id, 'DELETE', options && options.sessionToken);
       return request._thenRunCallbacks(options);
     },
     /**
@@ -112,7 +111,7 @@ module.exports = function(AV) {
       data.data = this._getDataJSON();
       data.inboxType = this.inboxType || 'default';
 
-      var request = AV._request('statuses', null, null, 'POST', data, options && options.sessionToken);
+      var request = AVRequest('statuses', null, null, 'POST', data, options && options.sessionToken);
       var self = this;
       return request.then(function(response){
         self.id = response.objectId;
@@ -169,7 +168,7 @@ module.exports = function(AV) {
     data.data = status._getDataJSON();
     data.inboxType = status.inboxType || 'default';
 
-    var request = AV._request('statuses', null, null, 'POST', data, options && options.sessionToken);
+    var request = AVRequest('statuses', null, null, 'POST', data, options && options.sessionToken);
     return request.then(function(response){
       status.id = response.objectId;
       status.createdAt = AV._parseDate(response.createdAt);
@@ -222,7 +221,7 @@ module.exports = function(AV) {
     data.inboxType = 'private';
     status.inboxType = 'private';
 
-    var request = AV._request('statuses', null, null, 'POST', data, options && options.sessionToken);
+    var request = AVRequest('statuses', null, null, 'POST', data, options && options.sessionToken);
     return request.then(function(response){
       status.id = response.objectId;
       status.createdAt = AV._parseDate(response.createdAt);
@@ -254,7 +253,7 @@ module.exports = function(AV) {
     var params = {};
     params.inboxType = AV._encode(inboxType);
     params.owner = AV._encode(owner);
-    var request = AV._request('subscribe/statuses/count', null, null, 'GET', params, options && options.sessionToken);
+    var request = AVRequest('subscribe/statuses/count', null, null, 'GET', params, options && options.sessionToken);
     return request._thenRunCallbacks(options);
   };
 
@@ -294,7 +293,7 @@ module.exports = function(AV) {
       return new AV.Status();
     },
     _createRequest: function(params, options){
-      return AV._request('subscribe/statuses', null, null, 'GET',
+      return AVRequest('subscribe/statuses', null, null, 'GET',
                                    params || this.toJSON(), options && options.sessionToken);
     },
 

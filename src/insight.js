@@ -3,9 +3,9 @@
  * Each engineer has a duty to keep the code elegant
 **/
 
-'use strict';
-
-var _ = require('underscore');
+const _ = require('underscore');
+const AVError = require('./error');
+const AVRequest = require('./request').request;
 
 module.exports = function(AV) {
   /**
@@ -47,7 +47,7 @@ module.exports = function(AV) {
         jobConfig: jobConfig,
         appId: AV.applicationId
       };
-      var request = AV._request("bigquery", 'jobs', null, 'POST',
+      var request = AVRequest("bigquery", 'jobs', null, 'POST',
                                    AV._encode(data, null, true));
 
       return request.then(function(resp) {
@@ -130,12 +130,12 @@ module.exports = function(AV) {
         limit: this._limit
       };
 
-      var request = AV._request("bigquery", 'jobs', this.id, "GET",
+      var request = AVRequest("bigquery", 'jobs', this.id, "GET",
                                    params);
       var self = this;
       return request.then(function(response) {
         if(response.error) {
-          return AV.Promise.error(new AV.Error(response.code, response.error));
+          return AV.Promise.error(new AVError(response.code, response.error));
         }
         return AV.Promise.as(response);
       })._thenRunCallbacks(options);

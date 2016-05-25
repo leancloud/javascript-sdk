@@ -108,7 +108,7 @@ describe('Queries', function () {
         },
         function (error) {
           debug(error);
-          expect(error).to.be.an(AV.Error);
+          expect(error.code).to.be(300);
           done();
         });
     });

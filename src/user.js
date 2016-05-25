@@ -3,9 +3,9 @@
  * Each engineer has a duty to keep the code elegant
 **/
 
-'use strict';
-
-var _ = require('underscore');
+const _ = require('underscore');
+const AVError = require('./error');
+const AVRequest = require('./request').request;
 
 module.exports = function(AV) {
   /**
@@ -255,8 +255,8 @@ module.exports = function(AV) {
 
       var username = (attrs && attrs.username) || this.get("username");
       if (!username || (username === "")) {
-        error = new AV.Error(
-            AV.Error.OTHER_CAUSE,
+        error = new AVError(
+            AVError.OTHER_CAUSE,
             "Cannot sign up user with an empty name.");
         if (options && options.error) {
           options.error(this, error);
@@ -266,8 +266,8 @@ module.exports = function(AV) {
 
       var password = (attrs && attrs.password) || this.get("password");
       if (!password || (password === "")) {
-        error = new AV.Error(
-            AV.Error.OTHER_CAUSE,
+        error = new AVError(
+            AVError.OTHER_CAUSE,
             "Cannot sign up user with an empty password.");
         if (options && options.error) {
           options.error(this, error);
@@ -307,8 +307,8 @@ module.exports = function(AV) {
       var mobilePhoneNumber = (attrs && attrs.mobilePhoneNumber) ||
                               this.get("mobilePhoneNumber");
       if (!mobilePhoneNumber || (mobilePhoneNumber === "")) {
-        error = new AV.Error(
-            AV.Error.OTHER_CAUSE,
+        error = new AVError(
+            AVError.OTHER_CAUSE,
             "Cannot sign up or login user by mobilePhoneNumber " +
             "with an empty mobilePhoneNumber.");
         if (options && options.error) {
@@ -319,8 +319,8 @@ module.exports = function(AV) {
 
       var smsCode = (attrs && attrs.smsCode) || this.get("smsCode");
       if (!smsCode || (smsCode === "")) {
-        error = new AV.Error(
-            AV.Error.OTHER_CAUSE,
+        error = new AVError(
+            AVError.OTHER_CAUSE,
              "Cannot sign up or login user by mobilePhoneNumber  " +
              "with an empty smsCode.");
         if (options && options.error) {
@@ -331,7 +331,7 @@ module.exports = function(AV) {
 
       var newOptions = filterOutCallbacks(options);
       newOptions._makeRequest = function(route, className, id, method, json) {
-        return AV._request('usersByMobilePhone', null, null, "POST", json);
+        return AVRequest('usersByMobilePhone', null, null, "POST", json);
       };
       return this.save(attrs, newOptions).then(function(model) {
         delete model.attributes.smsCode;
@@ -358,7 +358,7 @@ module.exports = function(AV) {
      */
     logIn: function(options) {
       var model = this;
-      var request = AV._request("login", null, null, "GET", this.toJSON());
+      var request = AVRequest("login", null, null, "GET", this.toJSON());
       return request.then(function(resp, status, xhr) {
         var serverAttrs = model.parse(resp, status, xhr);
         model._finishFetch(serverAttrs);
@@ -413,7 +413,7 @@ module.exports = function(AV) {
           throw "Invalid target user.";
       }
       var route = 'users/' + this.id + '/friendship/' + userObjectId;
-      var request = AV._request(route, null, null, 'POST', null, options && options.sessionToken);
+      var request = AVRequest(route, null, null, 'POST', null, options && options.sessionToken);
       return request._thenRunCallbacks(options);
     },
 
@@ -437,7 +437,7 @@ module.exports = function(AV) {
           throw "Invalid target user.";
       }
       var route = 'users/' + this.id + '/friendship/' + userObjectId;
-      var request = AV._request(route, null, null, 'DELETE', null, options && options.sessionToken);
+      var request = AVRequest(route, null, null, 'DELETE', null, options && options.sessionToken);
       return request._thenRunCallbacks(options);
     },
 
@@ -493,7 +493,7 @@ module.exports = function(AV) {
         old_password: oldPassword,
         new_password: newPassword
       };
-      var request = AV._request(route, null, null, 'PUT', params, options && options.sessionToken);
+      var request = AVRequest(route, null, null, 'PUT', params, options && options.sessionToken);
       return request._thenRunCallbacks(options, this);
     },
 
@@ -668,7 +668,7 @@ module.exports = function(AV) {
       options = options || {};
 
       var user = AV.Object._create("_User");
-      return AV._request(
+      return AVRequest(
           "users",
           "me",
           null,
@@ -761,7 +761,7 @@ module.exports = function(AV) {
      *
      * @param {Object} data The response json data returned from third party token.
      * @param {string} platform Available platform for sign up.
-     * @param {Object} [callback] An object that has an optional success function, that takes no arguments and will be called on a successful puSH. and an error function that takes a AV.Error and will be called if the push failed.
+     * @param {Object} [callback] An object that has an optional success function, that takes no arguments and will be called on a successful puSH. and an error function that takes a AVError and will be called if the push failed.
      * @return {AV.Promise} A promise that is fulfilled with the user when
      *     the login completes.
      * @example AV.User.signUpOrlogInWithAuthData(data, platform, {
@@ -852,7 +852,7 @@ module.exports = function(AV) {
      */
     requestPasswordReset: function(email, options) {
       var json = { email: email };
-      var request = AV._request("requestPasswordReset", null, null, "POST",
+      var request = AVRequest("requestPasswordReset", null, null, "POST",
                                    json);
       return request._thenRunCallbacks(options);
     },
@@ -870,7 +870,7 @@ module.exports = function(AV) {
      */
     requestEmailVerify: function(email, options) {
       var json = { email: email };
-      var request = AV._request("requestEmailVerify", null, null, "POST",
+      var request = AVRequest("requestEmailVerify", null, null, "POST",
                                    json);
       return request._thenRunCallbacks(options);
     },
@@ -880,7 +880,7 @@ module.exports = function(AV) {
     */
     requestEmailVerfiy: function(email, options) {
       var json = { email: email };
-      var request = AV._request("requestEmailVerify", null, null, "POST",
+      var request = AVRequest("requestEmailVerify", null, null, "POST",
                                    json);
       return request._thenRunCallbacks(options);
     },
@@ -898,7 +898,7 @@ module.exports = function(AV) {
      */
     requestMobilePhoneVerify: function(mobilePhone, options){
       var json = { mobilePhoneNumber: mobilePhone };
-      var request = AV._request("requestMobilePhoneVerify", null, null, "POST",
+      var request = AVRequest("requestMobilePhoneVerify", null, null, "POST",
                                    json);
       return request._thenRunCallbacks(options);
     },
@@ -917,7 +917,7 @@ module.exports = function(AV) {
      */
     requestPasswordResetBySmsCode: function(mobilePhone, options){
       var json = { mobilePhoneNumber: mobilePhone };
-      var request = AV._request("requestPasswordResetBySmsCode", null, null, "POST",
+      var request = AVRequest("requestPasswordResetBySmsCode", null, null, "POST",
                                    json);
       return request._thenRunCallbacks(options);
     },
@@ -933,7 +933,7 @@ module.exports = function(AV) {
      */
     resetPasswordBySmsCode: function(code, password, options){
       var json = { password: password};
-      var request = AV._request("resetPasswordBySmsCode", null, code, "PUT",
+      var request = AVRequest("resetPasswordBySmsCode", null, code, "PUT",
                                 json);
       return request._thenRunCallbacks(options);
     },
@@ -947,7 +947,7 @@ module.exports = function(AV) {
      * of the function.
      */
     verifyMobilePhone: function(code, options){
-      var request = AV._request("verifyMobilePhone", null, code, "POST",
+      var request = AVRequest("verifyMobilePhone", null, code, "POST",
                                 null);
       return request._thenRunCallbacks(options);
     },
@@ -965,7 +965,7 @@ module.exports = function(AV) {
      */
     requestLoginSmsCode: function(mobilePhone, options){
       var json = { mobilePhoneNumber: mobilePhone };
-      var request = AV._request("requestLoginSmsCode", null, null, "POST",
+      var request = AVRequest("requestLoginSmsCode", null, null, "POST",
                                    json);
       return request._thenRunCallbacks(options);
     },

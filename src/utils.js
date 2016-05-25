@@ -4,19 +4,11 @@
 **/
 
 const _ = require('underscore');
-const Cache = require('./cache');
-const ajax = require('./request').ajax;
+const request = require('./request');
 
 const init = (AV) => {
-
   // 挂载一些配置
-  let AVConfig = AV._config;
-
-  // 服务器请求的节点 host
-  const API_HOST = {
-    cn: 'https://api.leancloud.cn',
-    us: 'https://us-api.leancloud.cn',
-  };
+  const AVConfig = AV._config;
 
   _.extend(AVConfig, {
 
@@ -117,44 +109,6 @@ const init = (AV) => {
     AV._useMasterKey = false;
   };
 
-  const setRegionServer = (region = 'cn') => {
-    AVConfig.region = region;
-    // 如果用户在 init 之前设置了 APIServerURL，则跳过请求 router
-    if (AVConfig.APIServerURL) {
-      return;
-    }
-    AVConfig.APIServerURL = API_HOST[region];
-    if (region === 'cn') {
-      // TODO: remove appId match hack
-      if (AV.applicationId.indexOf('-9Nh9j0Va') !== -1) {
-        AVConfig.APIServerURL = 'https://e1-api.leancloud.cn';
-      }
-
-      Cache.get('APIServerURL').then(cachedServerURL => {
-        if (cachedServerURL) {
-          return cachedServerURL;
-        } else {
-          return ajax('get', `https://app-router.leancloud.cn/1/route?appId=${AV.applicationId}`)
-            .then(servers => {
-              if (servers.api_server) {
-                let ttl = 3600;
-                if (typeof servers.ttl === 'number') {
-                  ttl = servers.ttl;
-                }
-                Cache.set('APIServerURL', servers.api_server, ttl * 1000);
-                return servers.api_server;
-              }
-            });
-        }
-      }).then(serverURL => {
-        // 如果用户在 init 之后设置了 APIServerURL，保持用户设置
-        if (AVConfig.APIServerURL === API_HOST[region]) {
-          AVConfig.APIServerURL = `https://${serverURL}`;
-        }
-      });
-    }
-  };
-
   /**
     * Call this method first to set up your authentication tokens for AV.
     * You can get your app keys from the LeanCloud dashboard on http://leancloud.cn .
@@ -166,7 +120,6 @@ const init = (AV) => {
   */
 
   AV.init = (...args) => {
-
     const masterKeyWarn = () => {
       console.warn('MasterKey should not be used in the browser. ' +
         'The permissions of MasterKey can be across all the server permissions,' +
@@ -181,7 +134,7 @@ const init = (AV) => {
             masterKeyWarn();
           }
           initialize(options.appId, options.appKey, options.masterKey);
-          setRegionServer(options.region);
+          request.setServerUrlByRegion(options.region);
           AVConfig.disableCurrentUser = options.disableCurrentUser;
         } else {
           throw new Error('AV.init(): Parameter is not correct.');
@@ -195,7 +148,7 @@ const init = (AV) => {
           masterKeyWarn();
         }
         initialize(...args);
-        setRegionServer('cn');
+        request.setServerUrlByRegion('cn');
       break;
     }
   };
@@ -238,7 +191,7 @@ const init = (AV) => {
   **/
   // TODO: 后续不再暴露此接口
   AV.useAVCloudCN = function(){
-    setRegionServer('cn');
+    request.setServerUrlByRegion('cn');
     console.warn('Do not use AV.useAVCloudCN. Please use AV.init(), you can set the region of server.');
   };
 
@@ -247,7 +200,7 @@ const init = (AV) => {
   **/
   // TODO: 后续不再暴露此接口
   AV.useAVCloudUS = function(){
-    setRegionServer('us');
+    request.setServerUrlByRegion('us');
     console.warn('Do not use AV.useAVCloudUS. Please use AV.init(), you can set the region of server.');
   };
 
@@ -331,7 +284,13 @@ const init = (AV) => {
   // TODO: Next version remove
   AV._ajax = (...args) => {
     console.warn('AV._ajax is deprecated, and will be removed in next release.');
-    ajax(...args);
+    request.ajax(...args);
+  };
+
+  // TODO: Next version remove
+  AV._request = (...args) => {
+    console.warn('AV._request is deprecated, and will be removed in next release.');
+    request.request(...args);
   };
 
   // A self-propagating extend function.

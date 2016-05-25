@@ -3,9 +3,9 @@
  * Each engineer has a duty to keep the code elegant
 **/
 
-'use strict';
-
-var _ = require('underscore');
+const _ = require('underscore');
+const AVError = require('./error');
+const AVRequest = require('./request').request;
 
 // AV.Query is a way to create a list of AV.Objects.
 module.exports = function(AV) {
@@ -29,7 +29,7 @@ module.exports = function(AV) {
    *   },
    *
    *   error: function(error) {
-   *     // error is an instance of AV.Error.
+   *     // error is an instance of AVError.
    *   }
    * });</pre></p>
    *
@@ -46,7 +46,7 @@ module.exports = function(AV) {
    *   },
    *
    *   error: function(object, error) {
-   *     // error is an instance of AV.Error.
+   *     // error is an instance of AVError.
    *   }
    * });</pre></p>
    *
@@ -61,7 +61,7 @@ module.exports = function(AV) {
    *   },
    *
    *   error: function(error) {
-   *     // error is an instance of AV.Error.
+   *     // error is an instance of AVError.
    *   }
    * });</pre></p>
    */
@@ -155,7 +155,7 @@ module.exports = function(AV) {
       options = pvalues;
     }
 
-    var request = AV._request('cloudQuery', null, null, 'GET', params, options && options.sessionToken);
+    var request = AVRequest('cloudQuery', null, null, 'GET', params, options && options.sessionToken);
     return request.then(function(response) {
       //query to process results.
       var query = new AV.Query(response.className);
@@ -190,7 +190,7 @@ module.exports = function(AV) {
      */
     get: function(objectId, options) {
       if(!objectId) {
-        var errorObject = new AV.Error(AV.Error.OBJECT_NOT_FOUND,
+        var errorObject = new AVError(AVError.OBJECT_NOT_FOUND,
                                           "Object not found.");
         throw errorObject;
       }
@@ -203,7 +203,7 @@ module.exports = function(AV) {
           return response;
         }
 
-        var errorObject = new AV.Error(AV.Error.OBJECT_NOT_FOUND,
+        var errorObject = new AVError(AVError.OBJECT_NOT_FOUND,
                                           "Object not found.");
         return AV.Promise.error(errorObject);
 
@@ -252,7 +252,7 @@ module.exports = function(AV) {
       return obj;
     },
     _createRequest: function(params, options){
-      return AV._request('classes', this.className, null, "GET",
+      return AVRequest('classes', this.className, null, "GET",
                                    params || this.toJSON(), options && options.sessionToken);
     },
 

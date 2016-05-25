@@ -67,10 +67,10 @@ describe('Objects', function(){
     it('should validate failed.', function(done){
       var TestObject = AV.Object.extend('TestObject', {
         validate: function (attrs, options){
-          return new AV.Error(1, "test");
+          return new Error('test');
         }
       });
-      var testObject =new TestObject();
+      var testObject = new TestObject();
       testObject.set('a',1, {
         success: function(){
           throw "should not be here.";
@@ -84,8 +84,6 @@ describe('Objects', function(){
       });
     });
   });
-
-
 
   describe("Retrieving Objects",function(){
     it("should be the just save Object",function(done){
