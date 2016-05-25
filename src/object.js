@@ -6,6 +6,7 @@
 const _ = require('underscore');
 const AVError = require('./error');
 const AVRequest = require('./request').request;
+const utils = require('./utils');
 
 // AV.Object is analogous to the Java AVObject.
 // It also implements the same interface as a Backbone model.
@@ -312,7 +313,7 @@ module.exports = function(AV) {
       }
       var val = this.attributes[attr];
       var escaped;
-      if (AV._isNullOrUndefined(val)) {
+      if (utils.isNullOrUndefined(val)) {
         escaped = '';
       } else {
         escaped = _.escape(val.toString());
@@ -328,7 +329,7 @@ module.exports = function(AV) {
      * @return {Boolean}
      */
     has: function(attr) {
-      return !AV._isNullOrUndefined(this.attributes[attr]);
+      return !utils.isNullOrUndefined(this.attributes[attr]);
     },
 
     /**
@@ -579,7 +580,7 @@ module.exports = function(AV) {
      */
     set: function(key, value, options) {
       var attrs, attr;
-      if (_.isObject(key) || AV._isNullOrUndefined(key)) {
+      if (_.isObject(key) || utils.isNullOrUndefined(key)) {
         attrs = key;
         AV._objectEach(attrs, function(v, k) {
           attrs[k] = AV._decode(k, v);
@@ -859,7 +860,7 @@ module.exports = function(AV) {
      */
     save: function(arg1, arg2, arg3) {
       var i, attrs, current, options, saved;
-      if (_.isObject(arg1) || AV._isNullOrUndefined(arg1)) {
+      if (_.isObject(arg1) || utils.isNullOrUndefined(arg1)) {
         attrs = arg1;
         options = arg2;
       } else {

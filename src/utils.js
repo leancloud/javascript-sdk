@@ -6,6 +6,9 @@
 const _ = require('underscore');
 const request = require('./request');
 
+// Helper function to check null or undefined.
+const isNullOrUndefined = (x) => _.isNull(x) || _.isUndefined(x);
+
 const init = (AV) => {
   // 挂载一些配置
   const AVConfig = AV._config;
@@ -49,7 +52,6 @@ const init = (AV) => {
 
   // Shared empty constructor function to aid in prototype-chain creation.
   var EmptyConstructor = function() {};
-
 
   // Helper function to correctly set up the prototype chain, for subclasses.
   // Similar to `goog.inherits`, but uses a hash of prototype properties and
@@ -181,7 +183,7 @@ const init = (AV) => {
    *  it's true by default.
    */
   AV.setProduction = (production) => {
-    if (!AV._isNullOrUndefined(production)) {
+    if (!isNullOrUndefined(production)) {
       AVConfig.applicationProduction = production ? 1 : 0;
     } else {
       console.warn('AV.setProduction() need a boolean param.');
@@ -542,13 +544,9 @@ const init = (AV) => {
       _.each(obj, callback);
     }
   };
-
-  // Helper function to check null or undefined.
-  AV._isNullOrUndefined = function(x) {
-    return _.isNull(x) || _.isUndefined(x);
-  };
 };
 
 module.exports = {
   init,
+  isNullOrUndefined,
 };
