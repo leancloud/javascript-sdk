@@ -977,7 +977,7 @@ module.exports = function(AV) {
      */
     currentAsync: function() {
       if (AV._config.disableCurrentUser) {
-        console.warn('AV.User.current() was disabled in multi-user environment, access user from request instead');
+        console.warn('AV.User.currentAsync() was disabled in multi-user environment, access user from request instead');
         return AV.Promise.as(null);
       }
 
