@@ -6,6 +6,9 @@
 const _ = require('underscore');
 const request = require('./request');
 
+// Helper function to check null or undefined.
+const isNullOrUndefined = (x) => _.isNull(x) || _.isUndefined(x);
+
 const init = (AV) => {
   // 挂载一些配置
   const AVConfig = AV._config;
@@ -26,6 +29,10 @@ const init = (AV) => {
 
     // Internal config can modifie the UserAgent
     userAgent: null,
+
+    // set production environment or test environment
+    // 1: production environment, 0: test environment, null: default environment
+    applicationProduction: null,
   });
 
   /**
@@ -46,7 +53,6 @@ const init = (AV) => {
 
   // Shared empty constructor function to aid in prototype-chain creation.
   var EmptyConstructor = function() {};
-
 
   // Helper function to correctly set up the prototype chain, for subclasses.
   // Similar to `goog.inherits`, but uses a hash of prototype properties and
@@ -177,13 +183,13 @@ const init = (AV) => {
    * @param {Boolean} production True is production environment,and
    *  it's true by default.
    */
-  AV.setProduction = function(production){
-    if(!AV._isNullOrUndefined(production)) {
-      //make sure it's a number
-      production = production ? 1 : 0;
+  AV.setProduction = (production) => {
+    if (!isNullOrUndefined(production)) {
+      AVConfig.applicationProduction = production ? 1 : 0;
+    } else {
+      // change to default value
+      AVConfig.applicationProduction = null;
     }
-    //default is 1
-    AV.applicationProduction = AV._isNullOrUndefined(production) ? 1: production;
   };
 
   /**
@@ -540,13 +546,9 @@ const init = (AV) => {
       _.each(obj, callback);
     }
   };
-
-  // Helper function to check null or undefined.
-  AV._isNullOrUndefined = function(x) {
-    return _.isNull(x) || _.isUndefined(x);
-  };
 };
 
 module.exports = {
   init,
+  isNullOrUndefined,
 };
