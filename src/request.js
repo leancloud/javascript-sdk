@@ -99,8 +99,8 @@ const setHeaders = (sessionToken) => {
   } else {
     headers['X-LC-Sign'] = sign(AV.applicationKey);
   }
-  if (!AV._config.applicationProduction) {
-    headers['X-LC-Prod'] = 0;
+  if (!AV._config.applicationProduction === null) {
+    headers['X-LC-Prod'] = AV._config.applicationProduction;
   }
   if (!AV._config.isNode) {
     headers['X-LC-UA'] = `AV/${AV.version}`;
