@@ -1,11 +1,13 @@
+'use strict';
+
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
 **/
 
-'use strict';
-
 var _ = require('underscore');
+var AVError = require('./error');
+var AVRequest = require('./request').request;
 
 module.exports = function (AV) {
   /**
@@ -47,7 +49,7 @@ module.exports = function (AV) {
         jobConfig: jobConfig,
         appId: AV.applicationId
       };
-      var request = AV._request("bigquery", 'jobs', null, 'POST', AV._encode(data, null, true));
+      var request = AVRequest("bigquery", 'jobs', null, 'POST', AV._encode(data, null, true));
 
       return request.then(function (resp) {
         return AV._decode(null, resp).id;
@@ -128,11 +130,11 @@ module.exports = function (AV) {
         limit: this._limit
       };
 
-      var request = AV._request("bigquery", 'jobs', this.id, "GET", params);
+      var request = AVRequest("bigquery", 'jobs', this.id, "GET", params);
       var self = this;
       return request.then(function (response) {
         if (response.error) {
-          return AV.Promise.error(new AV.Error(response.code, response.error));
+          return AV.Promise.error(new AVError(response.code, response.error));
         }
         return AV.Promise.as(response);
       })._thenRunCallbacks(options);

@@ -1,13 +1,15 @@
+'use strict';
+
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
 **/
 
-'use strict';
-
 var _ = require('underscore');
 var cos = require('./uploader/cos');
 var qiniu = require('./uploader/qiniu');
+var AVError = require('./error');
+var AVRequest = require('./request').request;
 
 module.exports = function (AV) {
 
@@ -273,20 +275,20 @@ module.exports = function (AV) {
     var promise = new AV.Promise();
 
     if (typeof FileReader === "undefined") {
-      return AV.Promise.error(new AV.Error(-1, "Attempted to use a FileReader on an unsupported browser."));
+      return AV.Promise.error(new AVError(-1, "Attempted to use a FileReader on an unsupported browser."));
     }
 
     var reader = new global.FileReader();
     reader.onloadend = function () {
       if (reader.readyState !== 2) {
-        promise.reject(new AV.Error(-1, "Error reading file."));
+        promise.reject(new AVError(-1, "Error reading file."));
         return;
       }
 
       var dataURL = reader.result;
       var matches = /^data:([^;]*);base64,(.*)$/.exec(dataURL);
       if (!matches) {
-        promise.reject(new AV.Error(-1, "Unable to interpret data URL: " + dataURL));
+        promise.reject(new AVError(-1, "Unable to interpret data URL: " + dataURL));
         return;
       }
 
@@ -440,7 +442,7 @@ module.exports = function (AV) {
      */
     setACL: function setACL(acl) {
       if (!(acl instanceof AV.ACL)) {
-        return new AV.Error(AV.Error.OTHER_CAUSE, 'ACL must be a AV.ACL.');
+        return new AVError(AVError.OTHER_CAUSE, 'ACL must be a AV.ACL.');
       }
       this._acl = acl;
     },
@@ -596,7 +598,7 @@ module.exports = function (AV) {
       if (!this.id) {
         return AV.Promise.error('The file id is not eixsts.')._thenRunCallbacks(options);
       }
-      var request = AV._request("files", null, this.id, 'DELETE', options && options.sessionToken);
+      var request = AVRequest("files", null, this.id, 'DELETE', options && options.sessionToken);
       return request._thenRunCallbacks(options);
     },
 
@@ -627,7 +629,7 @@ module.exports = function (AV) {
         this.attributes.metaData.mime_type = type;
       }
       this._qiniu_key = key;
-      return AV._request(route, null, null, 'POST', data);
+      return AVRequest(route, null, null, 'POST', data);
     },
 
     /**
@@ -689,7 +691,7 @@ module.exports = function (AV) {
             mime_type: this._guessedType,
             url: this.attributes.url
           };
-          this._previousSave = AV._request('files', this.attributes.name, null, 'post', data).then(function (response) {
+          this._previousSave = AVRequest('files', this.attributes.name, null, 'post', data).then(function (response) {
             _this2.attributes.name = response.name;
             _this2.attributes.url = response.url;
             _this2.id = response.objectId;
@@ -711,14 +713,14 @@ module.exports = function (AV) {
             // 判断是否数据已经是 base64
             if (_this2.attributes.base64) {
               data.base64 = _this2.attributes.base64;
-              return AV._request('files', _this2.attributes.name, null, 'POST', data);
+              return AVRequest('files', _this2.attributes.name, null, 'POST', data);
             } else if (typeof global.Buffer !== "undefined" && global.Buffer.isBuffer(file)) {
               data.base64 = file.toString('base64');
-              return AV._request('files', _this2.attributes.name, null, 'POST', data);
+              return AVRequest('files', _this2.attributes.name, null, 'POST', data);
             } else {
               return readAsync(file).then(function (base64) {
                 data.base64 = base64;
-                return AV._request('files', this.attributes.name, null, 'POST', data);
+                return AVRequest('files', this.attributes.name, null, 'POST', data);
               });
             }
           }).then(function (response) {
@@ -756,7 +758,7 @@ module.exports = function (AV) {
         options = arguments[1];
       }
 
-      var request = AV._request('files', null, this.id, 'GET', fetchOptions);
+      var request = AVRequest('files', null, this.id, 'GET', fetchOptions);
       return request.then(function (response) {
         var value = AV.Object.prototype.parse(response);
         value.attributes = {

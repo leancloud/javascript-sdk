@@ -8,19 +8,16 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 **/
 
 var _ = require('underscore');
-var Cache = require('./cache');
-var ajax = require('./request').ajax;
+var request = require('./request');
+
+// Helper function to check null or undefined.
+var isNullOrUndefined = function isNullOrUndefined(x) {
+  return _.isNull(x) || _.isUndefined(x);
+};
 
 var init = function init(AV) {
-
   // 挂载一些配置
   var AVConfig = AV._config;
-
-  // 服务器请求的节点 host
-  var API_HOST = {
-    cn: 'https://api.leancloud.cn',
-    us: 'https://us-api.leancloud.cn'
-  };
 
   _.extend(AVConfig, {
 
@@ -37,7 +34,11 @@ var init = function init(AV) {
     disableCurrentUser: false,
 
     // Internal config can modifie the UserAgent
-    userAgent: null
+    userAgent: null,
+
+    // set production environment or test environment
+    // 1: production environment, 0: test environment, null: default environment
+    applicationProduction: null
   });
 
   /**
@@ -122,45 +123,6 @@ var init = function init(AV) {
     AV._useMasterKey = false;
   };
 
-  var setRegionServer = function setRegionServer() {
-    var region = arguments.length <= 0 || arguments[0] === undefined ? 'cn' : arguments[0];
-
-    AVConfig.region = region;
-    // 如果用户在 init 之前设置了 APIServerURL，则跳过请求 router
-    if (AVConfig.APIServerURL) {
-      return;
-    }
-    AVConfig.APIServerURL = API_HOST[region];
-    if (region === 'cn') {
-      // TODO: remove appId match hack
-      if (AV.applicationId.indexOf('-9Nh9j0Va') !== -1) {
-        AVConfig.APIServerURL = 'https://e1-api.leancloud.cn';
-      }
-
-      Cache.get('APIServerURL').then(function (cachedServerURL) {
-        if (cachedServerURL) {
-          return cachedServerURL;
-        } else {
-          return ajax('get', 'https://app-router.leancloud.cn/1/route?appId=' + AV.applicationId).then(function (servers) {
-            if (servers.api_server) {
-              var ttl = 3600;
-              if (typeof servers.ttl === 'number') {
-                ttl = servers.ttl;
-              }
-              Cache.set('APIServerURL', servers.api_server, ttl * 1000);
-              return servers.api_server;
-            }
-          });
-        }
-      }).then(function (serverURL) {
-        // 如果用户在 init 之后设置了 APIServerURL，保持用户设置
-        if (AVConfig.APIServerURL === API_HOST[region]) {
-          AVConfig.APIServerURL = 'https://' + serverURL;
-        }
-      });
-    }
-  };
-
   /**
     * Call this method first to set up your authentication tokens for AV.
     * You can get your app keys from the LeanCloud dashboard on http://leancloud.cn .
@@ -172,7 +134,6 @@ var init = function init(AV) {
   */
 
   AV.init = function () {
-
     var masterKeyWarn = function masterKeyWarn() {
       console.warn('MasterKey should not be used in the browser. ' + 'The permissions of MasterKey can be across all the server permissions,' + ' including the setting of ACL .');
     };
@@ -185,7 +146,7 @@ var init = function init(AV) {
             masterKeyWarn();
           }
           initialize(options.appId, options.appKey, options.masterKey);
-          setRegionServer(options.region);
+          request.setServerUrlByRegion(options.region);
           AVConfig.disableCurrentUser = options.disableCurrentUser;
         } else {
           throw new Error('AV.init(): Parameter is not correct.');
@@ -199,7 +160,7 @@ var init = function init(AV) {
           masterKeyWarn();
         }
         initialize.apply(undefined, arguments);
-        setRegionServer('cn');
+        request.setServerUrlByRegion('cn');
         break;
     }
   };
@@ -229,12 +190,12 @@ var init = function init(AV) {
    *  it's true by default.
    */
   AV.setProduction = function (production) {
-    if (!AV._isNullOrUndefined(production)) {
-      //make sure it's a number
-      production = production ? 1 : 0;
+    if (!isNullOrUndefined(production)) {
+      AVConfig.applicationProduction = production ? 1 : 0;
+    } else {
+      // change to default value
+      AVConfig.applicationProduction = null;
     }
-    //default is 1
-    AV.applicationProduction = AV._isNullOrUndefined(production) ? 1 : production;
   };
 
   /**
@@ -242,7 +203,7 @@ var init = function init(AV) {
   **/
   // TODO: 后续不再暴露此接口
   AV.useAVCloudCN = function () {
-    setRegionServer('cn');
+    request.setServerUrlByRegion('cn');
     console.warn('Do not use AV.useAVCloudCN. Please use AV.init(), you can set the region of server.');
   };
 
@@ -251,7 +212,7 @@ var init = function init(AV) {
   **/
   // TODO: 后续不再暴露此接口
   AV.useAVCloudUS = function () {
-    setRegionServer('us');
+    request.setServerUrlByRegion('us');
     console.warn('Do not use AV.useAVCloudUS. Please use AV.init(), you can set the region of server.');
   };
 
@@ -326,7 +287,13 @@ var init = function init(AV) {
   // TODO: Next version remove
   AV._ajax = function () {
     console.warn('AV._ajax is deprecated, and will be removed in next release.');
-    ajax.apply(undefined, arguments);
+    request.ajax.apply(request, arguments);
+  };
+
+  // TODO: Next version remove
+  AV._request = function () {
+    console.warn('AV._request is deprecated, and will be removed in next release.');
+    request.request.apply(request, arguments);
   };
 
   // A self-propagating extend function.
@@ -574,13 +541,9 @@ var init = function init(AV) {
       _.each(obj, callback);
     }
   };
-
-  // Helper function to check null or undefined.
-  AV._isNullOrUndefined = function (x) {
-    return _.isNull(x) || _.isUndefined(x);
-  };
 };
 
 module.exports = {
-  init: init
+  init: init,
+  isNullOrUndefined: isNullOrUndefined
 };

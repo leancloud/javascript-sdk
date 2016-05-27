@@ -1,11 +1,12 @@
+'use strict';
+
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
 **/
 
-'use strict';
-
 var _ = require('underscore');
+var AVError = require('./error');
 
 module.exports = function (AV) {
   /**
@@ -120,13 +121,13 @@ module.exports = function (AV) {
           // Check to see if the objectId being set matches this.id.
           // This happens during a fetch -- the id is set before calling fetch.
           // Let the name be set in this case.
-          return new AV.Error(AV.Error.OTHER_CAUSE, "A role's name can only be set before it has been saved.");
+          return new AVError(AVError.OTHER_CAUSE, "A role's name can only be set before it has been saved.");
         }
         if (!_.isString(newName)) {
-          return new AV.Error(AV.Error.OTHER_CAUSE, "A role's name must be a String.");
+          return new AVError(AVError.OTHER_CAUSE, "A role's name must be a String.");
         }
         if (!/^[0-9a-zA-Z\-_ ]+$/.test(newName)) {
-          return new AV.Error(AV.Error.OTHER_CAUSE, "A role's name can only contain alphanumeric characters, _," + " -, and spaces.");
+          return new AVError(AVError.OTHER_CAUSE, "A role's name can only contain alphanumeric characters, _," + " -, and spaces.");
         }
       }
       if (AV.Object.prototype.validate) {

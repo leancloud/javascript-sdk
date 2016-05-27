@@ -1,5 +1,10 @@
 'use strict';
 
+/**
+ * 每位工程师都有保持代码优雅的义务
+ * Each engineer has a duty to keep the code elegant
+**/
+
 var storage = require('./localstorage');
 var AV = require('./av');
 
@@ -26,9 +31,7 @@ exports.get = function (key) {
 };
 
 exports.set = function (key, value, ttl) {
-  var cache = {
-    value: value
-  };
+  var cache = { value: value };
   if (typeof ttl === 'number') {
     cache.expiredAt = Date.now() + ttl;
   }
