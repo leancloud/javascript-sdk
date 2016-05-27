@@ -1,9 +1,11 @@
+"use strict";
+
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
 **/
 
-'use strict';
+var AVRequest = require('./request').request;
 
 module.exports = function (AV) {
   AV.Installation = AV.Object.extend("_Installation");
@@ -33,7 +35,7 @@ module.exports = function (AV) {
    *   <ol>
    * @param {Object} options An object that has an optional success function,
    * that takes no arguments and will be called on a successful push, and
-   * an error function that takes a AV.Error and will be called if the push
+   * an error function that takes a AVError and will be called if the push
    * failed.
    */
   AV.Push.send = function (data, options) {
@@ -57,7 +59,7 @@ module.exports = function (AV) {
       throw "Both expiration_time and expiration_time_interval can't be set";
     }
 
-    var request = AV._request('push', null, null, 'POST', data);
+    var request = AVRequest('push', null, null, 'POST', data);
     return request._thenRunCallbacks(options);
   };
 };

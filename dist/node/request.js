@@ -11,6 +11,9 @@ var request = require('superagent');
 var debug = require('debug')('request');
 var md5 = require('md5');
 var Promise = require('./promise');
+var Cache = require('./cache');
+var AVError = require('./error');
+var AV = require('./av');
 
 // 计算 X-LC-Sign 的签名方法
 var sign = function sign(key, isMasterKey) {
@@ -57,8 +60,7 @@ var ajax = function ajax(method, resourceUrl, data) {
   return promise;
 };
 
-var setHeaders = function setHeaders(AV, sessionToken) {
-
+var setHeaders = function setHeaders(sessionToken) {
   var headers = {
     'X-LC-Id': AV.applicationId,
     'Content-Type': 'application/json;charset=UTF-8'
@@ -68,8 +70,8 @@ var setHeaders = function setHeaders(AV, sessionToken) {
   } else {
     headers['X-LC-Sign'] = sign(AV.applicationKey);
   }
-  if (!AV._isNullOrUndefined(AV.applicationProduction)) {
-    headers['X-LC-Prod'] = AV.applicationProduction;
+  if (AV._config.applicationProduction !== null) {
+    headers['X-LC-Prod'] = AV._config.applicationProduction;
   }
   if (!AV._config.isNode) {
     headers['X-LC-UA'] = 'AV/' + AV.version;
@@ -98,7 +100,7 @@ var setHeaders = function setHeaders(AV, sessionToken) {
   return promise;
 };
 
-var createApiUrl = function createApiUrl(AV, route, className, objectId, method, dataObject) {
+var createApiUrl = function createApiUrl(route, className, objectId, method, dataObject) {
   // TODO: 兼容 AV.serverURL 旧方式设置 API Host，后续去掉
   if (AV.serverURL) {
     AV._config.APIServerURL = AV.serverURL;
@@ -106,9 +108,6 @@ var createApiUrl = function createApiUrl(AV, route, className, objectId, method,
   }
 
   var apiURL = AV._config.APIServerURL;
-
-  // Test Data
-  // apiURL = 'https://e1-api.leancloud.cn';
 
   if (apiURL.charAt(apiURL.length - 1) !== '/') {
     apiURL += '/';
@@ -147,68 +146,114 @@ var createApiUrl = function createApiUrl(AV, route, className, objectId, method,
   return apiURL;
 };
 
-/**
-  When API request need to redirect to the right location,
-  can't use browser redirect by http status 307, as the reason of CORS,
-  so API server response http status 410 and the param "location" for this case.
-*/
-// const retryRequest = () => {
+var cacheServerURL = function cacheServerURL(serverURL, ttl) {
+  if (typeof ttl !== 'number') {
+    ttl = 3600;
+  }
+  Cache.set('APIServerURL', serverURL, ttl * 1000);
+};
 
-// };
-
-var init = function init(AV) {
+// handle AV._request Error
+var handleError = function handleError(res) {
+  var promise = new Promise();
   /**
-   * route is classes, users, login, etc.
-   * objectId is null if there is no associated objectId.
-   * method is the http method for the REST API.
-   * dataObject is the payload as an object, or null if there is none.
-   * @ignore
-   */
-  AV._request = function (route, className, objectId, method) {
-    var dataObject = arguments.length <= 4 || arguments[4] === undefined ? {} : arguments[4];
-    var sessionToken = arguments[5];
-
-    if (!AV.applicationId) {
-      throw new Error('You must specify your applicationId using AV.init()');
+    When API request need to redirect to the right location,
+    can't use browser redirect by http status 307, as the reason of CORS,
+    so API server response http status 410 and the param "location" for this case.
+  */
+  if (res.statusCode === 410) {
+    cacheServerURL(res.response.api_server, res.response.ttl);
+    promise.resolve(res.response.location);
+  } else {
+    var errorJSON = { code: -1, error: res.responseText };
+    if (res.response && res.response.code) {
+      errorJSON = res.response;
+    } else if (res.responseText) {
+      try {
+        errorJSON = JSON.parse(res.responseText);
+      } catch (e) {
+        // If we fail to parse the error text, that's okay.
+      }
     }
 
-    if (!AV.applicationKey && !AV.masterKey) {
-      throw new Error('You must specify a AppKey using AV.init()');
-    }
+    // Transform the error into an instance of AVError by trying to parse
+    // the error string as JSON.
+    var error = new AVError(errorJSON.code, errorJSON.error);
+    promise.reject(error);
+  }
+  return promise;
+};
 
-    checkRouter(route);
-    var apiURL = createApiUrl(AV, route, className, objectId, method, dataObject);
+var setServerUrlByRegion = function setServerUrlByRegion() {
+  var region = arguments.length <= 0 || arguments[0] === undefined ? 'cn' : arguments[0];
 
-    return setHeaders(AV, sessionToken).then(function (headers) {
-      return ajax(method, apiURL, dataObject, headers).then(null, function (response) {
-        // Transform the error into an instance of AV.Error by trying to parse
-        // the error string as JSON.
-        var error = undefined;
-        if (response) {
-          if (response.response) {
-            error = new AV.Error(response.response.code, response.response.error);
-          } else if (response.responseText) {
-            try {
-              var errorJSON = JSON.parse(response.responseText);
-              if (errorJSON) {
-                error = new AV.Error(errorJSON.code, errorJSON.error);
-              }
-            } catch (e) {
-              // If we fail to parse the error text, that's okay.
-            }
+  // 服务器请求的节点 host
+  var API_HOST = {
+    cn: 'https://api.leancloud.cn',
+    us: 'https://us-api.leancloud.cn'
+  };
+
+  var AVConfig = AV._config;
+  AVConfig.region = region;
+  // 如果用户在 init 之前设置了 APIServerURL，则跳过请求 router
+  if (AVConfig.APIServerURL) {
+    return;
+  }
+  AVConfig.APIServerURL = API_HOST[region];
+  if (region === 'cn') {
+    Cache.get('APIServerURL').then(function (cachedServerURL) {
+      if (cachedServerURL) {
+        return cachedServerURL;
+      } else {
+        return ajax('get', 'https://app-router.leancloud.cn/1/route?appId=' + AV.applicationId).then(function (servers) {
+          if (servers.api_server) {
+            cacheServerURL(servers.api_server, servers.ttl);
+            return servers.api_server;
           }
-        }
-        error = error || new AV.Error(-1, response.responseText);
+        });
+      }
+    }).then(function (serverURL) {
+      // 如果用户在 init 之后设置了 APIServerURL，保持用户设置
+      if (AVConfig.APIServerURL === API_HOST[region]) {
+        AVConfig.APIServerURL = 'https://' + serverURL;
+      }
+    });
+  }
+};
 
-        // By explicitly returning a rejected Promise, this will work with
-        // either jQuery or Promises/A semantics.
-        return Promise.error(error);
+/**
+ * route is classes, users, login, etc.
+ * objectId is null if there is no associated objectId.
+ * method is the http method for the REST API.
+ * dataObject is the payload as an object, or null if there is none.
+ * @ignore
+ */
+var AVRequest = function AVRequest(route, className, objectId, method) {
+  var dataObject = arguments.length <= 4 || arguments[4] === undefined ? {} : arguments[4];
+  var sessionToken = arguments[5];
+
+  if (!AV.applicationId) {
+    throw new Error('You must specify your applicationId using AV.init()');
+  }
+
+  if (!AV.applicationKey && !AV.masterKey) {
+    throw new Error('You must specify a AppKey using AV.init()');
+  }
+
+  checkRouter(route);
+  var apiURL = createApiUrl(route, className, objectId, method, dataObject);
+
+  return setHeaders(sessionToken).then(function (headers) {
+    return ajax(method, apiURL, dataObject, headers).then(null, function (res) {
+      return handleError(res).then(function (location) {
+        return ajax(method, location, dataObject, headers);
       });
     });
-  };
+  });
 };
 
 module.exports = {
-  init: init,
-  ajax: ajax
+  ajax: ajax,
+  request: AVRequest,
+  setServerUrlByRegion: setServerUrlByRegion
 };

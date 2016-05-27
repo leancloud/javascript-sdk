@@ -1,3 +1,10 @@
+# 1.0.0-rc10  日期：2016 年 5 月 27 日
+* 服务器针对浏览器 CORS 返回 307 无法跳转的问题，采用通过返回 410 和自定义字段的方式，在 SDK 层面支持重定向 request
+* 增加内部接口 AV._config.userAgent
+* 移除内部接口 AV._request
+* 移除 AV.Error 对象，改为内部模块
+* 移除 AV.applicationProduction 改为 AV._config.applicationProduction 内部接口
+
 # 1.0.0-rc9.2  日期：2016 年 5 月 23 日
 * 修复了上传文件成功却进入失败回调的问题。
 * 修复 `AV.Object#fetch` 在某些情况下抛出 `fetchOptions.include.join is not a function` 异常的问题。

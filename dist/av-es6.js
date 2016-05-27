@@ -1,137 +1,262 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.AV = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 
 },{}],2:[function(require,module,exports){
-var charenc = {
-  // UTF-8 encoding
-  utf8: {
-    // Convert a string to a byte array
-    stringToBytes: function(str) {
-      return charenc.bin.stringToBytes(unescape(encodeURIComponent(str)));
-    },
+// shim for using process in browser
 
-    // Convert a byte array to a string
-    bytesToString: function(bytes) {
-      return decodeURIComponent(escape(charenc.bin.bytesToString(bytes)));
+var process = module.exports = {};
+var queue = [];
+var draining = false;
+var currentQueue;
+var queueIndex = -1;
+
+function cleanUpNextTick() {
+    draining = false;
+    if (currentQueue.length) {
+        queue = currentQueue.concat(queue);
+    } else {
+        queueIndex = -1;
     }
-  },
-
-  // Binary encoding
-  bin: {
-    // Convert a string to a byte array
-    stringToBytes: function(str) {
-      for (var bytes = [], i = 0; i < str.length; i++)
-        bytes.push(str.charCodeAt(i) & 0xFF);
-      return bytes;
-    },
-
-    // Convert a byte array to a string
-    bytesToString: function(bytes) {
-      for (var str = [], i = 0; i < bytes.length; i++)
-        str.push(String.fromCharCode(bytes[i]));
-      return str.join('');
+    if (queue.length) {
+        drainQueue();
     }
-  }
+}
+
+function drainQueue() {
+    if (draining) {
+        return;
+    }
+    var timeout = setTimeout(cleanUpNextTick);
+    draining = true;
+
+    var len = queue.length;
+    while(len) {
+        currentQueue = queue;
+        queue = [];
+        while (++queueIndex < len) {
+            if (currentQueue) {
+                currentQueue[queueIndex].run();
+            }
+        }
+        queueIndex = -1;
+        len = queue.length;
+    }
+    currentQueue = null;
+    draining = false;
+    clearTimeout(timeout);
+}
+
+process.nextTick = function (fun) {
+    var args = new Array(arguments.length - 1);
+    if (arguments.length > 1) {
+        for (var i = 1; i < arguments.length; i++) {
+            args[i - 1] = arguments[i];
+        }
+    }
+    queue.push(new Item(fun, args));
+    if (queue.length === 1 && !draining) {
+        setTimeout(drainQueue, 0);
+    }
 };
 
-module.exports = charenc;
+// v8 likes predictible objects
+function Item(fun, array) {
+    this.fun = fun;
+    this.array = array;
+}
+Item.prototype.run = function () {
+    this.fun.apply(null, this.array);
+};
+process.title = 'browser';
+process.browser = true;
+process.env = {};
+process.argv = [];
+process.version = ''; // empty string to avoid regexp issues
+process.versions = {};
+
+function noop() {}
+
+process.on = noop;
+process.addListener = noop;
+process.once = noop;
+process.off = noop;
+process.removeListener = noop;
+process.removeAllListeners = noop;
+process.emit = noop;
+
+process.binding = function (name) {
+    throw new Error('process.binding is not supported');
+};
+
+process.cwd = function () { return '/' };
+process.chdir = function (dir) {
+    throw new Error('process.chdir is not supported');
+};
+process.umask = function() { return 0; };
 
 },{}],3:[function(require,module,exports){
-(function() {
-  var base64map
-      = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/',
 
-  crypt = {
-    // Bit-wise rotation left
-    rotl: function(n, b) {
-      return (n << b) | (n >>> (32 - b));
-    },
+/**
+ * Expose `Emitter`.
+ */
 
-    // Bit-wise rotation right
-    rotr: function(n, b) {
-      return (n << (32 - b)) | (n >>> b);
-    },
+if (typeof module !== 'undefined') {
+  module.exports = Emitter;
+}
 
-    // Swap big-endian to little-endian and vice versa
-    endian: function(n) {
-      // If number given, swap endian
-      if (n.constructor == Number) {
-        return crypt.rotl(n, 8) & 0x00FF00FF | crypt.rotl(n, 24) & 0xFF00FF00;
-      }
+/**
+ * Initialize a new `Emitter`.
+ *
+ * @api public
+ */
 
-      // Else, assume array and swap all items
-      for (var i = 0; i < n.length; i++)
-        n[i] = crypt.endian(n[i]);
-      return n;
-    },
+function Emitter(obj) {
+  if (obj) return mixin(obj);
+};
 
-    // Generate an array of any length of random bytes
-    randomBytes: function(n) {
-      for (var bytes = []; n > 0; n--)
-        bytes.push(Math.floor(Math.random() * 256));
-      return bytes;
-    },
+/**
+ * Mixin the emitter properties.
+ *
+ * @param {Object} obj
+ * @return {Object}
+ * @api private
+ */
 
-    // Convert a byte array to big-endian 32-bit words
-    bytesToWords: function(bytes) {
-      for (var words = [], i = 0, b = 0; i < bytes.length; i++, b += 8)
-        words[b >>> 5] |= bytes[i] << (24 - b % 32);
-      return words;
-    },
+function mixin(obj) {
+  for (var key in Emitter.prototype) {
+    obj[key] = Emitter.prototype[key];
+  }
+  return obj;
+}
 
-    // Convert big-endian 32-bit words to a byte array
-    wordsToBytes: function(words) {
-      for (var bytes = [], b = 0; b < words.length * 32; b += 8)
-        bytes.push((words[b >>> 5] >>> (24 - b % 32)) & 0xFF);
-      return bytes;
-    },
+/**
+ * Listen on the given `event` with `fn`.
+ *
+ * @param {String} event
+ * @param {Function} fn
+ * @return {Emitter}
+ * @api public
+ */
 
-    // Convert a byte array to a hex string
-    bytesToHex: function(bytes) {
-      for (var hex = [], i = 0; i < bytes.length; i++) {
-        hex.push((bytes[i] >>> 4).toString(16));
-        hex.push((bytes[i] & 0xF).toString(16));
-      }
-      return hex.join('');
-    },
+Emitter.prototype.on =
+Emitter.prototype.addEventListener = function(event, fn){
+  this._callbacks = this._callbacks || {};
+  (this._callbacks['$' + event] = this._callbacks['$' + event] || [])
+    .push(fn);
+  return this;
+};
 
-    // Convert a hex string to a byte array
-    hexToBytes: function(hex) {
-      for (var bytes = [], c = 0; c < hex.length; c += 2)
-        bytes.push(parseInt(hex.substr(c, 2), 16));
-      return bytes;
-    },
+/**
+ * Adds an `event` listener that will be invoked a single
+ * time then automatically removed.
+ *
+ * @param {String} event
+ * @param {Function} fn
+ * @return {Emitter}
+ * @api public
+ */
 
-    // Convert a byte array to a base-64 string
-    bytesToBase64: function(bytes) {
-      for (var base64 = [], i = 0; i < bytes.length; i += 3) {
-        var triplet = (bytes[i] << 16) | (bytes[i + 1] << 8) | bytes[i + 2];
-        for (var j = 0; j < 4; j++)
-          if (i * 8 + j * 6 <= bytes.length * 8)
-            base64.push(base64map.charAt((triplet >>> 6 * (3 - j)) & 0x3F));
-          else
-            base64.push('=');
-      }
-      return base64.join('');
-    },
+Emitter.prototype.once = function(event, fn){
+  function on() {
+    this.off(event, on);
+    fn.apply(this, arguments);
+  }
 
-    // Convert a base-64 string to a byte array
-    base64ToBytes: function(base64) {
-      // Remove non-base-64 characters
-      base64 = base64.replace(/[^A-Z0-9+\/]/ig, '');
+  on.fn = fn;
+  this.on(event, on);
+  return this;
+};
 
-      for (var bytes = [], i = 0, imod4 = 0; i < base64.length;
-          imod4 = ++i % 4) {
-        if (imod4 == 0) continue;
-        bytes.push(((base64map.indexOf(base64.charAt(i - 1))
-            & (Math.pow(2, -2 * imod4 + 8) - 1)) << (imod4 * 2))
-            | (base64map.indexOf(base64.charAt(i)) >>> (6 - imod4 * 2)));
-      }
-      return bytes;
+/**
+ * Remove the given callback for `event` or all
+ * registered callbacks.
+ *
+ * @param {String} event
+ * @param {Function} fn
+ * @return {Emitter}
+ * @api public
+ */
+
+Emitter.prototype.off =
+Emitter.prototype.removeListener =
+Emitter.prototype.removeAllListeners =
+Emitter.prototype.removeEventListener = function(event, fn){
+  this._callbacks = this._callbacks || {};
+
+  // all
+  if (0 == arguments.length) {
+    this._callbacks = {};
+    return this;
+  }
+
+  // specific event
+  var callbacks = this._callbacks['$' + event];
+  if (!callbacks) return this;
+
+  // remove all handlers
+  if (1 == arguments.length) {
+    delete this._callbacks['$' + event];
+    return this;
+  }
+
+  // remove specific handler
+  var cb;
+  for (var i = 0; i < callbacks.length; i++) {
+    cb = callbacks[i];
+    if (cb === fn || cb.fn === fn) {
+      callbacks.splice(i, 1);
+      break;
     }
-  };
+  }
+  return this;
+};
 
-  module.exports = crypt;
-})();
+/**
+ * Emit `event` with the given args.
+ *
+ * @param {String} event
+ * @param {Mixed} ...
+ * @return {Emitter}
+ */
+
+Emitter.prototype.emit = function(event){
+  this._callbacks = this._callbacks || {};
+  var args = [].slice.call(arguments, 1)
+    , callbacks = this._callbacks['$' + event];
+
+  if (callbacks) {
+    callbacks = callbacks.slice(0);
+    for (var i = 0, len = callbacks.length; i < len; ++i) {
+      callbacks[i].apply(this, args);
+    }
+  }
+
+  return this;
+};
+
+/**
+ * Return array of callbacks for `event`.
+ *
+ * @param {String} event
+ * @return {Array}
+ * @api public
+ */
+
+Emitter.prototype.listeners = function(event){
+  this._callbacks = this._callbacks || {};
+  return this._callbacks['$' + event] || [];
+};
+
+/**
+ * Check if this emitter has `event` handlers.
+ *
+ * @param {String} event
+ * @return {Boolean}
+ * @api public
+ */
+
+Emitter.prototype.hasListeners = function(event){
+  return !! this.listeners(event).length;
+};
 
 },{}],4:[function(require,module,exports){
 
@@ -502,23 +627,131 @@ function coerce(val) {
   return val;
 }
 
-},{"ms":9}],6:[function(require,module,exports){
+},{"ms":6}],6:[function(require,module,exports){
 /**
- * Determine if an object is Buffer
- *
- * Author:   Feross Aboukhadijeh <feross@feross.org> <http://feross.org>
- * License:  MIT
- *
- * `npm install is-buffer`
+ * Helpers.
  */
 
-module.exports = function (obj) {
-  return !!(obj != null &&
-    (obj._isBuffer || // For Safari 5-7 (missing Object.prototype.constructor)
-      (obj.constructor &&
-      typeof obj.constructor.isBuffer === 'function' &&
-      obj.constructor.isBuffer(obj))
-    ))
+var s = 1000;
+var m = s * 60;
+var h = m * 60;
+var d = h * 24;
+var y = d * 365.25;
+
+/**
+ * Parse or format the given `val`.
+ *
+ * Options:
+ *
+ *  - `long` verbose formatting [false]
+ *
+ * @param {String|Number} val
+ * @param {Object} options
+ * @return {String|Number}
+ * @api public
+ */
+
+module.exports = function(val, options){
+  options = options || {};
+  if ('string' == typeof val) return parse(val);
+  return options.long
+    ? long(val)
+    : short(val);
+};
+
+/**
+ * Parse the given `str` and return milliseconds.
+ *
+ * @param {String} str
+ * @return {Number}
+ * @api private
+ */
+
+function parse(str) {
+  str = '' + str;
+  if (str.length > 10000) return;
+  var match = /^((?:\d+)?\.?\d+) *(milliseconds?|msecs?|ms|seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|days?|d|years?|yrs?|y)?$/i.exec(str);
+  if (!match) return;
+  var n = parseFloat(match[1]);
+  var type = (match[2] || 'ms').toLowerCase();
+  switch (type) {
+    case 'years':
+    case 'year':
+    case 'yrs':
+    case 'yr':
+    case 'y':
+      return n * y;
+    case 'days':
+    case 'day':
+    case 'd':
+      return n * d;
+    case 'hours':
+    case 'hour':
+    case 'hrs':
+    case 'hr':
+    case 'h':
+      return n * h;
+    case 'minutes':
+    case 'minute':
+    case 'mins':
+    case 'min':
+    case 'm':
+      return n * m;
+    case 'seconds':
+    case 'second':
+    case 'secs':
+    case 'sec':
+    case 's':
+      return n * s;
+    case 'milliseconds':
+    case 'millisecond':
+    case 'msecs':
+    case 'msec':
+    case 'ms':
+      return n;
+  }
+}
+
+/**
+ * Short format for `ms`.
+ *
+ * @param {Number} ms
+ * @return {String}
+ * @api private
+ */
+
+function short(ms) {
+  if (ms >= d) return Math.round(ms / d) + 'd';
+  if (ms >= h) return Math.round(ms / h) + 'h';
+  if (ms >= m) return Math.round(ms / m) + 'm';
+  if (ms >= s) return Math.round(ms / s) + 's';
+  return ms + 'ms';
+}
+
+/**
+ * Long format for `ms`.
+ *
+ * @param {Number} ms
+ * @return {String}
+ * @api private
+ */
+
+function long(ms) {
+  return plural(ms, d, 'day')
+    || plural(ms, h, 'hour')
+    || plural(ms, m, 'minute')
+    || plural(ms, s, 'second')
+    || ms + ' ms';
+}
+
+/**
+ * Pluralization helper.
+ */
+
+function plural(ms, n, name) {
+  if (ms < n) return;
+  if (ms < n * 1.5) return Math.floor(ms / n) + ' ' + name;
+  return Math.ceil(ms / n) + ' ' + name + 's';
 }
 
 },{}],7:[function(require,module,exports){
@@ -767,227 +1000,159 @@ module.exports = function (obj) {
 
 })();
 
-},{"charenc":2,"crypt":3,"is-buffer":6}],9:[function(require,module,exports){
-/**
- * Helpers.
- */
+},{"charenc":9,"crypt":10,"is-buffer":11}],9:[function(require,module,exports){
+var charenc = {
+  // UTF-8 encoding
+  utf8: {
+    // Convert a string to a byte array
+    stringToBytes: function(str) {
+      return charenc.bin.stringToBytes(unescape(encodeURIComponent(str)));
+    },
 
-var s = 1000;
-var m = s * 60;
-var h = m * 60;
-var d = h * 24;
-var y = d * 365.25;
+    // Convert a byte array to a string
+    bytesToString: function(bytes) {
+      return decodeURIComponent(escape(charenc.bin.bytesToString(bytes)));
+    }
+  },
 
-/**
- * Parse or format the given `val`.
- *
- * Options:
- *
- *  - `long` verbose formatting [false]
- *
- * @param {String|Number} val
- * @param {Object} options
- * @return {String|Number}
- * @api public
- */
+  // Binary encoding
+  bin: {
+    // Convert a string to a byte array
+    stringToBytes: function(str) {
+      for (var bytes = [], i = 0; i < str.length; i++)
+        bytes.push(str.charCodeAt(i) & 0xFF);
+      return bytes;
+    },
 
-module.exports = function(val, options){
-  options = options || {};
-  if ('string' == typeof val) return parse(val);
-  return options.long
-    ? long(val)
-    : short(val);
+    // Convert a byte array to a string
+    bytesToString: function(bytes) {
+      for (var str = [], i = 0; i < bytes.length; i++)
+        str.push(String.fromCharCode(bytes[i]));
+      return str.join('');
+    }
+  }
 };
 
-/**
- * Parse the given `str` and return milliseconds.
- *
- * @param {String} str
- * @return {Number}
- * @api private
- */
-
-function parse(str) {
-  str = '' + str;
-  if (str.length > 10000) return;
-  var match = /^((?:\d+)?\.?\d+) *(milliseconds?|msecs?|ms|seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|days?|d|years?|yrs?|y)?$/i.exec(str);
-  if (!match) return;
-  var n = parseFloat(match[1]);
-  var type = (match[2] || 'ms').toLowerCase();
-  switch (type) {
-    case 'years':
-    case 'year':
-    case 'yrs':
-    case 'yr':
-    case 'y':
-      return n * y;
-    case 'days':
-    case 'day':
-    case 'd':
-      return n * d;
-    case 'hours':
-    case 'hour':
-    case 'hrs':
-    case 'hr':
-    case 'h':
-      return n * h;
-    case 'minutes':
-    case 'minute':
-    case 'mins':
-    case 'min':
-    case 'm':
-      return n * m;
-    case 'seconds':
-    case 'second':
-    case 'secs':
-    case 'sec':
-    case 's':
-      return n * s;
-    case 'milliseconds':
-    case 'millisecond':
-    case 'msecs':
-    case 'msec':
-    case 'ms':
-      return n;
-  }
-}
-
-/**
- * Short format for `ms`.
- *
- * @param {Number} ms
- * @return {String}
- * @api private
- */
-
-function short(ms) {
-  if (ms >= d) return Math.round(ms / d) + 'd';
-  if (ms >= h) return Math.round(ms / h) + 'h';
-  if (ms >= m) return Math.round(ms / m) + 'm';
-  if (ms >= s) return Math.round(ms / s) + 's';
-  return ms + 'ms';
-}
-
-/**
- * Long format for `ms`.
- *
- * @param {Number} ms
- * @return {String}
- * @api private
- */
-
-function long(ms) {
-  return plural(ms, d, 'day')
-    || plural(ms, h, 'hour')
-    || plural(ms, m, 'minute')
-    || plural(ms, s, 'second')
-    || ms + ' ms';
-}
-
-/**
- * Pluralization helper.
- */
-
-function plural(ms, n, name) {
-  if (ms < n) return;
-  if (ms < n * 1.5) return Math.floor(ms / n) + ' ' + name;
-  return Math.ceil(ms / n) + ' ' + name + 's';
-}
+module.exports = charenc;
 
 },{}],10:[function(require,module,exports){
-// shim for using process in browser
+(function() {
+  var base64map
+      = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/',
 
-var process = module.exports = {};
-var queue = [];
-var draining = false;
-var currentQueue;
-var queueIndex = -1;
+  crypt = {
+    // Bit-wise rotation left
+    rotl: function(n, b) {
+      return (n << b) | (n >>> (32 - b));
+    },
 
-function cleanUpNextTick() {
-    draining = false;
-    if (currentQueue.length) {
-        queue = currentQueue.concat(queue);
-    } else {
-        queueIndex = -1;
+    // Bit-wise rotation right
+    rotr: function(n, b) {
+      return (n << (32 - b)) | (n >>> b);
+    },
+
+    // Swap big-endian to little-endian and vice versa
+    endian: function(n) {
+      // If number given, swap endian
+      if (n.constructor == Number) {
+        return crypt.rotl(n, 8) & 0x00FF00FF | crypt.rotl(n, 24) & 0xFF00FF00;
+      }
+
+      // Else, assume array and swap all items
+      for (var i = 0; i < n.length; i++)
+        n[i] = crypt.endian(n[i]);
+      return n;
+    },
+
+    // Generate an array of any length of random bytes
+    randomBytes: function(n) {
+      for (var bytes = []; n > 0; n--)
+        bytes.push(Math.floor(Math.random() * 256));
+      return bytes;
+    },
+
+    // Convert a byte array to big-endian 32-bit words
+    bytesToWords: function(bytes) {
+      for (var words = [], i = 0, b = 0; i < bytes.length; i++, b += 8)
+        words[b >>> 5] |= bytes[i] << (24 - b % 32);
+      return words;
+    },
+
+    // Convert big-endian 32-bit words to a byte array
+    wordsToBytes: function(words) {
+      for (var bytes = [], b = 0; b < words.length * 32; b += 8)
+        bytes.push((words[b >>> 5] >>> (24 - b % 32)) & 0xFF);
+      return bytes;
+    },
+
+    // Convert a byte array to a hex string
+    bytesToHex: function(bytes) {
+      for (var hex = [], i = 0; i < bytes.length; i++) {
+        hex.push((bytes[i] >>> 4).toString(16));
+        hex.push((bytes[i] & 0xF).toString(16));
+      }
+      return hex.join('');
+    },
+
+    // Convert a hex string to a byte array
+    hexToBytes: function(hex) {
+      for (var bytes = [], c = 0; c < hex.length; c += 2)
+        bytes.push(parseInt(hex.substr(c, 2), 16));
+      return bytes;
+    },
+
+    // Convert a byte array to a base-64 string
+    bytesToBase64: function(bytes) {
+      for (var base64 = [], i = 0; i < bytes.length; i += 3) {
+        var triplet = (bytes[i] << 16) | (bytes[i + 1] << 8) | bytes[i + 2];
+        for (var j = 0; j < 4; j++)
+          if (i * 8 + j * 6 <= bytes.length * 8)
+            base64.push(base64map.charAt((triplet >>> 6 * (3 - j)) & 0x3F));
+          else
+            base64.push('=');
+      }
+      return base64.join('');
+    },
+
+    // Convert a base-64 string to a byte array
+    base64ToBytes: function(base64) {
+      // Remove non-base-64 characters
+      base64 = base64.replace(/[^A-Z0-9+\/]/ig, '');
+
+      for (var bytes = [], i = 0, imod4 = 0; i < base64.length;
+          imod4 = ++i % 4) {
+        if (imod4 == 0) continue;
+        bytes.push(((base64map.indexOf(base64.charAt(i - 1))
+            & (Math.pow(2, -2 * imod4 + 8) - 1)) << (imod4 * 2))
+            | (base64map.indexOf(base64.charAt(i)) >>> (6 - imod4 * 2)));
+      }
+      return bytes;
     }
-    if (queue.length) {
-        drainQueue();
-    }
-}
+  };
 
-function drainQueue() {
-    if (draining) {
-        return;
-    }
-    var timeout = setTimeout(cleanUpNextTick);
-    draining = true;
-
-    var len = queue.length;
-    while(len) {
-        currentQueue = queue;
-        queue = [];
-        while (++queueIndex < len) {
-            if (currentQueue) {
-                currentQueue[queueIndex].run();
-            }
-        }
-        queueIndex = -1;
-        len = queue.length;
-    }
-    currentQueue = null;
-    draining = false;
-    clearTimeout(timeout);
-}
-
-process.nextTick = function (fun) {
-    var args = new Array(arguments.length - 1);
-    if (arguments.length > 1) {
-        for (var i = 1; i < arguments.length; i++) {
-            args[i - 1] = arguments[i];
-        }
-    }
-    queue.push(new Item(fun, args));
-    if (queue.length === 1 && !draining) {
-        setTimeout(drainQueue, 0);
-    }
-};
-
-// v8 likes predictible objects
-function Item(fun, array) {
-    this.fun = fun;
-    this.array = array;
-}
-Item.prototype.run = function () {
-    this.fun.apply(null, this.array);
-};
-process.title = 'browser';
-process.browser = true;
-process.env = {};
-process.argv = [];
-process.version = ''; // empty string to avoid regexp issues
-process.versions = {};
-
-function noop() {}
-
-process.on = noop;
-process.addListener = noop;
-process.once = noop;
-process.off = noop;
-process.removeListener = noop;
-process.removeAllListeners = noop;
-process.emit = noop;
-
-process.binding = function (name) {
-    throw new Error('process.binding is not supported');
-};
-
-process.cwd = function () { return '/' };
-process.chdir = function (dir) {
-    throw new Error('process.chdir is not supported');
-};
-process.umask = function() { return 0; };
+  module.exports = crypt;
+})();
 
 },{}],11:[function(require,module,exports){
+/**
+ * Determine if an object is Buffer
+ *
+ * Author:   Feross Aboukhadijeh <feross@feross.org> <http://feross.org>
+ * License:  MIT
+ *
+ * `npm install is-buffer`
+ */
+
+module.exports = function (obj) {
+  return !!(
+    obj != null &&
+    obj.constructor &&
+    typeof obj.constructor.isBuffer === 'function' &&
+    obj.constructor.isBuffer(obj)
+  )
+}
+
+},{}],12:[function(require,module,exports){
 
 /**
  * Reduce `arr` with `fn`.
@@ -1012,7 +1177,7 @@ module.exports = function(arr, fn, initial){
   
   return curr;
 };
-},{}],12:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -1988,7 +2153,7 @@ request.put = function(url, data, fn){
   return req;
 };
 
-},{"./is-object":13,"./request":15,"./request-base":14,"emitter":16,"reduce":11}],13:[function(require,module,exports){
+},{"./is-object":14,"./request":16,"./request-base":15,"emitter":3,"reduce":12}],14:[function(require,module,exports){
 /**
  * Check if `obj` is an object.
  *
@@ -2003,7 +2168,7 @@ function isObject(obj) {
 
 module.exports = isObject;
 
-},{}],14:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 /**
  * Module of mixed-in functions shared between node and client code
  */
@@ -2351,7 +2516,7 @@ exports.send = function(data){
   return this;
 };
 
-},{"./is-object":13}],15:[function(require,module,exports){
+},{"./is-object":14}],16:[function(require,module,exports){
 // The node and browser modules expose versions of this with the
 // appropriate constructor function bound as first argument
 /**
@@ -2384,171 +2549,6 @@ function request(RequestConstructor, method, url) {
 }
 
 module.exports = request;
-
-},{}],16:[function(require,module,exports){
-
-/**
- * Expose `Emitter`.
- */
-
-if (typeof module !== 'undefined') {
-  module.exports = Emitter;
-}
-
-/**
- * Initialize a new `Emitter`.
- *
- * @api public
- */
-
-function Emitter(obj) {
-  if (obj) return mixin(obj);
-};
-
-/**
- * Mixin the emitter properties.
- *
- * @param {Object} obj
- * @return {Object}
- * @api private
- */
-
-function mixin(obj) {
-  for (var key in Emitter.prototype) {
-    obj[key] = Emitter.prototype[key];
-  }
-  return obj;
-}
-
-/**
- * Listen on the given `event` with `fn`.
- *
- * @param {String} event
- * @param {Function} fn
- * @return {Emitter}
- * @api public
- */
-
-Emitter.prototype.on =
-Emitter.prototype.addEventListener = function(event, fn){
-  this._callbacks = this._callbacks || {};
-  (this._callbacks['$' + event] = this._callbacks['$' + event] || [])
-    .push(fn);
-  return this;
-};
-
-/**
- * Adds an `event` listener that will be invoked a single
- * time then automatically removed.
- *
- * @param {String} event
- * @param {Function} fn
- * @return {Emitter}
- * @api public
- */
-
-Emitter.prototype.once = function(event, fn){
-  function on() {
-    this.off(event, on);
-    fn.apply(this, arguments);
-  }
-
-  on.fn = fn;
-  this.on(event, on);
-  return this;
-};
-
-/**
- * Remove the given callback for `event` or all
- * registered callbacks.
- *
- * @param {String} event
- * @param {Function} fn
- * @return {Emitter}
- * @api public
- */
-
-Emitter.prototype.off =
-Emitter.prototype.removeListener =
-Emitter.prototype.removeAllListeners =
-Emitter.prototype.removeEventListener = function(event, fn){
-  this._callbacks = this._callbacks || {};
-
-  // all
-  if (0 == arguments.length) {
-    this._callbacks = {};
-    return this;
-  }
-
-  // specific event
-  var callbacks = this._callbacks['$' + event];
-  if (!callbacks) return this;
-
-  // remove all handlers
-  if (1 == arguments.length) {
-    delete this._callbacks['$' + event];
-    return this;
-  }
-
-  // remove specific handler
-  var cb;
-  for (var i = 0; i < callbacks.length; i++) {
-    cb = callbacks[i];
-    if (cb === fn || cb.fn === fn) {
-      callbacks.splice(i, 1);
-      break;
-    }
-  }
-  return this;
-};
-
-/**
- * Emit `event` with the given args.
- *
- * @param {String} event
- * @param {Mixed} ...
- * @return {Emitter}
- */
-
-Emitter.prototype.emit = function(event){
-  this._callbacks = this._callbacks || {};
-  var args = [].slice.call(arguments, 1)
-    , callbacks = this._callbacks['$' + event];
-
-  if (callbacks) {
-    callbacks = callbacks.slice(0);
-    for (var i = 0, len = callbacks.length; i < len; ++i) {
-      callbacks[i].apply(this, args);
-    }
-  }
-
-  return this;
-};
-
-/**
- * Return array of callbacks for `event`.
- *
- * @param {String} event
- * @return {Array}
- * @api public
- */
-
-Emitter.prototype.listeners = function(event){
-  this._callbacks = this._callbacks || {};
-  return this._callbacks['$' + event] || [];
-};
-
-/**
- * Check if this emitter has `event` handlers.
- *
- * @param {String} event
- * @return {Boolean}
- * @api public
- */
-
-Emitter.prototype.hasListeners = function(event){
-  return !! this.listeners(event).length;
-};
 
 },{}],17:[function(require,module,exports){
 //     Underscore.js 1.8.3
@@ -4392,9 +4392,7 @@ AV.Cache = require('./cache');
 AV._config = AV._config || {};
 
 require('./utils').init(AV);
-require('./request').init(AV);
 
-require('./error')(AV);
 require('./event')(AV);
 require('./geopoint')(AV);
 require('./acl')(AV);
@@ -4411,7 +4409,17 @@ require('./status')(AV);
 require('./search')(AV);
 require('./insight')(AV);
 
-},{"./acl":18,"./cache":22,"./cloudfunction":23,"./error":24,"./event":25,"./file":26,"./geopoint":27,"./insight":28,"./localstorage":29,"./object":30,"./op":31,"./promise":32,"./push":33,"./query":34,"./relation":35,"./request":36,"./role":37,"./search":38,"./status":39,"./user":42,"./utils":43,"./version":44,"underscore":17}],20:[function(require,module,exports){
+// TODO: deprecated AV.Error()
+const AVError = require('./error');
+/**
+ * @deprecated AV.Error() is deprecated, and will be removed in next release.
+ */
+AV.Error = (...args) => {
+  console.warn('AV.Error() is deprecated, and will be removed in next release.');
+  new AVError(...args);
+};
+
+},{"./acl":18,"./cache":22,"./cloudfunction":23,"./error":24,"./event":25,"./file":26,"./geopoint":27,"./insight":28,"./localstorage":29,"./object":30,"./op":31,"./promise":32,"./push":33,"./query":34,"./relation":35,"./role":37,"./search":38,"./status":39,"./user":42,"./utils":43,"./version":44,"underscore":17}],20:[function(require,module,exports){
 (function (global){
 /**
  * 每位工程师都有保持代码优雅的义务
@@ -4508,14 +4516,18 @@ var dataURItoBlob = function(dataURI, type) {
 module.exports = dataURItoBlob;
 
 },{}],22:[function(require,module,exports){
-'use strict';
+/**
+ * 每位工程师都有保持代码优雅的义务
+ * Each engineer has a duty to keep the code elegant
+**/
+
 const storage = require('./localstorage');
 const AV = require('./av');
 
 const remove = exports.remove = storage.removeItemAsync.bind(storage);
 
-exports.get = (key) => {
-  return storage.getItemAsync(`${AV.applicationId}/${key}`)
+exports.get = (key) =>
+  storage.getItemAsync(`${AV.applicationId}/${key}`)
     .then(cache => {
       try {
         cache = JSON.parse(cache);
@@ -4531,12 +4543,9 @@ exports.get = (key) => {
       }
       return null;
     });
-};
 
 exports.set = (key, value, ttl) => {
-  const cache = {
-    value
-  };
+  const cache = { value };
   if (typeof ttl === 'number') {
     cache.expiredAt = Date.now() + ttl;
   }
@@ -4552,9 +4561,8 @@ exports.set = (key, value, ttl) => {
  * Each engineer has a duty to keep the code elegant
 **/
 
-'use strict';
-
-var _ = require('underscore');
+const _ = require('underscore');
+const AVRequest = require('./request').request;
 
 module.exports = function(AV) {
   /**
@@ -4580,7 +4588,7 @@ module.exports = function(AV) {
      * of the function.
      */
     run: function(name, data, options) {
-      var request = AV._request('functions', name, null, 'POST',
+      var request = AVRequest('functions', name, null, 'POST',
                                    AV._encode(data, null, true), options && options.sessionToken);
 
       return request.then(function(resp) {
@@ -4602,7 +4610,7 @@ module.exports = function(AV) {
           ._thenRunCallbacks(options);
       }
 
-      return AV._request('call', name, null, 'POST', AV._encodeObjectOrArray(data)).then(function(resp) {
+      return AVRequest('call', name, null, 'POST', AV._encodeObjectOrArray(data)).then(function(resp) {
         return AV._decode('', resp).result;
       })._thenRunCallbacks(options);
     },
@@ -4619,7 +4627,7 @@ module.exports = function(AV) {
      * @since 0.5.9
      */
     getServerDate: function(options) {
-      var request = AV._request("date", null, null, 'GET');
+      var request = AVRequest("date", null, null, 'GET');
 
       return request.then(function(resp) {
         return AV._decode(null, resp);
@@ -4641,7 +4649,7 @@ module.exports = function(AV) {
       if(!data.mobilePhoneNumber) {
         throw "Missing mobilePhoneNumber.";
       }
-      var request = AV._request("requestSmsCode", null, null, 'POST',
+      var request = AVRequest("requestSmsCode", null, null, 'POST',
                                     data);
       return request._thenRunCallbacks(options);
     },
@@ -4665,365 +4673,354 @@ module.exports = function(AV) {
          options = phone;
       }
 
-      var request = AV._request("verifySmsCode", code, null, 'POST',
+      var request = AVRequest("verifySmsCode", code, null, 'POST',
                                    params);
       return request._thenRunCallbacks(options);
     }
   });
 };
 
-},{"underscore":17}],24:[function(require,module,exports){
+},{"./request":36,"underscore":17}],24:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
 **/
 
-'use strict';
+const _ = require('underscore');
 
-var _ = require('underscore');
+// Class used for all objects passed to error callbacks
+function AVError(code, message) {
+  this.code = code;
+  this.message = message;
+}
 
-module.exports = function(AV) {
+_.extend(AVError, {
+  /**
+   * Error code indicating some error other than those enumerated here.
+   * @constant
+   */
+  OTHER_CAUSE: -1,
 
   /**
-   * Constructs a new AV.Error object with the given code and message.
-   * @param {Number} code An error code constant from <code>AV.Error</code>.
-   * @param {String} message A detailed description of the error.
-   * @class
-   *
-   * <p>Class used for all objects passed to error callbacks.</p>
+   * Error code indicating that something has gone wrong with the server.
+   * If you get this error code, it is AV's fault. Contact us at
+   * https://avoscloud.com/help
+   * @constant
    */
-  AV.Error = function(code, message) {
-    this.code = code;
-    this.message = message;
-  };
+  INTERNAL_SERVER_ERROR: 1,
 
-  _.extend(AV.Error, /** @lends AV.Error */ {
-    /**
-     * Error code indicating some error other than those enumerated here.
-     * @constant
-     */
-    OTHER_CAUSE: -1,
+  /**
+   * Error code indicating the connection to the AV servers failed.
+   * @constant
+   */
+  CONNECTION_FAILED: 100,
 
-    /**
-     * Error code indicating that something has gone wrong with the server.
-     * If you get this error code, it is AV's fault. Contact us at
-     * https://avoscloud.com/help
-     * @constant
-     */
-    INTERNAL_SERVER_ERROR: 1,
+  /**
+   * Error code indicating the specified object doesn't exist.
+   * @constant
+   */
+  OBJECT_NOT_FOUND: 101,
 
-    /**
-     * Error code indicating the connection to the AV servers failed.
-     * @constant
-     */
-    CONNECTION_FAILED: 100,
+  /**
+   * Error code indicating you tried to query with a datatype that doesn't
+   * support it, like exact matching an array or object.
+   * @constant
+   */
+  INVALID_QUERY: 102,
 
-    /**
-     * Error code indicating the specified object doesn't exist.
-     * @constant
-     */
-    OBJECT_NOT_FOUND: 101,
+  /**
+   * Error code indicating a missing or invalid classname. Classnames are
+   * case-sensitive. They must start with a letter, and a-zA-Z0-9_ are the
+   * only valid characters.
+   * @constant
+   */
+  INVALID_CLASS_NAME: 103,
 
-    /**
-     * Error code indicating you tried to query with a datatype that doesn't
-     * support it, like exact matching an array or object.
-     * @constant
-     */
-    INVALID_QUERY: 102,
+  /**
+   * Error code indicating an unspecified object id.
+   * @constant
+   */
+  MISSING_OBJECT_ID: 104,
 
-    /**
-     * Error code indicating a missing or invalid classname. Classnames are
-     * case-sensitive. They must start with a letter, and a-zA-Z0-9_ are the
-     * only valid characters.
-     * @constant
-     */
-    INVALID_CLASS_NAME: 103,
+  /**
+   * Error code indicating an invalid key name. Keys are case-sensitive. They
+   * must start with a letter, and a-zA-Z0-9_ are the only valid characters.
+   * @constant
+   */
+  INVALID_KEY_NAME: 105,
 
-    /**
-     * Error code indicating an unspecified object id.
-     * @constant
-     */
-    MISSING_OBJECT_ID: 104,
+  /**
+   * Error code indicating a malformed pointer. You should not see this unless
+   * you have been mucking about changing internal AV code.
+   * @constant
+   */
+  INVALID_POINTER: 106,
 
-    /**
-     * Error code indicating an invalid key name. Keys are case-sensitive. They
-     * must start with a letter, and a-zA-Z0-9_ are the only valid characters.
-     * @constant
-     */
-    INVALID_KEY_NAME: 105,
+  /**
+   * Error code indicating that badly formed JSON was received upstream. This
+   * either indicates you have done something unusual with modifying how
+   * things encode to JSON, or the network is failing badly.
+   * @constant
+   */
+  INVALID_JSON: 107,
 
-    /**
-     * Error code indicating a malformed pointer. You should not see this unless
-     * you have been mucking about changing internal AV code.
-     * @constant
-     */
-    INVALID_POINTER: 106,
+  /**
+   * Error code indicating that the feature you tried to access is only
+   * available internally for testing purposes.
+   * @constant
+   */
+  COMMAND_UNAVAILABLE: 108,
 
-    /**
-     * Error code indicating that badly formed JSON was received upstream. This
-     * either indicates you have done something unusual with modifying how
-     * things encode to JSON, or the network is failing badly.
-     * @constant
-     */
-    INVALID_JSON: 107,
+  /**
+   * You must call AV.initialize before using the AV library.
+   * @constant
+   */
+  NOT_INITIALIZED: 109,
 
-    /**
-     * Error code indicating that the feature you tried to access is only
-     * available internally for testing purposes.
-     * @constant
-     */
-    COMMAND_UNAVAILABLE: 108,
+  /**
+   * Error code indicating that a field was set to an inconsistent type.
+   * @constant
+   */
+  INCORRECT_TYPE: 111,
 
-    /**
-     * You must call AV.initialize before using the AV library.
-     * @constant
-     */
-    NOT_INITIALIZED: 109,
+  /**
+   * Error code indicating an invalid channel name. A channel name is either
+   * an empty string (the broadcast channel) or contains only a-zA-Z0-9_
+   * characters and starts with a letter.
+   * @constant
+   */
+  INVALID_CHANNEL_NAME: 112,
 
-    /**
-     * Error code indicating that a field was set to an inconsistent type.
-     * @constant
-     */
-    INCORRECT_TYPE: 111,
+  /**
+   * Error code indicating that push is misconfigured.
+   * @constant
+   */
+  PUSH_MISCONFIGURED: 115,
 
-    /**
-     * Error code indicating an invalid channel name. A channel name is either
-     * an empty string (the broadcast channel) or contains only a-zA-Z0-9_
-     * characters and starts with a letter.
-     * @constant
-     */
-    INVALID_CHANNEL_NAME: 112,
+  /**
+   * Error code indicating that the object is too large.
+   * @constant
+   */
+  OBJECT_TOO_LARGE: 116,
 
-    /**
-     * Error code indicating that push is misconfigured.
-     * @constant
-     */
-    PUSH_MISCONFIGURED: 115,
+  /**
+   * Error code indicating that the operation isn't allowed for clients.
+   * @constant
+   */
+  OPERATION_FORBIDDEN: 119,
 
-    /**
-     * Error code indicating that the object is too large.
-     * @constant
-     */
-    OBJECT_TOO_LARGE: 116,
+  /**
+   * Error code indicating the result was not found in the cache.
+   * @constant
+   */
+  CACHE_MISS: 120,
 
-    /**
-     * Error code indicating that the operation isn't allowed for clients.
-     * @constant
-     */
-    OPERATION_FORBIDDEN: 119,
+  /**
+   * Error code indicating that an invalid key was used in a nested
+   * JSONObject.
+   * @constant
+   */
+  INVALID_NESTED_KEY: 121,
 
-    /**
-     * Error code indicating the result was not found in the cache.
-     * @constant
-     */
-    CACHE_MISS: 120,
+  /**
+   * Error code indicating that an invalid filename was used for AVFile.
+   * A valid file name contains only a-zA-Z0-9_. characters and is between 1
+   * and 128 characters.
+   * @constant
+   */
+  INVALID_FILE_NAME: 122,
 
-    /**
-     * Error code indicating that an invalid key was used in a nested
-     * JSONObject.
-     * @constant
-     */
-    INVALID_NESTED_KEY: 121,
+  /**
+   * Error code indicating an invalid ACL was provided.
+   * @constant
+   */
+  INVALID_ACL: 123,
 
-    /**
-     * Error code indicating that an invalid filename was used for AVFile.
-     * A valid file name contains only a-zA-Z0-9_. characters and is between 1
-     * and 128 characters.
-     * @constant
-     */
-    INVALID_FILE_NAME: 122,
+  /**
+   * Error code indicating that the request timed out on the server. Typically
+   * this indicates that the request is too expensive to run.
+   * @constant
+   */
+  TIMEOUT: 124,
 
-    /**
-     * Error code indicating an invalid ACL was provided.
-     * @constant
-     */
-    INVALID_ACL: 123,
+  /**
+   * Error code indicating that the email address was invalid.
+   * @constant
+   */
+  INVALID_EMAIL_ADDRESS: 125,
 
-    /**
-     * Error code indicating that the request timed out on the server. Typically
-     * this indicates that the request is too expensive to run.
-     * @constant
-     */
-    TIMEOUT: 124,
+  /**
+   * Error code indicating a missing content type.
+   * @constant
+   */
+  MISSING_CONTENT_TYPE: 126,
 
-    /**
-     * Error code indicating that the email address was invalid.
-     * @constant
-     */
-    INVALID_EMAIL_ADDRESS: 125,
+  /**
+   * Error code indicating a missing content length.
+   * @constant
+   */
+  MISSING_CONTENT_LENGTH: 127,
 
-    /**
-     * Error code indicating a missing content type.
-     * @constant
-     */
-    MISSING_CONTENT_TYPE: 126,
+  /**
+   * Error code indicating an invalid content length.
+   * @constant
+   */
+  INVALID_CONTENT_LENGTH: 128,
 
-    /**
-     * Error code indicating a missing content length.
-     * @constant
-     */
-    MISSING_CONTENT_LENGTH: 127,
+  /**
+   * Error code indicating a file that was too large.
+   * @constant
+   */
+  FILE_TOO_LARGE: 129,
 
-    /**
-     * Error code indicating an invalid content length.
-     * @constant
-     */
-    INVALID_CONTENT_LENGTH: 128,
+  /**
+   * Error code indicating an error saving a file.
+   * @constant
+   */
+  FILE_SAVE_ERROR: 130,
 
-    /**
-     * Error code indicating a file that was too large.
-     * @constant
-     */
-    FILE_TOO_LARGE: 129,
+  /**
+   * Error code indicating an error deleting a file.
+   * @constant
+   */
+  FILE_DELETE_ERROR: 153,
 
-    /**
-     * Error code indicating an error saving a file.
-     * @constant
-     */
-    FILE_SAVE_ERROR: 130,
+  /**
+   * Error code indicating that a unique field was given a value that is
+   * already taken.
+   * @constant
+   */
+  DUPLICATE_VALUE: 137,
 
-    /**
-     * Error code indicating an error deleting a file.
-     * @constant
-     */
-    FILE_DELETE_ERROR: 153,
+  /**
+   * Error code indicating that a role's name is invalid.
+   * @constant
+   */
+  INVALID_ROLE_NAME: 139,
 
-    /**
-     * Error code indicating that a unique field was given a value that is
-     * already taken.
-     * @constant
-     */
-    DUPLICATE_VALUE: 137,
+  /**
+   * Error code indicating that an application quota was exceeded.  Upgrade to
+   * resolve.
+   * @constant
+   */
+  EXCEEDED_QUOTA: 140,
 
-    /**
-     * Error code indicating that a role's name is invalid.
-     * @constant
-     */
-    INVALID_ROLE_NAME: 139,
+  /**
+   * Error code indicating that a Cloud Code script failed.
+   * @constant
+   */
+  SCRIPT_FAILED: 141,
 
-    /**
-     * Error code indicating that an application quota was exceeded.  Upgrade to
-     * resolve.
-     * @constant
-     */
-    EXCEEDED_QUOTA: 140,
+  /**
+   * Error code indicating that a Cloud Code validation failed.
+   * @constant
+   */
+  VALIDATION_ERROR: 142,
 
-    /**
-     * Error code indicating that a Cloud Code script failed.
-     * @constant
-     */
-    SCRIPT_FAILED: 141,
+  /**
+   * Error code indicating that invalid image data was provided.
+   * @constant
+   */
+  INVALID_IMAGE_DATA: 150,
 
-    /**
-     * Error code indicating that a Cloud Code validation failed.
-     * @constant
-     */
-    VALIDATION_ERROR: 142,
+  /**
+   * Error code indicating an unsaved file.
+   * @constant
+   */
+  UNSAVED_FILE_ERROR: 151,
 
-    /**
-     * Error code indicating that invalid image data was provided.
-     * @constant
-     */
-    INVALID_IMAGE_DATA: 150,
+  /**
+   * Error code indicating an invalid push time.
+   */
+  INVALID_PUSH_TIME_ERROR: 152,
 
-    /**
-     * Error code indicating an unsaved file.
-     * @constant
-     */
-    UNSAVED_FILE_ERROR: 151,
+  /**
+   * Error code indicating that the username is missing or empty.
+   * @constant
+   */
+  USERNAME_MISSING: 200,
 
-    /**
-     * Error code indicating an invalid push time.
-     */
-    INVALID_PUSH_TIME_ERROR: 152,
+  /**
+   * Error code indicating that the password is missing or empty.
+   * @constant
+   */
+  PASSWORD_MISSING: 201,
 
-    /**
-     * Error code indicating that the username is missing or empty.
-     * @constant
-     */
-    USERNAME_MISSING: 200,
+  /**
+   * Error code indicating that the username has already been taken.
+   * @constant
+   */
+  USERNAME_TAKEN: 202,
 
-    /**
-     * Error code indicating that the password is missing or empty.
-     * @constant
-     */
-    PASSWORD_MISSING: 201,
+  /**
+   * Error code indicating that the email has already been taken.
+   * @constant
+   */
+  EMAIL_TAKEN: 203,
 
-    /**
-     * Error code indicating that the username has already been taken.
-     * @constant
-     */
-    USERNAME_TAKEN: 202,
+  /**
+   * Error code indicating that the email is missing, but must be specified.
+   * @constant
+   */
+  EMAIL_MISSING: 204,
 
-    /**
-     * Error code indicating that the email has already been taken.
-     * @constant
-     */
-    EMAIL_TAKEN: 203,
+  /**
+   * Error code indicating that a user with the specified email was not found.
+   * @constant
+   */
+  EMAIL_NOT_FOUND: 205,
 
-    /**
-     * Error code indicating that the email is missing, but must be specified.
-     * @constant
-     */
-    EMAIL_MISSING: 204,
+  /**
+   * Error code indicating that a user object without a valid session could
+   * not be altered.
+   * @constant
+   */
+  SESSION_MISSING: 206,
 
-    /**
-     * Error code indicating that a user with the specified email was not found.
-     * @constant
-     */
-    EMAIL_NOT_FOUND: 205,
+  /**
+   * Error code indicating that a user can only be created through signup.
+   * @constant
+   */
+  MUST_CREATE_USER_THROUGH_SIGNUP: 207,
 
-    /**
-     * Error code indicating that a user object without a valid session could
-     * not be altered.
-     * @constant
-     */
-    SESSION_MISSING: 206,
+  /**
+   * Error code indicating that an an account being linked is already linked
+   * to another user.
+   * @constant
+   */
+  ACCOUNT_ALREADY_LINKED: 208,
 
-    /**
-     * Error code indicating that a user can only be created through signup.
-     * @constant
-     */
-    MUST_CREATE_USER_THROUGH_SIGNUP: 207,
+  /**
+   * Error code indicating that a user cannot be linked to an account because
+   * that account's id could not be found.
+   * @constant
+   */
+  LINKED_ID_MISSING: 250,
 
-    /**
-     * Error code indicating that an an account being linked is already linked
-     * to another user.
-     * @constant
-     */
-    ACCOUNT_ALREADY_LINKED: 208,
+  /**
+   * Error code indicating that a user with a linked (e.g. Facebook) account
+   * has an invalid session.
+   * @constant
+   */
+  INVALID_LINKED_SESSION: 251,
 
-    /**
-     * Error code indicating that a user cannot be linked to an account because
-     * that account's id could not be found.
-     * @constant
-     */
-    LINKED_ID_MISSING: 250,
+  /**
+   * Error code indicating that a service being linked (e.g. Facebook or
+   * Twitter) is unsupported.
+   * @constant
+   */
+  UNSUPPORTED_SERVICE: 252,
+  /**
+   * Error code indicating a real error code is unavailable because
+   * we had to use an XDomainRequest object to allow CORS requests in
+   * Internet Explorer, which strips the body from HTTP responses that have
+   * a non-2XX status code.
+   * @constant
+   */
+  X_DOMAIN_REQUEST: 602,
+});
 
-    /**
-     * Error code indicating that a user with a linked (e.g. Facebook) account
-     * has an invalid session.
-     * @constant
-     */
-    INVALID_LINKED_SESSION: 251,
-
-    /**
-     * Error code indicating that a service being linked (e.g. Facebook or
-     * Twitter) is unsupported.
-     * @constant
-     */
-    UNSUPPORTED_SERVICE: 252,
-    /**
-     * Error code indicating a real error code is unavailable because
-     * we had to use an XDomainRequest object to allow CORS requests in
-     * Internet Explorer, which strips the body from HTTP responses that have
-     * a non-2XX status code.
-     * @constant
-     */
-    X_DOMAIN_REQUEST: 602
-  });
-
-};
+module.exports = AVError;
 
 },{"underscore":17}],25:[function(require,module,exports){
 /**
@@ -5192,11 +5189,11 @@ module.exports = function(AV) {
  * Each engineer has a duty to keep the code elegant
 **/
 
-'use strict';
-
 const _ = require('underscore');
 const cos = require('./uploader/cos');
 const qiniu = require('./uploader/qiniu');
+const AVError = require('./error');
+const AVRequest = require('./request').request;
 
 module.exports = function(AV) {
 
@@ -5473,14 +5470,14 @@ module.exports = function(AV) {
     var promise = new AV.Promise();
 
     if (typeof(FileReader) === "undefined") {
-      return AV.Promise.error(new AV.Error(
+      return AV.Promise.error(new AVError(
           -1, "Attempted to use a FileReader on an unsupported browser."));
     }
 
     var reader = new global.FileReader();
     reader.onloadend = function() {
       if (reader.readyState !== 2) {
-        promise.reject(new AV.Error(-1, "Error reading file."));
+        promise.reject(new AVError(-1, "Error reading file."));
         return;
       }
 
@@ -5488,7 +5485,7 @@ module.exports = function(AV) {
       var matches = /^data:([^;]*);base64,(.*)$/.exec(dataURL);
       if (!matches) {
         promise.reject(
-            new AV.Error(-1, "Unable to interpret data URL: " + dataURL));
+            new AVError(-1, "Unable to interpret data URL: " + dataURL));
         return;
       }
 
@@ -5563,7 +5560,7 @@ module.exports = function(AV) {
     if (_.isArray(data)) {
       this.attributes.metaData.size = data.length;
       data = { base64: encodeBase64(data) };
-    } 
+    }
     if (data && data.base64) {
       var parseBase64 = require('./browserify-wrapper/parse-base64');
       var dataBase64 = parseBase64(data.base64, guessedType);
@@ -5643,7 +5640,7 @@ module.exports = function(AV) {
      */
     setACL: function(acl) {
         if (!(acl instanceof AV.ACL)) {
-          return new AV.Error(AV.Error.OTHER_CAUSE, 'ACL must be a AV.ACL.');
+          return new AVError(AVError.OTHER_CAUSE, 'ACL must be a AV.ACL.');
         }
         this._acl = acl;
     },
@@ -5797,7 +5794,7 @@ module.exports = function(AV) {
       if (!this.id) {
         return AV.Promise.error('The file id is not eixsts.')._thenRunCallbacks(options);
       }
-      var request = AV._request("files", null, this.id, 'DELETE', options && options.sessionToken);
+      var request = AVRequest("files", null, this.id, 'DELETE', options && options.sessionToken);
       return request._thenRunCallbacks(options);
     },
 
@@ -5826,7 +5823,7 @@ module.exports = function(AV) {
         this.attributes.metaData.mime_type = type;
       }
       this._qiniu_key = key;
-      return AV._request(route, null, null, 'POST', data);
+      return AVRequest(route, null, null, 'POST', data);
     },
 
     /**
@@ -5885,7 +5882,7 @@ module.exports = function(AV) {
             mime_type: this._guessedType,
             url: this.attributes.url
           };
-          this._previousSave = AV._request('files', this.attributes.name, null, 'post', data).then((response) => {
+          this._previousSave = AVRequest('files', this.attributes.name, null, 'post', data).then((response) => {
             this.attributes.name = response.name;
             this.attributes.url = response.url;
             this.id = response.objectId;
@@ -5907,14 +5904,14 @@ module.exports = function(AV) {
             // 判断是否数据已经是 base64
             if (this.attributes.base64) {
               data.base64 = this.attributes.base64;
-              return AV._request('files', this.attributes.name, null, 'POST', data);
+              return AVRequest('files', this.attributes.name, null, 'POST', data);
             } else if (typeof global.Buffer !== "undefined" && global.Buffer.isBuffer(file)) {
               data.base64 = file.toString('base64');
-              return AV._request('files', this.attributes.name, null, 'POST', data);
+              return AVRequest('files', this.attributes.name, null, 'POST', data);
             } else {
               return readAsync(file).then(function(base64) {
                 data.base64 = base64;
-                return AV._request('files', this.attributes.name, null, 'POST', data);
+                return AVRequest('files', this.attributes.name, null, 'POST', data);
               });
             }
           }).then((response) => {
@@ -5950,7 +5947,7 @@ module.exports = function(AV) {
           options = arguments[1];
         }
 
-        var request = AV._request('files', null, this.id, 'GET', fetchOptions);
+        var request = AVRequest('files', null, this.id, 'GET', fetchOptions);
         return request.then((response) => {
           var value = AV.Object.prototype.parse(response);
           value.attributes = {
@@ -5972,7 +5969,7 @@ module.exports = function(AV) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./browserify-wrapper/parse-base64":21,"./uploader/cos":40,"./uploader/qiniu":41,"underscore":17}],27:[function(require,module,exports){
+},{"./browserify-wrapper/parse-base64":21,"./error":24,"./request":36,"./uploader/cos":40,"./uploader/qiniu":41,"underscore":17}],27:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -6157,9 +6154,9 @@ module.exports = function(AV) {
  * Each engineer has a duty to keep the code elegant
 **/
 
-'use strict';
-
-var _ = require('underscore');
+const _ = require('underscore');
+const AVError = require('./error');
+const AVRequest = require('./request').request;
 
 module.exports = function(AV) {
   /**
@@ -6201,7 +6198,7 @@ module.exports = function(AV) {
         jobConfig: jobConfig,
         appId: AV.applicationId
       };
-      var request = AV._request("bigquery", 'jobs', null, 'POST',
+      var request = AVRequest("bigquery", 'jobs', null, 'POST',
                                    AV._encode(data, null, true));
 
       return request.then(function(resp) {
@@ -6284,12 +6281,12 @@ module.exports = function(AV) {
         limit: this._limit
       };
 
-      var request = AV._request("bigquery", 'jobs', this.id, "GET",
+      var request = AVRequest("bigquery", 'jobs', this.id, "GET",
                                    params);
       var self = this;
       return request.then(function(response) {
         if(response.error) {
-          return AV.Promise.error(new AV.Error(response.code, response.error));
+          return AV.Promise.error(new AVError(response.code, response.error));
         }
         return AV.Promise.as(response);
       })._thenRunCallbacks(options);
@@ -6299,7 +6296,7 @@ module.exports = function(AV) {
 
 };
 
-},{"underscore":17}],29:[function(require,module,exports){
+},{"./error":24,"./request":36,"underscore":17}],29:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -6345,9 +6342,10 @@ module.exports = localStorage;
  * Each engineer has a duty to keep the code elegant
 **/
 
-'use strict';
-
-var _ = require('underscore');
+const _ = require('underscore');
+const AVError = require('./error');
+const AVRequest = require('./request').request;
+const utils = require('./utils');
 
 // AV.Object is analogous to the Java AVObject.
 // It also implements the same interface as a Backbone model.
@@ -6654,7 +6652,7 @@ module.exports = function(AV) {
       }
       var val = this.attributes[attr];
       var escaped;
-      if (AV._isNullOrUndefined(val)) {
+      if (utils.isNullOrUndefined(val)) {
         escaped = '';
       } else {
         escaped = _.escape(val.toString());
@@ -6670,7 +6668,7 @@ module.exports = function(AV) {
      * @return {Boolean}
      */
     has: function(attr) {
-      return !AV._isNullOrUndefined(this.attributes[attr]);
+      return !utils.isNullOrUndefined(this.attributes[attr]);
     },
 
     /**
@@ -6917,11 +6915,11 @@ module.exports = function(AV) {
      *     <code>error</code>, and <code>promise</code>.
      * @return {Boolean} true if the set succeeded.
      * @see AV.Object#validate
-     * @see AV.Error
+     * @see AVError
      */
     set: function(key, value, options) {
       var attrs, attr;
-      if (_.isObject(key) || AV._isNullOrUndefined(key)) {
+      if (_.isObject(key) || utils.isNullOrUndefined(key)) {
         attrs = key;
         AV._objectEach(attrs, function(v, k) {
           attrs[k] = AV._decode(k, v);
@@ -7151,7 +7149,7 @@ module.exports = function(AV) {
       }
 
       var self = this;
-      var request = AV._request('classes', this.className, this.id, 'GET',
+      var request = AVRequest('classes', this.className, this.id, 'GET',
                                 fetchOptions, options.sessionToken);
       return request.then(function(response) {
         self._finishFetch(self.parse(response), true);
@@ -7180,7 +7178,7 @@ module.exports = function(AV) {
      *       // The save was successful.
      *     },
      *     error: function(gameTurnAgain, error) {
-     *       // The save failed.  Error is an instance of AV.Error.
+     *       // The save failed.  Error is an instance of AVError.
      *     }
      *   });</pre>
      * or with promises:<pre>
@@ -7190,18 +7188,18 @@ module.exports = function(AV) {
      *   }).then(function(gameTurnAgain) {
      *     // The save was successful.
      *   }, function(error) {
-     *     // The save failed.  Error is an instance of AV.Error.
+     *     // The save failed.  Error is an instance of AVError.
      *   });</pre>
      * @param {Object} options Optional Backbone-like options object to be passed in to set.
      * @param {Boolean} options.fetchWhenSave fetch and update object after save succeeded
      * @param {AV.Query} options.query Save object only when it matches the query
      * @return {AV.Promise} A promise that is fulfilled when the save
      *     completes.
-     * @see AV.Error
+     * @see AVError
      */
     save: function(arg1, arg2, arg3) {
       var i, attrs, current, options, saved;
-      if (_.isObject(arg1) || AV._isNullOrUndefined(arg1)) {
+      if (_.isObject(arg1) || utils.isNullOrUndefined(arg1)) {
         attrs = arg1;
         options = arg2;
       } else {
@@ -7305,7 +7303,7 @@ module.exports = function(AV) {
           className = null;
         }
         //hook makeRequest in options.
-        var makeRequest = options._makeRequest || AV._request;
+        var makeRequest = options._makeRequest || AVRequest;
         var request = makeRequest(route, className, model.id, method, json, options.sessionToken);
 
         request = request.then(function(resp) {
@@ -7356,7 +7354,7 @@ module.exports = function(AV) {
       }
 
       var request =
-          AV._request('classes', this.className, this.id, 'DELETE', null, options.sessionToken);
+          AVRequest('classes', this.className, this.id, 'DELETE', null, options.sessionToken);
       return request.then(function() {
         if (options.wait) {
           triggerDestroy();
@@ -7533,7 +7531,7 @@ module.exports = function(AV) {
      */
     validate: function(attrs, options) {
       if (_.has(attrs, "ACL") && !(attrs.ACL instanceof AV.ACL)) {
-        return new AV.Error(AV.Error.OTHER_CAUSE,
+        return new AVError(AVError.OTHER_CAUSE,
                                "ACL must be a AV.ACL.");
       }
       return false;
@@ -7626,7 +7624,7 @@ module.exports = function(AV) {
           }
       });
       var request =
-          AV._request('classes', className, id, 'DELETE', null, options.sessionToken);
+          AVRequest('classes', className, id, 'DELETE', null, options.sessionToken);
       return request._thenRunCallbacks(options);
    };
 
@@ -7839,7 +7837,7 @@ module.exports = function(AV) {
         // If we can't save any objects, there must be a circular reference.
         if (batch.length === 0) {
           return AV.Promise.error(
-            new AV.Error(AV.Error.OTHER_CAUSE,
+            new AVError(AVError.OTHER_CAUSE,
                             "Tried to save a batch with a cycle."));
         }
 
@@ -7854,7 +7852,7 @@ module.exports = function(AV) {
 
         // Save a single batch, whether previous saves succeeded or failed.
         return readyToStart._continueWith(function() {
-          return AV._request("batch", null, null, "POST", {
+          return AVRequest("batch", null, null, "POST", {
             requests: _.map(batch, function(object) {
               var json = object._getSaveJSON();
               var method = "POST";
@@ -7887,7 +7885,7 @@ module.exports = function(AV) {
             });
             if (error) {
               return AV.Promise.error(
-                new AV.Error(error.code, error.error));
+                new AVError(error.code, error.error));
             }
 
           }).then(function(results) {
@@ -7906,7 +7904,7 @@ module.exports = function(AV) {
 
 };
 
-},{"underscore":17}],31:[function(require,module,exports){
+},{"./error":24,"./request":36,"./utils":43,"underscore":17}],31:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -9051,13 +9049,13 @@ Promise.prototype.finally = Promise.prototype.always;
 Promise.prototype.try = Promise.prototype.done;
 
 }).call(this,require('_process'))
-},{"_process":10,"underscore":17}],33:[function(require,module,exports){
+},{"_process":2,"underscore":17}],33:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
 **/
 
-'use strict';
+const AVRequest = require('./request').request;
 
 module.exports = function(AV) {
   AV.Installation = AV.Object.extend("_Installation");
@@ -9087,7 +9085,7 @@ module.exports = function(AV) {
    *   <ol>
    * @param {Object} options An object that has an optional success function,
    * that takes no arguments and will be called on a successful push, and
-   * an error function that takes a AV.Error and will be called if the push
+   * an error function that takes a AVError and will be called if the push
    * failed.
    */
   AV.Push.send = function(data, options) {
@@ -9111,20 +9109,20 @@ module.exports = function(AV) {
       throw "Both expiration_time and expiration_time_interval can't be set";
     }
 
-    var request = AV._request('push', null, null, 'POST', data);
+    var request = AVRequest('push', null, null, 'POST', data);
     return request._thenRunCallbacks(options);
   };
 };
 
-},{}],34:[function(require,module,exports){
+},{"./request":36}],34:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
 **/
 
-'use strict';
-
-var _ = require('underscore');
+const _ = require('underscore');
+const AVError = require('./error');
+const AVRequest = require('./request').request;
 
 // AV.Query is a way to create a list of AV.Objects.
 module.exports = function(AV) {
@@ -9148,7 +9146,7 @@ module.exports = function(AV) {
    *   },
    *
    *   error: function(error) {
-   *     // error is an instance of AV.Error.
+   *     // error is an instance of AVError.
    *   }
    * });</pre></p>
    *
@@ -9165,7 +9163,7 @@ module.exports = function(AV) {
    *   },
    *
    *   error: function(object, error) {
-   *     // error is an instance of AV.Error.
+   *     // error is an instance of AVError.
    *   }
    * });</pre></p>
    *
@@ -9180,7 +9178,7 @@ module.exports = function(AV) {
    *   },
    *
    *   error: function(error) {
-   *     // error is an instance of AV.Error.
+   *     // error is an instance of AVError.
    *   }
    * });</pre></p>
    */
@@ -9274,7 +9272,7 @@ module.exports = function(AV) {
       options = pvalues;
     }
 
-    var request = AV._request('cloudQuery', null, null, 'GET', params, options && options.sessionToken);
+    var request = AVRequest('cloudQuery', null, null, 'GET', params, options && options.sessionToken);
     return request.then(function(response) {
       //query to process results.
       var query = new AV.Query(response.className);
@@ -9309,7 +9307,7 @@ module.exports = function(AV) {
      */
     get: function(objectId, options) {
       if(!objectId) {
-        var errorObject = new AV.Error(AV.Error.OBJECT_NOT_FOUND,
+        var errorObject = new AVError(AVError.OBJECT_NOT_FOUND,
                                           "Object not found.");
         throw errorObject;
       }
@@ -9322,7 +9320,7 @@ module.exports = function(AV) {
           return response;
         }
 
-        var errorObject = new AV.Error(AV.Error.OBJECT_NOT_FOUND,
+        var errorObject = new AVError(AVError.OBJECT_NOT_FOUND,
                                           "Object not found.");
         return AV.Promise.error(errorObject);
 
@@ -9371,7 +9369,7 @@ module.exports = function(AV) {
       return obj;
     },
     _createRequest: function(params, options){
-      return AV._request('classes', this.className, null, "GET",
+      return AVRequest('classes', this.className, null, "GET",
                                    params || this.toJSON(), options && options.sessionToken);
     },
 
@@ -10060,7 +10058,7 @@ module.exports = function(AV) {
    });
 };
 
-},{"underscore":17}],35:[function(require,module,exports){
+},{"./error":24,"./request":36,"underscore":17}],35:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -10193,6 +10191,9 @@ const request = require('superagent');
 const debug = require('debug')('request');
 const md5 = require('md5');
 const Promise = require('./promise');
+const Cache = require('./cache');
+const AVError = require('./error');
+const AV = require('./av');
 
 // 计算 X-LC-Sign 的签名方法
 const sign = (key, isMasterKey) => {
@@ -10272,8 +10273,7 @@ const ajax = (method, resourceUrl, data, headers = {}, onprogress) => {
   return promise;
 };
 
-const setHeaders = (AV, sessionToken) => {
-
+const setHeaders = (sessionToken) => {
   const headers = {
     'X-LC-Id': AV.applicationId,
     'Content-Type': 'application/json;charset=UTF-8',
@@ -10283,8 +10283,8 @@ const setHeaders = (AV, sessionToken) => {
   } else {
     headers['X-LC-Sign'] = sign(AV.applicationKey);
   }
-  if (!AV._isNullOrUndefined(AV.applicationProduction)) {
-    headers['X-LC-Prod'] = AV.applicationProduction;
+  if (AV._config.applicationProduction !== null) {
+    headers['X-LC-Prod'] = AV._config.applicationProduction;
   }
   if (!AV._config.isNode) {
     headers['X-LC-UA'] = `AV/${AV.version}`;
@@ -10313,7 +10313,7 @@ const setHeaders = (AV, sessionToken) => {
   return promise;
 };
 
-const createApiUrl = (AV, route, className, objectId, method, dataObject) => {
+const createApiUrl = (route, className, objectId, method, dataObject) => {
   // TODO: 兼容 AV.serverURL 旧方式设置 API Host，后续去掉
   if (AV.serverURL) {
     AV._config.APIServerURL = AV.serverURL;
@@ -10321,9 +10321,6 @@ const createApiUrl = (AV, route, className, objectId, method, dataObject) => {
   }
 
   let apiURL = AV._config.APIServerURL;
-
-  // Test Data
-  // apiURL = 'https://e1-api.leancloud.cn';
 
   if (apiURL.charAt(apiURL.length - 1) !== '/') {
     apiURL += '/';
@@ -10362,80 +10359,124 @@ const createApiUrl = (AV, route, className, objectId, method, dataObject) => {
   return apiURL;
 };
 
-/**
-  When API request need to redirect to the right location,
-  can't use browser redirect by http status 307, as the reason of CORS,
-  so API server response http status 410 and the param "location" for this case.
-*/
-// const retryRequest = () => {
+const cacheServerURL = (serverURL, ttl) => {
+  if (typeof ttl !== 'number') {
+    ttl = 3600;
+  }
+  Cache.set('APIServerURL', serverURL, ttl * 1000);
+};
 
-// };
-
-const init = (AV) => {
+// handle AV._request Error
+const handleError = (res) => {
+  const promise = new Promise();
   /**
-   * route is classes, users, login, etc.
-   * objectId is null if there is no associated objectId.
-   * method is the http method for the REST API.
-   * dataObject is the payload as an object, or null if there is none.
-   * @ignore
-   */
-  AV._request = (route, className, objectId, method, dataObject = {}, sessionToken) => {
-    if (!AV.applicationId) {
-      throw new Error('You must specify your applicationId using AV.init()');
+    When API request need to redirect to the right location,
+    can't use browser redirect by http status 307, as the reason of CORS,
+    so API server response http status 410 and the param "location" for this case.
+  */
+  if (res.statusCode === 410) {
+    cacheServerURL(res.response.api_server, res.response.ttl);
+    promise.resolve(res.response.location);
+  } else {
+    let errorJSON = { code: -1, error: res.responseText };
+    if (res.response && res.response.code) {
+      errorJSON = res.response;
+    } else if (res.responseText) {
+      try {
+        errorJSON = JSON.parse(res.responseText);
+      } catch (e) {
+        // If we fail to parse the error text, that's okay.
+      }
     }
 
-    if (!AV.applicationKey && !AV.masterKey) {
-      throw new Error('You must specify a AppKey using AV.init()');
-    }
+    // Transform the error into an instance of AVError by trying to parse
+    // the error string as JSON.
+    const error = new AVError(errorJSON.code, errorJSON.error);
+    promise.reject(error);
+  }
+  return promise;
+};
 
-    checkRouter(route);
-    const apiURL = createApiUrl(AV, route, className, objectId, method, dataObject);
-
-    return setHeaders(AV, sessionToken).then(
-      headers => ajax(method, apiURL, dataObject, headers)
-        .then(null, (response) => {
-          // Transform the error into an instance of AV.Error by trying to parse
-          // the error string as JSON.
-          let error;
-          if (response) {
-            if (response.response) {
-              error = new AV.Error(response.response.code, response.response.error);
-            } else if (response.responseText) {
-              try {
-                const errorJSON = JSON.parse(response.responseText);
-                if (errorJSON) {
-                  error = new AV.Error(errorJSON.code, errorJSON.error);
-                }
-              } catch (e) {
-                // If we fail to parse the error text, that's okay.
-              }
-            }
-          }
-          error = error || new AV.Error(-1, response.responseText);
-
-          // By explicitly returning a rejected Promise, this will work with
-          // either jQuery or Promises/A semantics.
-          return Promise.error(error);
-        })
-    );
+const setServerUrlByRegion = (region = 'cn') => {
+  // 服务器请求的节点 host
+  const API_HOST = {
+    cn: 'https://api.leancloud.cn',
+    us: 'https://us-api.leancloud.cn',
   };
+
+  const AVConfig = AV._config;
+  AVConfig.region = region;
+  // 如果用户在 init 之前设置了 APIServerURL，则跳过请求 router
+  if (AVConfig.APIServerURL) {
+    return;
+  }
+  AVConfig.APIServerURL = API_HOST[region];
+  if (region === 'cn') {
+    Cache.get('APIServerURL').then(cachedServerURL => {
+      if (cachedServerURL) {
+        return cachedServerURL;
+      } else {
+        return ajax('get', `https://app-router.leancloud.cn/1/route?appId=${AV.applicationId}`)
+          .then(servers => {
+            if (servers.api_server) {
+              cacheServerURL(servers.api_server, servers.ttl);
+              return servers.api_server;
+            }
+          });
+      }
+    }).then(serverURL => {
+      // 如果用户在 init 之后设置了 APIServerURL，保持用户设置
+      if (AVConfig.APIServerURL === API_HOST[region]) {
+        AVConfig.APIServerURL = `https://${serverURL}`;
+      }
+    });
+  }
+};
+
+/**
+ * route is classes, users, login, etc.
+ * objectId is null if there is no associated objectId.
+ * method is the http method for the REST API.
+ * dataObject is the payload as an object, or null if there is none.
+ * @ignore
+ */
+const AVRequest = (route, className, objectId, method, dataObject = {}, sessionToken) => {
+  if (!AV.applicationId) {
+    throw new Error('You must specify your applicationId using AV.init()');
+  }
+
+  if (!AV.applicationKey && !AV.masterKey) {
+    throw new Error('You must specify a AppKey using AV.init()');
+  }
+
+  checkRouter(route);
+  const apiURL = createApiUrl(route, className, objectId, method, dataObject);
+
+  return setHeaders(sessionToken).then(
+    headers => ajax(method, apiURL, dataObject, headers)
+      .then(
+        null,
+        res => handleError(res)
+          .then(location => ajax(method, location, dataObject, headers))
+      )
+  );
 };
 
 module.exports = {
-  init,
   ajax,
+  request: AVRequest,
+  setServerUrlByRegion,
 };
 
 }).call(this,require('_process'))
-},{"./promise":32,"_process":10,"debug":4,"md5":8,"superagent":12}],37:[function(require,module,exports){
+},{"./av":19,"./cache":22,"./error":24,"./promise":32,"_process":2,"debug":4,"md5":8,"superagent":13}],37:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
 **/
 
-'use strict';
-
-var _ = require('underscore');
+const _ = require('underscore');
+const AVError = require('./error');
 
 module.exports = function(AV) {
   /**
@@ -10550,15 +10591,15 @@ module.exports = function(AV) {
           // Check to see if the objectId being set matches this.id.
           // This happens during a fetch -- the id is set before calling fetch.
           // Let the name be set in this case.
-          return new AV.Error(AV.Error.OTHER_CAUSE,
+          return new AVError(AVError.OTHER_CAUSE,
               "A role's name can only be set before it has been saved.");
         }
         if (!_.isString(newName)) {
-          return new AV.Error(AV.Error.OTHER_CAUSE,
+          return new AVError(AVError.OTHER_CAUSE,
               "A role's name must be a String.");
         }
         if (!(/^[0-9a-zA-Z\-_ ]+$/).test(newName)) {
-          return new AV.Error(AV.Error.OTHER_CAUSE,
+          return new AVError(AVError.OTHER_CAUSE,
               "A role's name can only contain alphanumeric characters, _," +
               " -, and spaces.");
         }
@@ -10571,15 +10612,14 @@ module.exports = function(AV) {
   });
 };
 
-},{"underscore":17}],38:[function(require,module,exports){
+},{"./error":24,"underscore":17}],38:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
 **/
 
-'use strict';
-
-var _ = require('underscore');
+const _ = require('underscore');
+const AVRequest = require('./request').request;
 
 module.exports = function(AV) {
   /**
@@ -10699,7 +10739,7 @@ module.exports = function(AV) {
      _highlights: null,
      _sortBuilder: null,
     _createRequest: function(params, options){
-      return AV._request('search/select', null, null, 'GET',
+      return AVRequest('search/select', null, null, 'GET',
                                    params || this.toJSON(), options && options.sessionToken);
     },
 
@@ -10862,15 +10902,14 @@ module.exports = function(AV) {
   });
 };
 
-},{"underscore":17}],39:[function(require,module,exports){
+},{"./request":36,"underscore":17}],39:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
 **/
 
-'use strict';
-
-var _ = require('underscore');
+const _ = require('underscore');
+const AVRequest = require('./request').request;
 
 module.exports = function(AV) {
   /**
@@ -10923,7 +10962,7 @@ module.exports = function(AV) {
     destroy: function(options){
       if(!this.id)
         return AV.Promise.error('The status id is not exists.')._thenRunCallbacks(options);
-      var request = AV._request('statuses', null, this.id, 'DELETE', options && options.sessionToken);
+      var request = AVRequest('statuses', null, this.id, 'DELETE', options && options.sessionToken);
       return request._thenRunCallbacks(options);
     },
     /**
@@ -10977,7 +11016,7 @@ module.exports = function(AV) {
       data.data = this._getDataJSON();
       data.inboxType = this.inboxType || 'default';
 
-      var request = AV._request('statuses', null, null, 'POST', data, options && options.sessionToken);
+      var request = AVRequest('statuses', null, null, 'POST', data, options && options.sessionToken);
       var self = this;
       return request.then(function(response){
         self.id = response.objectId;
@@ -11034,7 +11073,7 @@ module.exports = function(AV) {
     data.data = status._getDataJSON();
     data.inboxType = status.inboxType || 'default';
 
-    var request = AV._request('statuses', null, null, 'POST', data, options && options.sessionToken);
+    var request = AVRequest('statuses', null, null, 'POST', data, options && options.sessionToken);
     return request.then(function(response){
       status.id = response.objectId;
       status.createdAt = AV._parseDate(response.createdAt);
@@ -11087,7 +11126,7 @@ module.exports = function(AV) {
     data.inboxType = 'private';
     status.inboxType = 'private';
 
-    var request = AV._request('statuses', null, null, 'POST', data, options && options.sessionToken);
+    var request = AVRequest('statuses', null, null, 'POST', data, options && options.sessionToken);
     return request.then(function(response){
       status.id = response.objectId;
       status.createdAt = AV._parseDate(response.createdAt);
@@ -11119,7 +11158,7 @@ module.exports = function(AV) {
     var params = {};
     params.inboxType = AV._encode(inboxType);
     params.owner = AV._encode(owner);
-    var request = AV._request('subscribe/statuses/count', null, null, 'GET', params, options && options.sessionToken);
+    var request = AVRequest('subscribe/statuses/count', null, null, 'GET', params, options && options.sessionToken);
     return request._thenRunCallbacks(options);
   };
 
@@ -11159,7 +11198,7 @@ module.exports = function(AV) {
       return new AV.Status();
     },
     _createRequest: function(params, options){
-      return AV._request('subscribe/statuses', null, null, 'GET',
+      return AVRequest('subscribe/statuses', null, null, 'GET',
                                    params || this.toJSON(), options && options.sessionToken);
     },
 
@@ -11244,7 +11283,7 @@ module.exports = function(AV) {
 
 };
 
-},{"underscore":17}],40:[function(require,module,exports){
+},{"./request":36,"underscore":17}],40:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -11287,7 +11326,7 @@ module.exports = function upload(uploadInfo, data, file, saveOptions = {}) {
   return promise;
 };
 
-},{"../promise":32,"debug":4,"superagent":12}],41:[function(require,module,exports){
+},{"../promise":32,"debug":4,"superagent":13}],41:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -11333,15 +11372,15 @@ module.exports = function upload(uploadInfo, data, file, saveOptions = {}) {
   return promise;
 };
 
-},{"../promise":32,"debug":4,"superagent":12}],42:[function(require,module,exports){
+},{"../promise":32,"debug":4,"superagent":13}],42:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
 **/
 
-'use strict';
-
-var _ = require('underscore');
+const _ = require('underscore');
+const AVError = require('./error');
+const AVRequest = require('./request').request;
 
 module.exports = function(AV) {
   /**
@@ -11591,8 +11630,8 @@ module.exports = function(AV) {
 
       var username = (attrs && attrs.username) || this.get("username");
       if (!username || (username === "")) {
-        error = new AV.Error(
-            AV.Error.OTHER_CAUSE,
+        error = new AVError(
+            AVError.OTHER_CAUSE,
             "Cannot sign up user with an empty name.");
         if (options && options.error) {
           options.error(this, error);
@@ -11602,8 +11641,8 @@ module.exports = function(AV) {
 
       var password = (attrs && attrs.password) || this.get("password");
       if (!password || (password === "")) {
-        error = new AV.Error(
-            AV.Error.OTHER_CAUSE,
+        error = new AVError(
+            AVError.OTHER_CAUSE,
             "Cannot sign up user with an empty password.");
         if (options && options.error) {
           options.error(this, error);
@@ -11643,8 +11682,8 @@ module.exports = function(AV) {
       var mobilePhoneNumber = (attrs && attrs.mobilePhoneNumber) ||
                               this.get("mobilePhoneNumber");
       if (!mobilePhoneNumber || (mobilePhoneNumber === "")) {
-        error = new AV.Error(
-            AV.Error.OTHER_CAUSE,
+        error = new AVError(
+            AVError.OTHER_CAUSE,
             "Cannot sign up or login user by mobilePhoneNumber " +
             "with an empty mobilePhoneNumber.");
         if (options && options.error) {
@@ -11655,8 +11694,8 @@ module.exports = function(AV) {
 
       var smsCode = (attrs && attrs.smsCode) || this.get("smsCode");
       if (!smsCode || (smsCode === "")) {
-        error = new AV.Error(
-            AV.Error.OTHER_CAUSE,
+        error = new AVError(
+            AVError.OTHER_CAUSE,
              "Cannot sign up or login user by mobilePhoneNumber  " +
              "with an empty smsCode.");
         if (options && options.error) {
@@ -11667,7 +11706,7 @@ module.exports = function(AV) {
 
       var newOptions = filterOutCallbacks(options);
       newOptions._makeRequest = function(route, className, id, method, json) {
-        return AV._request('usersByMobilePhone', null, null, "POST", json);
+        return AVRequest('usersByMobilePhone', null, null, "POST", json);
       };
       return this.save(attrs, newOptions).then(function(model) {
         delete model.attributes.smsCode;
@@ -11694,7 +11733,7 @@ module.exports = function(AV) {
      */
     logIn: function(options) {
       var model = this;
-      var request = AV._request("login", null, null, "GET", this.toJSON());
+      var request = AVRequest("login", null, null, "GET", this.toJSON());
       return request.then(function(resp, status, xhr) {
         var serverAttrs = model.parse(resp, status, xhr);
         model._finishFetch(serverAttrs);
@@ -11749,7 +11788,7 @@ module.exports = function(AV) {
           throw "Invalid target user.";
       }
       var route = 'users/' + this.id + '/friendship/' + userObjectId;
-      var request = AV._request(route, null, null, 'POST', null, options && options.sessionToken);
+      var request = AVRequest(route, null, null, 'POST', null, options && options.sessionToken);
       return request._thenRunCallbacks(options);
     },
 
@@ -11773,7 +11812,7 @@ module.exports = function(AV) {
           throw "Invalid target user.";
       }
       var route = 'users/' + this.id + '/friendship/' + userObjectId;
-      var request = AV._request(route, null, null, 'DELETE', null, options && options.sessionToken);
+      var request = AVRequest(route, null, null, 'DELETE', null, options && options.sessionToken);
       return request._thenRunCallbacks(options);
     },
 
@@ -11829,7 +11868,7 @@ module.exports = function(AV) {
         old_password: oldPassword,
         new_password: newPassword
       };
-      var request = AV._request(route, null, null, 'PUT', params, options && options.sessionToken);
+      var request = AVRequest(route, null, null, 'PUT', params, options && options.sessionToken);
       return request._thenRunCallbacks(options, this);
     },
 
@@ -12004,7 +12043,7 @@ module.exports = function(AV) {
       options = options || {};
 
       var user = AV.Object._create("_User");
-      return AV._request(
+      return AVRequest(
           "users",
           "me",
           null,
@@ -12097,7 +12136,7 @@ module.exports = function(AV) {
      *
      * @param {Object} data The response json data returned from third party token.
      * @param {string} platform Available platform for sign up.
-     * @param {Object} [callback] An object that has an optional success function, that takes no arguments and will be called on a successful puSH. and an error function that takes a AV.Error and will be called if the push failed.
+     * @param {Object} [callback] An object that has an optional success function, that takes no arguments and will be called on a successful puSH. and an error function that takes a AVError and will be called if the push failed.
      * @return {AV.Promise} A promise that is fulfilled with the user when
      *     the login completes.
      * @example AV.User.signUpOrlogInWithAuthData(data, platform, {
@@ -12188,7 +12227,7 @@ module.exports = function(AV) {
      */
     requestPasswordReset: function(email, options) {
       var json = { email: email };
-      var request = AV._request("requestPasswordReset", null, null, "POST",
+      var request = AVRequest("requestPasswordReset", null, null, "POST",
                                    json);
       return request._thenRunCallbacks(options);
     },
@@ -12206,7 +12245,7 @@ module.exports = function(AV) {
      */
     requestEmailVerify: function(email, options) {
       var json = { email: email };
-      var request = AV._request("requestEmailVerify", null, null, "POST",
+      var request = AVRequest("requestEmailVerify", null, null, "POST",
                                    json);
       return request._thenRunCallbacks(options);
     },
@@ -12216,7 +12255,7 @@ module.exports = function(AV) {
     */
     requestEmailVerfiy: function(email, options) {
       var json = { email: email };
-      var request = AV._request("requestEmailVerify", null, null, "POST",
+      var request = AVRequest("requestEmailVerify", null, null, "POST",
                                    json);
       return request._thenRunCallbacks(options);
     },
@@ -12234,7 +12273,7 @@ module.exports = function(AV) {
      */
     requestMobilePhoneVerify: function(mobilePhone, options){
       var json = { mobilePhoneNumber: mobilePhone };
-      var request = AV._request("requestMobilePhoneVerify", null, null, "POST",
+      var request = AVRequest("requestMobilePhoneVerify", null, null, "POST",
                                    json);
       return request._thenRunCallbacks(options);
     },
@@ -12253,7 +12292,7 @@ module.exports = function(AV) {
      */
     requestPasswordResetBySmsCode: function(mobilePhone, options){
       var json = { mobilePhoneNumber: mobilePhone };
-      var request = AV._request("requestPasswordResetBySmsCode", null, null, "POST",
+      var request = AVRequest("requestPasswordResetBySmsCode", null, null, "POST",
                                    json);
       return request._thenRunCallbacks(options);
     },
@@ -12269,7 +12308,7 @@ module.exports = function(AV) {
      */
     resetPasswordBySmsCode: function(code, password, options){
       var json = { password: password};
-      var request = AV._request("resetPasswordBySmsCode", null, code, "PUT",
+      var request = AVRequest("resetPasswordBySmsCode", null, code, "PUT",
                                 json);
       return request._thenRunCallbacks(options);
     },
@@ -12283,7 +12322,7 @@ module.exports = function(AV) {
      * of the function.
      */
     verifyMobilePhone: function(code, options){
-      var request = AV._request("verifyMobilePhone", null, code, "POST",
+      var request = AVRequest("verifyMobilePhone", null, code, "POST",
                                 null);
       return request._thenRunCallbacks(options);
     },
@@ -12301,7 +12340,7 @@ module.exports = function(AV) {
      */
     requestLoginSmsCode: function(mobilePhone, options){
       var json = { mobilePhoneNumber: mobilePhone };
-      var request = AV._request("requestLoginSmsCode", null, null, "POST",
+      var request = AVRequest("requestLoginSmsCode", null, null, "POST",
                                    json);
       return request._thenRunCallbacks(options);
     },
@@ -12313,7 +12352,7 @@ module.exports = function(AV) {
      */
     currentAsync: function() {
       if (AV._config.disableCurrentUser) {
-        console.warn('AV.User.current() was disabled in multi-user environment, access user from request instead');
+        console.warn('AV.User.currentAsync() was disabled in multi-user environment, access user from request instead');
         return AV.Promise.as(null);
       }
 
@@ -12451,7 +12490,7 @@ function filterOutCallbacks(options) {
   return newOptions;
 }
 
-},{"underscore":17}],43:[function(require,module,exports){
+},{"./error":24,"./request":36,"underscore":17}],43:[function(require,module,exports){
 (function (process){
 /**
  * 每位工程师都有保持代码优雅的义务
@@ -12459,19 +12498,14 @@ function filterOutCallbacks(options) {
 **/
 
 const _ = require('underscore');
-const Cache = require('./cache');
-const ajax = require('./request').ajax;
+const request = require('./request');
+
+// Helper function to check null or undefined.
+const isNullOrUndefined = (x) => _.isNull(x) || _.isUndefined(x);
 
 const init = (AV) => {
-
   // 挂载一些配置
-  let AVConfig = AV._config;
-
-  // 服务器请求的节点 host
-  const API_HOST = {
-    cn: 'https://api.leancloud.cn',
-    us: 'https://us-api.leancloud.cn',
-  };
+  const AVConfig = AV._config;
 
   _.extend(AVConfig, {
 
@@ -12489,6 +12523,10 @@ const init = (AV) => {
 
     // Internal config can modifie the UserAgent
     userAgent: null,
+
+    // set production environment or test environment
+    // 1: production environment, 0: test environment, null: default environment
+    applicationProduction: null,
   });
 
   /**
@@ -12509,7 +12547,6 @@ const init = (AV) => {
 
   // Shared empty constructor function to aid in prototype-chain creation.
   var EmptyConstructor = function() {};
-
 
   // Helper function to correctly set up the prototype chain, for subclasses.
   // Similar to `goog.inherits`, but uses a hash of prototype properties and
@@ -12572,44 +12609,6 @@ const init = (AV) => {
     AV._useMasterKey = false;
   };
 
-  const setRegionServer = (region = 'cn') => {
-    AVConfig.region = region;
-    // 如果用户在 init 之前设置了 APIServerURL，则跳过请求 router
-    if (AVConfig.APIServerURL) {
-      return;
-    }
-    AVConfig.APIServerURL = API_HOST[region];
-    if (region === 'cn') {
-      // TODO: remove appId match hack
-      if (AV.applicationId.indexOf('-9Nh9j0Va') !== -1) {
-        AVConfig.APIServerURL = 'https://e1-api.leancloud.cn';
-      }
-
-      Cache.get('APIServerURL').then(cachedServerURL => {
-        if (cachedServerURL) {
-          return cachedServerURL;
-        } else {
-          return ajax('get', `https://app-router.leancloud.cn/1/route?appId=${AV.applicationId}`)
-            .then(servers => {
-              if (servers.api_server) {
-                let ttl = 3600;
-                if (typeof servers.ttl === 'number') {
-                  ttl = servers.ttl;
-                }
-                Cache.set('APIServerURL', servers.api_server, ttl * 1000);
-                return servers.api_server;
-              }
-            });
-        }
-      }).then(serverURL => {
-        // 如果用户在 init 之后设置了 APIServerURL，保持用户设置
-        if (AVConfig.APIServerURL === API_HOST[region]) {
-          AVConfig.APIServerURL = `https://${serverURL}`;
-        }
-      });
-    }
-  };
-
   /**
     * Call this method first to set up your authentication tokens for AV.
     * You can get your app keys from the LeanCloud dashboard on http://leancloud.cn .
@@ -12621,7 +12620,6 @@ const init = (AV) => {
   */
 
   AV.init = (...args) => {
-
     const masterKeyWarn = () => {
       console.warn('MasterKey should not be used in the browser. ' +
         'The permissions of MasterKey can be across all the server permissions,' +
@@ -12636,7 +12634,7 @@ const init = (AV) => {
             masterKeyWarn();
           }
           initialize(options.appId, options.appKey, options.masterKey);
-          setRegionServer(options.region);
+          request.setServerUrlByRegion(options.region);
           AVConfig.disableCurrentUser = options.disableCurrentUser;
         } else {
           throw new Error('AV.init(): Parameter is not correct.');
@@ -12650,7 +12648,7 @@ const init = (AV) => {
           masterKeyWarn();
         }
         initialize(...args);
-        setRegionServer('cn');
+        request.setServerUrlByRegion('cn');
       break;
     }
   };
@@ -12679,13 +12677,13 @@ const init = (AV) => {
    * @param {Boolean} production True is production environment,and
    *  it's true by default.
    */
-  AV.setProduction = function(production){
-    if(!AV._isNullOrUndefined(production)) {
-      //make sure it's a number
-      production = production ? 1 : 0;
+  AV.setProduction = (production) => {
+    if (!isNullOrUndefined(production)) {
+      AVConfig.applicationProduction = production ? 1 : 0;
+    } else {
+      // change to default value
+      AVConfig.applicationProduction = null;
     }
-    //default is 1
-    AV.applicationProduction = AV._isNullOrUndefined(production) ? 1: production;
   };
 
   /**
@@ -12693,7 +12691,7 @@ const init = (AV) => {
   **/
   // TODO: 后续不再暴露此接口
   AV.useAVCloudCN = function(){
-    setRegionServer('cn');
+    request.setServerUrlByRegion('cn');
     console.warn('Do not use AV.useAVCloudCN. Please use AV.init(), you can set the region of server.');
   };
 
@@ -12702,7 +12700,7 @@ const init = (AV) => {
   **/
   // TODO: 后续不再暴露此接口
   AV.useAVCloudUS = function(){
-    setRegionServer('us');
+    request.setServerUrlByRegion('us');
     console.warn('Do not use AV.useAVCloudUS. Please use AV.init(), you can set the region of server.');
   };
 
@@ -12786,7 +12784,13 @@ const init = (AV) => {
   // TODO: Next version remove
   AV._ajax = (...args) => {
     console.warn('AV._ajax is deprecated, and will be removed in next release.');
-    ajax(...args);
+    request.ajax(...args);
+  };
+
+  // TODO: Next version remove
+  AV._request = (...args) => {
+    console.warn('AV._request is deprecated, and will be removed in next release.');
+    request.request(...args);
   };
 
   // A self-propagating extend function.
@@ -13036,27 +13040,21 @@ const init = (AV) => {
       _.each(obj, callback);
     }
   };
-
-  // Helper function to check null or undefined.
-  AV._isNullOrUndefined = function(x) {
-    return _.isNull(x) || _.isUndefined(x);
-  };
 };
 
 module.exports = {
   init,
+  isNullOrUndefined,
 };
 
 }).call(this,require('_process'))
-},{"./cache":22,"./request":36,"_process":10,"underscore":17}],44:[function(require,module,exports){
+},{"./request":36,"_process":2,"underscore":17}],44:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
 **/
 
-'use strict';
-
-module.exports = 'js1.0.0-rc9.2';
+module.exports = 'js1.0.0-rc10';
 
 },{}]},{},[19])(19)
 });
