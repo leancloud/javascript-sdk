@@ -351,7 +351,7 @@ module.exports = function(AV) {
     let owner;
     if (data && data.owner) {
       owner = data.owner;
-    } else {
+    } else if (!AV._config.disableCurrentUser) {
       try {
         owner = AV.User.current();
       } catch (e) {
