@@ -7,6 +7,8 @@ const _ = require('underscore');
 const AVError = require('./error');
 const AVRequest = require('./request').request;
 
+let disableCurrentUserWarning = false;
+
 module.exports = function(AV) {
   /**
    * @class
@@ -582,7 +584,7 @@ module.exports = function(AV) {
      */
     authenticated: function() {
       return !!this._sessionToken &&
-          (AV.User.current() && AV.User.current().id === this.id);
+          (!AV._config.disableCurrentUser && AV.User.current() && AV.User.current().id === this.id);
     },
 
     getSessionToken: function() {
@@ -796,7 +798,11 @@ module.exports = function(AV) {
      */
     logOut: function() {
       if (AV._config.disableCurrentUser) {
-        return console.warn('AV.User.current() was disabled in multi-user environment, call logOut() from user object instead');
+        if (!disableCurrentUserWarning) {
+          console.trace('AV.User.current() was disabled in multi-user environment, call logOut() from user object instead https://leancloud.cn/docs/leanengine-node-sdk-upgrade-1.html');
+          disableCurrentUserWarning = true;
+        }
+        return AV.Promise.as(null);
       }
 
       if (AV.User._currentUser !== null) {
@@ -977,7 +983,10 @@ module.exports = function(AV) {
      */
     currentAsync: function() {
       if (AV._config.disableCurrentUser) {
-        console.warn('AV.User.currentAsync() was disabled in multi-user environment, access user from request instead');
+        if (!disableCurrentUserWarning) {
+          console.trace('AV.User.currentAsync() was disabled in multi-user environment, access user from request instead https://leancloud.cn/docs/leanengine-node-sdk-upgrade-1.html');
+          disableCurrentUserWarning = true;
+        }
         return AV.Promise.as(null);
       }
 
@@ -1026,7 +1035,10 @@ module.exports = function(AV) {
      */
     current: function() {
       if (AV._config.disableCurrentUser) {
-        console.warn('AV.User.current() was disabled in multi-user environment, access user from request instead');
+        if (!disableCurrentUserWarning) {
+          console.trace('AV.User.current() was disabled in multi-user environment, access user from request instead https://leancloud.cn/docs/leanengine-node-sdk-upgrade-1.html');
+          disableCurrentUserWarning = true;
+        }
         return null;
       }
 
@@ -1095,7 +1107,7 @@ module.exports = function(AV) {
     _registerAuthenticationProvider: function(provider) {
       AV.User._authProviders[provider.getAuthType()] = provider;
       // Synchronize the current user with the auth provider.
-      if (AV.User.current()) {
+      if (!AV._config.disableCurrentUser && AV.User.current()) {
         AV.User.current()._synchronizeAuthData(provider.getAuthType());
       }
     },
