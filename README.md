@@ -64,4 +64,3 @@ JavaScript SDK for [LeanCloud](http://leancloud.cn/).
 * 发布到 npm，需 npm 协作者身份（执行 `npm publish`）
 * 发布到 CDN，需要七牛权限（执行 `gulp upload`）
 * 提醒所有相关工程师完善文档
-
