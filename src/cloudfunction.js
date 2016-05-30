@@ -52,7 +52,8 @@ module.exports = function(AV) {
           ._thenRunCallbacks(options);
       }
 
-      return AVRequest('call', name, null, 'POST', AV._encodeObjectOrArray(data)).then(function(resp) {
+      return AVRequest('call', name, null, 'POST', AV._encodeObjectOrArray(data),
+                       options && options.sessionToken).then(function(resp) {
         return AV._decode('', resp).result;
       })._thenRunCallbacks(options);
     },
