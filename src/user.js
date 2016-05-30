@@ -7,8 +7,6 @@ const _ = require('underscore');
 const AVError = require('./error');
 const AVRequest = require('./request').request;
 
-let disableCurrentUserWarning = false;
-
 module.exports = function(AV) {
   /**
    * @class
@@ -798,10 +796,7 @@ module.exports = function(AV) {
      */
     logOut: function() {
       if (AV._config.disableCurrentUser) {
-        if (!disableCurrentUserWarning) {
-          console.trace('AV.User.current() was disabled in multi-user environment, call logOut() from user object instead https://leancloud.cn/docs/leanengine-node-sdk-upgrade-1.html');
-          disableCurrentUserWarning = true;
-        }
+        console.warn('AV.User.current() was disabled in multi-user environment, call logOut() from user object instead https://leancloud.cn/docs/leanengine-node-sdk-upgrade-1.html');
         return AV.Promise.as(null);
       }
 
@@ -983,10 +978,7 @@ module.exports = function(AV) {
      */
     currentAsync: function() {
       if (AV._config.disableCurrentUser) {
-        if (!disableCurrentUserWarning) {
-          console.trace('AV.User.currentAsync() was disabled in multi-user environment, access user from request instead https://leancloud.cn/docs/leanengine-node-sdk-upgrade-1.html');
-          disableCurrentUserWarning = true;
-        }
+        console.warn('AV.User.currentAsync() was disabled in multi-user environment, access user from request instead https://leancloud.cn/docs/leanengine-node-sdk-upgrade-1.html');
         return AV.Promise.as(null);
       }
 
@@ -1035,10 +1027,7 @@ module.exports = function(AV) {
      */
     current: function() {
       if (AV._config.disableCurrentUser) {
-        if (!disableCurrentUserWarning) {
-          console.trace('AV.User.current() was disabled in multi-user environment, access user from request instead https://leancloud.cn/docs/leanengine-node-sdk-upgrade-1.html');
-          disableCurrentUserWarning = true;
-        }
+        console.warn('AV.User.current() was disabled in multi-user environment, access user from request instead https://leancloud.cn/docs/leanengine-node-sdk-upgrade-1.html');
         return null;
       }
 
