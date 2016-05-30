@@ -1,11 +1,12 @@
+'use strict';
+
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
 **/
 
-'use strict';
-
 var _ = require('underscore');
+var AVRequest = require('./request').request;
 
 module.exports = function (AV) {
   /**
@@ -31,7 +32,7 @@ module.exports = function (AV) {
      * of the function.
      */
     run: function run(name, data, options) {
-      var request = AV._request('functions', name, null, 'POST', AV._encode(data, null, true), options && options.sessionToken);
+      var request = AVRequest('functions', name, null, 'POST', AV._encode(data, null, true), options && options.sessionToken);
 
       return request.then(function (resp) {
         return AV._decode(null, resp).result;
@@ -51,7 +52,7 @@ module.exports = function (AV) {
         return AV.Promise.error(new Error('Can\'t pass Array as the param of rpc function in JavaScript SDK.'))._thenRunCallbacks(options);
       }
 
-      return AV._request('call', name, null, 'POST', AV._encodeObjectOrArray(data)).then(function (resp) {
+      return AVRequest('call', name, null, 'POST', AV._encodeObjectOrArray(data), options && options.sessionToken).then(function (resp) {
         return AV._decode('', resp).result;
       })._thenRunCallbacks(options);
     },
@@ -68,7 +69,7 @@ module.exports = function (AV) {
      * @since 0.5.9
      */
     getServerDate: function getServerDate(options) {
-      var request = AV._request("date", null, null, 'GET');
+      var request = AVRequest("date", null, null, 'GET');
 
       return request.then(function (resp) {
         return AV._decode(null, resp);
@@ -90,7 +91,7 @@ module.exports = function (AV) {
       if (!data.mobilePhoneNumber) {
         throw "Missing mobilePhoneNumber.";
       }
-      var request = AV._request("requestSmsCode", null, null, 'POST', data);
+      var request = AVRequest("requestSmsCode", null, null, 'POST', data);
       return request._thenRunCallbacks(options);
     },
 
@@ -112,7 +113,7 @@ module.exports = function (AV) {
         options = phone;
       }
 
-      var request = AV._request("verifySmsCode", code, null, 'POST', params);
+      var request = AVRequest("verifySmsCode", code, null, 'POST', params);
       return request._thenRunCallbacks(options);
     }
   });
