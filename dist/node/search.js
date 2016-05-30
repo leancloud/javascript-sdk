@@ -1,11 +1,12 @@
+'use strict';
+
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
 **/
 
-'use strict';
-
 var _ = require('underscore');
+var AVRequest = require('./request').request;
 
 module.exports = function (AV) {
   /**
@@ -124,7 +125,7 @@ module.exports = function (AV) {
     _highlights: null,
     _sortBuilder: null,
     _createRequest: function _createRequest(params, options) {
-      return AV._request('search/select', null, null, 'GET', params || this.toJSON(), options && options.sessionToken);
+      return AVRequest('search/select', null, null, 'GET', params || this.toJSON(), options && options.sessionToken);
     },
 
     /**

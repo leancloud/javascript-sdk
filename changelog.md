@@ -1,3 +1,8 @@
+# 1.0.0  日期：2016 年 5 月 30 日
+* 弃用 AV.Error 对象，改为内部模块
+* 移除 AV.applicationProduction 改为 AV._config.applicationProduction 内部接口
+* 调整 npm 包名为 leancloud-storage
+
 # 1.0.0-rc9.2  日期：2016 年 5 月 23 日
 * 修复了上传文件成功却进入失败回调的问题。
 * 修复 `AV.Object#fetch` 在某些情况下抛出 `fetchOptions.include.join is not a function` 异常的问题。
@@ -26,7 +31,7 @@
 * 添加了 AV.User.getSessionToken 方法。
 * 添加了 AV.User#logOut 这个实例方法（之前只有类方法）。
 * 为 AV.Object#save 方法的 options 参数添加了 query 选项，该次更新操作在对象最新状态满足 query 时才会执行。
-*	修正了在某些错误情况下返回值格式不正确的错误。
+* 修正了在某些错误情况下返回值格式不正确的错误。
 * 使用了更加安全的鉴权机制，以降低 App Key 在传输过程中泄露的风险。
 * 移除了特殊跨域兼容实现，现在遵循 CORS。
 

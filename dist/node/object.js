@@ -1,11 +1,14 @@
+'use strict';
+
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
 **/
 
-'use strict';
-
 var _ = require('underscore');
+var AVError = require('./error');
+var AVRequest = require('./request').request;
+var utils = require('./utils');
 
 // AV.Object is analogous to the Java AVObject.
 // It also implements the same interface as a Backbone model.
@@ -313,7 +316,7 @@ module.exports = function (AV) {
       }
       var val = this.attributes[attr];
       var escaped;
-      if (AV._isNullOrUndefined(val)) {
+      if (utils.isNullOrUndefined(val)) {
         escaped = '';
       } else {
         escaped = _.escape(val.toString());
@@ -329,7 +332,7 @@ module.exports = function (AV) {
      * @return {Boolean}
      */
     has: function has(attr) {
-      return !AV._isNullOrUndefined(this.attributes[attr]);
+      return !utils.isNullOrUndefined(this.attributes[attr]);
     },
 
     /**
@@ -573,11 +576,11 @@ module.exports = function (AV) {
      *     <code>error</code>, and <code>promise</code>.
      * @return {Boolean} true if the set succeeded.
      * @see AV.Object#validate
-     * @see AV.Error
+     * @see AVError
      */
     set: function set(key, value, options) {
       var attrs, attr;
-      if (_.isObject(key) || AV._isNullOrUndefined(key)) {
+      if (_.isObject(key) || utils.isNullOrUndefined(key)) {
         attrs = key;
         AV._objectEach(attrs, function (v, k) {
           attrs[k] = AV._decode(k, v);
@@ -805,7 +808,7 @@ module.exports = function (AV) {
       }
 
       var self = this;
-      var request = AV._request('classes', this.className, this.id, 'GET', fetchOptions, options.sessionToken);
+      var request = AVRequest('classes', this.className, this.id, 'GET', fetchOptions, options.sessionToken);
       return request.then(function (response) {
         self._finishFetch(self.parse(response), true);
         return self;
@@ -833,7 +836,7 @@ module.exports = function (AV) {
      *       // The save was successful.
      *     },
      *     error: function(gameTurnAgain, error) {
-     *       // The save failed.  Error is an instance of AV.Error.
+     *       // The save failed.  Error is an instance of AVError.
      *     }
      *   });</pre>
      * or with promises:<pre>
@@ -843,18 +846,18 @@ module.exports = function (AV) {
      *   }).then(function(gameTurnAgain) {
      *     // The save was successful.
      *   }, function(error) {
-     *     // The save failed.  Error is an instance of AV.Error.
+     *     // The save failed.  Error is an instance of AVError.
      *   });</pre>
      * @param {Object} options Optional Backbone-like options object to be passed in to set.
      * @param {Boolean} options.fetchWhenSave fetch and update object after save succeeded
      * @param {AV.Query} options.query Save object only when it matches the query
      * @return {AV.Promise} A promise that is fulfilled when the save
      *     completes.
-     * @see AV.Error
+     * @see AVError
      */
     save: function save(arg1, arg2, arg3) {
       var i, attrs, current, options, saved;
-      if (_.isObject(arg1) || AV._isNullOrUndefined(arg1)) {
+      if (_.isObject(arg1) || utils.isNullOrUndefined(arg1)) {
         attrs = arg1;
         options = arg2;
       } else {
@@ -956,7 +959,7 @@ module.exports = function (AV) {
           className = null;
         }
         //hook makeRequest in options.
-        var makeRequest = options._makeRequest || AV._request;
+        var makeRequest = options._makeRequest || AVRequest;
         var request = makeRequest(route, className, model.id, method, json, options.sessionToken);
 
         request = request.then(function (resp) {
@@ -1004,7 +1007,7 @@ module.exports = function (AV) {
         triggerDestroy();
       }
 
-      var request = AV._request('classes', this.className, this.id, 'DELETE', null, options.sessionToken);
+      var request = AVRequest('classes', this.className, this.id, 'DELETE', null, options.sessionToken);
       return request.then(function () {
         if (options.wait) {
           triggerDestroy();
@@ -1181,7 +1184,7 @@ module.exports = function (AV) {
      */
     validate: function validate(attrs, options) {
       if (_.has(attrs, "ACL") && !(attrs.ACL instanceof AV.ACL)) {
-        return new AV.Error(AV.Error.OTHER_CAUSE, "ACL must be a AV.ACL.");
+        return new AVError(AVError.OTHER_CAUSE, "ACL must be a AV.ACL.");
       }
       return false;
     },
@@ -1270,7 +1273,7 @@ module.exports = function (AV) {
         id = id + ',' + obj.id;
       }
     });
-    var request = AV._request('classes', className, id, 'DELETE', null, options.sessionToken);
+    var request = AVRequest('classes', className, id, 'DELETE', null, options.sessionToken);
     return request._thenRunCallbacks(options);
   };
 
@@ -1479,7 +1482,7 @@ module.exports = function (AV) {
 
         // If we can't save any objects, there must be a circular reference.
         if (batch.length === 0) {
-          return AV.Promise.error(new AV.Error(AV.Error.OTHER_CAUSE, "Tried to save a batch with a cycle."));
+          return AV.Promise.error(new AVError(AVError.OTHER_CAUSE, "Tried to save a batch with a cycle."));
         }
 
         // Reserve a spot in every object's save queue.
@@ -1493,7 +1496,7 @@ module.exports = function (AV) {
 
         // Save a single batch, whether previous saves succeeded or failed.
         return readyToStart._continueWith(function () {
-          return AV._request("batch", null, null, "POST", {
+          return AVRequest("batch", null, null, "POST", {
             requests: _.map(batch, function (object) {
               var json = object._getSaveJSON();
               var method = "POST";
@@ -1524,7 +1527,7 @@ module.exports = function (AV) {
               }
             });
             if (error) {
-              return AV.Promise.error(new AV.Error(error.code, error.error));
+              return AV.Promise.error(new AVError(error.code, error.error));
             }
           }).then(function (results) {
             batchFinished.resolve(results);

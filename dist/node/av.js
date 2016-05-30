@@ -24,9 +24,7 @@ AV.Cache = require('./cache');
 AV._config = AV._config || {};
 
 require('./utils').init(AV);
-require('./request').init(AV);
 
-require('./error')(AV);
 require('./event')(AV);
 require('./geopoint')(AV);
 require('./acl')(AV);
@@ -42,3 +40,17 @@ require('./push')(AV);
 require('./status')(AV);
 require('./search')(AV);
 require('./insight')(AV);
+
+// TODO: deprecated AV.Error()
+var AVError = require('./error');
+/**
+ * @deprecated AV.Error() is deprecated, and will be removed in next release.
+ */
+AV.Error = function () {
+  for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+    args[_key] = arguments[_key];
+  }
+
+  console.warn('AV.Error() is deprecated, and will be removed in next release.');
+  new (Function.prototype.bind.apply(AVError, [null].concat(args)))();
+};
