@@ -6,7 +6,7 @@ module.exports = {
     'consistent-return': 0,
     'no-else-return': 0,
     'max-len': 0,
-    'no-console': [ 2, { allow: ['warn'] } ],
+    'no-console': [ 2, { allow: ['warn', 'trace'] } ],
     'no-restricted-syntax': [ 0, 'ForInStatement' ],
     'no-new': 0,
   }
