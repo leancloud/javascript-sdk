@@ -35,8 +35,7 @@ const uploadCDN = (file, version, cb) => {
   qiniu.conf.ACCESS_KEY = process.env.CDN_QINIU_KEY;
   qiniu.conf.SECRET_KEY = process.env.CDN_QINIU_SECRET;
   if (!qiniu.conf.ACCESS_KEY || !qiniu.conf.SECRET_KEY) {
-    console.trace('\nNeed Qiniu CDN_QINIU_KEY and CDN_QINIU_SECRET\n');
-    return;
+    throw new Error('Need Qiniu CDN_QINIU_KEY and CDN_QINIU_SECRET');
   }
   const bucketname = 'paas_files';
   const key = 'static/js/' + path.basename(file, '.js') + '-' + version + '.js';
