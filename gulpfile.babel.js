@@ -34,6 +34,9 @@ const getAVVersion = () => {
 const uploadCDN = (file, version, cb) => {
   qiniu.conf.ACCESS_KEY = process.env.CDN_QINIU_KEY;
   qiniu.conf.SECRET_KEY = process.env.CDN_QINIU_SECRET;
+  if (!qiniu.conf.ACCESS_KEY || !qiniu.conf.SECRET_KEY) {
+    throw new Error('Need Qiniu CDN_QINIU_KEY and CDN_QINIU_SECRET');
+  }
   const bucketname = 'paas_files';
   const key = 'static/js/' + path.basename(file, '.js') + '-' + version + '.js';
   const putPolicy = new qiniu.rs.PutPolicy(bucketname + ':' + key);
@@ -201,7 +204,7 @@ gulp.task('test', [
 });
 
 // 上传到 CDN
-gulp.task('upload', ['compress-scripts'], (cb) => {
+gulp.task('upload', () => {
   uploadCDN('./dist/av-min.js', getAVVersion(), () => {});
 });
 
