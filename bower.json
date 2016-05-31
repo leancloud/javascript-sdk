@@ -1,6 +1,6 @@
 {
   "name": "leancloud-storage",
-  "version": "1.0.0-rc9.2",
+  "version": "1.0.0",
   "homepage": "https://github.com/leancloud/javascript-sdk",
   "authors": [
     "LeanCloud <support@leancloud.rocks>"
@@ -14,7 +14,7 @@
     "tools",
     "README.md",
     "changelog.md",
-    "gulpfile.js",
+    "gulpfile.babel.js",
     "package.json",
     "readme.txt"
   ],
