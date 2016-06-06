@@ -11,7 +11,7 @@
  * Each engineer has a duty to keep the code elegant
 **/
 
-const AV = module.exports = {};
+const AV = module.exports = global.AV || {};
 AV._ = require('underscore');
 AV.version = require('./version');
 AV.Promise = require('./promise');
