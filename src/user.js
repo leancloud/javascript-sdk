@@ -723,14 +723,17 @@ module.exports = function(AV) {
      * @see AV.User#signUpOrlogInWithMobilePhone
      * @see AV.Cloud.requestSmsCode
      */
-    signUpOrlogInWithMobilePhone: function(mobilePhoneNumber, smsCode, attrs, options) {
-      attrs = attrs || {};
-      attrs.mobilePhoneNumber = mobilePhoneNumber;
-      attrs.smsCode = smsCode;
-      var user = AV.Object._create("_User");
+    signUpOrlogInWithMobilePhone: (mobilePhoneNumber, smsCode, attrs, options) => {
+      if (typeof mobilePhoneNumber !== 'string' && !attrs) {
+        attrs = mobilePhoneNumber;
+      } else {
+        attrs = attrs || {};
+        attrs.mobilePhoneNumber = mobilePhoneNumber;
+        attrs.smsCode = smsCode;
+      }
+      const user = AV.Object._create('_User');
       return user.signUpOrlogInWithMobilePhone(attrs, options);
     },
-
 
     /**
      * Logs in a user with a mobile phone number and password. On success, this
@@ -964,10 +967,14 @@ module.exports = function(AV) {
      *           user that want to login by AV.User.logInWithMobilePhoneSmsCode
      * @param {Object} options A Backbone-style options object.
      */
-    requestLoginSmsCode: function(mobilePhone, options){
-      var json = { mobilePhoneNumber: mobilePhone };
-      var request = AVRequest("requestLoginSmsCode", null, null, "POST",
-                                   json);
+    requestLoginSmsCode: (attrs, options) => {
+      let json;
+      if (attrs && typeof attrs !== 'string') {
+        json = attrs;
+      } else {
+        json = { mobilePhoneNumber: attrs };
+      }
+      const request = AVRequest('requestLoginSmsCode', null, null, 'POST', json);
       return request._thenRunCallbacks(options);
     },
 
