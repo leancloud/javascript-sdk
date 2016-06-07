@@ -9,5 +9,6 @@ module.exports = {
     'no-console': [ 2, { allow: ['warn', 'trace'] } ],
     'no-restricted-syntax': [ 0, 'ForInStatement' ],
     'no-new': 0,
+    'new-cap': 0,
   }
 };
