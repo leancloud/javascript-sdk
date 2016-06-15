@@ -103,7 +103,7 @@ _.extend(AVError, {
   /**
    * Error code indicating an invalid channel name. A channel name is either
    * an empty string (the broadcast channel) or contains only a-zA-Z0-9_
-   * characters and starts with a letter.
+   * characters.
    * @constant
    */
   INVALID_CHANNEL_NAME: 112,

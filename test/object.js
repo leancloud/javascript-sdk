@@ -156,7 +156,47 @@ describe('Objects', function(){
     });
   });
 
+  describe('Array Data', function () {
+    let post;
+    beforeEach(function() {
+      post = new Post({
+        data: [1, 2],
+      });
+      return post.save();
+    });
+    afterEach(function() {
+      return post.destroy();
+    });
 
+    it('add', function() {
+      return post.add('data', 2).save().then(function() {
+        return post.fetch();
+      }).then(function(post) {
+        expect(post.get('data')).to.be.eql([1,2,2]);
+      });
+    });
+    it('addUnique', function() {
+      return post.addUnique('data', 2).save().then(function() {
+        return post.fetch();
+      }).then(function(post) {
+        expect(post.get('data')).to.be.eql([1,2]);
+      });
+    });
+    it('remove', function() {
+      return post.remove('data', 2).save().then(function() {
+        return post.fetch();
+      }).then(function(post) {
+        expect(post.get('data')).to.be.eql([1]);
+      });
+    });
+    it('accept array param', function() {
+      return post.remove('data', [2]).save().then(function() {
+        return post.fetch();
+      }).then(function(post) {
+        expect(post.get('data')).to.be.eql([1]);
+      });
+    });
+  });
 
   describe("Relational Data",function(){
 

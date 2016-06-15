@@ -9,6 +9,16 @@ const request = require('./request');
 // Helper function to check null or undefined.
 const isNullOrUndefined = (x) => _.isNull(x) || _.isUndefined(x);
 
+const ensureArray = target => {
+  if (_.isArray(target)) {
+    return target;
+  }
+  if (target === undefined || target === null) {
+    return [];
+  }
+  return [target];
+};
+
 const init = (AV) => {
   // 挂载一些配置
   const AVConfig = AV._config;
@@ -551,4 +561,5 @@ const init = (AV) => {
 module.exports = {
   init,
   isNullOrUndefined,
+  ensureArray,
 };
