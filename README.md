@@ -2,7 +2,7 @@
 
 JavaScript SDK for [LeanCloud](http://leancloud.cn/).
 
-## 使用方法请看 [官方文档](http://leancloud.cn/docs/js_guide.html)
+## 使用方法请看 [官方文档](https://leancloud.cn/docs/leanstorage_guide-js.html)
 
 ## 版本说明
 
