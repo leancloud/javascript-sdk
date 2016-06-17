@@ -8,23 +8,34 @@ const AV = require('./av');
 
 const remove = exports.remove = storage.removeItemAsync.bind(storage);
 
-exports.get = (key) =>
-  storage.getItemAsync(`${AV.applicationId}/${key}`)
-    .then(cache => {
-      try {
-        cache = JSON.parse(cache);
-      } catch (e) {
-        return null;
-      }
-      if (cache) {
-        const expired = cache.expiredAt && cache.expiredAt < Date.now();
-        if (!expired) {
-          return cache.value;
-        }
-        return remove(key).then(() => null);
-      }
-      return null;
-    });
+const formatCacheData = (cacheData, key) => {
+  try {
+    cacheData = JSON.parse(cacheData);
+  } catch (e) {
+    return null;
+  }
+  if (cacheData) {
+    const expired = cacheData.expiredAt && cacheData.expiredAt < Date.now();
+    if (!expired) {
+      return cacheData.value;
+    }
+    remove(key);
+    return null;
+  }
+  return null;
+};
+
+exports.get = (key) => {
+  key = `${AV.applicationId}/${key}`;
+  const cache = storage.getItem(key);
+  return formatCacheData(cache, key);
+};
+
+exports.getAsync = (key) => {
+  key = `${AV.applicationId}/${key}`;
+  storage.getItemAsync(key)
+    .then(cache => formatCacheData(cache, key));
+};
 
 exports.set = (key, value, ttl) => {
   const cache = { value };
