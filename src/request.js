@@ -10,6 +10,13 @@ const Promise = require('./promise');
 const Cache = require('./cache');
 const AVError = require('./error');
 const AV = require('./av');
+const _ = require('underscore');
+
+// 服务器请求的节点 host
+const API_HOST = {
+  cn: 'https://api.leancloud.cn',
+  us: 'https://us-api.leancloud.cn',
+};
 
 // 计算 X-LC-Sign 的签名方法
 const sign = (key, isMasterKey) => {
@@ -213,37 +220,32 @@ const handleError = (res) => {
   return promise;
 };
 
-const setServerUrlByRegion = (region = 'cn') => {
-  // 服务器请求的节点 host
-  const API_HOST = {
-    cn: 'https://api.leancloud.cn',
-    us: 'https://us-api.leancloud.cn',
-  };
+const setServerUrl = (serverURL) => {
+  AV._config.APIServerURL = `https://${serverURL}`;
 
-  const AVConfig = AV._config;
-  AVConfig.region = region;
+  // 根据新 URL 重新设置区域
+  const newRegion = _.findKey(API_HOST, item => item === AV._config.APIServerURL);
+  if (newRegion) {
+    AV._config.region = newRegion;
+  }
+};
+
+const setServerUrlByRegion = (region = 'cn') => {
   // 如果用户在 init 之前设置了 APIServerURL，则跳过请求 router
-  if (AVConfig.APIServerURL) {
+  if (AV._config.APIServerURL) {
     return;
   }
-  AVConfig.APIServerURL = API_HOST[region];
-  if (region === 'cn') {
-    Cache.get('APIServerURL').then(cachedServerURL => {
-      if (cachedServerURL) {
-        return cachedServerURL;
-      } else {
-        return ajax('get', `https://app-router.leancloud.cn/1/route?appId=${AV.applicationId}`)
-          .then(servers => {
-            if (servers.api_server) {
-              cacheServerURL(servers.api_server, servers.ttl);
-              return servers.api_server;
-            }
-          });
-      }
-    }).then(serverURL => {
-      // 如果用户在 init 之后设置了 APIServerURL，保持用户设置
-      if (AVConfig.APIServerURL === API_HOST[region]) {
-        AVConfig.APIServerURL = `https://${serverURL}`;
+  AV._config.region = region;
+  AV._config.APIServerURL = API_HOST[region];
+  const serverURL = Cache.get('APIServerURL');
+  if (serverURL) {
+    setServerUrl(serverURL);
+  } else {
+    ajax('get', `https://app-router.leancloud.cn/1/route?appId=${AV.applicationId}`)
+    .then(servers => {
+      if (servers.api_server) {
+        cacheServerURL(servers.api_server, servers.ttl);
+        setServerUrl(servers.api_server);
       }
     });
   }
