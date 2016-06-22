@@ -6,12 +6,21 @@
 /* eslint no-console: ["error", { allow: ["log"] }] */
 /* eslint no-undef: ["error", { "AV": true }] */
 
+'use strict';
+
+let AV = global.AV || {};
+
+// 检测是否在 Nodejs 环境下运行
+if (typeof(process) !== 'undefined' && process.versions && process.versions.node) {
+  AV = require('../dist/node/av');
+}
+
 // 初始化
 const appId = 'a5CDnmOX94uSth8foK9mjHfq-gzGzoHsz';
 const appKey = 'Ue3h6la9zH0IxkUJmyhLjk9h';
-const AV = AV || {};
+const region = 'cn';
 
-AV.init({ appId, appKey });
+AV.init({ appId, appKey, region });
 
 // 基本存储
 const TestClass = AV.Object.extend('TestClass');
@@ -32,8 +41,8 @@ testObj.save().then(() => {
 const base64 = 'd29ya2luZyBhdCBhdm9zY2xvdWQgaXMgZ3JlYXQh';
 const file = new AV.File('myfile.txt', { base64 });
 file.metaData('format', 'txt file');
-file.save().then((data) => {
-  console.log(data);
+file.save().then(() => {
+  console.log(file.get('url'));
 }).catch((error) => {
   console.log(error);
 });
