@@ -8,10 +8,10 @@ JavaScript SDK for [LeanCloud](http://leancloud.cn/).
 
 ```
 // npm 安装
-npm install leanstorage --save
+npm install leancloud-storage --save
 
 // bower 安装
-bower install leanstorage --save
+bower install leancloud-storage --save
 ```
 
 ## 贡献代码
