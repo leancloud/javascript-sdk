@@ -186,7 +186,12 @@ const cacheServerURL = (serverURL, ttl) => {
   if (typeof ttl !== 'number') {
     ttl = 3600;
   }
-  Cache.set('APIServerURL', serverURL, ttl * 1000);
+  // 判断是否使用异步的方法获取 url
+  if (Cache.isAsync()) {
+    Cache.setAsync('APIServerURL', serverURL, ttl * 1000);
+  } else {
+    Cache.set('APIServerURL', serverURL, ttl * 1000);
+  }
 };
 
 // handle AV._request Error

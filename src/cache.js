@@ -6,9 +6,10 @@
 const storage = require('./localstorage');
 const AV = require('./av');
 
-const remove = exports.remove = storage.removeItemAsync.bind(storage);
+const remove = exports.remove = storage.removeItem.bind(storage);
+const removeAsync = exports.removeAsync = storage.removeItemAsync.bind(storage);
 
-const formatCacheData = (cacheData, key, isAsync) => {
+const getCacheData = (cacheData, key, isAsync) => {
   try {
     cacheData = JSON.parse(cacheData);
   } catch (e) {
@@ -20,7 +21,7 @@ const formatCacheData = (cacheData, key, isAsync) => {
       return cacheData.value;
     }
     if (isAsync) {
-      return remove(key).then(() => null);
+      return removeAsync(key).then(() => null);
     } else {
       remove(key);
       return null;
@@ -34,16 +35,24 @@ exports.isAsync = () => storage.async;
 exports.get = (key) => {
   key = `${AV.applicationId}/${key}`;
   const cache = storage.getItem(key);
-  return formatCacheData(cache, key);
+  return getCacheData(cache, key);
 };
 
 exports.getAsync = (key) => {
   key = `${AV.applicationId}/${key}`;
   return storage.getItemAsync(key)
-    .then(cache => formatCacheData(cache, key, true));
+    .then(cache => getCacheData(cache, key, true));
 };
 
 exports.set = (key, value, ttl) => {
+  const cache = { value };
+  if (typeof ttl === 'number') {
+    cache.expiredAt = Date.now() + ttl;
+  }
+  storage.setItem(`${AV.applicationId}/${key}`, JSON.stringify(cache));
+};
+
+exports.setAsync = (key, value, ttl) => {
   const cache = { value };
   if (typeof ttl === 'number') {
     cache.expiredAt = Date.now() + ttl;
