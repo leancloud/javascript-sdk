@@ -230,7 +230,7 @@ const setServerUrl = (serverURL) => {
   }
 };
 
-const getServerUrl = () => {
+const refreshServerUrl = () => {
   ajax('get', `https://app-router.leancloud.cn/1/route?appId=${AV.applicationId}`)
   .then(servers => {
     if (servers.api_server) {
@@ -254,7 +254,7 @@ const setServerUrlByRegion = (region = 'cn') => {
       if (serverURL) {
         setServerUrl(serverURL);
       } else {
-        getServerUrl();
+        refreshServerUrl();
       }
     });
   } else {
@@ -262,7 +262,7 @@ const setServerUrlByRegion = (region = 'cn') => {
     if (serverURL) {
       setServerUrl(serverURL);
     } else {
-      getServerUrl();
+      refreshServerUrl();
     }
   }
 };
