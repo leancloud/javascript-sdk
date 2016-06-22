@@ -8,6 +8,7 @@
 
 'use strict';
 
+let global = global || window;
 let AV = global.AV || {};
 
 // 检测是否在 Nodejs 环境下运行
@@ -19,6 +20,10 @@ if (typeof(process) !== 'undefined' && process.versions && process.versions.node
 const appId = 'a5CDnmOX94uSth8foK9mjHfq-gzGzoHsz';
 const appKey = 'Ue3h6la9zH0IxkUJmyhLjk9h';
 const region = 'cn';
+
+// const appId = 'QvNM6AG2khJtBQo6WRMWqfLV-gzGzoHsz';
+// const appKey = 'be2YmUduiuEnCB2VR9bLRnnV';
+// const region = 'us';
 
 AV.init({ appId, appKey, region });
 

@@ -667,18 +667,24 @@ module.exports = function(AV) {
           break;
       }
       if (!this._previousSave) {
-        // 如果是国内节点
-        const isCnNodeFlag = isCnNode();
-        if (this._source && isCnNodeFlag) {
-          // 通过国内 CDN 服务商上传
+        if (this._source) {
           this._previousSave = this._source.then((data, type) =>
-            this._fileToken(type).catch(() => this._fileToken(type, 'qiniu'))
+            this._fileToken(type)
               .then(uploadInfo => {
                 let uploadPromise;
-                if (uploadInfo.provider === 'qcloud') {
-                  uploadPromise = cos(uploadInfo, data, this, saveOptions);
-                } else {
-                  uploadPromise = qiniu(uploadInfo, data, this, saveOptions);
+                switch (uploadInfo.provider) {
+                  case 's3':
+                    // 海外节点，针对 S3 才会返回 upload_url
+                    this.attributes.url = uploadInfo.url;
+                    uploadPromise = s3(uploadInfo.upload_url, data, this, saveOptions);
+                    break;
+                  case 'qcloud':
+                    uploadPromise = cos(uploadInfo, data, this, saveOptions);
+                    break;
+                  case 'qiniu':
+                  default:
+                    uploadPromise = qiniu(uploadInfo, data, this, saveOptions);
+                    break;
                 }
                 return uploadPromise.catch(err => {
                   // destroy this file object when upload fails.
@@ -705,20 +711,6 @@ module.exports = function(AV) {
             }
             return this;
           });
-        } else if (!isCnNodeFlag) {
-          // 海外节点
-          this._previousSave = this._source
-            .then((data, type) => this._fileToken(type)
-              .then((uploadInfo) => {
-                this.attributes.url = uploadInfo.url;
-                return s3(uploadInfo.upload_url, data, this, saveOptions);
-              })
-            )
-            .catch((err) => {
-              // destroy this file object when upload fails.
-              this.destroy();
-              throw err;
-            });
         }
       }
       return this._previousSave._thenRunCallbacks(options);
