@@ -8,7 +8,7 @@ const AV = require('./av');
 
 const remove = exports.remove = storage.removeItemAsync.bind(storage);
 
-const formatCacheData = (cacheData, key) => {
+const formatCacheData = (cacheData, key, isAsync) => {
   try {
     cacheData = JSON.parse(cacheData);
   } catch (e) {
@@ -19,11 +19,17 @@ const formatCacheData = (cacheData, key) => {
     if (!expired) {
       return cacheData.value;
     }
-    remove(key);
-    return null;
+    if (isAsync) {
+      return remove(key).then(() => null);
+    } else {
+      remove(key);
+      return null;
+    }
   }
   return null;
 };
+
+exports.isAsync = () => storage.async;
 
 exports.get = (key) => {
   key = `${AV.applicationId}/${key}`;
@@ -33,8 +39,8 @@ exports.get = (key) => {
 
 exports.getAsync = (key) => {
   key = `${AV.applicationId}/${key}`;
-  storage.getItemAsync(key)
-    .then(cache => formatCacheData(cache, key));
+  return storage.getItemAsync(key)
+    .then(cache => formatCacheData(cache, key, true));
 };
 
 exports.set = (key, value, ttl) => {

@@ -230,6 +230,16 @@ const setServerUrl = (serverURL) => {
   }
 };
 
+const getServerUrl = () => {
+  ajax('get', `https://app-router.leancloud.cn/1/route?appId=${AV.applicationId}`)
+  .then(servers => {
+    if (servers.api_server) {
+      cacheServerURL(servers.api_server, servers.ttl);
+      setServerUrl(servers.api_server);
+    }
+  });
+};
+
 const setServerUrlByRegion = (region = 'cn') => {
   // 如果用户在 init 之前设置了 APIServerURL，则跳过请求 router
   if (AV._config.APIServerURL) {
@@ -237,17 +247,23 @@ const setServerUrlByRegion = (region = 'cn') => {
   }
   AV._config.region = region;
   AV._config.APIServerURL = API_HOST[region];
-  const serverURL = Cache.get('APIServerURL');
-  if (serverURL) {
-    setServerUrl(serverURL);
-  } else {
-    ajax('get', `https://app-router.leancloud.cn/1/route?appId=${AV.applicationId}`)
-    .then(servers => {
-      if (servers.api_server) {
-        cacheServerURL(servers.api_server, servers.ttl);
-        setServerUrl(servers.api_server);
+
+  // 判断是否使用异步的方法获取 url
+  if (Cache.isAsync()) {
+    Cache.getAsync('APIServerURL').then((serverURL) => {
+      if (serverURL) {
+        setServerUrl(serverURL);
+      } else {
+        getServerUrl();
       }
     });
+  } else {
+    const serverURL = Cache.get('APIServerURL');
+    if (serverURL) {
+      setServerUrl(serverURL);
+    } else {
+      getServerUrl();
+    }
   }
 };
 
