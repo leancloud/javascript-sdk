@@ -9,7 +9,7 @@ const AV = require('./av');
 const remove = exports.remove = storage.removeItem.bind(storage);
 const removeAsync = exports.removeAsync = storage.removeItemAsync.bind(storage);
 
-const getCacheData = (cacheData, key, isAsync) => {
+const getCacheData = (cacheData, key, isAsyncFlag) => {
   try {
     cacheData = JSON.parse(cacheData);
   } catch (e) {
@@ -20,7 +20,7 @@ const getCacheData = (cacheData, key, isAsync) => {
     if (!expired) {
       return cacheData.value;
     }
-    if (isAsync) {
+    if (isAsyncFlag) {
       return removeAsync(key).then(() => null);
     } else {
       remove(key);

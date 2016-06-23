@@ -12,6 +12,8 @@ const AVError = require('./error');
 const AV = require('./av');
 const _ = require('underscore');
 
+const getServerURLPromise = new Promise();
+
 // 服务器请求的节点 host
 const API_HOST = {
   cn: 'https://api.leancloud.cn',
@@ -186,12 +188,7 @@ const cacheServerURL = (serverURL, ttl) => {
   if (typeof ttl !== 'number') {
     ttl = 3600;
   }
-  // 判断是否使用异步的方法获取 url
-  if (Cache.isAsync()) {
-    Cache.setAsync('APIServerURL', serverURL, ttl * 1000);
-  } else {
-    Cache.set('APIServerURL', serverURL, ttl * 1000);
-  }
+  return Cache.setAsync('APIServerURL', serverURL, ttl * 1000);
 };
 
 // handle AV._request Error
@@ -203,8 +200,11 @@ const handleError = (res) => {
     so API server response http status 410 and the param "location" for this case.
   */
   if (res.statusCode === 410) {
-    cacheServerURL(res.response.api_server, res.response.ttl);
-    promise.resolve(res.response.location);
+    cacheServerURL(res.response.api_server, res.response.ttl).then(() => {
+      promise.resolve(res.response.location);
+    }).catch((error) => {
+      promise.reject(error);
+    });
   } else {
     let errorJSON = { code: -1, error: res.responseText };
     if (res.response && res.response.code) {
@@ -236,11 +236,11 @@ const setServerUrl = (serverURL) => {
 };
 
 const refreshServerUrl = () => {
-  ajax('get', `https://app-router.leancloud.cn/1/route?appId=${AV.applicationId}`)
-  .then(servers => {
+  const url = `https://app-router.leancloud.cn/1/route?appId=${AV.applicationId}`;
+  return ajax('get', url).then(servers => {
     if (servers.api_server) {
-      cacheServerURL(servers.api_server, servers.ttl);
       setServerUrl(servers.api_server);
+      return cacheServerURL(servers.api_server, servers.ttl);
     }
   });
 };
@@ -253,23 +253,16 @@ const setServerUrlByRegion = (region = 'cn') => {
   AV._config.region = region;
   AV._config.APIServerURL = API_HOST[region];
 
-  // 判断是否使用异步的方法获取 url
-  if (Cache.isAsync()) {
-    Cache.getAsync('APIServerURL').then((serverURL) => {
-      if (serverURL) {
-        setServerUrl(serverURL);
-      } else {
-        refreshServerUrl();
-      }
-    });
-  } else {
-    const serverURL = Cache.get('APIServerURL');
+  Cache.getAsync('APIServerURL').then((serverURL) => {
     if (serverURL) {
       setServerUrl(serverURL);
+      getServerURLPromise.resolve();
     } else {
-      refreshServerUrl();
+      refreshServerUrl().then(() => {
+        getServerURLPromise.resolve();
+      });
     }
-  }
+  });
 };
 
 /**
@@ -289,16 +282,18 @@ const AVRequest = (route, className, objectId, method, dataObject = {}, sessionT
   }
 
   checkRouter(route);
-  const apiURL = createApiUrl(route, className, objectId, method, dataObject);
 
-  return setHeaders(sessionToken).then(
-    headers => ajax(method, apiURL, dataObject, headers)
-      .then(
-        null,
-        res => handleError(res)
-          .then(location => ajax(method, location, dataObject, headers))
-      )
-  );
+  return getServerURLPromise.always(() => {
+    const apiURL = createApiUrl(route, className, objectId, method, dataObject);
+    return setHeaders(sessionToken).then(
+      headers => ajax(method, apiURL, dataObject, headers)
+        .then(
+          null,
+          res => handleError(res)
+            .then(location => ajax(method, location, dataObject, headers))
+        )
+    );
+  });
 };
 
 module.exports = {
