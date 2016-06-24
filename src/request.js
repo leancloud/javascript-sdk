@@ -6,13 +6,13 @@
 const request = require('superagent');
 const debug = require('debug')('request');
 const md5 = require('md5');
-const Promise = require('./promise');
+const AVPromise = require('./promise');
 const Cache = require('./cache');
 const AVError = require('./error');
 const AV = require('./av');
 const _ = require('underscore');
 
-const getServerURLPromise = new Promise();
+const getServerURLPromise = new AVPromise();
 
 // 服务器请求的节点 host
 const API_HOST = {
@@ -74,7 +74,7 @@ const checkRouter = (router) => {
 const ajax = (method, resourceUrl, data, headers = {}, onprogress) => {
   debug(method, resourceUrl, data, headers);
 
-  const promise = new Promise();
+  const promise = new AVPromise();
   const req = request(method, resourceUrl)
     .set(headers)
     .send(data)
@@ -118,7 +118,7 @@ const setHeaders = (sessionToken) => {
     headers['User-Agent'] = AV._config.userAgent || `AV/${AV.version}; Node.js/${process.version}`;
   }
 
-  const promise = new Promise();
+  const promise = new AVPromise();
 
   // Pass the session token
   if (sessionToken) {
@@ -193,7 +193,7 @@ const cacheServerURL = (serverURL, ttl) => {
 
 // handle AV._request Error
 const handleError = (res) => {
-  const promise = new Promise();
+  const promise = new AVPromise();
   /**
     When API request need to redirect to the right location,
     can't use browser redirect by http status 307, as the reason of CORS,
