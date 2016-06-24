@@ -1,5 +1,10 @@
 module.exports = {
   extends: 'airbnb',
+  env: {
+    node: true,
+    mocha: true,
+    browser: true,
+  },
   rules: {
     'no-param-reassign': 0,
     'no-underscore-dangle': 0,
@@ -9,5 +14,7 @@ module.exports = {
     'no-console': [ 2, { allow: ['warn', 'trace'] } ],
     'no-restricted-syntax': [ 0, 'ForInStatement' ],
     'no-new': 0,
+    'new-cap': 0,
+    'default-case': 0,
   }
 };

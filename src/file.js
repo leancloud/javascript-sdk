@@ -6,6 +6,7 @@
 const _ = require('underscore');
 const cos = require('./uploader/cos');
 const qiniu = require('./uploader/qiniu');
+const s3 = require('./uploader/s3');
 const AVError = require('./error');
 const AVRequest = require('./request').request;
 
@@ -618,20 +619,19 @@ module.exports = function(AV) {
      * @return {AV.Promise} Resolved with the response
      * @private
      */
-    _fileToken: function(type, route = 'fileTokens') {
+    _fileToken(type, route = 'fileTokens') {
       const name = this.attributes.name;
-      //Create 16-bits uuid as qiniu key.
+
+      // Create 16-bits uuid as qiniu key.
       const extName = extname(name);
-      const hexOctet = function() {
-        return Math.floor((1+Math.random())*0x10000).toString(16).substring(1);
-      };
+      const hexOctet = () => Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
       const key = hexOctet() + hexOctet() + hexOctet() + hexOctet() + hexOctet() + extName;
       const data = {
-        key: key,
+        key,
+        name,
         ACL: this._acl,
-        name: name,
         mime_type: type,
-        metaData: this.attributes.metaData
+        metaData: this.attributes.metaData,
       };
       if (type && !this.attributes.metaData.mime_type) {
         this.attributes.metaData.mime_type = type;
@@ -651,7 +651,7 @@ module.exports = function(AV) {
      * @param {Object} options A Backbone-style options object.
      * @return {AV.Promise} Promise that is resolved when the save finishes.
      */
-    save: function(...args) {
+    save(...args) {
       if (this.id) {
         throw new Error('File already saved. If you want to manipulate a file, use AV.Query to get it.');
       }
@@ -660,75 +660,47 @@ module.exports = function(AV) {
       switch (args.length) {
         case 1:
           options = args[0];
-        break;
+          break;
         case 2:
           saveOptions = args[0];
           options = args[1];
-        break;
+          break;
       }
       if (!this._previousSave) {
-        // 如果是国内节点
-        var isCnNodeFlag = isCnNode();
-        if (this._source && isCnNodeFlag) {
-          // 通过国内 CDN 服务商上传
-          this._previousSave = this._source.then((data, type) => {
-            return this._fileToken(type).catch(() => this._fileToken(type, 'qiniu'))
+        if (this._source) {
+          this._previousSave = this._source.then((data, type) =>
+            this._fileToken(type)
               .then(uploadInfo => {
                 let uploadPromise;
-                if (uploadInfo.provider === 'qcloud') {
-                  uploadPromise = cos(uploadInfo, data, this, saveOptions);
-                } else {
-                  uploadPromise = qiniu(uploadInfo, data, this, saveOptions);
+                switch (uploadInfo.provider) {
+                  case 's3':
+                    uploadPromise = s3(uploadInfo, data, this, saveOptions);
+                    break;
+                  case 'qcloud':
+                    uploadPromise = cos(uploadInfo, data, this, saveOptions);
+                    break;
+                  case 'qiniu':
+                  default:
+                    uploadPromise = qiniu(uploadInfo, data, this, saveOptions);
+                    break;
                 }
                 return uploadPromise.catch(err => {
-                  //destroy this file object when upload fails.
+                  // destroy this file object when upload fails.
                   this.destroy();
                   throw err;
                 });
-              });
-          });
+              })
+          );
         } else if (this.attributes.url && this.attributes.metaData.__source === 'external') {
-          //external link file.
-          var data = {
+          // external link file.
+          const data = {
             name: this.attributes.name,
             ACL: this._acl,
             metaData: this.attributes.metaData,
             mime_type: this._guessedType,
-            url: this.attributes.url
+            url: this.attributes.url,
           };
           this._previousSave = AVRequest('files', this.attributes.name, null, 'post', data).then((response) => {
-            this.attributes.name = response.name;
-            this.attributes.url = response.url;
-            this.id = response.objectId;
-            if (response.size) {
-              this.attributes.metaData.size = response.size;
-            }
-            return this;
-          });
-        } else if (!isCnNodeFlag) {
-          // 海外节点，通过 LeanCloud 服务器中转
-          this._previousSave = this._source.then((file, type) => {
-            var data = {
-              base64: '',
-              _ContentType: type,
-              ACL: this._acl,
-              mime_type: type,
-              metaData: this.attributes.metaData,
-            };
-            // 判断是否数据已经是 base64
-            if (this.attributes.base64) {
-              data.base64 = this.attributes.base64;
-              return AVRequest('files', this.attributes.name, null, 'POST', data);
-            } else if (typeof global.Buffer !== "undefined" && global.Buffer.isBuffer(file)) {
-              data.base64 = file.toString('base64');
-              return AVRequest('files', this.attributes.name, null, 'POST', data);
-            } else {
-              return readAsync(file).then(function(base64) {
-                data.base64 = base64;
-                return AVRequest('files', this.attributes.name, null, 'POST', data);
-              });
-            }
-          }).then((response) => {
             this.attributes.name = response.name;
             this.attributes.url = response.url;
             this.id = response.objectId;
