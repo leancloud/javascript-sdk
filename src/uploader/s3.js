@@ -4,10 +4,12 @@
  **/
 
 const request = require('superagent');
-const Promise = require('../promise');
+const AVPromise = require('../promise');
 
 module.exports = function upload(uploadUrl, data, file, saveOptions = {}) {
-  const promise = new Promise();
+  // 海外节点，针对 S3 才会返回 upload_url
+  file.attributes.url = uploadInfo.url;
+  const promise = new AVPromise();
   const req = request('PUT', uploadUrl)
     .set('Content-Type', file.attributes.metaData.mime_type)
     .send(data)

@@ -674,9 +674,7 @@ module.exports = function(AV) {
                 let uploadPromise;
                 switch (uploadInfo.provider) {
                   case 's3':
-                    // 海外节点，针对 S3 才会返回 upload_url
-                    this.attributes.url = uploadInfo.url;
-                    uploadPromise = s3(uploadInfo.upload_url, data, this, saveOptions);
+                    uploadPromise = s3(uploadInfo, data, this, saveOptions);
                     break;
                   case 'qcloud':
                     uploadPromise = cos(uploadInfo, data, this, saveOptions);
