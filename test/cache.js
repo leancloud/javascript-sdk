@@ -5,14 +5,14 @@ var wait = function wait(time) {
   });
 };
 
-describe('Cache', function () {
+describe('Cache async', function () {
   var getValue = function getValue() {
-    return Cache.get('__test');
+    return Cache.getAsync('__test');
   };
-  it('get/set', function () {
-    return Cache.set('__test', 1).then(getValue).then(function (value) {
+  it('get/set async', function () {
+    return Cache.setAsync('__test', 1).then(getValue).then(function (value) {
       expect(value).to.be(1);
-      return Cache.set('__test', '1', 100).then(getValue);
+      return Cache.setAsync('__test', '1', 100).then(getValue);
     }).then(function (value) {
       expect(value).to.be('1');
       return wait(110).then(getValue);
