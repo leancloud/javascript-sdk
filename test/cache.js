@@ -5,24 +5,6 @@ var wait = function wait(time) {
   });
 };
 
-describe('Cache sync', function () {
-  var getValue = function getValue() {
-    return Cache.get('__test');
-  };
-  it('get/set sync', function () {
-    Cache.set('__test', 1);
-    var value = getValue();
-    expect(value).to.be(1);
-    Cache.set('__test', '1', 100);
-    value = getValue();
-    expect(value).to.be('1');
-    wait(110).then(getValue)
-    .then(function(data) {
-      expect(data).to.be(null);
-    });
-  });
-});
-
 describe('Cache async', function () {
   var getValue = function getValue() {
     return Cache.getAsync('__test');
