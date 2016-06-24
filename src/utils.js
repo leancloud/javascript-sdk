@@ -150,7 +150,7 @@ const init = (AV) => {
       case 2:
       case 3:
         console.warn('Please use AV.init() to replace AV.initialize(), ' +
-         'AV.init() need an Object param, like { appId: \'xxx\', appKey: \'xxx\' } . ' +
+         'AV.init() need an Object param, like { appId: \'YOUR_APP_ID\', appKey: \'YOUR_APP_KEY\' } . ' +
          'Docs: https://leancloud.cn/docs/sdk_setup-js.html');
         if (!AVConfig.isNode && args.length === 3) {
           masterKeyWarn();
