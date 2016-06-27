@@ -67,4 +67,5 @@ bower install leancloud-storage --save
 * 发布到 npm，需 npm 协作者身份（执行 `npm publish`）
 * 发布到 CDN，需要七牛权限（执行 `gulp upload`）
 * 提醒所有相关工程师完善文档
+  * 需修改文档中 JS SDK 的 CDN 地址
 

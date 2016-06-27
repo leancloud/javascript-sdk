@@ -8,6 +8,7 @@
 var _ = require('underscore');
 var cos = require('./uploader/cos');
 var qiniu = require('./uploader/qiniu');
+var s3 = require('./uploader/s3');
 var AVError = require('./error');
 var AVRequest = require('./request').request;
 
@@ -612,7 +613,8 @@ module.exports = function (AV) {
       var route = arguments.length <= 1 || arguments[1] === undefined ? 'fileTokens' : arguments[1];
 
       var name = this.attributes.name;
-      //Create 16-bits uuid as qiniu key.
+
+      // Create 16-bits uuid as qiniu key.
       var extName = extname(name);
       var hexOctet = function hexOctet() {
         return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
@@ -620,8 +622,8 @@ module.exports = function (AV) {
       var key = hexOctet() + hexOctet() + hexOctet() + hexOctet() + hexOctet() + extName;
       var data = {
         key: key,
-        ACL: this._acl,
         name: name,
+        ACL: this._acl,
         mime_type: type,
         metaData: this.attributes.metaData
       };
@@ -661,29 +663,31 @@ module.exports = function (AV) {
           break;
       }
       if (!this._previousSave) {
-        // 如果是国内节点
-        var isCnNodeFlag = isCnNode();
-        if (this._source && isCnNodeFlag) {
-          // 通过国内 CDN 服务商上传
+        if (this._source) {
           this._previousSave = this._source.then(function (data, type) {
-            return _this2._fileToken(type).catch(function () {
-              return _this2._fileToken(type, 'qiniu');
-            }).then(function (uploadInfo) {
+            return _this2._fileToken(type).then(function (uploadInfo) {
               var uploadPromise = undefined;
-              if (uploadInfo.provider === 'qcloud') {
-                uploadPromise = cos(uploadInfo, data, _this2, saveOptions);
-              } else {
-                uploadPromise = qiniu(uploadInfo, data, _this2, saveOptions);
+              switch (uploadInfo.provider) {
+                case 's3':
+                  uploadPromise = s3(uploadInfo, data, _this2, saveOptions);
+                  break;
+                case 'qcloud':
+                  uploadPromise = cos(uploadInfo, data, _this2, saveOptions);
+                  break;
+                case 'qiniu':
+                default:
+                  uploadPromise = qiniu(uploadInfo, data, _this2, saveOptions);
+                  break;
               }
               return uploadPromise.catch(function (err) {
-                //destroy this file object when upload fails.
+                // destroy this file object when upload fails.
                 _this2.destroy();
                 throw err;
               });
             });
           });
         } else if (this.attributes.url && this.attributes.metaData.__source === 'external') {
-          //external link file.
+          // external link file.
           var data = {
             name: this.attributes.name,
             ACL: this._acl,
@@ -700,42 +704,11 @@ module.exports = function (AV) {
             }
             return _this2;
           });
-        } else if (!isCnNodeFlag) {
-          // 海外节点，通过 LeanCloud 服务器中转
-          this._previousSave = this._source.then(function (file, type) {
-            var data = {
-              base64: '',
-              _ContentType: type,
-              ACL: _this2._acl,
-              mime_type: type,
-              metaData: _this2.attributes.metaData
-            };
-            // 判断是否数据已经是 base64
-            if (_this2.attributes.base64) {
-              data.base64 = _this2.attributes.base64;
-              return AVRequest('files', _this2.attributes.name, null, 'POST', data);
-            } else if (typeof global.Buffer !== "undefined" && global.Buffer.isBuffer(file)) {
-              data.base64 = file.toString('base64');
-              return AVRequest('files', _this2.attributes.name, null, 'POST', data);
-            } else {
-              return readAsync(file).then(function (base64) {
-                data.base64 = base64;
-                return AVRequest('files', this.attributes.name, null, 'POST', data);
-              });
-            }
-          }).then(function (response) {
-            _this2.attributes.name = response.name;
-            _this2.attributes.url = response.url;
-            _this2.id = response.objectId;
-            if (response.size) {
-              _this2.attributes.metaData.size = response.size;
-            }
-            return _this2;
-          });
         }
       }
       return this._previousSave._thenRunCallbacks(options);
     },
+
     /**
     * fetch the file from server. If the server's representation of the
     * model differs from its current attributes, they will be overriden,

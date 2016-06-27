@@ -13,7 +13,7 @@
  * Each engineer has a duty to keep the code elegant
 **/
 
-var AV = module.exports = {};
+var AV = module.exports = global.AV || {};
 AV._ = require('underscore');
 AV.version = require('./version');
 AV.Promise = require('./promise');

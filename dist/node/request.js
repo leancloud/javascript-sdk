@@ -10,10 +10,19 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 var request = require('superagent');
 var debug = require('debug')('request');
 var md5 = require('md5');
-var Promise = require('./promise');
+var AVPromise = require('./promise');
 var Cache = require('./cache');
 var AVError = require('./error');
 var AV = require('./av');
+var _ = require('underscore');
+
+var getServerURLPromise = new AVPromise();
+
+// 服务器请求的节点 host
+var API_HOST = {
+  cn: 'https://api.leancloud.cn',
+  us: 'https://us-api.leancloud.cn'
+};
 
 // 计算 X-LC-Sign 的签名方法
 var sign = function sign(key, isMasterKey) {
@@ -39,7 +48,7 @@ var ajax = function ajax(method, resourceUrl, data) {
 
   debug(method, resourceUrl, data, headers);
 
-  var promise = new Promise();
+  var promise = new AVPromise();
   var req = request(method, resourceUrl).set(headers).send(data).end(function (err, res) {
     if (res) {
       debug(res.status, res.body, res.text);
@@ -80,7 +89,7 @@ var setHeaders = function setHeaders(sessionToken) {
     headers['User-Agent'] = AV._config.userAgent || 'AV/' + AV.version + '; Node.js/' + process.version;
   }
 
-  var promise = new Promise();
+  var promise = new AVPromise();
 
   // Pass the session token
   if (sessionToken) {
@@ -150,20 +159,23 @@ var cacheServerURL = function cacheServerURL(serverURL, ttl) {
   if (typeof ttl !== 'number') {
     ttl = 3600;
   }
-  Cache.set('APIServerURL', serverURL, ttl * 1000);
+  return Cache.setAsync('APIServerURL', serverURL, ttl * 1000);
 };
 
 // handle AV._request Error
 var handleError = function handleError(res) {
-  var promise = new Promise();
+  var promise = new AVPromise();
   /**
     When API request need to redirect to the right location,
     can't use browser redirect by http status 307, as the reason of CORS,
     so API server response http status 410 and the param "location" for this case.
   */
   if (res.statusCode === 410) {
-    cacheServerURL(res.response.api_server, res.response.ttl);
-    promise.resolve(res.response.location);
+    cacheServerURL(res.response.api_server, res.response.ttl).then(function () {
+      promise.resolve(res.response.location);
+    }).catch(function (error) {
+      promise.reject(error);
+    });
   } else {
     var errorJSON = { code: -1, error: res.responseText };
     if (res.response && res.response.code) {
@@ -184,41 +196,48 @@ var handleError = function handleError(res) {
   return promise;
 };
 
+var setServerUrl = function setServerUrl(serverURL) {
+  AV._config.APIServerURL = 'https://' + serverURL;
+
+  // 根据新 URL 重新设置区域
+  var newRegion = _.findKey(API_HOST, function (item) {
+    return item === AV._config.APIServerURL;
+  });
+  if (newRegion) {
+    AV._config.region = newRegion;
+  }
+};
+
+var refreshServerUrl = function refreshServerUrl() {
+  var url = 'https://app-router.leancloud.cn/1/route?appId=' + AV.applicationId;
+  return ajax('get', url).then(function (servers) {
+    if (servers.api_server) {
+      setServerUrl(servers.api_server);
+      return cacheServerURL(servers.api_server, servers.ttl);
+    }
+  });
+};
+
 var setServerUrlByRegion = function setServerUrlByRegion() {
   var region = arguments.length <= 0 || arguments[0] === undefined ? 'cn' : arguments[0];
 
-  // 服务器请求的节点 host
-  var API_HOST = {
-    cn: 'https://api.leancloud.cn',
-    us: 'https://us-api.leancloud.cn'
-  };
-
-  var AVConfig = AV._config;
-  AVConfig.region = region;
   // 如果用户在 init 之前设置了 APIServerURL，则跳过请求 router
-  if (AVConfig.APIServerURL) {
+  if (AV._config.APIServerURL) {
     return;
   }
-  AVConfig.APIServerURL = API_HOST[region];
-  if (region === 'cn') {
-    Cache.get('APIServerURL').then(function (cachedServerURL) {
-      if (cachedServerURL) {
-        return cachedServerURL;
-      } else {
-        return ajax('get', 'https://app-router.leancloud.cn/1/route?appId=' + AV.applicationId).then(function (servers) {
-          if (servers.api_server) {
-            cacheServerURL(servers.api_server, servers.ttl);
-            return servers.api_server;
-          }
-        });
-      }
-    }).then(function (serverURL) {
-      // 如果用户在 init 之后设置了 APIServerURL，保持用户设置
-      if (AVConfig.APIServerURL === API_HOST[region]) {
-        AVConfig.APIServerURL = 'https://' + serverURL;
-      }
-    });
-  }
+  AV._config.region = region;
+  AV._config.APIServerURL = API_HOST[region];
+
+  Cache.getAsync('APIServerURL').then(function (serverURL) {
+    if (serverURL) {
+      setServerUrl(serverURL);
+      getServerURLPromise.resolve();
+    } else {
+      refreshServerUrl().then(function () {
+        getServerURLPromise.resolve();
+      });
+    }
+  });
 };
 
 /**
@@ -241,12 +260,14 @@ var AVRequest = function AVRequest(route, className, objectId, method) {
   }
 
   checkRouter(route);
-  var apiURL = createApiUrl(route, className, objectId, method, dataObject);
 
-  return setHeaders(sessionToken).then(function (headers) {
-    return ajax(method, apiURL, dataObject, headers).then(null, function (res) {
-      return handleError(res).then(function (location) {
-        return ajax(method, location, dataObject, headers);
+  return getServerURLPromise.always(function () {
+    var apiURL = createApiUrl(route, className, objectId, method, dataObject);
+    return setHeaders(sessionToken).then(function (headers) {
+      return ajax(method, apiURL, dataObject, headers).then(null, function (res) {
+        return handleError(res).then(function (location) {
+          return ajax(method, location, dataObject, headers);
+        });
       });
     });
   });

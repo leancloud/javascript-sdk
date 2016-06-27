@@ -4353,61 +4353,63 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         };
       };
     }, { "underscore": 17 }], 19: [function (require, module, exports) {
-      /*!
-       * LeanCloud JavaScript SDK
-       * https://leancloud.cn
-       *
-       * Copyright 2016 LeanCloud.cn, Inc.
-       * The LeanCloud JavaScript SDK is freely distributable under the MIT license.
-       */
+      (function (global) {
+        /*!
+         * LeanCloud JavaScript SDK
+         * https://leancloud.cn
+         *
+         * Copyright 2016 LeanCloud.cn, Inc.
+         * The LeanCloud JavaScript SDK is freely distributable under the MIT license.
+         */
 
-      /**
-       * 每位工程师都有保持代码优雅的义务
-       * Each engineer has a duty to keep the code elegant
-      **/
+        /**
+         * 每位工程师都有保持代码优雅的义务
+         * Each engineer has a duty to keep the code elegant
+        **/
 
-      var AV = module.exports = {};
-      AV._ = require('underscore');
-      AV.version = require('./version');
-      AV.Promise = require('./promise');
-      AV.localStorage = require('./localstorage');
-      AV.Cache = require('./cache');
+        var AV = module.exports = global.AV || {};
+        AV._ = require('underscore');
+        AV.version = require('./version');
+        AV.Promise = require('./promise');
+        AV.localStorage = require('./localstorage');
+        AV.Cache = require('./cache');
 
-      // All internal configuration items
-      AV._config = AV._config || {};
+        // All internal configuration items
+        AV._config = AV._config || {};
 
-      require('./utils').init(AV);
+        require('./utils').init(AV);
 
-      require('./event')(AV);
-      require('./geopoint')(AV);
-      require('./acl')(AV);
-      require('./op')(AV);
-      require('./relation')(AV);
-      require('./file')(AV);
-      require('./object')(AV);
-      require('./role')(AV);
-      require('./user')(AV);
-      require('./query')(AV);
-      require('./cloudfunction')(AV);
-      require('./push')(AV);
-      require('./status')(AV);
-      require('./search')(AV);
-      require('./insight')(AV);
+        require('./event')(AV);
+        require('./geopoint')(AV);
+        require('./acl')(AV);
+        require('./op')(AV);
+        require('./relation')(AV);
+        require('./file')(AV);
+        require('./object')(AV);
+        require('./role')(AV);
+        require('./user')(AV);
+        require('./query')(AV);
+        require('./cloudfunction')(AV);
+        require('./push')(AV);
+        require('./status')(AV);
+        require('./search')(AV);
+        require('./insight')(AV);
 
-      // TODO: deprecated AV.Error()
-      var AVError = require('./error');
-      /**
-       * @deprecated AV.Error() is deprecated, and will be removed in next release.
-       */
-      AV.Error = function () {
-        for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-          args[_key] = arguments[_key];
-        }
+        // TODO: deprecated AV.Error()
+        var AVError = require('./error');
+        /**
+         * @deprecated AV.Error() is deprecated, and will be removed in next release.
+         */
+        AV.Error = function () {
+          for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+            args[_key] = arguments[_key];
+          }
 
-        console.warn('AV.Error() is deprecated, and will be removed in next release.');
-        new (Function.prototype.bind.apply(AVError, [null].concat(args)))();
-      };
-    }, { "./acl": 18, "./cache": 22, "./cloudfunction": 23, "./error": 24, "./event": 25, "./file": 26, "./geopoint": 27, "./insight": 28, "./localstorage": 29, "./object": 30, "./op": 31, "./promise": 32, "./push": 33, "./query": 34, "./relation": 35, "./role": 37, "./search": 38, "./status": 39, "./user": 42, "./utils": 43, "./version": 44, "underscore": 17 }], 20: [function (require, module, exports) {
+          console.warn('AV.Error() is deprecated, and will be removed in next release.');
+          new (Function.prototype.bind.apply(AVError, [null].concat(args)))();
+        };
+      }).call(this, typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {});
+    }, { "./acl": 18, "./cache": 22, "./cloudfunction": 23, "./error": 24, "./event": 25, "./file": 26, "./geopoint": 27, "./insight": 28, "./localstorage": 29, "./object": 30, "./op": 31, "./promise": 32, "./push": 33, "./query": 34, "./relation": 35, "./role": 37, "./search": 38, "./status": 39, "./user": 43, "./utils": 44, "./version": 45, "underscore": 17 }], 20: [function (require, module, exports) {
       (function (global) {
         /**
          * 每位工程师都有保持代码优雅的义务
@@ -4505,29 +4507,34 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       var storage = require('./localstorage');
       var AV = require('./av');
 
-      var remove = exports.remove = storage.removeItemAsync.bind(storage);
+      var removeAsync = exports.removeAsync = storage.removeItemAsync.bind(storage);
 
-      exports.get = function (key) {
-        return storage.getItemAsync(AV.applicationId + "/" + key).then(function (cache) {
-          try {
-            cache = JSON.parse(cache);
-          } catch (e) {
-            return null;
-          }
-          if (cache) {
-            var expired = cache.expiredAt && cache.expiredAt < Date.now();
-            if (!expired) {
-              return cache.value;
-            }
-            return remove(key).then(function () {
-              return null;
-            });
-          }
+      var getCacheData = function getCacheData(cacheData, key) {
+        try {
+          cacheData = JSON.parse(cacheData);
+        } catch (e) {
           return null;
+        }
+        if (cacheData) {
+          var expired = cacheData.expiredAt && cacheData.expiredAt < Date.now();
+          if (!expired) {
+            return cacheData.value;
+          }
+          return removeAsync(key).then(function () {
+            return null;
+          });
+        }
+        return null;
+      };
+
+      exports.getAsync = function (key) {
+        key = AV.applicationId + "/" + key;
+        return storage.getItemAsync(key).then(function (cache) {
+          return getCacheData(cache, key);
         });
       };
 
-      exports.set = function (key, value, ttl) {
+      exports.setAsync = function (key, value, ttl) {
         var cache = { value: value };
         if (typeof ttl === 'number') {
           cache.expiredAt = Date.now() + ttl;
@@ -4759,7 +4766,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         /**
          * Error code indicating an invalid channel name. A channel name is either
          * an empty string (the broadcast channel) or contains only a-zA-Z0-9_
-         * characters and starts with a letter.
+         * characters.
          * @constant
          */
         INVALID_CHANNEL_NAME: 112,
@@ -5163,6 +5170,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         var _ = require('underscore');
         var cos = require('./uploader/cos');
         var qiniu = require('./uploader/qiniu');
+        var s3 = require('./uploader/s3');
         var AVError = require('./error');
         var AVRequest = require('./request').request;
 
@@ -5767,7 +5775,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
               var route = arguments.length <= 1 || arguments[1] === undefined ? 'fileTokens' : arguments[1];
 
               var name = this.attributes.name;
-              //Create 16-bits uuid as qiniu key.
+
+              // Create 16-bits uuid as qiniu key.
               var extName = extname(name);
               var hexOctet = function hexOctet() {
                 return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
@@ -5775,8 +5784,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
               var key = hexOctet() + hexOctet() + hexOctet() + hexOctet() + hexOctet() + extName;
               var data = {
                 key: key,
-                ACL: this._acl,
                 name: name,
+                ACL: this._acl,
                 mime_type: type,
                 metaData: this.attributes.metaData
               };
@@ -5816,29 +5825,31 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                   break;
               }
               if (!this._previousSave) {
-                // 如果是国内节点
-                var isCnNodeFlag = isCnNode();
-                if (this._source && isCnNodeFlag) {
-                  // 通过国内 CDN 服务商上传
+                if (this._source) {
                   this._previousSave = this._source.then(function (data, type) {
-                    return _this2._fileToken(type).catch(function () {
-                      return _this2._fileToken(type, 'qiniu');
-                    }).then(function (uploadInfo) {
+                    return _this2._fileToken(type).then(function (uploadInfo) {
                       var uploadPromise = undefined;
-                      if (uploadInfo.provider === 'qcloud') {
-                        uploadPromise = cos(uploadInfo, data, _this2, saveOptions);
-                      } else {
-                        uploadPromise = qiniu(uploadInfo, data, _this2, saveOptions);
+                      switch (uploadInfo.provider) {
+                        case 's3':
+                          uploadPromise = s3(uploadInfo, data, _this2, saveOptions);
+                          break;
+                        case 'qcloud':
+                          uploadPromise = cos(uploadInfo, data, _this2, saveOptions);
+                          break;
+                        case 'qiniu':
+                        default:
+                          uploadPromise = qiniu(uploadInfo, data, _this2, saveOptions);
+                          break;
                       }
                       return uploadPromise.catch(function (err) {
-                        //destroy this file object when upload fails.
+                        // destroy this file object when upload fails.
                         _this2.destroy();
                         throw err;
                       });
                     });
                   });
                 } else if (this.attributes.url && this.attributes.metaData.__source === 'external') {
-                  //external link file.
+                  // external link file.
                   var data = {
                     name: this.attributes.name,
                     ACL: this._acl,
@@ -5855,42 +5866,11 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                     }
                     return _this2;
                   });
-                } else if (!isCnNodeFlag) {
-                  // 海外节点，通过 LeanCloud 服务器中转
-                  this._previousSave = this._source.then(function (file, type) {
-                    var data = {
-                      base64: '',
-                      _ContentType: type,
-                      ACL: _this2._acl,
-                      mime_type: type,
-                      metaData: _this2.attributes.metaData
-                    };
-                    // 判断是否数据已经是 base64
-                    if (_this2.attributes.base64) {
-                      data.base64 = _this2.attributes.base64;
-                      return AVRequest('files', _this2.attributes.name, null, 'POST', data);
-                    } else if (typeof global.Buffer !== "undefined" && global.Buffer.isBuffer(file)) {
-                      data.base64 = file.toString('base64');
-                      return AVRequest('files', _this2.attributes.name, null, 'POST', data);
-                    } else {
-                      return readAsync(file).then(function (base64) {
-                        data.base64 = base64;
-                        return AVRequest('files', this.attributes.name, null, 'POST', data);
-                      });
-                    }
-                  }).then(function (response) {
-                    _this2.attributes.name = response.name;
-                    _this2.attributes.url = response.url;
-                    _this2.id = response.objectId;
-                    if (response.size) {
-                      _this2.attributes.metaData.size = response.size;
-                    }
-                    return _this2;
-                  });
                 }
               }
               return this._previousSave._thenRunCallbacks(options);
             },
+
             /**
             * fetch the file from server. If the server's representation of the
             * model differs from its current attributes, they will be overriden,
@@ -5933,7 +5913,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           };
         };
       }).call(this, typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {});
-    }, { "./browserify-wrapper/parse-base64": 21, "./error": 24, "./request": 36, "./uploader/cos": 40, "./uploader/qiniu": 41, "underscore": 17 }], 27: [function (require, module, exports) {
+    }, { "./browserify-wrapper/parse-base64": 21, "./error": 24, "./request": 36, "./uploader/cos": 40, "./uploader/qiniu": 41, "./uploader/s3": 42, "underscore": 17 }], 27: [function (require, module, exports) {
       /**
        * 每位工程师都有保持代码优雅的义务
        * Each engineer has a duty to keep the code elegant
@@ -6999,7 +6979,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
            * @param item {} The item to add.
            */
           add: function add(attr, item) {
-            return this.set(attr, new AV.Op.Add([item]));
+            return this.set(attr, new AV.Op.Add(utils.ensureArray(item)));
           },
 
           /**
@@ -7011,7 +6991,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
            * @param item {} The object to add.
            */
           addUnique: function addUnique(attr, item) {
-            return this.set(attr, new AV.Op.AddUnique([item]));
+            return this.set(attr, new AV.Op.AddUnique(utils.ensureArray(item)));
           },
 
           /**
@@ -7022,7 +7002,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
            * @param item {} The object to remove.
            */
           remove: function remove(attr, item) {
-            return this.set(attr, new AV.Op.Remove([item]));
+            return this.set(attr, new AV.Op.Remove(utils.ensureArray(item)));
           },
 
           /**
@@ -7829,7 +7809,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           });
         };
       };
-    }, { "./error": 24, "./request": 36, "./utils": 43, "underscore": 17 }], 31: [function (require, module, exports) {
+    }, { "./error": 24, "./request": 36, "./utils": 44, "underscore": 17 }], 31: [function (require, module, exports) {
       /**
        * 每位工程师都有保持代码优雅的义务
        * Each engineer has a duty to keep the code elegant
@@ -10089,10 +10069,19 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         var request = require('superagent');
         var debug = require('debug')('request');
         var md5 = require('md5');
-        var Promise = require('./promise');
+        var AVPromise = require('./promise');
         var Cache = require('./cache');
         var AVError = require('./error');
         var AV = require('./av');
+        var _ = require('underscore');
+
+        var getServerURLPromise = new AVPromise();
+
+        // 服务器请求的节点 host
+        var API_HOST = {
+          cn: 'https://api.leancloud.cn',
+          us: 'https://us-api.leancloud.cn'
+        };
 
         // 计算 X-LC-Sign 的签名方法
         var sign = function sign(key, isMasterKey) {
@@ -10118,7 +10107,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
           debug(method, resourceUrl, data, headers);
 
-          var promise = new Promise();
+          var promise = new AVPromise();
           var req = request(method, resourceUrl).set(headers).send(data).end(function (err, res) {
             if (res) {
               debug(res.status, res.body, res.text);
@@ -10159,7 +10148,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             headers['User-Agent'] = AV._config.userAgent || "AV/" + AV.version + "; Node.js/" + process.version;
           }
 
-          var promise = new Promise();
+          var promise = new AVPromise();
 
           // Pass the session token
           if (sessionToken) {
@@ -10229,20 +10218,23 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           if (typeof ttl !== 'number') {
             ttl = 3600;
           }
-          Cache.set('APIServerURL', serverURL, ttl * 1000);
+          return Cache.setAsync('APIServerURL', serverURL, ttl * 1000);
         };
 
         // handle AV._request Error
         var handleError = function handleError(res) {
-          var promise = new Promise();
+          var promise = new AVPromise();
           /**
             When API request need to redirect to the right location,
             can't use browser redirect by http status 307, as the reason of CORS,
             so API server response http status 410 and the param "location" for this case.
           */
           if (res.statusCode === 410) {
-            cacheServerURL(res.response.api_server, res.response.ttl);
-            promise.resolve(res.response.location);
+            cacheServerURL(res.response.api_server, res.response.ttl).then(function () {
+              promise.resolve(res.response.location);
+            }).catch(function (error) {
+              promise.reject(error);
+            });
           } else {
             var errorJSON = { code: -1, error: res.responseText };
             if (res.response && res.response.code) {
@@ -10263,41 +10255,48 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           return promise;
         };
 
+        var setServerUrl = function setServerUrl(serverURL) {
+          AV._config.APIServerURL = "https://" + serverURL;
+
+          // 根据新 URL 重新设置区域
+          var newRegion = _.findKey(API_HOST, function (item) {
+            return item === AV._config.APIServerURL;
+          });
+          if (newRegion) {
+            AV._config.region = newRegion;
+          }
+        };
+
+        var refreshServerUrl = function refreshServerUrl() {
+          var url = "https://app-router.leancloud.cn/1/route?appId=" + AV.applicationId;
+          return ajax('get', url).then(function (servers) {
+            if (servers.api_server) {
+              setServerUrl(servers.api_server);
+              return cacheServerURL(servers.api_server, servers.ttl);
+            }
+          });
+        };
+
         var setServerUrlByRegion = function setServerUrlByRegion() {
           var region = arguments.length <= 0 || arguments[0] === undefined ? 'cn' : arguments[0];
 
-          // 服务器请求的节点 host
-          var API_HOST = {
-            cn: 'https://api.leancloud.cn',
-            us: 'https://us-api.leancloud.cn'
-          };
-
-          var AVConfig = AV._config;
-          AVConfig.region = region;
           // 如果用户在 init 之前设置了 APIServerURL，则跳过请求 router
-          if (AVConfig.APIServerURL) {
+          if (AV._config.APIServerURL) {
             return;
           }
-          AVConfig.APIServerURL = API_HOST[region];
-          if (region === 'cn') {
-            Cache.get('APIServerURL').then(function (cachedServerURL) {
-              if (cachedServerURL) {
-                return cachedServerURL;
-              } else {
-                return ajax('get', "https://app-router.leancloud.cn/1/route?appId=" + AV.applicationId).then(function (servers) {
-                  if (servers.api_server) {
-                    cacheServerURL(servers.api_server, servers.ttl);
-                    return servers.api_server;
-                  }
-                });
-              }
-            }).then(function (serverURL) {
-              // 如果用户在 init 之后设置了 APIServerURL，保持用户设置
-              if (AVConfig.APIServerURL === API_HOST[region]) {
-                AVConfig.APIServerURL = "https://" + serverURL;
-              }
-            });
-          }
+          AV._config.region = region;
+          AV._config.APIServerURL = API_HOST[region];
+
+          Cache.getAsync('APIServerURL').then(function (serverURL) {
+            if (serverURL) {
+              setServerUrl(serverURL);
+              getServerURLPromise.resolve();
+            } else {
+              refreshServerUrl().then(function () {
+                getServerURLPromise.resolve();
+              });
+            }
+          });
         };
 
         /**
@@ -10320,12 +10319,14 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           }
 
           checkRouter(route);
-          var apiURL = createApiUrl(route, className, objectId, method, dataObject);
 
-          return setHeaders(sessionToken).then(function (headers) {
-            return ajax(method, apiURL, dataObject, headers).then(null, function (res) {
-              return handleError(res).then(function (location) {
-                return ajax(method, location, dataObject, headers);
+          return getServerURLPromise.always(function () {
+            var apiURL = createApiUrl(route, className, objectId, method, dataObject);
+            return setHeaders(sessionToken).then(function (headers) {
+              return ajax(method, apiURL, dataObject, headers).then(null, function (res) {
+                return handleError(res).then(function (location) {
+                  return ajax(method, location, dataObject, headers);
+                });
               });
             });
           });
@@ -10337,7 +10338,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           setServerUrlByRegion: setServerUrlByRegion
         };
       }).call(this, require('_process'));
-    }, { "./av": 19, "./cache": 22, "./error": 24, "./promise": 32, "_process": 2, "debug": 4, "md5": 8, "superagent": 13 }], 37: [function (require, module, exports) {
+    }, { "./av": 19, "./cache": 22, "./error": 24, "./promise": 32, "_process": 2, "debug": 4, "md5": 8, "superagent": 13, "underscore": 17 }], 37: [function (require, module, exports) {
       /**
        * 每位工程师都有保持代码优雅的义务
        * Each engineer has a duty to keep the code elegant
@@ -11220,6 +11221,37 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         return promise;
       };
     }, { "../promise": 32, "debug": 4, "superagent": 13 }], 42: [function (require, module, exports) {
+      /**
+       * 每位工程师都有保持代码优雅的义务
+       * Each engineer has a duty to keep the code elegant
+       **/
+
+      var request = require('superagent');
+      var AVPromise = require('../promise');
+
+      module.exports = function upload(uploadUrl, data, file) {
+        var saveOptions = arguments.length <= 3 || arguments[3] === undefined ? {} : arguments[3];
+
+        // 海外节点，针对 S3 才会返回 upload_url
+        file.attributes.url = uploadInfo.url;
+        var promise = new AVPromise();
+        var req = request('PUT', uploadUrl).set('Content-Type', file.attributes.metaData.mime_type).send(data).end(function (err, res) {
+          if (err) {
+            if (res) {
+              err.statusCode = res.status;
+              err.responseText = res.text;
+              err.response = res.body;
+            }
+            return promise.reject(err);
+          }
+          promise.resolve(file);
+        });
+        if (saveOptions.onprogress) {
+          req.on('progress', saveOptions.onprogress);
+        }
+        return promise;
+      };
+    }, { "../promise": 32, "superagent": 13 }], 43: [function (require, module, exports) {
       /**
        * 每位工程师都有保持代码优雅的义务
        * Each engineer has a duty to keep the code elegant
@@ -12294,7 +12326,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         delete newOptions.error;
         return newOptions;
       }
-    }, { "./error": 24, "./request": 36, "underscore": 17 }], 43: [function (require, module, exports) {
+    }, { "./error": 24, "./request": 36, "underscore": 17 }], 44: [function (require, module, exports) {
       (function (process) {
         /**
          * 每位工程师都有保持代码优雅的义务
@@ -12307,6 +12339,16 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         // Helper function to check null or undefined.
         var isNullOrUndefined = function isNullOrUndefined(x) {
           return _.isNull(x) || _.isUndefined(x);
+        };
+
+        var ensureArray = function ensureArray(target) {
+          if (_.isArray(target)) {
+            return target;
+          }
+          if (target === undefined || target === null) {
+            return [];
+          }
+          return [target];
         };
 
         var init = function init(AV) {
@@ -12449,7 +12491,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
               // 兼容旧版本的初始化方法
               case 2:
               case 3:
-                console.warn('Please use AV.init() to replace AV.initialize() .');
+                console.warn('Please use AV.init() to replace AV.initialize(), ' + 'AV.init() need an Object param, like { appId: \'YOUR_APP_ID\', appKey: \'YOUR_APP_KEY\' } . ' + 'Docs: https://leancloud.cn/docs/sdk_setup-js.html');
                 if (!AVConfig.isNode && arguments.length === 3) {
                   masterKeyWarn();
                 }
@@ -12839,15 +12881,16 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
         module.exports = {
           init: init,
-          isNullOrUndefined: isNullOrUndefined
+          isNullOrUndefined: isNullOrUndefined,
+          ensureArray: ensureArray
         };
       }).call(this, require('_process'));
-    }, { "./request": 36, "_process": 2, "underscore": 17 }], 44: [function (require, module, exports) {
+    }, { "./request": 36, "_process": 2, "underscore": 17 }], 45: [function (require, module, exports) {
       /**
        * 每位工程师都有保持代码优雅的义务
        * Each engineer has a duty to keep the code elegant
       **/
 
-      module.exports = 'js1.0.0';
+      module.exports = 'js1.1.0';
     }, {}] }, {}, [19])(19);
 });
