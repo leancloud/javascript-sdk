@@ -713,7 +713,7 @@ module.exports = function (AV) {
      * @param item {} The item to add.
      */
     add: function add(attr, item) {
-      return this.set(attr, new AV.Op.Add([item]));
+      return this.set(attr, new AV.Op.Add(utils.ensureArray(item)));
     },
 
     /**
@@ -725,7 +725,7 @@ module.exports = function (AV) {
      * @param item {} The object to add.
      */
     addUnique: function addUnique(attr, item) {
-      return this.set(attr, new AV.Op.AddUnique([item]));
+      return this.set(attr, new AV.Op.AddUnique(utils.ensureArray(item)));
     },
 
     /**
@@ -736,7 +736,7 @@ module.exports = function (AV) {
      * @param item {} The object to remove.
      */
     remove: function remove(attr, item) {
-      return this.set(attr, new AV.Op.Remove([item]));
+      return this.set(attr, new AV.Op.Remove(utils.ensureArray(item)));
     },
 
     /**

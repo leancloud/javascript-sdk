@@ -4368,6 +4368,7 @@ module.exports = function(AV) {
 };
 
 },{"underscore":17}],19:[function(require,module,exports){
+(function (global){
 /*!
  * LeanCloud JavaScript SDK
  * https://leancloud.cn
@@ -4381,7 +4382,7 @@ module.exports = function(AV) {
  * Each engineer has a duty to keep the code elegant
 **/
 
-const AV = module.exports = {};
+const AV = module.exports = global.AV || {};
 AV._ = require('underscore');
 AV.version = require('./version');
 AV.Promise = require('./promise');
@@ -4419,7 +4420,8 @@ AV.Error = (...args) => {
   new AVError(...args);
 };
 
-},{"./acl":18,"./cache":22,"./cloudfunction":23,"./error":24,"./event":25,"./file":26,"./geopoint":27,"./insight":28,"./localstorage":29,"./object":30,"./op":31,"./promise":32,"./push":33,"./query":34,"./relation":35,"./role":37,"./search":38,"./status":39,"./user":42,"./utils":43,"./version":44,"underscore":17}],20:[function(require,module,exports){
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./acl":18,"./cache":22,"./cloudfunction":23,"./error":24,"./event":25,"./file":26,"./geopoint":27,"./insight":28,"./localstorage":29,"./object":30,"./op":31,"./promise":32,"./push":33,"./query":34,"./relation":35,"./role":37,"./search":38,"./status":39,"./user":43,"./utils":44,"./version":45,"underscore":17}],20:[function(require,module,exports){
 (function (global){
 /**
  * 每位工程师都有保持代码优雅的义务
@@ -4524,27 +4526,31 @@ module.exports = dataURItoBlob;
 const storage = require('./localstorage');
 const AV = require('./av');
 
-const remove = exports.remove = storage.removeItemAsync.bind(storage);
+const removeAsync = exports.removeAsync = storage.removeItemAsync.bind(storage);
 
-exports.get = (key) =>
-  storage.getItemAsync(`${AV.applicationId}/${key}`)
-    .then(cache => {
-      try {
-        cache = JSON.parse(cache);
-      } catch (e) {
-        return null;
-      }
-      if (cache) {
-        const expired = cache.expiredAt && cache.expiredAt < Date.now();
-        if (!expired) {
-          return cache.value;
-        }
-        return remove(key).then(() => null);
-      }
-      return null;
-    });
+const getCacheData = (cacheData, key) => {
+  try {
+    cacheData = JSON.parse(cacheData);
+  } catch (e) {
+    return null;
+  }
+  if (cacheData) {
+    const expired = cacheData.expiredAt && cacheData.expiredAt < Date.now();
+    if (!expired) {
+      return cacheData.value;
+    }
+    return removeAsync(key).then(() => null);
+  }
+  return null;
+};
 
-exports.set = (key, value, ttl) => {
+exports.getAsync = (key) => {
+  key = `${AV.applicationId}/${key}`;
+  return storage.getItemAsync(key)
+    .then(cache => getCacheData(cache, key));
+};
+
+exports.setAsync = (key, value, ttl) => {
   const cache = { value };
   if (typeof ttl === 'number') {
     cache.expiredAt = Date.now() + ttl;
@@ -4787,7 +4793,7 @@ _.extend(AVError, {
   /**
    * Error code indicating an invalid channel name. A channel name is either
    * an empty string (the broadcast channel) or contains only a-zA-Z0-9_
-   * characters and starts with a letter.
+   * characters.
    * @constant
    */
   INVALID_CHANNEL_NAME: 112,
@@ -5193,6 +5199,7 @@ module.exports = function(AV) {
 const _ = require('underscore');
 const cos = require('./uploader/cos');
 const qiniu = require('./uploader/qiniu');
+const s3 = require('./uploader/s3');
 const AVError = require('./error');
 const AVRequest = require('./request').request;
 
@@ -5805,20 +5812,19 @@ module.exports = function(AV) {
      * @return {AV.Promise} Resolved with the response
      * @private
      */
-    _fileToken: function(type, route = 'fileTokens') {
+    _fileToken(type, route = 'fileTokens') {
       const name = this.attributes.name;
-      //Create 16-bits uuid as qiniu key.
+
+      // Create 16-bits uuid as qiniu key.
       const extName = extname(name);
-      const hexOctet = function() {
-        return Math.floor((1+Math.random())*0x10000).toString(16).substring(1);
-      };
+      const hexOctet = () => Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
       const key = hexOctet() + hexOctet() + hexOctet() + hexOctet() + hexOctet() + extName;
       const data = {
-        key: key,
+        key,
+        name,
         ACL: this._acl,
-        name: name,
         mime_type: type,
-        metaData: this.attributes.metaData
+        metaData: this.attributes.metaData,
       };
       if (type && !this.attributes.metaData.mime_type) {
         this.attributes.metaData.mime_type = type;
@@ -5838,7 +5844,7 @@ module.exports = function(AV) {
      * @param {Object} options A Backbone-style options object.
      * @return {AV.Promise} Promise that is resolved when the save finishes.
      */
-    save: function(...args) {
+    save(...args) {
       if (this.id) {
         throw new Error('File already saved. If you want to manipulate a file, use AV.Query to get it.');
       }
@@ -5847,75 +5853,47 @@ module.exports = function(AV) {
       switch (args.length) {
         case 1:
           options = args[0];
-        break;
+          break;
         case 2:
           saveOptions = args[0];
           options = args[1];
-        break;
+          break;
       }
       if (!this._previousSave) {
-        // 如果是国内节点
-        var isCnNodeFlag = isCnNode();
-        if (this._source && isCnNodeFlag) {
-          // 通过国内 CDN 服务商上传
-          this._previousSave = this._source.then((data, type) => {
-            return this._fileToken(type).catch(() => this._fileToken(type, 'qiniu'))
+        if (this._source) {
+          this._previousSave = this._source.then((data, type) =>
+            this._fileToken(type)
               .then(uploadInfo => {
                 let uploadPromise;
-                if (uploadInfo.provider === 'qcloud') {
-                  uploadPromise = cos(uploadInfo, data, this, saveOptions);
-                } else {
-                  uploadPromise = qiniu(uploadInfo, data, this, saveOptions);
+                switch (uploadInfo.provider) {
+                  case 's3':
+                    uploadPromise = s3(uploadInfo, data, this, saveOptions);
+                    break;
+                  case 'qcloud':
+                    uploadPromise = cos(uploadInfo, data, this, saveOptions);
+                    break;
+                  case 'qiniu':
+                  default:
+                    uploadPromise = qiniu(uploadInfo, data, this, saveOptions);
+                    break;
                 }
                 return uploadPromise.catch(err => {
-                  //destroy this file object when upload fails.
+                  // destroy this file object when upload fails.
                   this.destroy();
                   throw err;
                 });
-              });
-          });
+              })
+          );
         } else if (this.attributes.url && this.attributes.metaData.__source === 'external') {
-          //external link file.
-          var data = {
+          // external link file.
+          const data = {
             name: this.attributes.name,
             ACL: this._acl,
             metaData: this.attributes.metaData,
             mime_type: this._guessedType,
-            url: this.attributes.url
+            url: this.attributes.url,
           };
           this._previousSave = AVRequest('files', this.attributes.name, null, 'post', data).then((response) => {
-            this.attributes.name = response.name;
-            this.attributes.url = response.url;
-            this.id = response.objectId;
-            if (response.size) {
-              this.attributes.metaData.size = response.size;
-            }
-            return this;
-          });
-        } else if (!isCnNodeFlag) {
-          // 海外节点，通过 LeanCloud 服务器中转
-          this._previousSave = this._source.then((file, type) => {
-            var data = {
-              base64: '',
-              _ContentType: type,
-              ACL: this._acl,
-              mime_type: type,
-              metaData: this.attributes.metaData,
-            };
-            // 判断是否数据已经是 base64
-            if (this.attributes.base64) {
-              data.base64 = this.attributes.base64;
-              return AVRequest('files', this.attributes.name, null, 'POST', data);
-            } else if (typeof global.Buffer !== "undefined" && global.Buffer.isBuffer(file)) {
-              data.base64 = file.toString('base64');
-              return AVRequest('files', this.attributes.name, null, 'POST', data);
-            } else {
-              return readAsync(file).then(function(base64) {
-                data.base64 = base64;
-                return AVRequest('files', this.attributes.name, null, 'POST', data);
-              });
-            }
-          }).then((response) => {
             this.attributes.name = response.name;
             this.attributes.url = response.url;
             this.id = response.objectId;
@@ -5970,7 +5948,7 @@ module.exports = function(AV) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./browserify-wrapper/parse-base64":21,"./error":24,"./request":36,"./uploader/cos":40,"./uploader/qiniu":41,"underscore":17}],27:[function(require,module,exports){
+},{"./browserify-wrapper/parse-base64":21,"./error":24,"./request":36,"./uploader/cos":40,"./uploader/qiniu":41,"./uploader/s3":42,"underscore":17}],27:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -7055,7 +7033,7 @@ module.exports = function(AV) {
      * @param item {} The item to add.
      */
     add: function(attr, item) {
-      return this.set(attr, new AV.Op.Add([item]));
+      return this.set(attr, new AV.Op.Add(utils.ensureArray(item)));
     },
 
     /**
@@ -7067,7 +7045,7 @@ module.exports = function(AV) {
      * @param item {} The object to add.
      */
     addUnique: function(attr, item) {
-      return this.set(attr, new AV.Op.AddUnique([item]));
+      return this.set(attr, new AV.Op.AddUnique(utils.ensureArray(item)));
     },
 
     /**
@@ -7078,7 +7056,7 @@ module.exports = function(AV) {
      * @param item {} The object to remove.
      */
     remove: function(attr, item) {
-      return this.set(attr, new AV.Op.Remove([item]));
+      return this.set(attr, new AV.Op.Remove(utils.ensureArray(item)));
     },
 
     /**
@@ -7905,7 +7883,7 @@ module.exports = function(AV) {
 
 };
 
-},{"./error":24,"./request":36,"./utils":43,"underscore":17}],31:[function(require,module,exports){
+},{"./error":24,"./request":36,"./utils":44,"underscore":17}],31:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -10191,10 +10169,19 @@ module.exports = function(AV) {
 const request = require('superagent');
 const debug = require('debug')('request');
 const md5 = require('md5');
-const Promise = require('./promise');
+const AVPromise = require('./promise');
 const Cache = require('./cache');
 const AVError = require('./error');
 const AV = require('./av');
+const _ = require('underscore');
+
+const getServerURLPromise = new AVPromise();
+
+// 服务器请求的节点 host
+const API_HOST = {
+  cn: 'https://api.leancloud.cn',
+  us: 'https://us-api.leancloud.cn',
+};
 
 // 计算 X-LC-Sign 的签名方法
 const sign = (key, isMasterKey) => {
@@ -10250,7 +10237,7 @@ const checkRouter = (router) => {
 const ajax = (method, resourceUrl, data, headers = {}, onprogress) => {
   debug(method, resourceUrl, data, headers);
 
-  const promise = new Promise();
+  const promise = new AVPromise();
   const req = request(method, resourceUrl)
     .set(headers)
     .send(data)
@@ -10294,7 +10281,7 @@ const setHeaders = (sessionToken) => {
     headers['User-Agent'] = AV._config.userAgent || `AV/${AV.version}; Node.js/${process.version}`;
   }
 
-  const promise = new Promise();
+  const promise = new AVPromise();
 
   // Pass the session token
   if (sessionToken) {
@@ -10364,20 +10351,23 @@ const cacheServerURL = (serverURL, ttl) => {
   if (typeof ttl !== 'number') {
     ttl = 3600;
   }
-  Cache.set('APIServerURL', serverURL, ttl * 1000);
+  return Cache.setAsync('APIServerURL', serverURL, ttl * 1000);
 };
 
 // handle AV._request Error
 const handleError = (res) => {
-  const promise = new Promise();
+  const promise = new AVPromise();
   /**
     When API request need to redirect to the right location,
     can't use browser redirect by http status 307, as the reason of CORS,
     so API server response http status 410 and the param "location" for this case.
   */
   if (res.statusCode === 410) {
-    cacheServerURL(res.response.api_server, res.response.ttl);
-    promise.resolve(res.response.location);
+    cacheServerURL(res.response.api_server, res.response.ttl).then(() => {
+      promise.resolve(res.response.location);
+    }).catch((error) => {
+      promise.reject(error);
+    });
   } else {
     let errorJSON = { code: -1, error: res.responseText };
     if (res.response && res.response.code) {
@@ -10398,40 +10388,44 @@ const handleError = (res) => {
   return promise;
 };
 
-const setServerUrlByRegion = (region = 'cn') => {
-  // 服务器请求的节点 host
-  const API_HOST = {
-    cn: 'https://api.leancloud.cn',
-    us: 'https://us-api.leancloud.cn',
-  };
+const setServerUrl = (serverURL) => {
+  AV._config.APIServerURL = `https://${serverURL}`;
 
-  const AVConfig = AV._config;
-  AVConfig.region = region;
+  // 根据新 URL 重新设置区域
+  const newRegion = _.findKey(API_HOST, item => item === AV._config.APIServerURL);
+  if (newRegion) {
+    AV._config.region = newRegion;
+  }
+};
+
+const refreshServerUrl = () => {
+  const url = `https://app-router.leancloud.cn/1/route?appId=${AV.applicationId}`;
+  return ajax('get', url).then(servers => {
+    if (servers.api_server) {
+      setServerUrl(servers.api_server);
+      return cacheServerURL(servers.api_server, servers.ttl);
+    }
+  });
+};
+
+const setServerUrlByRegion = (region = 'cn') => {
   // 如果用户在 init 之前设置了 APIServerURL，则跳过请求 router
-  if (AVConfig.APIServerURL) {
+  if (AV._config.APIServerURL) {
     return;
   }
-  AVConfig.APIServerURL = API_HOST[region];
-  if (region === 'cn') {
-    Cache.get('APIServerURL').then(cachedServerURL => {
-      if (cachedServerURL) {
-        return cachedServerURL;
-      } else {
-        return ajax('get', `https://app-router.leancloud.cn/1/route?appId=${AV.applicationId}`)
-          .then(servers => {
-            if (servers.api_server) {
-              cacheServerURL(servers.api_server, servers.ttl);
-              return servers.api_server;
-            }
-          });
-      }
-    }).then(serverURL => {
-      // 如果用户在 init 之后设置了 APIServerURL，保持用户设置
-      if (AVConfig.APIServerURL === API_HOST[region]) {
-        AVConfig.APIServerURL = `https://${serverURL}`;
-      }
-    });
-  }
+  AV._config.region = region;
+  AV._config.APIServerURL = API_HOST[region];
+
+  Cache.getAsync('APIServerURL').then((serverURL) => {
+    if (serverURL) {
+      setServerUrl(serverURL);
+      getServerURLPromise.resolve();
+    } else {
+      refreshServerUrl().then(() => {
+        getServerURLPromise.resolve();
+      });
+    }
+  });
 };
 
 /**
@@ -10451,16 +10445,18 @@ const AVRequest = (route, className, objectId, method, dataObject = {}, sessionT
   }
 
   checkRouter(route);
-  const apiURL = createApiUrl(route, className, objectId, method, dataObject);
 
-  return setHeaders(sessionToken).then(
-    headers => ajax(method, apiURL, dataObject, headers)
-      .then(
-        null,
-        res => handleError(res)
-          .then(location => ajax(method, location, dataObject, headers))
-      )
-  );
+  return getServerURLPromise.always(() => {
+    const apiURL = createApiUrl(route, className, objectId, method, dataObject);
+    return setHeaders(sessionToken).then(
+      headers => ajax(method, apiURL, dataObject, headers)
+        .then(
+          null,
+          res => handleError(res)
+            .then(location => ajax(method, location, dataObject, headers))
+        )
+    );
+  });
 };
 
 module.exports = {
@@ -10470,7 +10466,7 @@ module.exports = {
 };
 
 }).call(this,require('_process'))
-},{"./av":19,"./cache":22,"./error":24,"./promise":32,"_process":2,"debug":4,"md5":8,"superagent":13}],37:[function(require,module,exports){
+},{"./av":19,"./cache":22,"./error":24,"./promise":32,"_process":2,"debug":4,"md5":8,"superagent":13,"underscore":17}],37:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -11374,6 +11370,39 @@ module.exports = function upload(uploadInfo, data, file, saveOptions = {}) {
 };
 
 },{"../promise":32,"debug":4,"superagent":13}],42:[function(require,module,exports){
+/**
+ * 每位工程师都有保持代码优雅的义务
+ * Each engineer has a duty to keep the code elegant
+ **/
+
+const request = require('superagent');
+const AVPromise = require('../promise');
+
+module.exports = function upload(uploadUrl, data, file, saveOptions = {}) {
+  // 海外节点，针对 S3 才会返回 upload_url
+  file.attributes.url = uploadInfo.url;
+  const promise = new AVPromise();
+  const req = request('PUT', uploadUrl)
+    .set('Content-Type', file.attributes.metaData.mime_type)
+    .send(data)
+    .end((err, res) => {
+      if (err) {
+        if (res) {
+          err.statusCode = res.status;
+          err.responseText = res.text;
+          err.response = res.body;
+        }
+        return promise.reject(err);
+      }
+      promise.resolve(file);
+    });
+  if (saveOptions.onprogress) {
+    req.on('progress', saveOptions.onprogress);
+  }
+  return promise;
+};
+
+},{"../promise":32,"superagent":13}],43:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -12492,7 +12521,7 @@ function filterOutCallbacks(options) {
   return newOptions;
 }
 
-},{"./error":24,"./request":36,"underscore":17}],43:[function(require,module,exports){
+},{"./error":24,"./request":36,"underscore":17}],44:[function(require,module,exports){
 (function (process){
 /**
  * 每位工程师都有保持代码优雅的义务
@@ -12504,6 +12533,16 @@ const request = require('./request');
 
 // Helper function to check null or undefined.
 const isNullOrUndefined = (x) => _.isNull(x) || _.isUndefined(x);
+
+const ensureArray = target => {
+  if (_.isArray(target)) {
+    return target;
+  }
+  if (target === undefined || target === null) {
+    return [];
+  }
+  return [target];
+};
 
 const init = (AV) => {
   // 挂载一些配置
@@ -12645,7 +12684,9 @@ const init = (AV) => {
       // 兼容旧版本的初始化方法
       case 2:
       case 3:
-        console.warn('Please use AV.init() to replace AV.initialize() .');
+        console.warn('Please use AV.init() to replace AV.initialize(), ' +
+         'AV.init() need an Object param, like { appId: \'YOUR_APP_ID\', appKey: \'YOUR_APP_KEY\' } . ' +
+         'Docs: https://leancloud.cn/docs/sdk_setup-js.html');
         if (!AVConfig.isNode && args.length === 3) {
           masterKeyWarn();
         }
@@ -13047,16 +13088,17 @@ const init = (AV) => {
 module.exports = {
   init,
   isNullOrUndefined,
+  ensureArray,
 };
 
 }).call(this,require('_process'))
-},{"./request":36,"_process":2,"underscore":17}],44:[function(require,module,exports){
+},{"./request":36,"_process":2,"underscore":17}],45:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
 **/
 
-module.exports = 'js1.0.0';
+module.exports = 'js1.0.1';
 
 },{}]},{},[19])(19)
 });

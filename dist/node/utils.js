@@ -15,6 +15,16 @@ var isNullOrUndefined = function isNullOrUndefined(x) {
   return _.isNull(x) || _.isUndefined(x);
 };
 
+var ensureArray = function ensureArray(target) {
+  if (_.isArray(target)) {
+    return target;
+  }
+  if (target === undefined || target === null) {
+    return [];
+  }
+  return [target];
+};
+
 var init = function init(AV) {
   // 挂载一些配置
   var AVConfig = AV._config;
@@ -155,7 +165,7 @@ var init = function init(AV) {
       // 兼容旧版本的初始化方法
       case 2:
       case 3:
-        console.warn('Please use AV.init() to replace AV.initialize() .');
+        console.warn('Please use AV.init() to replace AV.initialize(), ' + 'AV.init() need an Object param, like { appId: \'YOUR_APP_ID\', appKey: \'YOUR_APP_KEY\' } . ' + 'Docs: https://leancloud.cn/docs/sdk_setup-js.html');
         if (!AVConfig.isNode && arguments.length === 3) {
           masterKeyWarn();
         }
@@ -545,5 +555,6 @@ var init = function init(AV) {
 
 module.exports = {
   init: init,
-  isNullOrUndefined: isNullOrUndefined
+  isNullOrUndefined: isNullOrUndefined,
+  ensureArray: ensureArray
 };

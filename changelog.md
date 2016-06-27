@@ -1,3 +1,9 @@
+# 1.0.1  日期：2016 年 6 月 27 日
+* 防止 SDK 覆盖全局变量 AV
+* Object.add、Object.addUnique、Object.remove 等方法支持从传入非数组类型
+* 修复当 SDK 自动修正 API 路由后，没有从缓存中直接获取路由信息的错误
+* 增强海外节点上传到 S3 中的文件安全性
+
 # 1.0.0  日期：2016 年 5 月 30 日
 * 弃用 AV.Error 对象，改为内部模块
 * 移除 AV.applicationProduction 改为 AV._config.applicationProduction 内部接口
