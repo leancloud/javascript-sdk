@@ -757,9 +757,7 @@ module.exports = function(AV) {
      * On success, this saves the session to disk, so you can retrieve the currently
      * logged in user using <code>current</code>.
      *
-     * <p>Calls options.success or options.error on completion.</p>
-     *
-     * @param {Object} authData The response json data returned from third party token.
+     * @param {Object} authData The response json data returned from third party token, maybe like { openid: 'abc123', access_token: '123abc', expires_in: 1382686496 }
      * @param {string} platform Available platform for sign up.
      * @param {Object} [callbackObj] An object that has an optional success function, that takes no arguments and will be called on a successful puSH. and an error function that takes a AVError and will be called if the push failed.
      * @return {AV.Promise} A promise that is fulfilled with the user when
@@ -773,6 +771,27 @@ module.exports = function(AV) {
      */
     signUpOrlogInWithAuthData(authData, platform, callbackObj) {
       return AV.User._logInWith(platform, { authData })._thenRunCallbacks(callbackObj);
+    },
+
+    /**
+     * Associate a user with a third party auth data(AccessToken).
+     *
+     * @param {AV.User} A user which you want to associate.
+     * @param {string} platform Available platform for sign up.
+     * @param {Object} authData The response json data returned from third party token, maybe like { openid: 'abc123', access_token: '123abc', expires_in: 1382686496 }
+     * @return {AV.Promise} A promise that is fulfilled with the user when completed.
+     * @example AV.User.associateWithAuthData(loginUser, 'weixin', {
+     *   openid: 'abc123',
+     *   access_token: '123abc',
+     *   expires_in: 1382686496
+     * }).then(function(user) {
+     *   //Access user here
+     * }).catch(function(error) {
+     *   //console.log("error: ", error);
+     * });
+     */
+    associateWithAuthData(userObj, platform, authData) {
+      return userObj._linkWith(platform, { authData });
     },
     /**
      * Logs out the currently logged in user session. This will remove the
