@@ -8,12 +8,13 @@
 
 'use strict';
 
-let global = global || window;
-let AV = global.AV || {};
+let av;
 
 // 检测是否在 Nodejs 环境下运行
 if (typeof(process) !== 'undefined' && process.versions && process.versions.node) {
-  AV = require('../dist/node/av');
+  av = require('../dist/node/av');
+} else {
+  av = window.AV;
 }
 
 // 初始化
@@ -25,10 +26,10 @@ const region = 'cn';
 // const appKey = 'be2YmUduiuEnCB2VR9bLRnnV';
 // const region = 'us';
 
-AV.init({ appId, appKey, region });
+av.init({ appId, appKey, region });
 
 // 基本存储
-const TestClass = AV.Object.extend('TestClass');
+const TestClass = av.Object.extend('TestClass');
 const testObj = new TestClass();
 testObj.set({
   name: 'hjiang',
@@ -44,7 +45,7 @@ testObj.save().then(() => {
 
 // 存储文件
 const base64 = 'd29ya2luZyBhdCBhdm9zY2xvdWQgaXMgZ3JlYXQh';
-const file = new AV.File('myfile.txt', { base64 });
+const file = new av.File('myfile.txt', { base64 });
 file.metaData('format', 'txt file');
 file.save().then(() => {
   console.log(file.get('url'));
@@ -53,7 +54,7 @@ file.save().then(() => {
 });
 
 // 查找文件
-const query = new AV.Query(TestClass);
+const query = new av.Query(TestClass);
 query.equalTo('name', 'hjiang');
 query.find().then((list) => {
   console.log(list);

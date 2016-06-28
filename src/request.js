@@ -235,7 +235,7 @@ const setServerUrl = (serverURL) => {
   }
 };
 
-const refreshServerUrl = () => {
+const refreshServerUrlByRouter = () => {
   const url = `https://app-router.leancloud.cn/1/route?appId=${AV.applicationId}`;
   return ajax('get', url).then(servers => {
     if (servers.api_server) {
@@ -258,9 +258,14 @@ const setServerUrlByRegion = (region = 'cn') => {
       setServerUrl(serverURL);
       getServerURLPromise.resolve();
     } else {
-      refreshServerUrl().then(() => {
+      // if not china server region, do not use router
+      if (region !== 'cn') {
+        refreshServerUrlByRouter().then(() => {
+          getServerURLPromise.resolve();
+        });
+      } else {
         getServerURLPromise.resolve();
-      });
+      }
     }
   });
 };
