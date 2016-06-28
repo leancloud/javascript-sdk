@@ -248,26 +248,28 @@ const refreshServerUrlByRouter = () => {
 const setServerUrlByRegion = (region = 'cn') => {
   // 如果用户在 init 之前设置了 APIServerURL，则跳过请求 router
   if (AV._config.APIServerURL) {
+    getServerURLPromise.resolve();
     return;
   }
-  AV._config.region = region;
-  AV._config.APIServerURL = API_HOST[region];
-
-  Cache.getAsync('APIServerURL').then((serverURL) => {
-    if (serverURL) {
-      setServerUrl(serverURL);
-      getServerURLPromise.resolve();
-    } else {
-      // if not china server region, do not use router
-      if (region !== 'cn') {
-        refreshServerUrlByRouter().then(() => {
-          getServerURLPromise.resolve();
-        });
-      } else {
+  // if not china server region, do not use router
+  if (region === 'cn') {
+    Cache.getAsync('APIServerURL').then((serverURL) => {
+      if (serverURL) {
+        setServerUrl(serverURL);
         getServerURLPromise.resolve();
+      } else {
+        return refreshServerUrlByRouter();
       }
-    }
-  });
+    }).then(() => {
+      getServerURLPromise.resolve();
+    }).catch(() => {
+      getServerURLPromise.reject();
+    });
+  } else {
+    AV._config.region = region;
+    AV._config.APIServerURL = API_HOST[region];
+    getServerURLPromise.resolve();
+  }
 };
 
 /**
