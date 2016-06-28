@@ -270,14 +270,11 @@ describe("User", function() {
         id: getFixedId()
       }
 
-      AV.User.signUpOrlogInWithAuthData(data, "anonymous", {
-        success: function(user) {
-          expect(user.id).to.be.ok();
-          done();
-        },
-        error: function(error) {
-          throw error.message;
-        }
+      AV.User.signUpOrlogInWithAuthData(data, 'anonymous').then(function(user) {
+        expect(user.id).to.be.ok();
+        done();
+      }).catch(function(error) {
+        throw error;
       });
     });
   });
