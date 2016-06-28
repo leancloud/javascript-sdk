@@ -8,13 +8,13 @@
 var request = require('superagent');
 var AVPromise = require('../promise');
 
-module.exports = function upload(uploadUrl, data, file) {
+module.exports = function upload(uploadInfo, data, file) {
   var saveOptions = arguments.length <= 3 || arguments[3] === undefined ? {} : arguments[3];
 
   // 海外节点，针对 S3 才会返回 upload_url
   file.attributes.url = uploadInfo.url;
   var promise = new AVPromise();
-  var req = request('PUT', uploadUrl).set('Content-Type', file.attributes.metaData.mime_type).send(data).end(function (err, res) {
+  var req = request('PUT', uploadInfo.upload_url).set('Content-Type', file.attributes.metaData.mime_type).send(data).end(function (err, res) {
     if (err) {
       if (res) {
         err.statusCode = res.status;
