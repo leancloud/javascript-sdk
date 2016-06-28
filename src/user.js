@@ -759,36 +759,21 @@ module.exports = function(AV) {
      *
      * <p>Calls options.success or options.error on completion.</p>
      *
-     * @param {Object} data The response json data returned from third party token.
+     * @param {Object} authData The response json data returned from third party token.
      * @param {string} platform Available platform for sign up.
-     * @param {Object} [callback] An object that has an optional success function, that takes no arguments and will be called on a successful puSH. and an error function that takes a AVError and will be called if the push failed.
+     * @param {Object} [callbackObj] An object that has an optional success function, that takes no arguments and will be called on a successful puSH. and an error function that takes a AVError and will be called if the push failed.
      * @return {AV.Promise} A promise that is fulfilled with the user when
      *     the login completes.
-     * @example AV.User.signUpOrlogInWithAuthData(data, platform, {
-         *          success: function(user) {
-         *              //Access user here
-         *          },
-         *          error: function(error) {
-         *              //console.log("error: ", error);
-         *          }
-         *      });
+     * @example AV.User.signUpOrlogInWithAuthData(authData, platform).then(function(user) {
+     *   //Access user here
+     * }).catch(function(error) {
+     *   //console.log("error: ", error);
+     * });
      * @see {@link https://leancloud.cn/docs/js_guide.html#绑定第三方平台账户}
      */
-    signUpOrlogInWithAuthData: function (data, platform, callback) {
-        /**
-         * Construct accessToken
-         */
-        return AV.User._logInWith(platform, {
-            "authData": data,
-            success: function (user) {
-                callback.success(user);
-            },
-            error: function (error) {
-                callback.error(error);
-            }
-        });
+    signUpOrlogInWithAuthData(authData, platform, callbackObj) {
+      return AV.User._logInWith(platform, { authData })._thenRunCallbacks(callbackObj);
     },
-
     /**
      * Logs out the currently logged in user session. This will remove the
      * session from disk, log out of linked services, and future calls to
