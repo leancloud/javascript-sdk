@@ -22,14 +22,12 @@ import browserify from 'browserify';
 import browserSync from 'browser-sync';
 import sourcemaps from 'gulp-sourcemaps';
 import babel from 'gulp-babel';
-import lc from './src/av';
+import { version } from './package.json';
 
 const reload = browserSync.reload;
 
 // 获取当前版本号
-const getAVVersion = () => {
-  return lc.version.replace('js', '');
-};
+const getAVVersion = () => version;
 
 const uploadCDN = (file, version, cb) => {
   qiniu.conf.ACCESS_KEY = process.env.CDN_QINIU_KEY;
@@ -65,7 +63,7 @@ gulp.task('clean-dist', () => {
 
 gulp.task('browserify', ['clean-dist'], () => {
   const bundle = browserify({
-    entries: './src/av.js',
+    entries: './src/index.js',
     standalone: 'AV'
   });
   return bundle.bundle()
