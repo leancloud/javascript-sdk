@@ -270,14 +270,30 @@ describe("User", function() {
         id: getFixedId()
       }
 
-      AV.User.signUpOrlogInWithAuthData(data, "anonymous", {
-        success: function(user) {
-          expect(user.id).to.be.ok();
-          done();
-        },
-        error: function(error) {
-          throw error.message;
-        }
+      AV.User.signUpOrlogInWithAuthData(data, 'anonymous').then(function(user) {
+        expect(user.id).to.be.ok();
+        done();
+      }).catch(function(error) {
+        throw error;
+      });
+    });
+  });
+
+  describe('associate with authData', function() {
+    it('logIn an user, and associate with authData', function() {
+      var username = Date.now().toString(36);
+      var password = '123456';
+      var user = new AV.User();
+      user.set('username', username);
+      user.set('password', password);
+      return user.save().then(function() {
+        return AV.User.logIn(username, password);
+      }).then(function (loginedUser) {
+        return AV.User.associateWithAuthData(loginedUser, 'weixin', {
+          openid: 'aaabbbccc123123',
+          access_token: 'a123123aaabbbbcccc',
+          expires_in: 1382686496,
+        });
       });
     });
   });
