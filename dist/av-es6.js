@@ -1,262 +1,137 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.AV = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 
 },{}],2:[function(require,module,exports){
-// shim for using process in browser
+var charenc = {
+  // UTF-8 encoding
+  utf8: {
+    // Convert a string to a byte array
+    stringToBytes: function(str) {
+      return charenc.bin.stringToBytes(unescape(encodeURIComponent(str)));
+    },
 
-var process = module.exports = {};
-var queue = [];
-var draining = false;
-var currentQueue;
-var queueIndex = -1;
+    // Convert a byte array to a string
+    bytesToString: function(bytes) {
+      return decodeURIComponent(escape(charenc.bin.bytesToString(bytes)));
+    }
+  },
 
-function cleanUpNextTick() {
-    draining = false;
-    if (currentQueue.length) {
-        queue = currentQueue.concat(queue);
-    } else {
-        queueIndex = -1;
-    }
-    if (queue.length) {
-        drainQueue();
-    }
-}
+  // Binary encoding
+  bin: {
+    // Convert a string to a byte array
+    stringToBytes: function(str) {
+      for (var bytes = [], i = 0; i < str.length; i++)
+        bytes.push(str.charCodeAt(i) & 0xFF);
+      return bytes;
+    },
 
-function drainQueue() {
-    if (draining) {
-        return;
+    // Convert a byte array to a string
+    bytesToString: function(bytes) {
+      for (var str = [], i = 0; i < bytes.length; i++)
+        str.push(String.fromCharCode(bytes[i]));
+      return str.join('');
     }
-    var timeout = setTimeout(cleanUpNextTick);
-    draining = true;
-
-    var len = queue.length;
-    while(len) {
-        currentQueue = queue;
-        queue = [];
-        while (++queueIndex < len) {
-            if (currentQueue) {
-                currentQueue[queueIndex].run();
-            }
-        }
-        queueIndex = -1;
-        len = queue.length;
-    }
-    currentQueue = null;
-    draining = false;
-    clearTimeout(timeout);
-}
-
-process.nextTick = function (fun) {
-    var args = new Array(arguments.length - 1);
-    if (arguments.length > 1) {
-        for (var i = 1; i < arguments.length; i++) {
-            args[i - 1] = arguments[i];
-        }
-    }
-    queue.push(new Item(fun, args));
-    if (queue.length === 1 && !draining) {
-        setTimeout(drainQueue, 0);
-    }
+  }
 };
 
-// v8 likes predictible objects
-function Item(fun, array) {
-    this.fun = fun;
-    this.array = array;
-}
-Item.prototype.run = function () {
-    this.fun.apply(null, this.array);
-};
-process.title = 'browser';
-process.browser = true;
-process.env = {};
-process.argv = [];
-process.version = ''; // empty string to avoid regexp issues
-process.versions = {};
-
-function noop() {}
-
-process.on = noop;
-process.addListener = noop;
-process.once = noop;
-process.off = noop;
-process.removeListener = noop;
-process.removeAllListeners = noop;
-process.emit = noop;
-
-process.binding = function (name) {
-    throw new Error('process.binding is not supported');
-};
-
-process.cwd = function () { return '/' };
-process.chdir = function (dir) {
-    throw new Error('process.chdir is not supported');
-};
-process.umask = function() { return 0; };
+module.exports = charenc;
 
 },{}],3:[function(require,module,exports){
+(function() {
+  var base64map
+      = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/',
 
-/**
- * Expose `Emitter`.
- */
+  crypt = {
+    // Bit-wise rotation left
+    rotl: function(n, b) {
+      return (n << b) | (n >>> (32 - b));
+    },
 
-if (typeof module !== 'undefined') {
-  module.exports = Emitter;
-}
+    // Bit-wise rotation right
+    rotr: function(n, b) {
+      return (n << (32 - b)) | (n >>> b);
+    },
 
-/**
- * Initialize a new `Emitter`.
- *
- * @api public
- */
+    // Swap big-endian to little-endian and vice versa
+    endian: function(n) {
+      // If number given, swap endian
+      if (n.constructor == Number) {
+        return crypt.rotl(n, 8) & 0x00FF00FF | crypt.rotl(n, 24) & 0xFF00FF00;
+      }
 
-function Emitter(obj) {
-  if (obj) return mixin(obj);
-};
+      // Else, assume array and swap all items
+      for (var i = 0; i < n.length; i++)
+        n[i] = crypt.endian(n[i]);
+      return n;
+    },
 
-/**
- * Mixin the emitter properties.
- *
- * @param {Object} obj
- * @return {Object}
- * @api private
- */
+    // Generate an array of any length of random bytes
+    randomBytes: function(n) {
+      for (var bytes = []; n > 0; n--)
+        bytes.push(Math.floor(Math.random() * 256));
+      return bytes;
+    },
 
-function mixin(obj) {
-  for (var key in Emitter.prototype) {
-    obj[key] = Emitter.prototype[key];
-  }
-  return obj;
-}
+    // Convert a byte array to big-endian 32-bit words
+    bytesToWords: function(bytes) {
+      for (var words = [], i = 0, b = 0; i < bytes.length; i++, b += 8)
+        words[b >>> 5] |= bytes[i] << (24 - b % 32);
+      return words;
+    },
 
-/**
- * Listen on the given `event` with `fn`.
- *
- * @param {String} event
- * @param {Function} fn
- * @return {Emitter}
- * @api public
- */
+    // Convert big-endian 32-bit words to a byte array
+    wordsToBytes: function(words) {
+      for (var bytes = [], b = 0; b < words.length * 32; b += 8)
+        bytes.push((words[b >>> 5] >>> (24 - b % 32)) & 0xFF);
+      return bytes;
+    },
 
-Emitter.prototype.on =
-Emitter.prototype.addEventListener = function(event, fn){
-  this._callbacks = this._callbacks || {};
-  (this._callbacks['$' + event] = this._callbacks['$' + event] || [])
-    .push(fn);
-  return this;
-};
+    // Convert a byte array to a hex string
+    bytesToHex: function(bytes) {
+      for (var hex = [], i = 0; i < bytes.length; i++) {
+        hex.push((bytes[i] >>> 4).toString(16));
+        hex.push((bytes[i] & 0xF).toString(16));
+      }
+      return hex.join('');
+    },
 
-/**
- * Adds an `event` listener that will be invoked a single
- * time then automatically removed.
- *
- * @param {String} event
- * @param {Function} fn
- * @return {Emitter}
- * @api public
- */
+    // Convert a hex string to a byte array
+    hexToBytes: function(hex) {
+      for (var bytes = [], c = 0; c < hex.length; c += 2)
+        bytes.push(parseInt(hex.substr(c, 2), 16));
+      return bytes;
+    },
 
-Emitter.prototype.once = function(event, fn){
-  function on() {
-    this.off(event, on);
-    fn.apply(this, arguments);
-  }
+    // Convert a byte array to a base-64 string
+    bytesToBase64: function(bytes) {
+      for (var base64 = [], i = 0; i < bytes.length; i += 3) {
+        var triplet = (bytes[i] << 16) | (bytes[i + 1] << 8) | bytes[i + 2];
+        for (var j = 0; j < 4; j++)
+          if (i * 8 + j * 6 <= bytes.length * 8)
+            base64.push(base64map.charAt((triplet >>> 6 * (3 - j)) & 0x3F));
+          else
+            base64.push('=');
+      }
+      return base64.join('');
+    },
 
-  on.fn = fn;
-  this.on(event, on);
-  return this;
-};
+    // Convert a base-64 string to a byte array
+    base64ToBytes: function(base64) {
+      // Remove non-base-64 characters
+      base64 = base64.replace(/[^A-Z0-9+\/]/ig, '');
 
-/**
- * Remove the given callback for `event` or all
- * registered callbacks.
- *
- * @param {String} event
- * @param {Function} fn
- * @return {Emitter}
- * @api public
- */
-
-Emitter.prototype.off =
-Emitter.prototype.removeListener =
-Emitter.prototype.removeAllListeners =
-Emitter.prototype.removeEventListener = function(event, fn){
-  this._callbacks = this._callbacks || {};
-
-  // all
-  if (0 == arguments.length) {
-    this._callbacks = {};
-    return this;
-  }
-
-  // specific event
-  var callbacks = this._callbacks['$' + event];
-  if (!callbacks) return this;
-
-  // remove all handlers
-  if (1 == arguments.length) {
-    delete this._callbacks['$' + event];
-    return this;
-  }
-
-  // remove specific handler
-  var cb;
-  for (var i = 0; i < callbacks.length; i++) {
-    cb = callbacks[i];
-    if (cb === fn || cb.fn === fn) {
-      callbacks.splice(i, 1);
-      break;
+      for (var bytes = [], i = 0, imod4 = 0; i < base64.length;
+          imod4 = ++i % 4) {
+        if (imod4 == 0) continue;
+        bytes.push(((base64map.indexOf(base64.charAt(i - 1))
+            & (Math.pow(2, -2 * imod4 + 8) - 1)) << (imod4 * 2))
+            | (base64map.indexOf(base64.charAt(i)) >>> (6 - imod4 * 2)));
+      }
+      return bytes;
     }
-  }
-  return this;
-};
+  };
 
-/**
- * Emit `event` with the given args.
- *
- * @param {String} event
- * @param {Mixed} ...
- * @return {Emitter}
- */
-
-Emitter.prototype.emit = function(event){
-  this._callbacks = this._callbacks || {};
-  var args = [].slice.call(arguments, 1)
-    , callbacks = this._callbacks['$' + event];
-
-  if (callbacks) {
-    callbacks = callbacks.slice(0);
-    for (var i = 0, len = callbacks.length; i < len; ++i) {
-      callbacks[i].apply(this, args);
-    }
-  }
-
-  return this;
-};
-
-/**
- * Return array of callbacks for `event`.
- *
- * @param {String} event
- * @return {Array}
- * @api public
- */
-
-Emitter.prototype.listeners = function(event){
-  this._callbacks = this._callbacks || {};
-  return this._callbacks['$' + event] || [];
-};
-
-/**
- * Check if this emitter has `event` handlers.
- *
- * @param {String} event
- * @return {Boolean}
- * @api public
- */
-
-Emitter.prototype.hasListeners = function(event){
-  return !! this.listeners(event).length;
-};
+  module.exports = crypt;
+})();
 
 },{}],4:[function(require,module,exports){
 
@@ -627,131 +502,23 @@ function coerce(val) {
   return val;
 }
 
-},{"ms":6}],6:[function(require,module,exports){
+},{"ms":9}],6:[function(require,module,exports){
 /**
- * Helpers.
+ * Determine if an object is Buffer
+ *
+ * Author:   Feross Aboukhadijeh <feross@feross.org> <http://feross.org>
+ * License:  MIT
+ *
+ * `npm install is-buffer`
  */
 
-var s = 1000;
-var m = s * 60;
-var h = m * 60;
-var d = h * 24;
-var y = d * 365.25;
-
-/**
- * Parse or format the given `val`.
- *
- * Options:
- *
- *  - `long` verbose formatting [false]
- *
- * @param {String|Number} val
- * @param {Object} options
- * @return {String|Number}
- * @api public
- */
-
-module.exports = function(val, options){
-  options = options || {};
-  if ('string' == typeof val) return parse(val);
-  return options.long
-    ? long(val)
-    : short(val);
-};
-
-/**
- * Parse the given `str` and return milliseconds.
- *
- * @param {String} str
- * @return {Number}
- * @api private
- */
-
-function parse(str) {
-  str = '' + str;
-  if (str.length > 10000) return;
-  var match = /^((?:\d+)?\.?\d+) *(milliseconds?|msecs?|ms|seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|days?|d|years?|yrs?|y)?$/i.exec(str);
-  if (!match) return;
-  var n = parseFloat(match[1]);
-  var type = (match[2] || 'ms').toLowerCase();
-  switch (type) {
-    case 'years':
-    case 'year':
-    case 'yrs':
-    case 'yr':
-    case 'y':
-      return n * y;
-    case 'days':
-    case 'day':
-    case 'd':
-      return n * d;
-    case 'hours':
-    case 'hour':
-    case 'hrs':
-    case 'hr':
-    case 'h':
-      return n * h;
-    case 'minutes':
-    case 'minute':
-    case 'mins':
-    case 'min':
-    case 'm':
-      return n * m;
-    case 'seconds':
-    case 'second':
-    case 'secs':
-    case 'sec':
-    case 's':
-      return n * s;
-    case 'milliseconds':
-    case 'millisecond':
-    case 'msecs':
-    case 'msec':
-    case 'ms':
-      return n;
-  }
-}
-
-/**
- * Short format for `ms`.
- *
- * @param {Number} ms
- * @return {String}
- * @api private
- */
-
-function short(ms) {
-  if (ms >= d) return Math.round(ms / d) + 'd';
-  if (ms >= h) return Math.round(ms / h) + 'h';
-  if (ms >= m) return Math.round(ms / m) + 'm';
-  if (ms >= s) return Math.round(ms / s) + 's';
-  return ms + 'ms';
-}
-
-/**
- * Long format for `ms`.
- *
- * @param {Number} ms
- * @return {String}
- * @api private
- */
-
-function long(ms) {
-  return plural(ms, d, 'day')
-    || plural(ms, h, 'hour')
-    || plural(ms, m, 'minute')
-    || plural(ms, s, 'second')
-    || ms + ' ms';
-}
-
-/**
- * Pluralization helper.
- */
-
-function plural(ms, n, name) {
-  if (ms < n) return;
-  if (ms < n * 1.5) return Math.floor(ms / n) + ' ' + name;
-  return Math.ceil(ms / n) + ' ' + name + 's';
+module.exports = function (obj) {
+  return !!(obj != null &&
+    (obj._isBuffer || // For Safari 5-7 (missing Object.prototype.constructor)
+      (obj.constructor &&
+      typeof obj.constructor.isBuffer === 'function' &&
+      obj.constructor.isBuffer(obj))
+    ))
 }
 
 },{}],7:[function(require,module,exports){
@@ -1000,159 +767,230 @@ function plural(ms, n, name) {
 
 })();
 
-},{"charenc":9,"crypt":10,"is-buffer":11}],9:[function(require,module,exports){
-var charenc = {
-  // UTF-8 encoding
-  utf8: {
-    // Convert a string to a byte array
-    stringToBytes: function(str) {
-      return charenc.bin.stringToBytes(unescape(encodeURIComponent(str)));
-    },
-
-    // Convert a byte array to a string
-    bytesToString: function(bytes) {
-      return decodeURIComponent(escape(charenc.bin.bytesToString(bytes)));
-    }
-  },
-
-  // Binary encoding
-  bin: {
-    // Convert a string to a byte array
-    stringToBytes: function(str) {
-      for (var bytes = [], i = 0; i < str.length; i++)
-        bytes.push(str.charCodeAt(i) & 0xFF);
-      return bytes;
-    },
-
-    // Convert a byte array to a string
-    bytesToString: function(bytes) {
-      for (var str = [], i = 0; i < bytes.length; i++)
-        str.push(String.fromCharCode(bytes[i]));
-      return str.join('');
-    }
-  }
-};
-
-module.exports = charenc;
-
-},{}],10:[function(require,module,exports){
-(function() {
-  var base64map
-      = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/',
-
-  crypt = {
-    // Bit-wise rotation left
-    rotl: function(n, b) {
-      return (n << b) | (n >>> (32 - b));
-    },
-
-    // Bit-wise rotation right
-    rotr: function(n, b) {
-      return (n << (32 - b)) | (n >>> b);
-    },
-
-    // Swap big-endian to little-endian and vice versa
-    endian: function(n) {
-      // If number given, swap endian
-      if (n.constructor == Number) {
-        return crypt.rotl(n, 8) & 0x00FF00FF | crypt.rotl(n, 24) & 0xFF00FF00;
-      }
-
-      // Else, assume array and swap all items
-      for (var i = 0; i < n.length; i++)
-        n[i] = crypt.endian(n[i]);
-      return n;
-    },
-
-    // Generate an array of any length of random bytes
-    randomBytes: function(n) {
-      for (var bytes = []; n > 0; n--)
-        bytes.push(Math.floor(Math.random() * 256));
-      return bytes;
-    },
-
-    // Convert a byte array to big-endian 32-bit words
-    bytesToWords: function(bytes) {
-      for (var words = [], i = 0, b = 0; i < bytes.length; i++, b += 8)
-        words[b >>> 5] |= bytes[i] << (24 - b % 32);
-      return words;
-    },
-
-    // Convert big-endian 32-bit words to a byte array
-    wordsToBytes: function(words) {
-      for (var bytes = [], b = 0; b < words.length * 32; b += 8)
-        bytes.push((words[b >>> 5] >>> (24 - b % 32)) & 0xFF);
-      return bytes;
-    },
-
-    // Convert a byte array to a hex string
-    bytesToHex: function(bytes) {
-      for (var hex = [], i = 0; i < bytes.length; i++) {
-        hex.push((bytes[i] >>> 4).toString(16));
-        hex.push((bytes[i] & 0xF).toString(16));
-      }
-      return hex.join('');
-    },
-
-    // Convert a hex string to a byte array
-    hexToBytes: function(hex) {
-      for (var bytes = [], c = 0; c < hex.length; c += 2)
-        bytes.push(parseInt(hex.substr(c, 2), 16));
-      return bytes;
-    },
-
-    // Convert a byte array to a base-64 string
-    bytesToBase64: function(bytes) {
-      for (var base64 = [], i = 0; i < bytes.length; i += 3) {
-        var triplet = (bytes[i] << 16) | (bytes[i + 1] << 8) | bytes[i + 2];
-        for (var j = 0; j < 4; j++)
-          if (i * 8 + j * 6 <= bytes.length * 8)
-            base64.push(base64map.charAt((triplet >>> 6 * (3 - j)) & 0x3F));
-          else
-            base64.push('=');
-      }
-      return base64.join('');
-    },
-
-    // Convert a base-64 string to a byte array
-    base64ToBytes: function(base64) {
-      // Remove non-base-64 characters
-      base64 = base64.replace(/[^A-Z0-9+\/]/ig, '');
-
-      for (var bytes = [], i = 0, imod4 = 0; i < base64.length;
-          imod4 = ++i % 4) {
-        if (imod4 == 0) continue;
-        bytes.push(((base64map.indexOf(base64.charAt(i - 1))
-            & (Math.pow(2, -2 * imod4 + 8) - 1)) << (imod4 * 2))
-            | (base64map.indexOf(base64.charAt(i)) >>> (6 - imod4 * 2)));
-      }
-      return bytes;
-    }
-  };
-
-  module.exports = crypt;
-})();
-
-},{}],11:[function(require,module,exports){
+},{"charenc":2,"crypt":3,"is-buffer":6}],9:[function(require,module,exports){
 /**
- * Determine if an object is Buffer
- *
- * Author:   Feross Aboukhadijeh <feross@feross.org> <http://feross.org>
- * License:  MIT
- *
- * `npm install is-buffer`
+ * Helpers.
  */
 
-module.exports = function (obj) {
-  return !!(
-    obj != null &&
-    obj.constructor &&
-    typeof obj.constructor.isBuffer === 'function' &&
-    obj.constructor.isBuffer(obj)
-  )
+var s = 1000;
+var m = s * 60;
+var h = m * 60;
+var d = h * 24;
+var y = d * 365.25;
+
+/**
+ * Parse or format the given `val`.
+ *
+ * Options:
+ *
+ *  - `long` verbose formatting [false]
+ *
+ * @param {String|Number} val
+ * @param {Object} options
+ * @return {String|Number}
+ * @api public
+ */
+
+module.exports = function(val, options){
+  options = options || {};
+  if ('string' == typeof val) return parse(val);
+  return options.long
+    ? long(val)
+    : short(val);
+};
+
+/**
+ * Parse the given `str` and return milliseconds.
+ *
+ * @param {String} str
+ * @return {Number}
+ * @api private
+ */
+
+function parse(str) {
+  str = '' + str;
+  if (str.length > 10000) return;
+  var match = /^((?:\d+)?\.?\d+) *(milliseconds?|msecs?|ms|seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|days?|d|years?|yrs?|y)?$/i.exec(str);
+  if (!match) return;
+  var n = parseFloat(match[1]);
+  var type = (match[2] || 'ms').toLowerCase();
+  switch (type) {
+    case 'years':
+    case 'year':
+    case 'yrs':
+    case 'yr':
+    case 'y':
+      return n * y;
+    case 'days':
+    case 'day':
+    case 'd':
+      return n * d;
+    case 'hours':
+    case 'hour':
+    case 'hrs':
+    case 'hr':
+    case 'h':
+      return n * h;
+    case 'minutes':
+    case 'minute':
+    case 'mins':
+    case 'min':
+    case 'm':
+      return n * m;
+    case 'seconds':
+    case 'second':
+    case 'secs':
+    case 'sec':
+    case 's':
+      return n * s;
+    case 'milliseconds':
+    case 'millisecond':
+    case 'msecs':
+    case 'msec':
+    case 'ms':
+      return n;
+  }
 }
 
-},{}],12:[function(require,module,exports){
+/**
+ * Short format for `ms`.
+ *
+ * @param {Number} ms
+ * @return {String}
+ * @api private
+ */
+
+function short(ms) {
+  if (ms >= d) return Math.round(ms / d) + 'd';
+  if (ms >= h) return Math.round(ms / h) + 'h';
+  if (ms >= m) return Math.round(ms / m) + 'm';
+  if (ms >= s) return Math.round(ms / s) + 's';
+  return ms + 'ms';
+}
+
+/**
+ * Long format for `ms`.
+ *
+ * @param {Number} ms
+ * @return {String}
+ * @api private
+ */
+
+function long(ms) {
+  return plural(ms, d, 'day')
+    || plural(ms, h, 'hour')
+    || plural(ms, m, 'minute')
+    || plural(ms, s, 'second')
+    || ms + ' ms';
+}
+
+/**
+ * Pluralization helper.
+ */
+
+function plural(ms, n, name) {
+  if (ms < n) return;
+  if (ms < n * 1.5) return Math.floor(ms / n) + ' ' + name;
+  return Math.ceil(ms / n) + ' ' + name + 's';
+}
+
+},{}],10:[function(require,module,exports){
+// shim for using process in browser
+
+var process = module.exports = {};
+var queue = [];
+var draining = false;
+var currentQueue;
+var queueIndex = -1;
+
+function cleanUpNextTick() {
+    if (!draining || !currentQueue) {
+        return;
+    }
+    draining = false;
+    if (currentQueue.length) {
+        queue = currentQueue.concat(queue);
+    } else {
+        queueIndex = -1;
+    }
+    if (queue.length) {
+        drainQueue();
+    }
+}
+
+function drainQueue() {
+    if (draining) {
+        return;
+    }
+    var timeout = setTimeout(cleanUpNextTick);
+    draining = true;
+
+    var len = queue.length;
+    while(len) {
+        currentQueue = queue;
+        queue = [];
+        while (++queueIndex < len) {
+            if (currentQueue) {
+                currentQueue[queueIndex].run();
+            }
+        }
+        queueIndex = -1;
+        len = queue.length;
+    }
+    currentQueue = null;
+    draining = false;
+    clearTimeout(timeout);
+}
+
+process.nextTick = function (fun) {
+    var args = new Array(arguments.length - 1);
+    if (arguments.length > 1) {
+        for (var i = 1; i < arguments.length; i++) {
+            args[i - 1] = arguments[i];
+        }
+    }
+    queue.push(new Item(fun, args));
+    if (queue.length === 1 && !draining) {
+        setTimeout(drainQueue, 0);
+    }
+};
+
+// v8 likes predictible objects
+function Item(fun, array) {
+    this.fun = fun;
+    this.array = array;
+}
+Item.prototype.run = function () {
+    this.fun.apply(null, this.array);
+};
+process.title = 'browser';
+process.browser = true;
+process.env = {};
+process.argv = [];
+process.version = ''; // empty string to avoid regexp issues
+process.versions = {};
+
+function noop() {}
+
+process.on = noop;
+process.addListener = noop;
+process.once = noop;
+process.off = noop;
+process.removeListener = noop;
+process.removeAllListeners = noop;
+process.emit = noop;
+
+process.binding = function (name) {
+    throw new Error('process.binding is not supported');
+};
+
+process.cwd = function () { return '/' };
+process.chdir = function (dir) {
+    throw new Error('process.chdir is not supported');
+};
+process.umask = function() { return 0; };
+
+},{}],11:[function(require,module,exports){
 
 /**
  * Reduce `arr` with `fn`.
@@ -1177,7 +1015,7 @@ module.exports = function(arr, fn, initial){
   
   return curr;
 };
-},{}],13:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -2153,7 +1991,7 @@ request.put = function(url, data, fn){
   return req;
 };
 
-},{"./is-object":14,"./request":16,"./request-base":15,"emitter":3,"reduce":12}],14:[function(require,module,exports){
+},{"./is-object":13,"./request":15,"./request-base":14,"emitter":16,"reduce":11}],13:[function(require,module,exports){
 /**
  * Check if `obj` is an object.
  *
@@ -2168,7 +2006,7 @@ function isObject(obj) {
 
 module.exports = isObject;
 
-},{}],15:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 /**
  * Module of mixed-in functions shared between node and client code
  */
@@ -2516,7 +2354,7 @@ exports.send = function(data){
   return this;
 };
 
-},{"./is-object":14}],16:[function(require,module,exports){
+},{"./is-object":13}],15:[function(require,module,exports){
 // The node and browser modules expose versions of this with the
 // appropriate constructor function bound as first argument
 /**
@@ -2549,6 +2387,171 @@ function request(RequestConstructor, method, url) {
 }
 
 module.exports = request;
+
+},{}],16:[function(require,module,exports){
+
+/**
+ * Expose `Emitter`.
+ */
+
+if (typeof module !== 'undefined') {
+  module.exports = Emitter;
+}
+
+/**
+ * Initialize a new `Emitter`.
+ *
+ * @api public
+ */
+
+function Emitter(obj) {
+  if (obj) return mixin(obj);
+};
+
+/**
+ * Mixin the emitter properties.
+ *
+ * @param {Object} obj
+ * @return {Object}
+ * @api private
+ */
+
+function mixin(obj) {
+  for (var key in Emitter.prototype) {
+    obj[key] = Emitter.prototype[key];
+  }
+  return obj;
+}
+
+/**
+ * Listen on the given `event` with `fn`.
+ *
+ * @param {String} event
+ * @param {Function} fn
+ * @return {Emitter}
+ * @api public
+ */
+
+Emitter.prototype.on =
+Emitter.prototype.addEventListener = function(event, fn){
+  this._callbacks = this._callbacks || {};
+  (this._callbacks['$' + event] = this._callbacks['$' + event] || [])
+    .push(fn);
+  return this;
+};
+
+/**
+ * Adds an `event` listener that will be invoked a single
+ * time then automatically removed.
+ *
+ * @param {String} event
+ * @param {Function} fn
+ * @return {Emitter}
+ * @api public
+ */
+
+Emitter.prototype.once = function(event, fn){
+  function on() {
+    this.off(event, on);
+    fn.apply(this, arguments);
+  }
+
+  on.fn = fn;
+  this.on(event, on);
+  return this;
+};
+
+/**
+ * Remove the given callback for `event` or all
+ * registered callbacks.
+ *
+ * @param {String} event
+ * @param {Function} fn
+ * @return {Emitter}
+ * @api public
+ */
+
+Emitter.prototype.off =
+Emitter.prototype.removeListener =
+Emitter.prototype.removeAllListeners =
+Emitter.prototype.removeEventListener = function(event, fn){
+  this._callbacks = this._callbacks || {};
+
+  // all
+  if (0 == arguments.length) {
+    this._callbacks = {};
+    return this;
+  }
+
+  // specific event
+  var callbacks = this._callbacks['$' + event];
+  if (!callbacks) return this;
+
+  // remove all handlers
+  if (1 == arguments.length) {
+    delete this._callbacks['$' + event];
+    return this;
+  }
+
+  // remove specific handler
+  var cb;
+  for (var i = 0; i < callbacks.length; i++) {
+    cb = callbacks[i];
+    if (cb === fn || cb.fn === fn) {
+      callbacks.splice(i, 1);
+      break;
+    }
+  }
+  return this;
+};
+
+/**
+ * Emit `event` with the given args.
+ *
+ * @param {String} event
+ * @param {Mixed} ...
+ * @return {Emitter}
+ */
+
+Emitter.prototype.emit = function(event){
+  this._callbacks = this._callbacks || {};
+  var args = [].slice.call(arguments, 1)
+    , callbacks = this._callbacks['$' + event];
+
+  if (callbacks) {
+    callbacks = callbacks.slice(0);
+    for (var i = 0, len = callbacks.length; i < len; ++i) {
+      callbacks[i].apply(this, args);
+    }
+  }
+
+  return this;
+};
+
+/**
+ * Return array of callbacks for `event`.
+ *
+ * @param {String} event
+ * @return {Array}
+ * @api public
+ */
+
+Emitter.prototype.listeners = function(event){
+  this._callbacks = this._callbacks || {};
+  return this._callbacks['$' + event] || [];
+};
+
+/**
+ * Check if this emitter has `event` handlers.
+ *
+ * @param {String} event
+ * @return {Boolean}
+ * @api public
+ */
+
+Emitter.prototype.hasListeners = function(event){
+  return !! this.listeners(event).length;
+};
 
 },{}],17:[function(require,module,exports){
 //     Underscore.js 1.8.3
@@ -4369,59 +4372,11 @@ module.exports = function(AV) {
 
 },{"underscore":17}],19:[function(require,module,exports){
 (function (global){
-/*!
- * LeanCloud JavaScript SDK
- * https://leancloud.cn
- *
- * Copyright 2016 LeanCloud.cn, Inc.
- * The LeanCloud JavaScript SDK is freely distributable under the MIT license.
- */
+module.exports = global.AV || {};
 
-/**
- * 每位工程师都有保持代码优雅的义务
- * Each engineer has a duty to keep the code elegant
-**/
-
-const AV = module.exports = global.AV || {};
-AV._ = require('underscore');
-AV.version = require('./version');
-AV.Promise = require('./promise');
-AV.localStorage = require('./localstorage');
-AV.Cache = require('./cache');
-
-// All internal configuration items
-AV._config = AV._config || {};
-
-require('./utils').init(AV);
-
-require('./event')(AV);
-require('./geopoint')(AV);
-require('./acl')(AV);
-require('./op')(AV);
-require('./relation')(AV);
-require('./file')(AV);
-require('./object')(AV);
-require('./role')(AV);
-require('./user')(AV);
-require('./query')(AV);
-require('./cloudfunction')(AV);
-require('./push')(AV);
-require('./status')(AV);
-require('./search')(AV);
-require('./insight')(AV);
-
-// TODO: deprecated AV.Error()
-const AVError = require('./error');
-/**
- * @deprecated AV.Error() is deprecated, and will be removed in next release.
- */
-AV.Error = (...args) => {
-  console.warn('AV.Error() is deprecated, and will be removed in next release.');
-  new AVError(...args);
-};
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./acl":18,"./cache":22,"./cloudfunction":23,"./error":24,"./event":25,"./file":26,"./geopoint":27,"./insight":28,"./localstorage":29,"./object":30,"./op":31,"./promise":32,"./push":33,"./query":34,"./relation":35,"./role":37,"./search":38,"./status":39,"./user":43,"./utils":44,"./version":45,"underscore":17}],20:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 (function (global){
 /**
  * 每位工程师都有保持代码优雅的义务
@@ -4487,7 +4442,7 @@ if (global.localStorage) {
 module.exports = Storage;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../promise":32,"localstorage-memory":7,"react-native":1,"underscore":17}],21:[function(require,module,exports){
+},{"../promise":33,"localstorage-memory":7,"react-native":1,"underscore":17}],21:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -4561,7 +4516,7 @@ exports.setAsync = (key, value, ttl) => {
    );
 };
 
-},{"./av":19,"./localstorage":29}],23:[function(require,module,exports){
+},{"./av":19,"./localstorage":30}],23:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -4687,7 +4642,7 @@ module.exports = function(AV) {
   });
 };
 
-},{"./request":36,"underscore":17}],24:[function(require,module,exports){
+},{"./request":37,"underscore":17}],24:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -5948,7 +5903,7 @@ module.exports = function(AV) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./browserify-wrapper/parse-base64":21,"./error":24,"./request":36,"./uploader/cos":40,"./uploader/qiniu":41,"./uploader/s3":42,"underscore":17}],27:[function(require,module,exports){
+},{"./browserify-wrapper/parse-base64":21,"./error":24,"./request":37,"./uploader/cos":41,"./uploader/qiniu":42,"./uploader/s3":43,"underscore":17}],27:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -6128,6 +6083,59 @@ module.exports = function(AV) {
 };
 
 },{"underscore":17}],28:[function(require,module,exports){
+/*!
+ * LeanCloud JavaScript SDK
+ * https://leancloud.cn
+ *
+ * Copyright 2016 LeanCloud.cn, Inc.
+ * The LeanCloud JavaScript SDK is freely distributable under the MIT license.
+ */
+
+/**
+ * 每位工程师都有保持代码优雅的义务
+ * Each engineer has a duty to keep the code elegant
+**/
+
+const AV = module.exports = require('./av');
+
+AV._ = require('underscore');
+AV.version = require('./version');
+AV.Promise = require('./promise');
+AV.localStorage = require('./localstorage');
+AV.Cache = require('./cache');
+
+// All internal configuration items
+AV._config = AV._config || {};
+
+require('./utils').init(AV);
+
+require('./event')(AV);
+require('./geopoint')(AV);
+require('./acl')(AV);
+require('./op')(AV);
+require('./relation')(AV);
+require('./file')(AV);
+require('./object')(AV);
+require('./role')(AV);
+require('./user')(AV);
+require('./query')(AV);
+require('./cloudfunction')(AV);
+require('./push')(AV);
+require('./status')(AV);
+require('./search')(AV);
+require('./insight')(AV);
+
+// TODO: deprecated AV.Error()
+const AVError = require('./error');
+/**
+ * @deprecated AV.Error() is deprecated, and will be removed in next release.
+ */
+AV.Error = (...args) => {
+  console.warn('AV.Error() is deprecated, and will be removed in next release.');
+  new AVError(...args);
+};
+
+},{"./acl":18,"./av":19,"./cache":22,"./cloudfunction":23,"./error":24,"./event":25,"./file":26,"./geopoint":27,"./insight":29,"./localstorage":30,"./object":31,"./op":32,"./promise":33,"./push":34,"./query":35,"./relation":36,"./role":38,"./search":39,"./status":40,"./user":44,"./utils":45,"./version":46,"underscore":17}],29:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -6275,7 +6283,7 @@ module.exports = function(AV) {
 
 };
 
-},{"./error":24,"./request":36,"underscore":17}],29:[function(require,module,exports){
+},{"./error":24,"./request":37,"underscore":17}],30:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -6315,7 +6323,7 @@ if (!localStorage.async) {
 
 module.exports = localStorage;
 
-},{"./browserify-wrapper/localStorage":20,"./promise":32,"underscore":17}],30:[function(require,module,exports){
+},{"./browserify-wrapper/localStorage":20,"./promise":33,"underscore":17}],31:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -7883,7 +7891,7 @@ module.exports = function(AV) {
 
 };
 
-},{"./error":24,"./request":36,"./utils":44,"underscore":17}],31:[function(require,module,exports){
+},{"./error":24,"./request":37,"./utils":45,"underscore":17}],32:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -8420,7 +8428,7 @@ module.exports = function(AV) {
 
 };
 
-},{"underscore":17}],32:[function(require,module,exports){
+},{"underscore":17}],33:[function(require,module,exports){
 (function (process){
 /**
  * 每位工程师都有保持代码优雅的义务
@@ -9028,7 +9036,7 @@ Promise.prototype.finally = Promise.prototype.always;
 Promise.prototype.try = Promise.prototype.done;
 
 }).call(this,require('_process'))
-},{"_process":2,"underscore":17}],33:[function(require,module,exports){
+},{"_process":10,"underscore":17}],34:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -9093,7 +9101,7 @@ module.exports = function(AV) {
   };
 };
 
-},{"./request":36}],34:[function(require,module,exports){
+},{"./request":37}],35:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -10037,7 +10045,7 @@ module.exports = function(AV) {
    });
 };
 
-},{"./error":24,"./request":36,"underscore":17}],35:[function(require,module,exports){
+},{"./error":24,"./request":37,"underscore":17}],36:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -10159,7 +10167,7 @@ module.exports = function(AV) {
   };
 };
 
-},{"underscore":17}],36:[function(require,module,exports){
+},{"underscore":17}],37:[function(require,module,exports){
 (function (process){
 /**
  * 每位工程师都有保持代码优雅的义务
@@ -10398,7 +10406,7 @@ const setServerUrl = (serverURL) => {
   }
 };
 
-const refreshServerUrl = () => {
+const refreshServerUrlByRouter = () => {
   const url = `https://app-router.leancloud.cn/1/route?appId=${AV.applicationId}`;
   return ajax('get', url).then(servers => {
     if (servers.api_server) {
@@ -10411,21 +10419,28 @@ const refreshServerUrl = () => {
 const setServerUrlByRegion = (region = 'cn') => {
   // 如果用户在 init 之前设置了 APIServerURL，则跳过请求 router
   if (AV._config.APIServerURL) {
+    getServerURLPromise.resolve();
     return;
   }
-  AV._config.region = region;
-  AV._config.APIServerURL = API_HOST[region];
-
-  Cache.getAsync('APIServerURL').then((serverURL) => {
-    if (serverURL) {
-      setServerUrl(serverURL);
-      getServerURLPromise.resolve();
-    } else {
-      refreshServerUrl().then(() => {
+  // if not china server region, do not use router
+  if (region === 'cn') {
+    Cache.getAsync('APIServerURL').then((serverURL) => {
+      if (serverURL) {
+        setServerUrl(serverURL);
         getServerURLPromise.resolve();
-      });
-    }
-  });
+      } else {
+        return refreshServerUrlByRouter();
+      }
+    }).then(() => {
+      getServerURLPromise.resolve();
+    }).catch(() => {
+      getServerURLPromise.reject();
+    });
+  } else {
+    AV._config.region = region;
+    AV._config.APIServerURL = API_HOST[region];
+    getServerURLPromise.resolve();
+  }
 };
 
 /**
@@ -10466,7 +10481,7 @@ module.exports = {
 };
 
 }).call(this,require('_process'))
-},{"./av":19,"./cache":22,"./error":24,"./promise":32,"_process":2,"debug":4,"md5":8,"superagent":13,"underscore":17}],37:[function(require,module,exports){
+},{"./av":19,"./cache":22,"./error":24,"./promise":33,"_process":10,"debug":4,"md5":8,"superagent":12,"underscore":17}],38:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -10609,7 +10624,7 @@ module.exports = function(AV) {
   });
 };
 
-},{"./error":24,"underscore":17}],38:[function(require,module,exports){
+},{"./error":24,"underscore":17}],39:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -10899,7 +10914,7 @@ module.exports = function(AV) {
   });
 };
 
-},{"./request":36,"underscore":17}],39:[function(require,module,exports){
+},{"./request":37,"underscore":17}],40:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -11280,7 +11295,7 @@ module.exports = function(AV) {
 
 };
 
-},{"./request":36,"underscore":17}],40:[function(require,module,exports){
+},{"./request":37,"underscore":17}],41:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -11323,7 +11338,7 @@ module.exports = function upload(uploadInfo, data, file, saveOptions = {}) {
   return promise;
 };
 
-},{"../promise":32,"debug":4,"superagent":13}],41:[function(require,module,exports){
+},{"../promise":33,"debug":4,"superagent":12}],42:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -11369,7 +11384,7 @@ module.exports = function upload(uploadInfo, data, file, saveOptions = {}) {
   return promise;
 };
 
-},{"../promise":32,"debug":4,"superagent":13}],42:[function(require,module,exports){
+},{"../promise":33,"debug":4,"superagent":12}],43:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -11378,11 +11393,11 @@ module.exports = function upload(uploadInfo, data, file, saveOptions = {}) {
 const request = require('superagent');
 const AVPromise = require('../promise');
 
-module.exports = function upload(uploadUrl, data, file, saveOptions = {}) {
+module.exports = function upload(uploadInfo, data, file, saveOptions = {}) {
   // 海外节点，针对 S3 才会返回 upload_url
   file.attributes.url = uploadInfo.url;
   const promise = new AVPromise();
-  const req = request('PUT', uploadUrl)
+  const req = request('PUT', uploadInfo.upload_url)
     .set('Content-Type', file.attributes.metaData.mime_type)
     .send(data)
     .end((err, res) => {
@@ -11402,7 +11417,7 @@ module.exports = function upload(uploadUrl, data, file, saveOptions = {}) {
   return promise;
 };
 
-},{"../promise":32,"superagent":13}],43:[function(require,module,exports){
+},{"../promise":33,"superagent":12}],44:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -12162,38 +12177,42 @@ module.exports = function(AV) {
      * On success, this saves the session to disk, so you can retrieve the currently
      * logged in user using <code>current</code>.
      *
-     * <p>Calls options.success or options.error on completion.</p>
-     *
-     * @param {Object} data The response json data returned from third party token.
+     * @param {Object} authData The response json data returned from third party token, maybe like { openid: 'abc123', access_token: '123abc', expires_in: 1382686496 }
      * @param {string} platform Available platform for sign up.
      * @param {Object} [callback] An object that has an optional success function, that takes no arguments and will be called on a successful puSH. and an error function that takes a AVError and will be called if the push failed.
      * @return {AV.Promise} A promise that is fulfilled with the user when
      *     the login completes.
-     * @example AV.User.signUpOrlogInWithAuthData(data, platform, {
-         *          success: function(user) {
-         *              //Access user here
-         *          },
-         *          error: function(error) {
-         *              //console.log("error: ", error);
-         *          }
-         *      });
+     * @example AV.User.signUpOrlogInWithAuthData(authData, platform).then(function(user) {
+     *   //Access user here
+     * }).catch(function(error) {
+     *   //console.error("error: ", error);
+     * });
      * @see {@link https://leancloud.cn/docs/js_guide.html#绑定第三方平台账户}
      */
-    signUpOrlogInWithAuthData: function (data, platform, callback) {
-        /**
-         * Construct accessToken
-         */
-        return AV.User._logInWith(platform, {
-            "authData": data,
-            success: function (user) {
-                callback.success(user);
-            },
-            error: function (error) {
-                callback.error(error);
-            }
-        });
+    signUpOrlogInWithAuthData(authData, platform, callback) {
+      return AV.User._logInWith(platform, { authData })._thenRunCallbacks(callback);
     },
 
+    /**
+     * Associate a user with a third party auth data(AccessToken).
+     *
+     * @param {AV.User} userObj A user which you want to associate.
+     * @param {string} platform Available platform for sign up.
+     * @param {Object} authData The response json data returned from third party token, maybe like { openid: 'abc123', access_token: '123abc', expires_in: 1382686496 }
+     * @return {AV.Promise} A promise that is fulfilled with the user when completed.
+     * @example AV.User.associateWithAuthData(loginUser, 'weixin', {
+     *   openid: 'abc123',
+     *   access_token: '123abc',
+     *   expires_in: 1382686496
+     * }).then(function(user) {
+     *   //Access user here
+     * }).catch(function(error) {
+     *   //console.error("error: ", error);
+     * });
+     */
+    associateWithAuthData(userObj, platform, authData) {
+      return userObj._linkWith(platform, { authData });
+    },
     /**
      * Logs out the currently logged in user session. This will remove the
      * session from disk, log out of linked services, and future calls to
@@ -12521,7 +12540,7 @@ function filterOutCallbacks(options) {
   return newOptions;
 }
 
-},{"./error":24,"./request":36,"underscore":17}],44:[function(require,module,exports){
+},{"./error":24,"./request":37,"underscore":17}],45:[function(require,module,exports){
 (function (process){
 /**
  * 每位工程师都有保持代码优雅的义务
@@ -13092,13 +13111,13 @@ module.exports = {
 };
 
 }).call(this,require('_process'))
-},{"./request":36,"_process":2,"underscore":17}],45:[function(require,module,exports){
+},{"./request":37,"_process":10,"underscore":17}],46:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
 **/
 
-module.exports = 'js1.1.0';
+module.exports = 'js1.2.0';
 
-},{}]},{},[19])(19)
+},{}]},{},[28])(28)
 });
