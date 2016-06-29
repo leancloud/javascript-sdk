@@ -208,7 +208,7 @@ var setServerUrl = function setServerUrl(serverURL) {
   }
 };
 
-var refreshServerUrl = function refreshServerUrl() {
+var refreshServerUrlByRouter = function refreshServerUrlByRouter() {
   var url = 'https://app-router.leancloud.cn/1/route?appId=' + AV.applicationId;
   return ajax('get', url).then(function (servers) {
     if (servers.api_server) {
@@ -223,21 +223,28 @@ var setServerUrlByRegion = function setServerUrlByRegion() {
 
   // 如果用户在 init 之前设置了 APIServerURL，则跳过请求 router
   if (AV._config.APIServerURL) {
+    getServerURLPromise.resolve();
     return;
   }
-  AV._config.region = region;
-  AV._config.APIServerURL = API_HOST[region];
-
-  Cache.getAsync('APIServerURL').then(function (serverURL) {
-    if (serverURL) {
-      setServerUrl(serverURL);
-      getServerURLPromise.resolve();
-    } else {
-      refreshServerUrl().then(function () {
+  // if not china server region, do not use router
+  if (region === 'cn') {
+    Cache.getAsync('APIServerURL').then(function (serverURL) {
+      if (serverURL) {
+        setServerUrl(serverURL);
         getServerURLPromise.resolve();
-      });
-    }
-  });
+      } else {
+        return refreshServerUrlByRouter();
+      }
+    }).then(function () {
+      getServerURLPromise.resolve();
+    }).catch(function () {
+      getServerURLPromise.reject();
+    });
+  } else {
+    AV._config.region = region;
+    AV._config.APIServerURL = API_HOST[region];
+    getServerURLPromise.resolve();
+  }
 };
 
 /**

@@ -1,3 +1,9 @@
+# 1.2.0  日期：2016 年 6 月 29 日
+* 增加 `AV.User.associateWithAuthData()` 方法
+* 修复美国节点文件上传失败的问题
+* 修复 `AV.User.signUpOrlogInWithAuthData()` 省略 callback 参数会报异常的问题
+* 修复 React Native 中 import leancloud-storage 抛 `cannot read property "APIServerURL" for undefined` 异常的问题
+
 # 1.1.0  日期：2016 年 6 月 27 日
 * 防止 SDK 覆盖全局变量 AV
 * Object.add、Object.addUnique、Object.remove 等方法支持从传入非数组类型的 value 参数
