@@ -5,4 +5,4 @@
  * Each engineer has a duty to keep the code elegant
 **/
 
-module.exports = 'js1.2.0';
+module.exports = 'js1.2.1';

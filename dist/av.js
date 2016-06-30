@@ -11249,9 +11249,11 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       module.exports = function upload(uploadInfo, data, file) {
         var saveOptions = arguments.length <= 3 || arguments[3] === undefined ? {} : arguments[3];
 
-        // 海外节点，针对 S3 才会返回 upload_url
         file.attributes.url = uploadInfo.url;
+        file._bucket = uploadInfo.bucket;
+        file.id = uploadInfo.objectId;
         var promise = new AVPromise();
+        // 海外节点，针对 S3 才会返回 upload_url
         var req = request('PUT', uploadInfo.upload_url).set('Content-Type', file.attributes.metaData.mime_type).send(data).end(function (err, res) {
           if (err) {
             if (res) {
@@ -12914,6 +12916,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
        * Each engineer has a duty to keep the code elegant
       **/
 
-      module.exports = 'js1.2.0';
+      module.exports = 'js1.2.1';
     }, {}] }, {}, [28])(28);
 });

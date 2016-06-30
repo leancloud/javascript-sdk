@@ -11394,9 +11394,11 @@ const request = require('superagent');
 const AVPromise = require('../promise');
 
 module.exports = function upload(uploadInfo, data, file, saveOptions = {}) {
-  // 海外节点，针对 S3 才会返回 upload_url
   file.attributes.url = uploadInfo.url;
+  file._bucket = uploadInfo.bucket;
+  file.id = uploadInfo.objectId;
   const promise = new AVPromise();
+  // 海外节点，针对 S3 才会返回 upload_url
   const req = request('PUT', uploadInfo.upload_url)
     .set('Content-Type', file.attributes.metaData.mime_type)
     .send(data)
@@ -13117,7 +13119,7 @@ module.exports = {
  * Each engineer has a duty to keep the code elegant
 **/
 
-module.exports = 'js1.2.0';
+module.exports = 'js1.2.1';
 
 },{}]},{},[28])(28)
 });
