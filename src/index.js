@@ -47,5 +47,5 @@ const AVError = require('./error');
  */
 AV.Error = (...args) => {
   console.warn('AV.Error() is deprecated, and will be removed in next release.');
-  new AVError(...args);
+  return new AVError(...args);
 };

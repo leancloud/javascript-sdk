@@ -1,26 +1,13 @@
-'use strict';
-
-var TestError = AV.Object.extend("TestError");
-describe("error",function(){
-
-  it("return error",function(done){
-    var test = new TestError();
-    test.set("num",1);
-    test.save();
-    var test1 = new TestError();
-    test.set("num","s");
-    test.save(null,{
-      success:function(obj){
-        debug(obj);
-        done();
-      },
-      error:function(obj,err){
-        debug(obj);
-        debug(err);
-        done();
-      }
+describe('AVError', () => {
+  it('should be an Error', () => {
+    try {
+      throw AV.Error(-1, 'error message');
+    } catch (error) {
+      expect(error).to.be.an(Error);
+      expect(error.stack).to.be.ok();
+      expect(error.code).to.equal(-1);
+      expect(error.message).to.equal('error message');
+      expect(error.toString()).to.contain('error message');
     }
-    );
   });
-
 });
