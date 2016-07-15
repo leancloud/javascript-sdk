@@ -142,6 +142,51 @@ describe('Objects', function(){
     });
   });
 
+  describe('Fetching Objects', () => {
+    it('fetch', () => 
+      AV.Object.createWithoutData('GameScore', gameScore.id).fetch().then(score => {
+        expect(score.get('score')).to.be.a('number');
+        expect(score.createdAt).to.be.a(Date);
+        expect(score.id).to.be.eql(gameScore.id);
+      })
+    );
+    it('fetchAll', () => 
+      AV.Object.fetchAll([
+        AV.Object.createWithoutData('GameScore', gameScore.id),
+        AV.Object.createWithoutData('GameScore', gameScore.id),
+      ]).then(([score1, score2]) => {
+        expect(score1.get('score')).to.be.a('number');
+        expect(score1.createdAt).to.be.a(Date);
+        expect(score1.id).to.be.eql(gameScore.id);
+        expect(score2.get('score')).to.be.a('number');
+        expect(score2.createdAt).to.be.a(Date);
+        expect(score2.id).to.be.eql(gameScore.id);
+      })
+    );
+    it('fetchAll with non-existed Class should fail', (done) => 
+      AV.Object.fetchAll([
+        AV.Object.createWithoutData('GameScore', gameScore.id),
+        AV.Object.createWithoutData('FakeClass', gameScore.id),
+      ]).then(function() {
+        done(new Error(`should be rejected`));
+      }, function(err) {
+        expect(err).to.be.an(Error);
+        done();
+      })
+    );
+    it('fetchAll with dirty objet should fail', (done) => 
+      AV.Object.fetchAll([
+        AV.Object.createWithoutData('GameScore', gameScore.id),
+        new GameScore(),
+      ]).then(function() {
+        done(new Error(`should be rejected`));
+      }, function(err) {
+        expect(err).to.be.an(Error);
+        done();
+      })
+    );
+  });
+
   describe("Deleting Objects",function(){
     it("should delete cheatMode",function(done){
       gameScore.unset("cheatMode");
