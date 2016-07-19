@@ -145,7 +145,7 @@ const createApiUrl = (route, className, objectId, method, dataObject) => {
     console.warn('Please use AV._config.APIServerURL to replace AV.serverURL, and it is an internal interface.');
   }
 
-  let apiURL = AV._config.APIServerURL;
+  let apiURL = AV._config.APIServerURL || API_HOST.cn;
 
   if (apiURL.charAt(apiURL.length - 1) !== '/') {
     apiURL += '/';
@@ -242,6 +242,11 @@ const refreshServerUrlByRouter = () => {
       setServerUrl(servers.api_server);
       return cacheServerURL(servers.api_server, servers.ttl);
     }
+  }, error => {
+    // bypass all non-4XX errors
+    if (error.statusCode >= 400 && error.statusCode < 500) {
+      throw error;
+    }
   });
 };
 
@@ -262,8 +267,8 @@ const setServerUrlByRegion = (region = 'cn') => {
       }
     }).then(() => {
       getServerURLPromise.resolve();
-    }).catch(() => {
-      getServerURLPromise.reject();
+    }).catch((error) => {
+      getServerURLPromise.reject(error);
     });
   } else {
     AV._config.region = region;
@@ -290,7 +295,7 @@ const AVRequest = (route, className, objectId, method, dataObject = {}, sessionT
 
   checkRouter(route);
 
-  return getServerURLPromise.always(() => {
+  return getServerURLPromise.then(() => {
     const apiURL = createApiUrl(route, className, objectId, method, dataObject);
     return setHeaders(sessionToken).then(
       headers => ajax(method, apiURL, dataObject, headers)
