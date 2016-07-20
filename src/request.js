@@ -256,7 +256,6 @@ const setServerUrlByRegion = (region = 'cn') => {
     Cache.getAsync('APIServerURL').then((serverURL) => {
       if (serverURL) {
         setServerUrl(serverURL);
-        getServerURLPromise.resolve();
       } else {
         return refreshServerUrlByRouter();
       }
