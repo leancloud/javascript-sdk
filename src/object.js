@@ -816,6 +816,9 @@ module.exports = function(AV) {
      *     completes.
      */
     fetch: function(fetchOptions = {}, options) {
+      if (_.isArray(fetchOptions.keys)) {
+        fetchOptions.keys = fetchOptions.keys.join(',');
+      }
       if (_.isArray(fetchOptions.include)) {
         fetchOptions.include = fetchOptions.include.join(',');
       }

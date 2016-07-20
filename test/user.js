@@ -110,7 +110,7 @@ describe("User", function() {
       var user = AV.User.current();
       return new AV.Query('_Role').equalTo('name', 'testRole').first()
       .then(function(role) {
-        return role.destroy();
+        return role.destroy({ useMasterKey: true });
       }).catch(function() {
         // already destroyed
       }).then(function() {
