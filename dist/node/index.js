@@ -53,5 +53,5 @@ AV.Error = function () {
   }
 
   console.warn('AV.Error() is deprecated, and will be removed in next release.');
-  new (Function.prototype.bind.apply(AVError, [null].concat(args)))();
+  return new (Function.prototype.bind.apply(AVError, [null].concat(args)))();
 };

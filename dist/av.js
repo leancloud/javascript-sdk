@@ -4623,8 +4623,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
       // Class used for all objects passed to error callbacks
       function AVError(code, message) {
-        this.code = code;
-        this.message = message;
+        var error = new Error(message);
+        error.code = code;
+        return error;
       }
 
       _.extend(AVError, {
@@ -6096,7 +6097,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         }
 
         console.warn('AV.Error() is deprecated, and will be removed in next release.');
-        new (Function.prototype.bind.apply(AVError, [null].concat(args)))();
+        return new (Function.prototype.bind.apply(AVError, [null].concat(args)))();
       };
     }, { "./acl": 18, "./av": 19, "./cache": 22, "./cloudfunction": 23, "./error": 24, "./event": 25, "./file": 26, "./geopoint": 27, "./insight": 29, "./localstorage": 30, "./object": 31, "./op": 32, "./promise": 33, "./push": 34, "./query": 35, "./relation": 36, "./role": 38, "./search": 39, "./status": 40, "./user": 44, "./utils": 45, "./version": 46, "underscore": 17 }], 29: [function (require, module, exports) {
       /**
@@ -6391,6 +6392,42 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
          */
         AV.Object.saveAll = function (list, options) {
           return AV.Object._deepSaveAsync(list, null, options)._thenRunCallbacks(options);
+        };
+
+        /**
+         * Fetch the given list of AV.Object.
+         * 
+         * @param {AV.Object[]} objects A list of <code>AV.Object</code>
+         * @param {Object} options
+         * @param {String} options.sessionToken specify user's session, used in LeanEngine.
+         * @return {Promise.<AV.Object[]>} The given list of <code>AV.Object</code>, updated
+         */
+
+        AV.Object.fetchAll = function (objects, options) {
+          return AV.Promise.as().then(function () {
+            return AVRequest('batch', null, null, 'POST', {
+              requests: _.map(objects, function (object) {
+                if (!object.className) throw new Error('object must have className to fetch');
+                if (!object.id) throw new Error('object must have id to fetch');
+                if (object.dirty()) throw new Error('object is modified but not saved');
+                return {
+                  method: 'GET',
+                  path: "/1.1/classes/" + object.className + "/" + object.id
+                };
+              })
+            }, options && options.sessionToken);
+          }).then(function (response) {
+            _.forEach(objects, function (object, i) {
+              if (response[i].success) {
+                object._finishFetch(object.parse(response[i].success));
+              } else {
+                var error = new Error(response[i].error.error);
+                error.code = response[i].error.code;
+                throw error;
+              }
+            });
+            return objects;
+          });
         };
 
         // Attach all inheritable methods to the AV.Object prototype.
@@ -6850,7 +6887,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
            * @param {Object} options A set of Backbone-like options for the set.
            *     The only supported options are <code>silent</code>,
            *     <code>error</code>, and <code>promise</code>.
-           * @return {Boolean} true if the set succeeded.
+           * @return {AV.Object} self if succeeded, false if the value is not valid.
            * @see AV.Object#validate
            * @see AVError
            */
@@ -7525,7 +7562,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         };
         /**
          * Delete objects in batch.The objects className must be the same.
-         * @param {Array} The ParseObject array to be deleted.
+         * @param {Array} The <code>AV.Object</code> array to be deleted.
          * @param {Object} options Standard options object with success and error
          *     callbacks.
          * @return {AV.Promise} A promise that is fulfilled when the save
@@ -10185,7 +10222,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             console.warn('Please use AV._config.APIServerURL to replace AV.serverURL, and it is an internal interface.');
           }
 
-          var apiURL = AV._config.APIServerURL;
+          var apiURL = AV._config.APIServerURL || API_HOST.cn;
 
           if (apiURL.charAt(apiURL.length - 1) !== '/') {
             apiURL += '/';
@@ -10284,6 +10321,11 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
               setServerUrl(servers.api_server);
               return cacheServerURL(servers.api_server, servers.ttl);
             }
+          }, function (error) {
+            // bypass all non-4XX errors
+            if (error.statusCode >= 400 && error.statusCode < 500) {
+              throw error;
+            }
           });
         };
 
@@ -10300,14 +10342,13 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             Cache.getAsync('APIServerURL').then(function (serverURL) {
               if (serverURL) {
                 setServerUrl(serverURL);
-                getServerURLPromise.resolve();
               } else {
                 return refreshServerUrlByRouter();
               }
             }).then(function () {
               getServerURLPromise.resolve();
-            }).catch(function () {
-              getServerURLPromise.reject();
+            }).catch(function (error) {
+              getServerURLPromise.reject(error);
             });
           } else {
             AV._config.region = region;
@@ -10337,7 +10378,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
           checkRouter(route);
 
-          return getServerURLPromise.always(function () {
+          return getServerURLPromise.then(function () {
             var apiURL = createApiUrl(route, className, objectId, method, dataObject);
             return setHeaders(sessionToken).then(function (headers) {
               return ajax(method, apiURL, dataObject, headers).then(null, function (res) {
@@ -12916,6 +12957,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
        * Each engineer has a duty to keep the code elegant
       **/
 
-      module.exports = 'js1.2.1';
+      module.exports = 'js1.3.0';
     }, {}] }, {}, [28])(28);
 });

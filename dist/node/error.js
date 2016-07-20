@@ -9,8 +9,9 @@ var _ = require('underscore');
 
 // Class used for all objects passed to error callbacks
 function AVError(code, message) {
-  this.code = code;
-  this.message = message;
+  var error = new Error(message);
+  error.code = code;
+  return error;
 }
 
 _.extend(AVError, {

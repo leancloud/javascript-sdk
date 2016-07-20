@@ -4652,8 +4652,9 @@ const _ = require('underscore');
 
 // Class used for all objects passed to error callbacks
 function AVError(code, message) {
-  this.code = code;
-  this.message = message;
+  const error = new Error(message);
+  error.code = code;
+  return error;
 }
 
 _.extend(AVError, {
@@ -6132,7 +6133,7 @@ const AVError = require('./error');
  */
 AV.Error = (...args) => {
   console.warn('AV.Error() is deprecated, and will be removed in next release.');
-  new AVError(...args);
+  return new AVError(...args);
 };
 
 },{"./acl":18,"./av":19,"./cache":22,"./cloudfunction":23,"./error":24,"./event":25,"./file":26,"./geopoint":27,"./insight":29,"./localstorage":30,"./object":31,"./op":32,"./promise":33,"./push":34,"./query":35,"./relation":36,"./role":38,"./search":39,"./status":40,"./user":44,"./utils":45,"./version":46,"underscore":17}],29:[function(require,module,exports){
@@ -6441,6 +6442,42 @@ module.exports = function(AV) {
     return AV.Object._deepSaveAsync(list, null, options)._thenRunCallbacks(options);
   };
 
+  /**
+   * Fetch the given list of AV.Object.
+   * 
+   * @param {AV.Object[]} objects A list of <code>AV.Object</code>
+   * @param {Object} options
+   * @param {String} options.sessionToken specify user's session, used in LeanEngine.
+   * @return {Promise.<AV.Object[]>} The given list of <code>AV.Object</code>, updated
+   */
+
+  AV.Object.fetchAll = (objects, options) =>
+    AV.Promise.as().then(() =>
+      AVRequest('batch', null, null, 'POST', {
+        requests: _.map(objects, object => {
+          if (!object.className) throw new Error('object must have className to fetch');
+          if (!object.id) throw new Error('object must have id to fetch');
+          if (object.dirty()) throw new Error('object is modified but not saved');
+          return {
+            method: 'GET',
+            path: `/1.1/classes/${object.className}/${object.id}`,
+          };
+        }),
+      }, options && options.sessionToken)
+    ).then(function(response) {
+      _.forEach(objects, function(object, i) {
+        if (response[i].success) {
+          object._finishFetch(
+            object.parse(response[i].success));
+        } else {
+          const error = new Error(response[i].error.error);
+          error.code = response[i].error.code;
+          throw error;
+        }
+      });
+      return objects;
+    });
+  
   // Attach all inheritable methods to the AV.Object prototype.
   _.extend(AV.Object.prototype, AV.Events,
            /** @lends AV.Object.prototype */ {
@@ -6900,7 +6937,7 @@ module.exports = function(AV) {
      * @param {Object} options A set of Backbone-like options for the set.
      *     The only supported options are <code>silent</code>,
      *     <code>error</code>, and <code>promise</code>.
-     * @return {Boolean} true if the set succeeded.
+     * @return {AV.Object} self if succeeded, false if the value is not valid.
      * @see AV.Object#validate
      * @see AVError
      */
@@ -7584,7 +7621,7 @@ module.exports = function(AV) {
    };
    /**
     * Delete objects in batch.The objects className must be the same.
-    * @param {Array} The ParseObject array to be deleted.
+    * @param {Array} The <code>AV.Object</code> array to be deleted.
     * @param {Object} options Standard options object with success and error
     *     callbacks.
     * @return {AV.Promise} A promise that is fulfilled when the save
@@ -10316,7 +10353,7 @@ const createApiUrl = (route, className, objectId, method, dataObject) => {
     console.warn('Please use AV._config.APIServerURL to replace AV.serverURL, and it is an internal interface.');
   }
 
-  let apiURL = AV._config.APIServerURL;
+  let apiURL = AV._config.APIServerURL || API_HOST.cn;
 
   if (apiURL.charAt(apiURL.length - 1) !== '/') {
     apiURL += '/';
@@ -10413,6 +10450,11 @@ const refreshServerUrlByRouter = () => {
       setServerUrl(servers.api_server);
       return cacheServerURL(servers.api_server, servers.ttl);
     }
+  }, error => {
+    // bypass all non-4XX errors
+    if (error.statusCode >= 400 && error.statusCode < 500) {
+      throw error;
+    }
   });
 };
 
@@ -10427,14 +10469,13 @@ const setServerUrlByRegion = (region = 'cn') => {
     Cache.getAsync('APIServerURL').then((serverURL) => {
       if (serverURL) {
         setServerUrl(serverURL);
-        getServerURLPromise.resolve();
       } else {
         return refreshServerUrlByRouter();
       }
     }).then(() => {
       getServerURLPromise.resolve();
-    }).catch(() => {
-      getServerURLPromise.reject();
+    }).catch((error) => {
+      getServerURLPromise.reject(error);
     });
   } else {
     AV._config.region = region;
@@ -10461,7 +10502,7 @@ const AVRequest = (route, className, objectId, method, dataObject = {}, sessionT
 
   checkRouter(route);
 
-  return getServerURLPromise.always(() => {
+  return getServerURLPromise.then(() => {
     const apiURL = createApiUrl(route, className, objectId, method, dataObject);
     return setHeaders(sessionToken).then(
       headers => ajax(method, apiURL, dataObject, headers)
@@ -13119,7 +13160,7 @@ module.exports = {
  * Each engineer has a duty to keep the code elegant
 **/
 
-module.exports = 'js1.2.1';
+module.exports = 'js1.3.0';
 
 },{}]},{},[28])(28)
 });

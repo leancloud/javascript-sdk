@@ -117,6 +117,42 @@ module.exports = function (AV) {
     return AV.Object._deepSaveAsync(list, null, options)._thenRunCallbacks(options);
   };
 
+  /**
+   * Fetch the given list of AV.Object.
+   * 
+   * @param {AV.Object[]} objects A list of <code>AV.Object</code>
+   * @param {Object} options
+   * @param {String} options.sessionToken specify user's session, used in LeanEngine.
+   * @return {Promise.<AV.Object[]>} The given list of <code>AV.Object</code>, updated
+   */
+
+  AV.Object.fetchAll = function (objects, options) {
+    return AV.Promise.as().then(function () {
+      return AVRequest('batch', null, null, 'POST', {
+        requests: _.map(objects, function (object) {
+          if (!object.className) throw new Error('object must have className to fetch');
+          if (!object.id) throw new Error('object must have id to fetch');
+          if (object.dirty()) throw new Error('object is modified but not saved');
+          return {
+            method: 'GET',
+            path: '/1.1/classes/' + object.className + '/' + object.id
+          };
+        })
+      }, options && options.sessionToken);
+    }).then(function (response) {
+      _.forEach(objects, function (object, i) {
+        if (response[i].success) {
+          object._finishFetch(object.parse(response[i].success));
+        } else {
+          var error = new Error(response[i].error.error);
+          error.code = response[i].error.code;
+          throw error;
+        }
+      });
+      return objects;
+    });
+  };
+
   // Attach all inheritable methods to the AV.Object prototype.
   _.extend(AV.Object.prototype, AV.Events,
   /** @lends AV.Object.prototype */{
@@ -574,7 +610,7 @@ module.exports = function (AV) {
      * @param {Object} options A set of Backbone-like options for the set.
      *     The only supported options are <code>silent</code>,
      *     <code>error</code>, and <code>promise</code>.
-     * @return {Boolean} true if the set succeeded.
+     * @return {AV.Object} self if succeeded, false if the value is not valid.
      * @see AV.Object#validate
      * @see AVError
      */
@@ -1249,7 +1285,7 @@ module.exports = function (AV) {
   };
   /**
    * Delete objects in batch.The objects className must be the same.
-   * @param {Array} The ParseObject array to be deleted.
+   * @param {Array} The <code>AV.Object</code> array to be deleted.
    * @param {Object} options Standard options object with success and error
    *     callbacks.
    * @return {AV.Promise} A promise that is fulfilled when the save
