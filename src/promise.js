@@ -312,8 +312,8 @@ _.extend(Promise.prototype, /** @lends AV.Promise.prototype */ {
    */
   resolve: function(result) {
     if (this._resolved || this._rejected) {
-      throw "A promise was resolved even though it had already been " +
-        (this._resolved ? "resolved" : "rejected") + ".";
+      throw new Error("A promise was resolved even though it had already been " +
+        (this._resolved ? "resolved" : "rejected") + ".");
     }
     this._resolved = true;
     this._result = arguments;
@@ -352,8 +352,8 @@ _.extend(Promise.prototype, /** @lends AV.Promise.prototype */ {
    */
   reject: function(error) {
     if (this._resolved || this._rejected) {
-      throw "A promise was rejected even though it had already been " +
-        (this._resolved ? "resolved" : "rejected") + ".";
+      throw new Promise("A promise was rejected even though it had already been " +
+        (this._resolved ? "resolved" : "rejected") + ".");
     }
     this._rejected = true;
     this._error = error;
