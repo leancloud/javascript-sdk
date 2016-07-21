@@ -16,7 +16,7 @@ var AVError = require('./error');
 var AV = require('./av');
 var _ = require('underscore');
 
-var getServerURLPromise = new AVPromise();
+var getServerURLPromise = undefined;
 
 // 服务器请求的节点 host
 var API_HOST = {
@@ -226,6 +226,7 @@ var refreshServerUrlByRouter = function refreshServerUrlByRouter() {
 var setServerUrlByRegion = function setServerUrlByRegion() {
   var region = arguments.length <= 0 || arguments[0] === undefined ? 'cn' : arguments[0];
 
+  getServerURLPromise = new AVPromise();
   // 如果用户在 init 之前设置了 APIServerURL，则跳过请求 router
   if (AV._config.APIServerURL) {
     getServerURLPromise.resolve();
@@ -272,6 +273,9 @@ var AVRequest = function AVRequest(route, className, objectId, method) {
 
   checkRouter(route);
 
+  if (!getServerURLPromise) {
+    return AVPromise.error(new Error('Not initialized'));
+  }
   return getServerURLPromise.then(function () {
     var apiURL = createApiUrl(route, className, objectId, method, dataObject);
     return setHeaders(sessionToken).then(function (headers) {

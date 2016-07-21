@@ -8781,8 +8781,8 @@ _.extend(Promise.prototype, /** @lends AV.Promise.prototype */ {
    */
   resolve: function(result) {
     if (this._resolved || this._rejected) {
-      throw "A promise was resolved even though it had already been " +
-        (this._resolved ? "resolved" : "rejected") + ".";
+      throw new Error("A promise was resolved even though it had already been " +
+        (this._resolved ? "resolved" : "rejected") + ".");
     }
     this._resolved = true;
     this._result = arguments;
@@ -8821,8 +8821,8 @@ _.extend(Promise.prototype, /** @lends AV.Promise.prototype */ {
    */
   reject: function(error) {
     if (this._resolved || this._rejected) {
-      throw "A promise was rejected even though it had already been " +
-        (this._resolved ? "resolved" : "rejected") + ".";
+      throw new Promise("A promise was rejected even though it had already been " +
+        (this._resolved ? "resolved" : "rejected") + ".");
     }
     this._rejected = true;
     this._error = error;
@@ -10220,7 +10220,7 @@ const AVError = require('./error');
 const AV = require('./av');
 const _ = require('underscore');
 
-const getServerURLPromise = new AVPromise();
+let getServerURLPromise;
 
 // 服务器请求的节点 host
 const API_HOST = {
@@ -10459,6 +10459,7 @@ const refreshServerUrlByRouter = () => {
 };
 
 const setServerUrlByRegion = (region = 'cn') => {
+  getServerURLPromise = new AVPromise();
   // 如果用户在 init 之前设置了 APIServerURL，则跳过请求 router
   if (AV._config.APIServerURL) {
     getServerURLPromise.resolve();
@@ -10502,6 +10503,9 @@ const AVRequest = (route, className, objectId, method, dataObject = {}, sessionT
 
   checkRouter(route);
 
+  if (!getServerURLPromise) {
+    return AVPromise.error(new Error('Not initialized'));
+  }
   return getServerURLPromise.then(() => {
     const apiURL = createApiUrl(route, className, objectId, method, dataObject);
     return setHeaders(sessionToken).then(
@@ -13160,7 +13164,7 @@ module.exports = {
  * Each engineer has a duty to keep the code elegant
 **/
 
-module.exports = 'js1.3.0';
+module.exports = 'js1.3.1';
 
 },{}]},{},[28])(28)
 });
