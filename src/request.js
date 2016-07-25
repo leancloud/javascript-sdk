@@ -252,9 +252,10 @@ const refreshServerUrlByRouter = () => {
 
 const setServerUrlByRegion = (region = 'cn') => {
   getServerURLPromise = new AVPromise();
+  const promise = getServerURLPromise;
   // 如果用户在 init 之前设置了 APIServerURL，则跳过请求 router
   if (AV._config.APIServerURL) {
-    getServerURLPromise.resolve();
+    promise.resolve();
     return;
   }
   // if not china server region, do not use router
@@ -266,14 +267,14 @@ const setServerUrlByRegion = (region = 'cn') => {
         return refreshServerUrlByRouter();
       }
     }).then(() => {
-      getServerURLPromise.resolve();
+      promise.resolve();
     }).catch((error) => {
-      getServerURLPromise.reject(error);
+      promise.reject(error);
     });
   } else {
     AV._config.region = region;
     AV._config.APIServerURL = API_HOST[region];
-    getServerURLPromise.resolve();
+    promise.resolve();
   }
 };
 
