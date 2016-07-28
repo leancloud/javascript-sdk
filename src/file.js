@@ -356,7 +356,7 @@ module.exports = function(AV) {
       try {
         owner = AV.User.current();
       } catch (error) {
-        if ('SYNC_API_NOT_AVAILABLE' === error.code) {
+        if (error.code === 'SYNC_API_NOT_AVAILABLE') {
           console.warn('Get current user failed. It seems this runtime use an async storage system, please create AV.File in the callback of AV.User.currentAsync().');
         } else {
           throw error;
