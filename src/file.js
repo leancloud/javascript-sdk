@@ -356,11 +356,8 @@ module.exports = function(AV) {
       try {
         owner = AV.User.current();
       } catch (error) {
-        if (error) {
-          throw new Error(error);
-        } else {
-          console.warn('Get current user failed. It seems this runtime use an async storage system, please new AV.File in the callback of AV.User.currentAsync().');
-        }
+        throw new Error(error);
+        console.warn('If this runtime use an async storage system, please new AV.File in the callback of AV.User.currentAsync().');
       }
     }
 
