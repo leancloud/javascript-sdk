@@ -342,11 +342,11 @@ module.exports = function(AV) {
   AV.File = function(name, data, type) {
 
     this.attributes = {
-      name: name,
+      name,
       url: '',
       metaData: {},
       // 用来存储转换后要上传的 base64 String
-      base64: ''
+      base64: '',
     };
 
     let owner;
@@ -355,8 +355,12 @@ module.exports = function(AV) {
     } else if (!AV._config.disableCurrentUser) {
       try {
         owner = AV.User.current();
-      } catch (e) {
-        console.warn('Get current user failed. It seems this runtime use an async storage system, please new AV.File in the callback of AV.User.currentAsync().');
+      } catch (error) {
+        if (error) {
+          throw new Error(error);
+        } else {
+          console.warn('Get current user failed. It seems this runtime use an async storage system, please new AV.File in the callback of AV.User.currentAsync().');
+        }
       }
     }
 
