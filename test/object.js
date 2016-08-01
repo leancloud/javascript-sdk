@@ -12,6 +12,17 @@ describe('Objects', function(){
       done();
     });
   });
+  it('getter/setter compatible', function() {
+    Object.defineProperty(Post.prototype, 'name', {
+      get: function() {
+        return this.get('name');
+      },
+      set: function(value) {
+        return this.set('name', value);
+      }
+    });
+    new Post().name;
+  });
   describe('#Saving Objects', function(){
     it('should crate a Object', function(done){
       //gameScore.set("newcol","sss")

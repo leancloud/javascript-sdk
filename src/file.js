@@ -486,14 +486,16 @@ module.exports = function(AV) {
     get: function(attrName) {
       switch (attrName) {
         case 'objectId':
-        // 兼容 objectId
-        return this.id;
-        default:
-        if (this.attributes[attrName] === undefined) {
-          return this.attributes.metaData[attrName];
-        } else {
+        case 'id':
+          return this.id;
+        case 'url':
+        case 'name':
+        case 'metaData':
+        case 'createdAt':
+        case 'updatedAt':
           return this.attributes[attrName];
-        }
+        default:
+          return this.attributes.metaData[attrName];
       }
     },
 
