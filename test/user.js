@@ -24,7 +24,7 @@ describe("User", function() {
         },
         error: function(user, error) {
           // Show the error message somewhere and let the user try again.
-          throw error;
+          done(err)or;
         }
       });
 
@@ -56,13 +56,13 @@ describe("User", function() {
               done();
             },
             error: function(err) {
-              throw err;
+              done(err);
             }
           });
           // Do stuff after successful login.
         },
         error: function(user, error) {
-          throw error;
+          done(error);
           // The login failed. Check error to see why.
         }
       });
@@ -136,7 +136,7 @@ describe("User", function() {
               });
               },
               error: function(err){
-              throw err;
+              done(err);
               }
               });
               */
@@ -160,7 +160,7 @@ describe("User", function() {
           });
         },
         error: function(err) {
-          throw err;
+          done(err);
         }
       });
     });
@@ -201,7 +201,7 @@ describe("User", function() {
               done();
             },
             error: function(err) {
-              throw err;
+              done(err);
             }
           });
         }
@@ -237,18 +237,18 @@ describe("User", function() {
                       done();
                     },
                     error: function(err) {
-                      throw err;
+                      done(err);
                     }
                   });
                 }, function(err) {
-                  throw err;
+                  done(err);
                 });
               }, function(err) {
-                throw err;
+                done(err);
               });
             },
             error: function(err) {
-              throw err;
+              done(err);
             }
           });
         },
@@ -274,7 +274,7 @@ describe("User", function() {
         expect(user.id).to.be.ok();
         done();
       }).catch(function(error) {
-        throw error;
+        done(err)or;
       });
     });
   });
