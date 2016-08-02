@@ -24,7 +24,7 @@ describe("User", function() {
         },
         error: function(user, error) {
           // Show the error message somewhere and let the user try again.
-          done(err)or;
+          done(error);
         }
       });
 
@@ -274,7 +274,7 @@ describe("User", function() {
         expect(user.id).to.be.ok();
         done();
       }).catch(function(error) {
-        done(err)or;
+        done(error);
       });
     });
   });
