@@ -5590,14 +5590,16 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             get: function get(attrName) {
               switch (attrName) {
                 case 'objectId':
-                  // 兼容 objectId
+                case 'id':
                   return this.id;
+                case 'url':
+                case 'name':
+                case 'metaData':
+                case 'createdAt':
+                case 'updatedAt':
+                  return this.attributes[attrName];
                 default:
-                  if (this.attributes[attrName] === undefined) {
-                    return this.attributes.metaData[attrName];
-                  } else {
-                    return this.attributes[attrName];
-                  }
+                  return this.attributes.metaData[attrName];
               }
             },
 
@@ -6590,15 +6592,13 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           get: function get(attr) {
             switch (attr) {
               case 'objectId':
-                // 兼容 objectId
+              case 'id':
                 return this.id;
+              case 'createdAt':
+              case 'updatedAt':
+                return this[attr];
               default:
-                // 兼容 createdAt、updatedAt
-                if (this.attributes[attr] === undefined) {
-                  return this[attr];
-                } else {
-                  return this.attributes[attr];
-                }
+                return this.attributes[attr];
             }
           },
 
@@ -12962,6 +12962,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
        * Each engineer has a duty to keep the code elegant
       **/
 
-      module.exports = 'js1.3.2';
+      module.exports = 'js1.3.3';
     }, {}] }, {}, [28])(28);
 });

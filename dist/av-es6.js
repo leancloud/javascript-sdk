@@ -5635,14 +5635,16 @@ module.exports = function(AV) {
     get: function(attrName) {
       switch (attrName) {
         case 'objectId':
-        // 兼容 objectId
-        return this.id;
-        default:
-        if (this.attributes[attrName] === undefined) {
-          return this.attributes.metaData[attrName];
-        } else {
+        case 'id':
+          return this.id;
+        case 'url':
+        case 'name':
+        case 'metaData':
+        case 'createdAt':
+        case 'updatedAt':
           return this.attributes[attrName];
-        }
+        default:
+          return this.attributes.metaData[attrName];
       }
     },
 
@@ -6637,15 +6639,13 @@ module.exports = function(AV) {
     get: function(attr) {
       switch (attr) {
         case 'objectId':
-        // 兼容 objectId
-        return this.id;
-        default:
-        // 兼容 createdAt、updatedAt
-        if (this.attributes[attr] === undefined) {
+        case 'id':
+          return this.id;
+        case 'createdAt':
+        case 'updatedAt':
           return this[attr];
-        } else {
+        default:
           return this.attributes[attr];
-        }
       }
     },
 
@@ -13165,7 +13165,7 @@ module.exports = {
  * Each engineer has a duty to keep the code elegant
 **/
 
-module.exports = 'js1.3.2';
+module.exports = 'js1.3.3';
 
 },{}]},{},[28])(28)
 });

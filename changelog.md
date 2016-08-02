@@ -1,3 +1,6 @@
+## 1.3.3  日期：2016 年 8 月 2 日
+* 修复在 `AV.Object` 子类某属性的 getter 中调用 `AV.Object#get` 方法时调用栈溢出的问题
+
 ## 1.3.2  日期：2016 年 7 月 26 日
 * 修复 1.3.1 中未彻底解决的 `A promise was resolved even though it had already been resolved` 异常问题
 

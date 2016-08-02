@@ -313,15 +313,13 @@ module.exports = function (AV) {
     get: function get(attr) {
       switch (attr) {
         case 'objectId':
-          // 兼容 objectId
+        case 'id':
           return this.id;
+        case 'createdAt':
+        case 'updatedAt':
+          return this[attr];
         default:
-          // 兼容 createdAt、updatedAt
-          if (this.attributes[attr] === undefined) {
-            return this[attr];
-          } else {
-            return this.attributes[attr];
-          }
+          return this.attributes[attr];
       }
     },
 
