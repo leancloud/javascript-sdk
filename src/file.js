@@ -438,6 +438,8 @@ module.exports = function(AV) {
   };
 
   AV.File.prototype = {
+    className: '_File',
+
     toJSON: function() {
       return AV._encode(this);
     },

@@ -161,8 +161,10 @@ module.exports = function(AV) {
       var query = new AV.Query(response.className);
       var results = _.map(response.results, function(json) {
         var obj = query._newObject(response);
-        obj._finishFetch(query._processResult(json), true);
-          return obj;
+        if (obj._finishFetch) {
+          obj._finishFetch(query._processResult(json), true);
+        }
+        return obj;
       });
       return {
         results: results,
@@ -273,7 +275,9 @@ module.exports = function(AV) {
       return request.then(function(response) {
         return _.map(response.results, function(json) {
           var obj = self._newObject(response);
-          obj._finishFetch(self._processResult(json), true);
+          if (obj._finishFetch) {
+            obj._finishFetch(self._processResult(json), true);
+          }
           return obj;
         });
       })._thenRunCallbacks(options);
@@ -333,7 +337,9 @@ module.exports = function(AV) {
       return request.then(function(response) {
         return _.map(response.results, function(json) {
           var obj = self._newObject();
-          obj._finishFetch(self._processResult(json), true);
+          if (obj._finishFetch) {
+            obj._finishFetch(self._processResult(json), true);
+          }
           return obj;
         })[0];
       })._thenRunCallbacks(options);
