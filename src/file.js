@@ -340,7 +340,6 @@ module.exports = function(AV) {
    *     extension.
    */
   AV.File = function(name, data, type) {
-
     this.attributes = {
       name,
       url: '',
@@ -357,7 +356,8 @@ module.exports = function(AV) {
         owner = AV.User.current();
       } catch (error) {
         if (error.code === 'SYNC_API_NOT_AVAILABLE') {
-          console.warn('Get current user failed. It seems this runtime use an async storage system, please create AV.File in the callback of AV.User.currentAsync().');
+          console.warn(`Get current user failed. It seems this runtime use an async storage system,
+            please create AV.File in the callback of AV.User.currentAsync().`);
         } else {
           throw error;
         }
