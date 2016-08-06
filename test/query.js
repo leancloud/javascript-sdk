@@ -1,6 +1,15 @@
 'use strict';
 
 // queries
+// var AV = require('../dist/node/index');
+// AV.init({
+//   appId: '95TNUaOSUd8IpKNW0RSqSEOm-9Nh9j0Va',
+//   appKey: 'gNAE1iHowdQvV7cqpfCMGaGN',
+//   masterKey: 'ue9M9nqwD4MQNXD3oiN5rAOv',
+// });
+// AV.setProduction(true);
+// AV._useMasterKey = true;
+
 var GameScore = AV.Object.extend('GameScore');
 var Person = AV.Object.extend('Person');
 var TestClass = AV.Object.extend('TestClass');
@@ -384,6 +393,29 @@ describe('Queries', function () {
         error: function (error) {
           // There was an error.
         }
+      });
+    });
+  });
+
+  describe('All Files', function () {
+    it('should return AV.File Object list', function (done) {
+      query = new AV.Query(AV.File);
+      query.find().then(function(results) {
+        console.log(results);
+        expect(results.length > 0).to.be.ok();
+        expect(results[0].get('metaData')).to.be.ok();
+        done();
+      });
+    });
+  });
+
+  describe('All User', function () {
+    it('should return AV.User Object list', function (done) {
+      query = new AV.Query(AV.User);
+      query.find().then(function(results) {
+        expect(results.length > 0).to.be.ok();
+        expect(results[0].get('username')).to.be.ok();
+        done();
       });
     });
   });
