@@ -53,7 +53,6 @@
     "email": "support@leancloud.rocks"
   },
   "browser": {
-    "react-native": false,
     "./src/uploader/qiniu.js": "./src/uploader/qiniu-browser.js",
     "./src/browserify-wrapper/localStorage.js": "./src/browserify-wrapper/localstorage-browser.js",
     "./src/browserify-wrapper/parse-base64.js": "./src/browserify-wrapper/parse-base64-browser.js",
