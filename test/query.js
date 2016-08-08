@@ -401,7 +401,6 @@ describe('Queries', function () {
     it('should return AV.File Object list', function (done) {
       query = new AV.Query(AV.File);
       query.find().then(function(results) {
-        console.log(results);
         expect(results.length > 0).to.be.ok();
         expect(results[0].get('metaData')).to.be.ok();
         done();
