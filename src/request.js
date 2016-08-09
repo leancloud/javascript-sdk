@@ -4,7 +4,7 @@
 **/
 
 const request = require('superagent');
-const debug = require('debug')('request');
+const debug = require('debug')('leancloud:request');
 const md5 = require('md5');
 const AVPromise = require('./promise');
 const Cache = require('./cache');
@@ -71,8 +71,12 @@ const checkRouter = (router) => {
   }
 };
 
+let requestsCount = 0;
+
 const ajax = (method, resourceUrl, data, headers = {}, onprogress) => {
-  debug(method, resourceUrl, data, headers);
+  const count = requestsCount++;
+
+  debug(`request(${count})`, method, resourceUrl, data, headers);
 
   const promise = new AVPromise();
   const req = request(method, resourceUrl)
@@ -80,7 +84,7 @@ const ajax = (method, resourceUrl, data, headers = {}, onprogress) => {
     .send(data)
     .end((err, res) => {
       if (res) {
-        debug(res.status, res.body, res.text);
+        debug(`response(${count})`, res.status, res.body && res.text, res.header);
       }
       if (err) {
         if (res) {
