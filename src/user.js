@@ -358,7 +358,7 @@ module.exports = function(AV) {
      */
     logIn: function(options) {
       var model = this;
-      var request = AVRequest("login", null, null, "GET", this.toJSON());
+      var request = AVRequest('login', null, null, 'POST', this.toJSON());
       return request.then(function(resp, status, xhr) {
         var serverAttrs = model.parse(resp, status, xhr);
         model._finishFetch(serverAttrs);

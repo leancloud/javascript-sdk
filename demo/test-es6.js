@@ -59,3 +59,8 @@ query.equalTo('name', 'hjiang');
 query.find().then((list) => {
   console.log(list);
 });
+
+// 用户登录
+AV.User.login('ttt', '123456')
+.then((res) => console.log(res))
+.catch(err => console.log(err));
