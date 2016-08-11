@@ -1,15 +1,5 @@
 'use strict';
 
-// queries
-// var AV = require('../dist/node/index');
-// AV.init({
-//   appId: '95TNUaOSUd8IpKNW0RSqSEOm-9Nh9j0Va',
-//   appKey: 'gNAE1iHowdQvV7cqpfCMGaGN',
-//   masterKey: 'ue9M9nqwD4MQNXD3oiN5rAOv',
-// });
-// AV.setProduction(true);
-// AV._useMasterKey = true;
-
 var GameScore = AV.Object.extend('GameScore');
 var Person = AV.Object.extend('Person');
 var TestClass = AV.Object.extend('TestClass');
