@@ -61,6 +61,9 @@
     "./dist/node/browserify-wrapper/localStorage.js": "./dist/node/browserify-wrapper/localstorage-browser.js",
     "./dist/node/browserify-wrapper/parse-base64.js": "./dist/node/browserify-wrapper/parse-base64-browser.js"
   },
+  "react-native": {
+    "react-native": "react-native"
+  },
   "eslintConfig": {
     "env": {
       "es6": true,
