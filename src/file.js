@@ -342,11 +342,11 @@ module.exports = function(AV) {
   AV.File = function(name, data, type) {
 
     this.attributes = {
-      name: name,
+      name,
       url: '',
       metaData: {},
       // 用来存储转换后要上传的 base64 String
-      base64: ''
+      base64: '',
     };
 
     let owner;
@@ -441,6 +441,8 @@ module.exports = function(AV) {
   };
 
   AV.File.prototype = {
+    className: '_File',
+
     toJSON: function() {
       return AV._encode(this);
     },

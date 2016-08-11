@@ -1,6 +1,5 @@
 'use strict';
 
-// queries
 var GameScore = AV.Object.extend('GameScore');
 var Person = AV.Object.extend('Person');
 var TestClass = AV.Object.extend('TestClass');
@@ -384,6 +383,26 @@ describe('Queries', function () {
         error: function (error) {
           // There was an error.
         }
+      });
+    });
+  });
+
+  describe('All Files', function () {
+    it('should return AV.File Object list', function () {
+      query = new AV.Query(AV.File);
+      return query.find().then(function(results) {
+        expect(results.length > 0).to.be.ok();
+        expect(results[0].get('metaData')).to.be.ok();
+      });
+    });
+  });
+
+  describe('All User', function () {
+    it('should return AV.User Object list', function () {
+      query = new AV.Query(AV.User);
+      return query.find().then(function(results) {
+        expect(results.length > 0).to.be.ok();
+        expect(results[0].get('username')).to.be.ok();
       });
     });
   });
