@@ -398,23 +398,21 @@ describe('Queries', function () {
   });
 
   describe('All Files', function () {
-    it('should return AV.File Object list', function (done) {
+    it('should return AV.File Object list', function () {
       query = new AV.Query(AV.File);
-      query.find().then(function(results) {
+      return query.find().then(function(results) {
         expect(results.length > 0).to.be.ok();
         expect(results[0].get('metaData')).to.be.ok();
-        done();
       });
     });
   });
 
   describe('All User', function () {
-    it('should return AV.User Object list', function (done) {
+    it('should return AV.User Object list', function () {
       query = new AV.Query(AV.User);
-      query.find().then(function(results) {
+      return query.find().then(function(results) {
         expect(results.length > 0).to.be.ok();
         expect(results[0].get('username')).to.be.ok();
-        done();
       });
     });
   });
