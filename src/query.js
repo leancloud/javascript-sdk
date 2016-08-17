@@ -746,7 +746,7 @@ module.exports = function(AV) {
        this._order += ',-' + key;
      else
        this._order = '-' + key;
-     return key;
+     return this;
    },
 
     /**
