@@ -28,7 +28,7 @@
     "eslint-plugin-import": "^1.6.0",
     "eslint-plugin-jsx-a11y": "^1.0.3",
     "eslint-plugin-react": "^5.0.1",
-    "expect.js": "0.2.0",
+    "expect.js": "^0.3.0",
     "gulp": "^3.8.10",
     "gulp-babel": "^6.1.1",
     "gulp-clean": "^0.3.1",

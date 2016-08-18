@@ -4,6 +4,10 @@ var GameScore = AV.Object.extend("GameScore");
 
 var Post=AV.Object.extend("Post");
 
+// for #extend test
+class Person extends AV.Object {}
+var BackbonePerson = AV.Object.extend('Person');
+
 describe('Objects', function(){
   var objId;
   var gameScore = GameScore.new();
@@ -32,6 +36,23 @@ describe('Objects', function(){
       }
       new Test();
     });
+
+    it('ES6 extend syntex', () => {
+      var backbonePerson = new BackbonePerson();
+      backbonePerson.set('name', 'leeyeh');
+      var es6Person = new Person();
+      es6Person.set('name', 'leeyeh');
+      expect(backbonePerson.toJSON()).to.eql(es6Person.toJSON());
+      expect(backbonePerson._toFullJSON()).to.eql(es6Person._toFullJSON());
+    });
+
+    it('#resiger an ES6 class', () => {
+      expect(new AV.Object('Person')).to.be.a(BackbonePerson);
+      AV.Object.register(Person);
+      expect(new AV.Object('Person')).to.be.a(Person);
+      expect(() => AV.Object.register(1)).to.throwError();
+      expect(() => AV.Object.register(function(){})).to.throwError();
+    })
   });
 
   describe('#Saving Objects', function(){
