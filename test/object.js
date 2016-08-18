@@ -23,6 +23,17 @@ describe('Objects', function(){
     });
     new Post().name;
   });
+
+  describe('#extend', () => {
+    it('extend for multiple times should not throw', () => {
+      let Test;
+      for (var i=100000; i > 0; i--) {
+        Test = AV.Object.extend('Test');
+      }
+      new Test();
+    });
+  });
+
   describe('#Saving Objects', function(){
     it('should crate a Object', function(done){
       //gameScore.set("newcol","sss")
@@ -469,50 +480,10 @@ describe('Objects', function(){
         });
       });
     });
-
-    /*
-
-       it("it should fetch relation post",function(done){
-       var post=myComment.get("parent");
-       post.fetch({
-       success:function(post){
-       done();
-       }
-       })
-       })
-
-       it("many to many relations create",function(done){
-       var user = AV.User.current();
-       relation = user.relation("likes");
-       relation.add(post);
-       user.save({
-       success:function(){
-       done();
-       },
-       error:function(err){
-       throw err;
-       }
-       });
-       })
-
-       it("many to many relations query",function(done){
-
-       relation.query().find({
-       success: function(list) {
-       done();
-// list contains the posts that the current user likes.
-},
-error:function(err){
-throw err;
-}
-});
-})
-
-*/
+    
 
 
-});
-
+  });
 
 
 });//END  RETRIEVING

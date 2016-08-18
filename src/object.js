@@ -1422,7 +1422,11 @@ module.exports = function(AV) {
       // This new subclass has been told to extend both from "this" and from
       // OldClassObject. This is multiple inheritance, which isn't supported.
       // For now, let's just pick one.
-      NewClassObject = OldClassObject._extend(protoProps, classProps);
+      if (protoProps || classProps) {
+        NewClassObject = OldClassObject._extend(protoProps, classProps);
+      } else {
+        return OldClassObject;
+      }
     } else {
       protoProps = protoProps || {};
       protoProps.className = className;
@@ -1442,7 +1446,7 @@ module.exports = function(AV) {
     AV.Object._classMap[className] = NewClassObject;
     return NewClassObject;
   };
-
+  
   AV.Object._findUnsavedChildren = function(object, children, files) {
     AV._traverse(object, function(object) {
       if (object instanceof AV.Object) {
