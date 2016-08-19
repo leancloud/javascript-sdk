@@ -206,7 +206,7 @@ describe('Objects', function(){
         expect(score2.id).to.be.eql(gameScore.id);
       })
     );
-    it('fetchAll with non-existed Class should fail', (done) => 
+    it('fetchAll with non-existed Class should fail', (done) => {
       AV.Object.fetchAll([
         AV.Object.createWithoutData('GameScore', gameScore.id),
         AV.Object.createWithoutData('FakeClass', gameScore.id),
@@ -216,8 +216,8 @@ describe('Objects', function(){
         expect(err).to.be.an(Error);
         done();
       })
-    );
-    it('fetchAll with dirty objet should fail', (done) => 
+    });
+    it('fetchAll with dirty objet should fail', (done) => {
       AV.Object.fetchAll([
         AV.Object.createWithoutData('GameScore', gameScore.id),
         new GameScore(),
@@ -227,7 +227,7 @@ describe('Objects', function(){
         expect(err).to.be.an(Error);
         done();
       })
-    );
+    });
   });
 
   describe("Deleting Objects",function(){
