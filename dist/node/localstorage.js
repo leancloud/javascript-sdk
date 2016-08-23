@@ -24,7 +24,9 @@ if (!localStorage.async) {
   _(syncApiNames).each(function (apiName) {
     if (typeof localStorage[apiName] !== 'function') {
       localStorage[apiName] = function () {
-        throw new Error('Synchronous API [' + apiName + '] is not available in this runtime.');
+        var error = new Error('Synchronous API [' + apiName + '] is not available in this runtime.');
+        error.code = 'SYNC_API_NOT_AVAILABLE';
+        throw error;
       };
     }
   });

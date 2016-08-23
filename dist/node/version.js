@@ -5,4 +5,4 @@
  * Each engineer has a duty to keep the code elegant
 **/
 
-module.exports = 'js1.3.3';
+module.exports = 'js1.4.0-beta.0';

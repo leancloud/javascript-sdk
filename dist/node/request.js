@@ -8,7 +8,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 **/
 
 var request = require('superagent');
-var debug = require('debug')('request');
+var debug = require('debug')('leancloud:request');
 var md5 = require('md5');
 var AVPromise = require('./promise');
 var Cache = require('./cache');
@@ -42,16 +42,20 @@ var checkRouter = function checkRouter(router) {
   }
 };
 
+var requestsCount = 0;
+
 var ajax = function ajax(method, resourceUrl, data) {
   var headers = arguments.length <= 3 || arguments[3] === undefined ? {} : arguments[3];
   var onprogress = arguments[4];
 
-  debug(method, resourceUrl, data, headers);
+  var count = requestsCount++;
+
+  debug('request(' + count + ')', method, resourceUrl, data, headers);
 
   var promise = new AVPromise();
   var req = request(method, resourceUrl).set(headers).send(data).end(function (err, res) {
     if (res) {
-      debug(res.status, res.body, res.text);
+      debug('response(' + count + ')', res.status, res.body && res.text, res.header);
     }
     if (err) {
       if (res) {

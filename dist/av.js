@@ -5460,8 +5460,12 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             } else if (!AV._config.disableCurrentUser) {
               try {
                 owner = AV.User.current();
-              } catch (e) {
-                console.warn('Get current user failed. It seems this runtime use an async storage system, please new AV.File in the callback of AV.User.currentAsync().');
+              } catch (error) {
+                if ('SYNC_API_NOT_AVAILABLE' === error.code) {
+                  console.warn('Get current user failed. It seems this runtime use an async storage system, please create AV.File in the callback of AV.User.currentAsync().');
+                } else {
+                  throw error;
+                }
               }
             }
 
@@ -5541,6 +5545,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           };
 
           AV.File.prototype = {
+            className: '_File',
+
             toJSON: function toJSON() {
               return AV._encode(this);
             },
@@ -6271,7 +6277,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         _(syncApiNames).each(function (apiName) {
           if (typeof localStorage[apiName] !== 'function') {
             localStorage[apiName] = function () {
-              throw new Error('Synchronous API [' + apiName + '] is not available in this runtime.');
+              var error = new Error('Synchronous API [' + apiName + '] is not available in this runtime.');
+              error.code = 'SYNC_API_NOT_AVAILABLE';
+              throw error;
             };
           }
         });
@@ -7688,10 +7696,14 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             // This new subclass has been told to extend both from "this" and from
             // OldClassObject. This is multiple inheritance, which isn't supported.
             // For now, let's just pick one.
-            NewClassObject = OldClassObject._extend(protoProps, classProps);
+            if (protoProps || classProps) {
+              NewClassObject = OldClassObject._extend(protoProps, classProps);
+            } else {
+              return OldClassObject;
+            }
           } else {
             protoProps = protoProps || {};
-            protoProps.className = className;
+            protoProps._className = className;
             NewClassObject = this._extend(protoProps, classProps);
           }
           // Extending a subclass should reuse the classname automatically.
@@ -7707,6 +7719,29 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           };
           AV.Object._classMap[className] = NewClassObject;
           return NewClassObject;
+        };
+
+        // ES6 class syntax support
+        Object.defineProperty(AV.Object.prototype, 'className', {
+          get: function get() {
+            var className = this._className || this.constructor.name;
+            // If someone tries to subclass "User", coerce it to the right type.
+            if (className === "User") {
+              return "_User";
+            }
+            return className;
+          }
+        });
+
+        AV.Object.register = function (klass) {
+          if (!(klass.prototype instanceof AV.Object)) {
+            throw new Error('registered class is not a subclass of AV.Object');
+          }
+          var className = klass.name;
+          if (!className.length) {
+            throw new Error('registered class must be named');
+          }
+          AV.Object._classMap[className] = klass;
         };
 
         AV.Object._findUnsavedChildren = function (object, children, files) {
@@ -9216,7 +9251,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             var query = new AV.Query(response.className);
             var results = _.map(response.results, function (json) {
               var obj = query._newObject(response);
-              obj._finishFetch(query._processResult(json), true);
+              if (obj._finishFetch) {
+                obj._finishFetch(query._processResult(json), true);
+              }
               return obj;
             });
             return {
@@ -9324,7 +9361,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             return request.then(function (response) {
               return _.map(response.results, function (json) {
                 var obj = self._newObject(response);
-                obj._finishFetch(self._processResult(json), true);
+                if (obj._finishFetch) {
+                  obj._finishFetch(self._processResult(json), true);
+                }
                 return obj;
               });
             })._thenRunCallbacks(options);
@@ -9384,7 +9423,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             return request.then(function (response) {
               return _.map(response.results, function (json) {
                 var obj = self._newObject();
-                obj._finishFetch(self._processResult(json), true);
+                if (obj._finishFetch) {
+                  obj._finishFetch(self._processResult(json), true);
+                }
                 return obj;
               })[0];
             })._thenRunCallbacks(options);
@@ -9786,7 +9827,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           */
           addDescending: function addDescending(key) {
             if (this._order) this._order += ',-' + key;else this._order = '-' + key;
-            return key;
+            return this;
           },
 
           /**
@@ -10114,7 +10155,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         **/
 
         var request = require('superagent');
-        var debug = require('debug')('request');
+        var debug = require('debug')('leancloud:request');
         var md5 = require('md5');
         var AVPromise = require('./promise');
         var Cache = require('./cache');
@@ -10148,16 +10189,20 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           }
         };
 
+        var requestsCount = 0;
+
         var ajax = function ajax(method, resourceUrl, data) {
           var headers = arguments.length <= 3 || arguments[3] === undefined ? {} : arguments[3];
           var onprogress = arguments[4];
 
-          debug(method, resourceUrl, data, headers);
+          var count = requestsCount++;
+
+          debug("request(" + count + ")", method, resourceUrl, data, headers);
 
           var promise = new AVPromise();
           var req = request(method, resourceUrl).set(headers).send(data).end(function (err, res) {
             if (res) {
-              debug(res.status, res.body, res.text);
+              debug("response(" + count + ")", res.status, res.body && res.text, res.header);
             }
             if (err) {
               if (res) {
@@ -11664,7 +11709,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
            */
           logIn: function logIn(options) {
             var model = this;
-            var request = AVRequest("login", null, null, "GET", this.toJSON());
+            var request = AVRequest('login', null, null, 'POST', this.toJSON());
             return request.then(function (resp, status, xhr) {
               var serverAttrs = model.parse(resp, status, xhr);
               model._finishFetch(serverAttrs);
@@ -12962,6 +13007,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
        * Each engineer has a duty to keep the code elegant
       **/
 
-      module.exports = 'js1.3.3';
+      module.exports = 'js1.4.0-beta.0';
     }, {}] }, {}, [28])(28);
 });

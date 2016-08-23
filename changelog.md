@@ -1,3 +1,16 @@
+# 1.4.0-beta.0  日期：2016 年 8 月 23 日
+* 支持 ES2015 的 extends 语法来声明 `AV.Object` 的子类，增加了 `AV.Object.register` 方法用于注册声明的子类。
+
+  ```javascript
+  class Article extends AV.Object {}
+  AV.Object.register(Article);
+  ```
+
+* `AV.Query` 支持查询 `AV.File`
+* 修复多次调用 `AV.Object.extend('ClassName')` 后可能导致堆栈溢出的问题
+* 修复 `AV.Query#addDescending` 没有返回 query 的问题，现在支持链式调用了
+* 修复 React Native 0.32 中找不到 `react-native` 模块的问题
+
 ## 1.3.3  日期：2016 年 8 月 2 日
 * 修复在 `AV.Object` 子类某属性的 getter 中调用 `AV.Object#get` 方法时调用栈溢出的问题
 

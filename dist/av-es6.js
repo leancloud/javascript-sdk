@@ -5491,11 +5491,11 @@ module.exports = function(AV) {
   AV.File = function(name, data, type) {
 
     this.attributes = {
-      name: name,
+      name,
       url: '',
       metaData: {},
       // 用来存储转换后要上传的 base64 String
-      base64: ''
+      base64: '',
     };
 
     let owner;
@@ -5504,8 +5504,12 @@ module.exports = function(AV) {
     } else if (!AV._config.disableCurrentUser) {
       try {
         owner = AV.User.current();
-      } catch (e) {
-        console.warn('Get current user failed. It seems this runtime use an async storage system, please new AV.File in the callback of AV.User.currentAsync().');
+      } catch (error) {
+        if ('SYNC_API_NOT_AVAILABLE' === error.code) {
+          console.warn('Get current user failed. It seems this runtime use an async storage system, please create AV.File in the callback of AV.User.currentAsync().');
+        } else {
+          throw error;
+        }
       }
     }
 
@@ -5586,6 +5590,8 @@ module.exports = function(AV) {
   };
 
   AV.File.prototype = {
+    className: '_File',
+
     toJSON: function() {
       return AV._encode(this);
     },
@@ -6318,7 +6324,9 @@ if (!localStorage.async) {
   _(syncApiNames).each(function(apiName) {
     if (typeof localStorage[apiName] !== 'function') {
       localStorage[apiName] = function() {
-        throw new Error('Synchronous API [' + apiName + '] is not available in this runtime.');
+        const error = new Error('Synchronous API [' + apiName + '] is not available in this runtime.');
+        error.code = 'SYNC_API_NOT_AVAILABLE';
+        throw error;
       };
     }
   });
@@ -7751,10 +7759,14 @@ module.exports = function(AV) {
       // This new subclass has been told to extend both from "this" and from
       // OldClassObject. This is multiple inheritance, which isn't supported.
       // For now, let's just pick one.
-      NewClassObject = OldClassObject._extend(protoProps, classProps);
+      if (protoProps || classProps) {
+        NewClassObject = OldClassObject._extend(protoProps, classProps);
+      } else {
+        return OldClassObject;
+      }
     } else {
       protoProps = protoProps || {};
-      protoProps.className = className;
+      protoProps._className = className;
       NewClassObject = this._extend(protoProps, classProps);
     }
     // Extending a subclass should reuse the classname automatically.
@@ -7772,6 +7784,29 @@ module.exports = function(AV) {
     return NewClassObject;
   };
 
+  // ES6 class syntax support
+  Object.defineProperty(AV.Object.prototype, 'className', {
+    get: function(){
+      const className = this._className || this.constructor.name;
+      // If someone tries to subclass "User", coerce it to the right type.
+      if (className === "User") {
+        return "_User";
+      }
+      return className;
+    },
+  });
+
+  AV.Object.register = klass => {
+    if (!(klass.prototype instanceof AV.Object)) {
+      throw new Error('registered class is not a subclass of AV.Object');
+    }
+    const className = klass.name;
+    if (!className.length) {
+      throw new Error('registered class must be named');
+    }
+    AV.Object._classMap[className] = klass;
+  };
+  
   AV.Object._findUnsavedChildren = function(object, children, files) {
     AV._traverse(object, function(object) {
       if (object instanceof AV.Object) {
@@ -9302,8 +9337,10 @@ module.exports = function(AV) {
       var query = new AV.Query(response.className);
       var results = _.map(response.results, function(json) {
         var obj = query._newObject(response);
-        obj._finishFetch(query._processResult(json), true);
-          return obj;
+        if (obj._finishFetch) {
+          obj._finishFetch(query._processResult(json), true);
+        }
+        return obj;
       });
       return {
         results: results,
@@ -9414,7 +9451,9 @@ module.exports = function(AV) {
       return request.then(function(response) {
         return _.map(response.results, function(json) {
           var obj = self._newObject(response);
-          obj._finishFetch(self._processResult(json), true);
+          if (obj._finishFetch) {
+            obj._finishFetch(self._processResult(json), true);
+          }
           return obj;
         });
       })._thenRunCallbacks(options);
@@ -9474,7 +9513,9 @@ module.exports = function(AV) {
       return request.then(function(response) {
         return _.map(response.results, function(json) {
           var obj = self._newObject();
-          obj._finishFetch(self._processResult(json), true);
+          if (obj._finishFetch) {
+            obj._finishFetch(self._processResult(json), true);
+          }
           return obj;
         })[0];
       })._thenRunCallbacks(options);
@@ -9881,7 +9922,7 @@ module.exports = function(AV) {
        this._order += ',-' + key;
      else
        this._order = '-' + key;
-     return key;
+     return this;
    },
 
     /**
@@ -10212,7 +10253,7 @@ module.exports = function(AV) {
 **/
 
 const request = require('superagent');
-const debug = require('debug')('request');
+const debug = require('debug')('leancloud:request');
 const md5 = require('md5');
 const AVPromise = require('./promise');
 const Cache = require('./cache');
@@ -10279,8 +10320,12 @@ const checkRouter = (router) => {
   }
 };
 
+let requestsCount = 0;
+
 const ajax = (method, resourceUrl, data, headers = {}, onprogress) => {
-  debug(method, resourceUrl, data, headers);
+  const count = requestsCount++;
+
+  debug(`request(${count})`, method, resourceUrl, data, headers);
 
   const promise = new AVPromise();
   const req = request(method, resourceUrl)
@@ -10288,7 +10333,7 @@ const ajax = (method, resourceUrl, data, headers = {}, onprogress) => {
     .send(data)
     .end((err, res) => {
       if (res) {
-        debug(res.status, res.body, res.text);
+        debug(`response(${count})`, res.status, res.body && res.text, res.header);
       }
       if (err) {
         if (res) {
@@ -11826,7 +11871,7 @@ module.exports = function(AV) {
      */
     logIn: function(options) {
       var model = this;
-      var request = AVRequest("login", null, null, "GET", this.toJSON());
+      var request = AVRequest('login', null, null, 'POST', this.toJSON());
       return request.then(function(resp, status, xhr) {
         var serverAttrs = model.parse(resp, status, xhr);
         model._finishFetch(serverAttrs);
@@ -13165,7 +13210,7 @@ module.exports = {
  * Each engineer has a duty to keep the code elegant
 **/
 
-module.exports = 'js1.3.3';
+module.exports = 'js1.4.0-beta.0';
 
 },{}]},{},[28])(28)
 });

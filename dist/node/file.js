@@ -344,8 +344,12 @@ module.exports = function (AV) {
     } else if (!AV._config.disableCurrentUser) {
       try {
         owner = AV.User.current();
-      } catch (e) {
-        console.warn('Get current user failed. It seems this runtime use an async storage system, please new AV.File in the callback of AV.User.currentAsync().');
+      } catch (error) {
+        if ('SYNC_API_NOT_AVAILABLE' === error.code) {
+          console.warn('Get current user failed. It seems this runtime use an async storage system, please create AV.File in the callback of AV.User.currentAsync().');
+        } else {
+          throw error;
+        }
       }
     }
 
@@ -425,6 +429,8 @@ module.exports = function (AV) {
   };
 
   AV.File.prototype = {
+    className: '_File',
+
     toJSON: function toJSON() {
       return AV._encode(this);
     },
