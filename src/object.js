@@ -1422,10 +1422,14 @@ module.exports = function(AV) {
       // This new subclass has been told to extend both from "this" and from
       // OldClassObject. This is multiple inheritance, which isn't supported.
       // For now, let's just pick one.
-      NewClassObject = OldClassObject._extend(protoProps, classProps);
+      if (protoProps || classProps) {
+        NewClassObject = OldClassObject._extend(protoProps, classProps);
+      } else {
+        return OldClassObject;
+      }
     } else {
       protoProps = protoProps || {};
-      protoProps.className = className;
+      protoProps._className = className;
       NewClassObject = this._extend(protoProps, classProps);
     }
     // Extending a subclass should reuse the classname automatically.
@@ -1443,6 +1447,29 @@ module.exports = function(AV) {
     return NewClassObject;
   };
 
+  // ES6 class syntax support
+  Object.defineProperty(AV.Object.prototype, 'className', {
+    get: function(){
+      const className = this._className || this.constructor.name;
+      // If someone tries to subclass "User", coerce it to the right type.
+      if (className === "User") {
+        return "_User";
+      }
+      return className;
+    },
+  });
+
+  AV.Object.register = klass => {
+    if (!(klass.prototype instanceof AV.Object)) {
+      throw new Error('registered class is not a subclass of AV.Object');
+    }
+    const className = klass.name;
+    if (!className.length) {
+      throw new Error('registered class must be named');
+    }
+    AV.Object._classMap[className] = klass;
+  };
+  
   AV.Object._findUnsavedChildren = function(object, children, files) {
     AV._traverse(object, function(object) {
       if (object instanceof AV.Object) {

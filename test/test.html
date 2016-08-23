@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../node_modules/mocha/mocha.css" />
     <script src="../node_modules/mocha/mocha.js"></script>
-    <script src="../node_modules/expect.js/expect.js"></script>
+    <script src="../node_modules/expect.js/index.js"></script>
     <script src="../node_modules/superagent/superagent.js"></script>
     <!--AV Test init-->
 
@@ -22,7 +22,6 @@
         console.log(arguments);
       }
     </script>
-	<script src="promise.js"></script>
   <script src="storage.js"></script>
   <script src="cache.js"></script>
 	<script src="file.js"></script>
@@ -37,6 +36,7 @@
 	<script src="sms.js"></script>
 	<script src="search.js"></script>
 	<script src="cloud.js"></script>
+	<script src="promise.js"></script>
     <script>
       onload = function(){
       mocha.checkLeaks();

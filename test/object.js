@@ -4,6 +4,10 @@ var GameScore = AV.Object.extend("GameScore");
 
 var Post=AV.Object.extend("Post");
 
+// for #extend test
+class Person extends AV.Object {}
+var BackbonePerson = AV.Object.extend('Person');
+
 describe('Objects', function(){
   var objId;
   var gameScore = GameScore.new();
@@ -23,6 +27,34 @@ describe('Objects', function(){
     });
     new Post().name;
   });
+
+  describe('#extend', () => {
+    it('extend for multiple times should not throw', () => {
+      let Test;
+      for (var i=100000; i > 0; i--) {
+        Test = AV.Object.extend('Test');
+      }
+      new Test();
+    });
+
+    it('ES6 extend syntex', () => {
+      var backbonePerson = new BackbonePerson();
+      backbonePerson.set('name', 'leeyeh');
+      var es6Person = new Person();
+      es6Person.set('name', 'leeyeh');
+      expect(backbonePerson.toJSON()).to.eql(es6Person.toJSON());
+      expect(backbonePerson._toFullJSON()).to.eql(es6Person._toFullJSON());
+    });
+
+    it('#resiger an ES6 class', () => {
+      expect(new AV.Object('Person')).to.be.a(BackbonePerson);
+      AV.Object.register(Person);
+      expect(new AV.Object('Person')).to.be.a(Person);
+      expect(() => AV.Object.register(1)).to.throwError();
+      expect(() => AV.Object.register(function(){})).to.throwError();
+    })
+  });
+
   describe('#Saving Objects', function(){
     it('should crate a Object', function(done){
       //gameScore.set("newcol","sss")
@@ -174,7 +206,7 @@ describe('Objects', function(){
         expect(score2.id).to.be.eql(gameScore.id);
       })
     );
-    it('fetchAll with non-existed Class should fail', (done) => 
+    it('fetchAll with non-existed Class should fail', (done) => {
       AV.Object.fetchAll([
         AV.Object.createWithoutData('GameScore', gameScore.id),
         AV.Object.createWithoutData('FakeClass', gameScore.id),
@@ -184,8 +216,8 @@ describe('Objects', function(){
         expect(err).to.be.an(Error);
         done();
       })
-    );
-    it('fetchAll with dirty objet should fail', (done) => 
+    });
+    it('fetchAll with dirty objet should fail', (done) => {
       AV.Object.fetchAll([
         AV.Object.createWithoutData('GameScore', gameScore.id),
         new GameScore(),
@@ -195,7 +227,7 @@ describe('Objects', function(){
         expect(err).to.be.an(Error);
         done();
       })
-    );
+    });
   });
 
   describe("Deleting Objects",function(){
@@ -469,50 +501,10 @@ describe('Objects', function(){
         });
       });
     });
-
-    /*
-
-       it("it should fetch relation post",function(done){
-       var post=myComment.get("parent");
-       post.fetch({
-       success:function(post){
-       done();
-       }
-       })
-       })
-
-       it("many to many relations create",function(done){
-       var user = AV.User.current();
-       relation = user.relation("likes");
-       relation.add(post);
-       user.save({
-       success:function(){
-       done();
-       },
-       error:function(err){
-       throw err;
-       }
-       });
-       })
-
-       it("many to many relations query",function(done){
-
-       relation.query().find({
-       success: function(list) {
-       done();
-// list contains the posts that the current user likes.
-},
-error:function(err){
-throw err;
-}
-});
-})
-
-*/
+    
 
 
-});
-
+  });
 
 
 });//END  RETRIEVING
