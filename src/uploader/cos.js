@@ -19,23 +19,24 @@ module.exports = function upload(uploadInfo, data, file, saveOptions = {}) {
 
   const req = request('POST', uploadUrl)
     .field('fileContent', data)
-    .field('op', 'upload')
-    .end((err, res) => {
-      if (res) {
-        debug(res.status, res.body, res.text);
-      }
-      if (err) {
-        if (res) {
-          err.statusCode = res.status;
-          err.responseText = res.text;
-          err.response = res.body;
-        }
-        return promise.reject(err);
-      }
-      promise.resolve(file);
-    });
+    .field('op', 'upload');
   if (saveOptions.onprogress) {
     req.on('progress', saveOptions.onprogress);
   }
+  req.end((err, res) => {
+    if (res) {
+      debug(res.status, res.body, res.text);
+    }
+    if (err) {
+      if (res) {
+        err.statusCode = res.status;
+        err.responseText = res.text;
+        err.response = res.body;
+      }
+      return promise.reject(err);
+    }
+    promise.resolve(file);
+  });
+
   return promise;
 };
