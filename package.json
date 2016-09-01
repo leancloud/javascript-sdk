@@ -36,7 +36,6 @@
     "gulp-eslint": "^0.13.2",
     "gulp-gzip": "0.0.8",
     "gulp-istanbul": "^0.10.3",
-    "gulp-jsdoc": "^0.1.4",
     "gulp-mocha": "^2.0.0",
     "gulp-order": "^1.1.1",
     "gulp-rename": "^1.2.0",
