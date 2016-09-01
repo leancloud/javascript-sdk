@@ -19,7 +19,11 @@ module.exports = function upload(uploadInfo, data, file) {
 
   var promise = new Promise();
 
-  var req = request('POST', uploadUrl).field('fileContent', data).field('op', 'upload').end(function (err, res) {
+  var req = request('POST', uploadUrl).field('fileContent', data).field('op', 'upload');
+  if (saveOptions.onprogress) {
+    req.on('progress', saveOptions.onprogress);
+  }
+  req.end(function (err, res) {
     if (res) {
       debug(res.status, res.body, res.text);
     }
@@ -33,8 +37,6 @@ module.exports = function upload(uploadInfo, data, file) {
     }
     promise.resolve(file);
   });
-  if (saveOptions.onprogress) {
-    req.on('progress', saveOptions.onprogress);
-  }
+
   return promise;
 };

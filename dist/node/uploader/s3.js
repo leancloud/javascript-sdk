@@ -16,7 +16,11 @@ module.exports = function upload(uploadInfo, data, file) {
   file.id = uploadInfo.objectId;
   var promise = new AVPromise();
   // 海外节点，针对 S3 才会返回 upload_url
-  var req = request('PUT', uploadInfo.upload_url).set('Content-Type', file.attributes.metaData.mime_type).send(data).end(function (err, res) {
+  var req = request('PUT', uploadInfo.upload_url).set('Content-Type', file.attributes.metaData.mime_type).send(data);
+  if (saveOptions.onprogress) {
+    req.on('progress', saveOptions.onprogress);
+  }
+  req.end(function (err, res) {
     if (err) {
       if (res) {
         err.statusCode = res.status;
@@ -27,8 +31,6 @@ module.exports = function upload(uploadInfo, data, file) {
     }
     promise.resolve(file);
   });
-  if (saveOptions.onprogress) {
-    req.on('progress', saveOptions.onprogress);
-  }
+
   return promise;
 };

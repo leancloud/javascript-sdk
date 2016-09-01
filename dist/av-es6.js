@@ -991,40 +991,6 @@ process.chdir = function (dir) {
 process.umask = function() { return 0; };
 
 },{}],11:[function(require,module,exports){
-
-/**
- * Reduce `arr` with `fn`.
- *
- * @param {Array} arr
- * @param {Function} fn
- * @param {Mixed} initial
- *
- * TODO: combatible error handling?
- */
-
-module.exports = function(arr, fn, initial){  
-  var idx = 0;
-  var len = arr.length;
-  var curr = arguments.length == 3
-    ? initial
-    : arr[idx++];
-
-  while (idx < len) {
-    curr = fn.call(null, curr, arr[idx], ++idx, arr);
-  }
-  
-  return curr;
-};
-},{}],12:[function(require,module,exports){
-/**
- * Module dependencies.
- */
-
-var Emitter = require('emitter');
-var reduce = require('reduce');
-var requestBase = require('./request-base');
-var isObject = require('./is-object');
-
 /**
  * Root reference for iframes.
  */
@@ -1035,8 +1001,13 @@ if (typeof window !== 'undefined') { // Browser window
 } else if (typeof self !== 'undefined') { // Web Worker
   root = self;
 } else { // Other environments
+  console.warn("Using browser-only version of superagent in non-browser environment");
   root = this;
 }
+
+var Emitter = require('emitter');
+var requestBase = require('./request-base');
+var isObject = require('./is-object');
 
 /**
  * Noop.
@@ -1065,7 +1036,7 @@ request.getXHR = function () {
     try { return new ActiveXObject('Msxml2.XMLHTTP.3.0'); } catch(e) {}
     try { return new ActiveXObject('Msxml2.XMLHTTP'); } catch(e) {}
   }
-  return false;
+  throw Error("Browser-only verison of superagent could not find XHR");
 };
 
 /**
@@ -1092,9 +1063,7 @@ function serialize(obj) {
   if (!isObject(obj)) return obj;
   var pairs = [];
   for (var key in obj) {
-    if (null != obj[key]) {
-      pushEncodedKeyValuePair(pairs, key, obj[key]);
-    }
+    pushEncodedKeyValuePair(pairs, key, obj[key]);
   }
   return pairs.join('&');
 }
@@ -1109,18 +1078,22 @@ function serialize(obj) {
  */
 
 function pushEncodedKeyValuePair(pairs, key, val) {
-  if (Array.isArray(val)) {
-    return val.forEach(function(v) {
-      pushEncodedKeyValuePair(pairs, key, v);
-    });
-  } else if (isObject(val)) {
-    for(var subkey in val) {
-      pushEncodedKeyValuePair(pairs, key + '[' + subkey + ']', val[subkey]);
+  if (val != null) {
+    if (Array.isArray(val)) {
+      val.forEach(function(v) {
+        pushEncodedKeyValuePair(pairs, key, v);
+      });
+    } else if (isObject(val)) {
+      for(var subkey in val) {
+        pushEncodedKeyValuePair(pairs, key + '[' + subkey + ']', val[subkey]);
+      }
+    } else {
+      pairs.push(encodeURIComponent(key)
+        + '=' + encodeURIComponent(val));
     }
-    return;
+  } else if (val === null) {
+    pairs.push(encodeURIComponent(key));
   }
-  pairs.push(encodeURIComponent(key)
-    + '=' + encodeURIComponent(val));
 }
 
 /**
@@ -1270,10 +1243,10 @@ function type(str){
  */
 
 function params(str){
-  return reduce(str.split(/ *; */), function(obj, str){
-    var parts = str.split(/ *= */)
-      , key = parts.shift()
-      , val = parts.shift();
+  return str.split(/ *; */).reduce(function(obj, str){
+    var parts = str.split(/ *= */),
+        key = parts.shift(),
+        val = parts.shift();
 
     if (key && val) obj[key] = val;
     return obj;
@@ -1515,20 +1488,24 @@ function Request(method, url) {
 
     self.emit('response', res);
 
-    if (err) {
-      return self.callback(err, res);
+    var new_err;
+    try {
+      if (res.status < 200 || res.status >= 300) {
+        new_err = new Error(res.statusText || 'Unsuccessful HTTP response');
+        new_err.original = err;
+        new_err.response = res;
+        new_err.status = res.status;
+      }
+    } catch(e) {
+      new_err = e; // #985 touching res may cause INVALID_STATE_ERR on old Android
     }
 
-    if (res.status >= 200 && res.status < 300) {
-      return self.callback(err, res);
+    // #1000 don't catch errors from the callback to avoid double calling it
+    if (new_err) {
+      self.callback(new_err, res);
+    } else {
+      self.callback(null, res);
     }
-
-    var new_err = new Error(res.statusText || 'Unsuccessful HTTP response');
-    new_err.original = err;
-    new_err.response = res;
-    new_err.status = res.status;
-
-    self.callback(new_err, res);
   });
 }
 
@@ -1869,8 +1846,8 @@ request.Request = Request;
  * GET `url` with optional callback `fn(res)`.
  *
  * @param {String} url
- * @param {Mixed|Function} data or fn
- * @param {Function} fn
+ * @param {Mixed|Function} [data] or fn
+ * @param {Function} [fn]
  * @return {Request}
  * @api public
  */
@@ -1887,8 +1864,8 @@ request.get = function(url, data, fn){
  * HEAD `url` with optional callback `fn(res)`.
  *
  * @param {String} url
- * @param {Mixed|Function} data or fn
- * @param {Function} fn
+ * @param {Mixed|Function} [data] or fn
+ * @param {Function} [fn]
  * @return {Request}
  * @api public
  */
@@ -1905,8 +1882,8 @@ request.head = function(url, data, fn){
  * OPTIONS query to `url` with optional callback `fn(res)`.
  *
  * @param {String} url
- * @param {Mixed|Function} data or fn
- * @param {Function} fn
+ * @param {Mixed|Function} [data] or fn
+ * @param {Function} [fn]
  * @return {Request}
  * @api public
  */
@@ -1923,7 +1900,7 @@ request.options = function(url, data, fn){
  * DELETE `url` with optional callback `fn(res)`.
  *
  * @param {String} url
- * @param {Function} fn
+ * @param {Function} [fn]
  * @return {Request}
  * @api public
  */
@@ -1941,8 +1918,8 @@ request['delete'] = del;
  * PATCH `url` with optional `data` and callback `fn(res)`.
  *
  * @param {String} url
- * @param {Mixed} data
- * @param {Function} fn
+ * @param {Mixed} [data]
+ * @param {Function} [fn]
  * @return {Request}
  * @api public
  */
@@ -1959,8 +1936,8 @@ request.patch = function(url, data, fn){
  * POST `url` with optional `data` and callback `fn(res)`.
  *
  * @param {String} url
- * @param {Mixed} data
- * @param {Function} fn
+ * @param {Mixed} [data]
+ * @param {Function} [fn]
  * @return {Request}
  * @api public
  */
@@ -1977,8 +1954,8 @@ request.post = function(url, data, fn){
  * PUT `url` with optional `data` and callback `fn(res)`.
  *
  * @param {String} url
- * @param {Mixed|Function} data or fn
- * @param {Function} fn
+ * @param {Mixed|Function} [data] or fn
+ * @param {Function} [fn]
  * @return {Request}
  * @api public
  */
@@ -1991,7 +1968,7 @@ request.put = function(url, data, fn){
   return req;
 };
 
-},{"./is-object":13,"./request":15,"./request-base":14,"emitter":16,"reduce":11}],13:[function(require,module,exports){
+},{"./is-object":12,"./request":14,"./request-base":13,"emitter":15}],12:[function(require,module,exports){
 /**
  * Check if `obj` is an object.
  *
@@ -2006,7 +1983,7 @@ function isObject(obj) {
 
 module.exports = isObject;
 
-},{}],14:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 /**
  * Module of mixed-in functions shared between node and client code
  */
@@ -2255,7 +2232,8 @@ exports.toJSON = function(){
   return {
     method: this.method,
     url: this.url,
-    data: this._data
+    data: this._data,
+    headers: this._header
   };
 };
 
@@ -2354,7 +2332,7 @@ exports.send = function(data){
   return this;
 };
 
-},{"./is-object":13}],15:[function(require,module,exports){
+},{"./is-object":12}],14:[function(require,module,exports){
 // The node and browser modules expose versions of this with the
 // appropriate constructor function bound as first argument
 /**
@@ -2388,7 +2366,7 @@ function request(RequestConstructor, method, url) {
 
 module.exports = request;
 
-},{}],16:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 
 /**
  * Expose `Emitter`.
@@ -2553,7 +2531,7 @@ Emitter.prototype.hasListeners = function(event){
   return !! this.listeners(event).length;
 };
 
-},{}],17:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 //     Underscore.js 1.8.3
 //     http://underscorejs.org
 //     (c) 2009-2015 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
@@ -4103,7 +4081,7 @@ Emitter.prototype.hasListeners = function(event){
   }
 }.call(this));
 
-},{}],18:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -4370,13 +4348,13 @@ module.exports = function(AV) {
 
 };
 
-},{"underscore":17}],19:[function(require,module,exports){
+},{"underscore":16}],18:[function(require,module,exports){
 (function (global){
 module.exports = global.AV || {};
 
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],20:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 (function (global){
 /**
  * 每位工程师都有保持代码优雅的义务
@@ -4442,7 +4420,7 @@ if (global.localStorage) {
 module.exports = Storage;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../promise":33,"localstorage-memory":7,"react-native":1,"underscore":17}],21:[function(require,module,exports){
+},{"../promise":32,"localstorage-memory":7,"react-native":1,"underscore":16}],20:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -4472,7 +4450,7 @@ var dataURItoBlob = function(dataURI, type) {
 
 module.exports = dataURItoBlob;
 
-},{}],22:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -4516,7 +4494,7 @@ exports.setAsync = (key, value, ttl) => {
    );
 };
 
-},{"./av":19,"./localstorage":30}],23:[function(require,module,exports){
+},{"./av":18,"./localstorage":29}],22:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -4642,7 +4620,7 @@ module.exports = function(AV) {
   });
 };
 
-},{"./request":37,"underscore":17}],24:[function(require,module,exports){
+},{"./request":36,"underscore":16}],23:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -4985,7 +4963,7 @@ _.extend(AVError, {
 
 module.exports = AVError;
 
-},{"underscore":17}],25:[function(require,module,exports){
+},{"underscore":16}],24:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -5145,7 +5123,7 @@ module.exports = function(AV) {
   AV.Events.unbind = AV.Events.off;
 };
 
-},{}],26:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 (function (global){
 /**
  * 每位工程师都有保持代码优雅的义务
@@ -5912,7 +5890,7 @@ module.exports = function(AV) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./browserify-wrapper/parse-base64":21,"./error":24,"./request":37,"./uploader/cos":41,"./uploader/qiniu":42,"./uploader/s3":43,"underscore":17}],27:[function(require,module,exports){
+},{"./browserify-wrapper/parse-base64":20,"./error":23,"./request":36,"./uploader/cos":40,"./uploader/qiniu":41,"./uploader/s3":42,"underscore":16}],26:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -6091,7 +6069,7 @@ module.exports = function(AV) {
   };
 };
 
-},{"underscore":17}],28:[function(require,module,exports){
+},{"underscore":16}],27:[function(require,module,exports){
 /*!
  * LeanCloud JavaScript SDK
  * https://leancloud.cn
@@ -6144,7 +6122,7 @@ AV.Error = (...args) => {
   return new AVError(...args);
 };
 
-},{"./acl":18,"./av":19,"./cache":22,"./cloudfunction":23,"./error":24,"./event":25,"./file":26,"./geopoint":27,"./insight":29,"./localstorage":30,"./object":31,"./op":32,"./promise":33,"./push":34,"./query":35,"./relation":36,"./role":38,"./search":39,"./status":40,"./user":44,"./utils":45,"./version":46,"underscore":17}],29:[function(require,module,exports){
+},{"./acl":17,"./av":18,"./cache":21,"./cloudfunction":22,"./error":23,"./event":24,"./file":25,"./geopoint":26,"./insight":28,"./localstorage":29,"./object":30,"./op":31,"./promise":32,"./push":33,"./query":34,"./relation":35,"./role":37,"./search":38,"./status":39,"./user":43,"./utils":44,"./version":45,"underscore":16}],28:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -6292,7 +6270,7 @@ module.exports = function(AV) {
 
 };
 
-},{"./error":24,"./request":37,"underscore":17}],30:[function(require,module,exports){
+},{"./error":23,"./request":36,"underscore":16}],29:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -6334,7 +6312,7 @@ if (!localStorage.async) {
 
 module.exports = localStorage;
 
-},{"./browserify-wrapper/localStorage":20,"./promise":33,"underscore":17}],31:[function(require,module,exports){
+},{"./browserify-wrapper/localStorage":19,"./promise":32,"underscore":16}],30:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -7963,7 +7941,7 @@ module.exports = function(AV) {
 
 };
 
-},{"./error":24,"./request":37,"./utils":45,"underscore":17}],32:[function(require,module,exports){
+},{"./error":23,"./request":36,"./utils":44,"underscore":16}],31:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -8500,7 +8478,7 @@ module.exports = function(AV) {
 
 };
 
-},{"underscore":17}],33:[function(require,module,exports){
+},{"underscore":16}],32:[function(require,module,exports){
 (function (process){
 /**
  * 每位工程师都有保持代码优雅的义务
@@ -9108,7 +9086,7 @@ Promise.prototype.finally = Promise.prototype.always;
 Promise.prototype.try = Promise.prototype.done;
 
 }).call(this,require('_process'))
-},{"_process":10,"underscore":17}],34:[function(require,module,exports){
+},{"_process":10,"underscore":16}],33:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -9173,7 +9151,7 @@ module.exports = function(AV) {
   };
 };
 
-},{"./request":37}],35:[function(require,module,exports){
+},{"./request":36}],34:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -10123,7 +10101,7 @@ module.exports = function(AV) {
    });
 };
 
-},{"./error":24,"./request":37,"underscore":17}],36:[function(require,module,exports){
+},{"./error":23,"./request":36,"underscore":16}],35:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -10245,7 +10223,7 @@ module.exports = function(AV) {
   };
 };
 
-},{"underscore":17}],37:[function(require,module,exports){
+},{"underscore":16}],36:[function(require,module,exports){
 (function (process){
 /**
  * 每位工程师都有保持代码优雅的义务
@@ -10572,7 +10550,7 @@ module.exports = {
 };
 
 }).call(this,require('_process'))
-},{"./av":19,"./cache":22,"./error":24,"./promise":33,"_process":10,"debug":4,"md5":8,"superagent":12,"underscore":17}],38:[function(require,module,exports){
+},{"./av":18,"./cache":21,"./error":23,"./promise":32,"_process":10,"debug":4,"md5":8,"superagent":11,"underscore":16}],37:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -10715,7 +10693,7 @@ module.exports = function(AV) {
   });
 };
 
-},{"./error":24,"underscore":17}],39:[function(require,module,exports){
+},{"./error":23,"underscore":16}],38:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -11005,7 +10983,7 @@ module.exports = function(AV) {
   });
 };
 
-},{"./request":37,"underscore":17}],40:[function(require,module,exports){
+},{"./request":36,"underscore":16}],39:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -11386,7 +11364,7 @@ module.exports = function(AV) {
 
 };
 
-},{"./request":37,"underscore":17}],41:[function(require,module,exports){
+},{"./request":36,"underscore":16}],40:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -11408,28 +11386,29 @@ module.exports = function upload(uploadInfo, data, file, saveOptions = {}) {
 
   const req = request('POST', uploadUrl)
     .field('fileContent', data)
-    .field('op', 'upload')
-    .end((err, res) => {
-      if (res) {
-        debug(res.status, res.body, res.text);
-      }
-      if (err) {
-        if (res) {
-          err.statusCode = res.status;
-          err.responseText = res.text;
-          err.response = res.body;
-        }
-        return promise.reject(err);
-      }
-      promise.resolve(file);
-    });
+    .field('op', 'upload');
   if (saveOptions.onprogress) {
     req.on('progress', saveOptions.onprogress);
   }
+  req.end((err, res) => {
+    if (res) {
+      debug(res.status, res.body, res.text);
+    }
+    if (err) {
+      if (res) {
+        err.statusCode = res.status;
+        err.responseText = res.text;
+        err.response = res.body;
+      }
+      return promise.reject(err);
+    }
+    promise.resolve(file);
+  });
+
   return promise;
 };
 
-},{"../promise":33,"debug":4,"superagent":12}],42:[function(require,module,exports){
+},{"../promise":32,"debug":4,"superagent":11}],41:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -11454,28 +11433,29 @@ module.exports = function upload(uploadInfo, data, file, saveOptions = {}) {
     .field('file', data)
     .field('name', file.attributes.name)
     .field('key', file._qiniu_key)
-    .field('token', uptoken)
-    .end((err, res) => {
-      if (res) {
-        debug(res.status, res.body, res.text);
-      }
-      if (err) {
-        if (res) {
-          err.statusCode = res.status;
-          err.responseText = res.text;
-          err.response = res.body;
-        }
-        return promise.reject(err);
-      }
-      promise.resolve(file);
-    });
+    .field('token', uptoken);
   if (saveOptions.onprogress) {
     req.on('progress', saveOptions.onprogress);
   }
+  req.end((err, res) => {
+    if (res) {
+      debug(res.status, res.body, res.text);
+    }
+    if (err) {
+      if (res) {
+        err.statusCode = res.status;
+        err.responseText = res.text;
+        err.response = res.body;
+      }
+      return promise.reject(err);
+    }
+    promise.resolve(file);
+  });
+
   return promise;
 };
 
-},{"../promise":33,"debug":4,"superagent":12}],43:[function(require,module,exports){
+},{"../promise":32,"debug":4,"superagent":11}],42:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -11492,25 +11472,26 @@ module.exports = function upload(uploadInfo, data, file, saveOptions = {}) {
   // 海外节点，针对 S3 才会返回 upload_url
   const req = request('PUT', uploadInfo.upload_url)
     .set('Content-Type', file.attributes.metaData.mime_type)
-    .send(data)
-    .end((err, res) => {
-      if (err) {
-        if (res) {
-          err.statusCode = res.status;
-          err.responseText = res.text;
-          err.response = res.body;
-        }
-        return promise.reject(err);
-      }
-      promise.resolve(file);
-    });
+    .send(data);
   if (saveOptions.onprogress) {
     req.on('progress', saveOptions.onprogress);
   }
+  req.end((err, res) => {
+    if (err) {
+      if (res) {
+        err.statusCode = res.status;
+        err.responseText = res.text;
+        err.response = res.body;
+      }
+      return promise.reject(err);
+    }
+    promise.resolve(file);
+  });
+
   return promise;
 };
 
-},{"../promise":33,"superagent":12}],44:[function(require,module,exports){
+},{"../promise":32,"superagent":11}],43:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
@@ -12633,7 +12614,7 @@ function filterOutCallbacks(options) {
   return newOptions;
 }
 
-},{"./error":24,"./request":37,"underscore":17}],45:[function(require,module,exports){
+},{"./error":23,"./request":36,"underscore":16}],44:[function(require,module,exports){
 (function (process){
 /**
  * 每位工程师都有保持代码优雅的义务
@@ -13204,13 +13185,13 @@ module.exports = {
 };
 
 }).call(this,require('_process'))
-},{"./request":37,"_process":10,"underscore":17}],46:[function(require,module,exports){
+},{"./request":36,"_process":10,"underscore":16}],45:[function(require,module,exports){
 /**
  * 每位工程师都有保持代码优雅的义务
  * Each engineer has a duty to keep the code elegant
 **/
 
-module.exports = 'js1.4.0-beta.0';
+module.exports = 'js1.4.0';
 
-},{}]},{},[28])(28)
+},{}]},{},[27])(27)
 });

@@ -20,7 +20,11 @@ module.exports = function upload(uploadInfo, data, file) {
 
   var promise = new Promise();
 
-  var req = request('POST', 'https://up.qbox.me').field('file', data).field('name', file.attributes.name).field('key', file._qiniu_key).field('token', uptoken).end(function (err, res) {
+  var req = request('POST', 'https://up.qbox.me').field('file', data).field('name', file.attributes.name).field('key', file._qiniu_key).field('token', uptoken);
+  if (saveOptions.onprogress) {
+    req.on('progress', saveOptions.onprogress);
+  }
+  req.end(function (err, res) {
     if (res) {
       debug(res.status, res.body, res.text);
     }
@@ -34,8 +38,6 @@ module.exports = function upload(uploadInfo, data, file) {
     }
     promise.resolve(file);
   });
-  if (saveOptions.onprogress) {
-    req.on('progress', saveOptions.onprogress);
-  }
+
   return promise;
 };
