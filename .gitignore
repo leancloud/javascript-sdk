@@ -8,3 +8,4 @@ coverage
 dist/js-sdk-api-docs
 npm-debug.log
 demo/test-es5.js
+.nyc_output

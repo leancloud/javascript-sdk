@@ -10,17 +10,13 @@ import gulp from 'gulp';
 import clean from 'gulp-clean';
 import concat from 'gulp-concat';
 import gzip from 'gulp-gzip';
-import istanbul from 'gulp-istanbul';
-import mocha from 'gulp-mocha';
 import rename from 'gulp-rename';
 import shell from 'gulp-shell';
 import tar from 'gulp-tar';
 import uglify from 'gulp-uglify';
-import order from 'gulp-order';
 import source from 'vinyl-source-stream';
 import browserify from 'browserify';
 import browserSync from 'browser-sync';
-import sourcemaps from 'gulp-sourcemaps';
 import babel from 'gulp-babel';
 import { version } from './package.json';
 
@@ -164,41 +160,6 @@ gulp.task('compress-docs', ['docs'], () => {
     .pipe(tar('js-sdk-api-docs-' + version + '.tar'))
     .pipe(gzip())
     .pipe(gulp.dest('dist'));
-});
-
-// Istanbul unit test coverage plugin for gulp.
-gulp.task('instrument', ['release'], () => {
-  return gulp.src(['dist/node/**/*.js'])
-    .pipe(istanbul())
-    .pipe(istanbul.hookRequire());
-});
-
-// 执行单元测试
-gulp.task('test', [
-  'instrument', 'release'
-], () => {
-  return gulp.src('test/*.js', {
-      read: false
-    })
-    .pipe(order([
-      'test.js',
-      'file.js',
-      'error.js',
-      'object.js',
-      'user.js',
-      'query.js',
-      'geopoint.js',
-      'acl.js',
-      'role.js',
-      'master_key.js',
-      'status.js',
-      'sms.js',
-      'search.js'
-    ]))
-    .pipe(mocha({
-      timeout: 300000,
-    }))
-    .pipe(istanbul.writeReports());
 });
 
 // 上传到 CDN
