@@ -7,23 +7,16 @@ var query = new AV.Query(GameScore);
 
 describe('Queries', function () {
   describe('#Basic Queries', function () {
-    it('should return Class Array', function (done) {
+    it('should return Class Array', function () {
 
       query = new AV.Query(GameScore);
       //query.equalTo('playerName', 'testname');
       query.exists('objectId');
       //query.equalTo('arr','arr1');
-      query.find({
-        success: function (results) {
-          debug(results);
-          expect(results).to.be.an('array');
-          done();
-        },
-        error: function (error) {
-          throw error;
-        }
+      return query.find().then(function(results) {
+        debug(results);
+        expect(results).to.be.an('array');
       });
-
     });
 
     it('should return TestClass', function() {
@@ -58,160 +51,103 @@ describe('Queries', function () {
   });
 
   describe('#cloudQuery', function () {
-    it('should return results.', function (done) {
-      AV.Query.doCloudQuery('select * from GameScore').then(function (result) {
+    it('should return results.', function () {
+      return AV.Query.doCloudQuery('select * from GameScore').then(function (result) {
         debug(result);
         var results = result.results;
         expect(results[0].className).to.be('GameScore');
         expect(result.count).to.be(undefined);
         expect(result.className).to.be('GameScore');
-        done();
       });
     });
-    it('should return limited results.', function (done) {
-      AV.Query.doCloudQuery('select * from GameScore limit 10').then(function (result) {
+    it('should return limited results.', function () {
+      return AV.Query.doCloudQuery('select * from GameScore limit 10').then(function (result) {
         debug(result);
         var results = result.results;
         expect(results.length).to.be(10);
         expect(results[0].className).to.be('GameScore');
         expect(result.count).to.be(undefined);
         expect(result.className).to.be('GameScore');
-        done();
       });
     });
-    it('should return count value.', function (done) {
-      AV.Query.doCloudQuery('select *,count(objectId) from GameScore limit 10').then(function (result) {
+    it('should return count value.', function () {
+      return AV.Query.doCloudQuery('select *,count(objectId) from GameScore limit 10').then(function (result) {
         debug(result);
         var results = result.results;
         expect(results.length).to.be(10);
         expect(results[0].className).to.be('GameScore');
         expect(result.count).to.be.an('number');
         expect(result.className).to.be('GameScore');
-        done();
       });
     });
-    it('should return count value too.', function (done) {
-      AV.Query.doCloudQuery('select *,count(objectId) from GameScore limit ?', [5]).then(function (result) {
+    it('should return count value too.', function () {
+      return AV.Query.doCloudQuery('select *,count(objectId) from GameScore limit ?', [5]).then(function (result) {
         debug(result);
         var results = result.results;
         expect(results.length).to.be(5);
         expect(results[0].className).to.be('GameScore');
         expect(result.count).to.be.an('number');
         expect(result.className).to.be('GameScore');
-        done();
       });
     });
-    it('should return syntax error.', function (done) {
-      AV.Query.doCloudQuery('select * GameScore limit 10').then(function () {
-          throw 'Shoud not be successfully.';
-        },
-        function (error) {
-          debug(error);
-          expect(error.code).to.be(300);
-          done();
-        });
+    it('should return syntax error.', function () {
+      return AV.Query.doCloudQuery('select * GameScore limit 10').should.be.rejectedWith({
+        code: 300,
+      });
     });
   });
 
   describe('#save&query()', function () {
-    it.skip('should length + 1', function (done) {
-
+    it.skip('should length + 1', function () {
       query = new AV.Query(GameScore);
-      query.limit(100);
+      query.limit(1000);
       var l = 0;
-      query.find({
-        success: function (results) {
-          debug(results);
+      return query.find().then(function (results) {
+        debug(results);
+        expect(results).to.be.an('array');
+        l = results.length;
+        var gameScore = new GameScore();
+        return gameScore.save().then(function (result) {
+          expect(result.id).to.be.ok();
+          return query.find();
+        }).then(function (results) {
           expect(results).to.be.an('array');
-          l = results.length;
-
-          var gameScore = new GameScore();
-          gameScore.save(null, {
-            success: function (result) {
-
-              expect(result.id).to.be.ok();
-
-              query.find({
-                success: function (results) {
-                  expect(results).to.be.an('array');
-                  expect(results.length).to.be(l + 1);
-                  gameScore.destroy().then(function() {
-                    done();
-                  });
-                },
-                error: function (error) {
-                  alert('Error: ' + error.code + ' ' + error.message);
-                }
-              });
-            },
-            error: function (gameScore, error) {
-              throw error;
-            }
-          });
-
-
-        },
-        error: function (error) {
-          alert('Error: ' + error.code + ' ' + error.message);
-        }
+          expect(results.length).to.be(l + 1);
+          return gameScore.destroy();
+        });
       });
-
-
     });
   });
 
   describe('Query Constraints', function () {
 
-    it('basic', function (done) {
+    it('basic', function () {
       query = new AV.Query(GameScore);
       query.equalTo('playerName', 'testname');
-      query.first({
-        success: function (object) {
-
-          done();
-        },
-        error: function (error) {
-          throw error;
-        }
-      });
+      return query.first();
     });
 
-    it('sizeEqualTo', function (done) {
+    it('sizeEqualTo', function () {
       var gameScore = new GameScore();
-      gameScore.save({
+      return gameScore.save({
         players: ['a', 'b']
       }).then(function () {
         query = new AV.Query(GameScore);
         query.sizeEqualTo('players', 2);
-        query.first({
-          success: function (object) {
-            expect(object.get('players').length).to.be(2);
-            gameScore.destroy().then(function () {
-              done();
-            });
-          },
-          error: function (error) {
-            throw error;
-          }
-        });
+        return query.first();
+      }).then(function (object) {
+        expect(object.get('players').length).to.be(2);
+        return gameScore.destroy();
       });
     });
   });
 
   describe('Query with different condtions', function () {
 
-    it('query doncition with array', function (done) {
+    it('query doncition with array', function () {
       query = new AV.Query(GameScore);
       query.equalTo('arr', 'arr1');
-      query.first({
-        success: function (object) {
-
-          done();
-        },
-        error: function (error) {
-          throw error;
-        }
-      });
+      return query.first();
     });
 
     /*
@@ -256,7 +192,7 @@ describe('Queries', function () {
     // })
 
 
-    it('should return relation count', function (done) {
+    it('should return relation count', function () {
 
 
       // userQ.count(function(c){
@@ -265,14 +201,8 @@ describe('Queries', function () {
 
       var userQ = new AV.Query('Person');
 
-      userQ.get('52f9bea1e4b035debf88b730').then(function (p) {
-        p.relation('likes').query().count({
-          success: function (r) {
-            debug(r);
-            done();
-
-          }
-        });
+      return userQ.get('52f9bea1e4b035debf88b730').then(function (p) {
+        p.relation('likes').query();
         // p.relation('likes').query().count().then(function(c){
         // 	debug(c)
         // })
@@ -294,7 +224,7 @@ describe('Queries', function () {
   });
 
   describe('destroyAll', function () {
-    it('should be deleted', function (done) {
+    it('should be deleted', function () {
       // save some objects
       var promises = [];
       for (var i = 0; i < 10; i++) {
@@ -303,47 +233,32 @@ describe('Queries', function () {
         promises.unshift(test.save());
       }
       // AV.Promise.when(promises).then(function() {done();});
-      AV.Promise.when(promises).then(function () {
+      return AV.Promise.when(promises).then(function () {
         var query = new AV.Query('deletedAll');
-        query.limit(1000).find().then(function (results) {
-          // expect(results.length).to.be(10);
-          query.destroyAll().then(function () {
-            query.find().then(function (results) {
-              expect(results.length).to.be(0);
-              done();
-            });
-          }, function (err) {
-            done(err);
-          });
-        }, function (err) {
-          done(err);
-        });
+        return query.limit(1000).find();
+      }).then(function (results) {
+        // expect(results.length).to.be(10);
+        return query.destroyAll();
+      }).then(function () {
+        return query.find();
+      }).then(function (results) {
+        expect(results.length).to.be(0);
       });
     });
   });
 
   describe('Counts', function () {
-    it('should return num', function (done) {
-
+    it('should return num', function () {
       query = new AV.Query(Person);
       query.startsWith('pname', 'p');
-      query.count({
-        success: function (count) {
-          // The count request succeeded. Show the count
-
-          //expect(count).to.be.a('number');
-          done();
-        },
-        error: function (error) {
-          // The request failed
-        }
+      return query.count().then(function (count) {
+        expect(count).to.be.a('number');
       });
-
     });
   });
 
   describe('Compound Query', function () {
-    it('should satisfy on \'or\' conditions', function (done) {
+    it('should satisfy on \'or\' conditions', function () {
       var lotsOfWins = new AV.Query('GameScore');
       lotsOfWins.greaterThan('score', 150);
 
@@ -351,20 +266,14 @@ describe('Queries', function () {
       fewWins.equalTo('cheatMode', true);
 
       var mainQuery = AV.Query.or(lotsOfWins, fewWins);
-      mainQuery.find({
-        success: function (results) {
-          results.forEach(function (gs) {
-            expect(gs.get('score') > 150 || gs.get('cheatMode')).to.be.ok();
-          });
-          done();
-          // results contains a list of players that either have won a lot of games or won only a few games.
-        },
-        error: function (error) {
-          // There was an error.
-        }
+      return mainQuery.find().then(function (results) {
+        results.forEach(function (gs) {
+          expect(gs.get('score') > 150 || gs.get('cheatMode')).to.be.ok();
+        });
+        // results contains a list of players that either have won a lot of games or won only a few games.
       });
     });
-    it('should satisfy on \'and\' conditions', function (done) {
+    it('should satisfy on \'and\' conditions', function () {
       var lotsOfWins = new AV.Query('GameScore');
       lotsOfWins.greaterThan('score', 150);
 
@@ -372,17 +281,11 @@ describe('Queries', function () {
       fewWins.equalTo('cheatMode', true);
 
       var mainQuery = AV.Query.and(lotsOfWins, fewWins);
-      mainQuery.find({
-        success: function (results) {
-          results.forEach(function (gs) {
-            expect(gs.get('score') > 150 && gs.get('cheatMode')).to.be.ok();
-          });
-          done();
-          // results contains a list of players that either have won a lot of games or won only a few games.
-        },
-        error: function (error) {
-          // There was an error.
-        }
+      return mainQuery.find().then(function (results) {
+        results.forEach(function (gs) {
+          expect(gs.get('score') > 150 && gs.get('cheatMode')).to.be.ok();
+        });
+        // results contains a list of players that either have won a lot of games or won only a few games.
       });
     });
   });

@@ -6,7 +6,7 @@ var password = "password1";
 describe("User", function() {
 
   describe("User.signUp", function() {
-    it("should sign up", function(done) {
+    it("should sign up", function() {
       var user = new AV.User();
       user.set("username", username);
       user.set("password", password);
@@ -15,173 +15,99 @@ describe("User", function() {
       // other fields can be set just like with Parse.Object
       user.set("phone", "415-392-0202");
 
-      user.signUp(null, {
-        success: function(user) {
-          debug(user);
-          expect(user.id).to.be.ok();
-          done();
-          // Hooray! Let them use the app now.
-        },
-        error: function(user, error) {
-          // Show the error message somewhere and let the user try again.
-          done(error);
-        }
+      return user.signUp().then(function(user) {
+        debug(user);
+        expect(user.id).to.be.ok();
       });
-
     });
 
     it("should throw when required field missing", function() {
       var user = new AV.User();
       user.set("username", username);
       expect(function() {
-        user.signUp(null);
+        user.signUp();
       }).to.throwError(/password/);
       var user = new AV.User();
       user.set("password", password);
       expect(function() {
-        user.signUp(null);
+        user.signUp();
       }).to.throwError(/name/);
     });
   });
 
   describe("User.logIn and User.become", function() {
-    it("should login", function(done) {
-      AV.User.logIn(username, password, {
-        success: function(user) {
-          expect(user.get("username")).to.be(username);
-          // console.dir(user);
-          AV.User.become(user._sessionToken, {
-            success: function(theUser) {
-              expect(theUser.get("username")).to.be(username);
-              done();
-            },
-            error: function(err) {
-              done(err);
-            }
-          });
-          // Do stuff after successful login.
-        },
-        error: function(user, error) {
-          done(error);
-          // The login failed. Check error to see why.
-        }
+    it("should login", function () {
+      return AV.User.logIn(username, password).then(function (user) {
+        expect(user.get("username")).to.be(username);
+        return AV.User.become(user._sessionToken);
+      }).then(function (theUser) {
+        expect(theUser.get("username")).to.be(username);
       });
-
     });
 
     it("should fail with wrong password", function() {
-      return AV.User.logIn(username, 'wrong password').then(function() {
-        throw new Error('Should not success');
-      }, function(err) {
-        expect(err.code).to.be.equal(210);
-        expect(err.message).to.be.equal('The username and password mismatch.');
-      });
+      return AV.User.logIn(username, 'wrong password')
+        .should.be.rejectedWith({
+          message: 'The username and password mismatch.',
+          code: 210,
+        });
     });
 
   });
 
 
   describe("Current User", function() {
-    it("should return current user", function(done) {
+    it("should return current user", function() {
 
       var currentUser = AV.User.current();
       expect(currentUser).to.be.ok();
-      AV.User.currentAsync().then(function(user) {
+      return AV.User.currentAsync().then(function(user) {
         expect(user).to.be.ok();
-        done();
       });
     });
   });
 
   describe("fetch User", function() {
-    it("should resolve promise", function(done) {
+    it("should resolve promise", function() {
       var currentUser = AV.User.current();
-      currentUser.fetch().then(function(user) {
+      return currentUser.fetch().then(function(user) {
         expect(user).to.be.ok();
-        done();
       });
     });
-    it("should run callback", function(done) {
-      var currentUser = AV.User.current();
-      currentUser.fetch({
-        success: function(user) {
-          expect(user).to.be.ok();
-          done();
-        }
-      })
-    });;
   });
 
   describe("User update", function() {
-    it("shoud update name", function(done) {
-
-      var user = AV.User.logIn(username, password, {
-        success: function(user) {
-          user.set("username", username); // attempt to change username
-          user.save(null, {
-            success: function(user) {
-              done();
-              /*
-
-
-                 var query = new AV.Query(AV.User);
-                 query.get("516528fa30046abfb335f2da", {
-                 success: function(userAgain) {
-                 userAgain.set("username", "another_username");
-                 userAgain.save(null, {
-                 error: function(userAgain, error) {
-                 done();
-              // This will error, since the Parse.User is not authenticated
-              }
-              });
-              },
-              error: function(err){
-              done(err);
-              }
-              });
-              */
-            }
-          });
-        }
+    it("shoud update name", function() {
+      return AV.User.logIn(username, password).then(function(user) {
+        user.set("username", username); // attempt to change username
+        return user.save();
       });
     });
   });
 
   describe("Update user password", function() {
-    it("should update password", function(done) {
-      var user = AV.User.logIn(username, password, {
-        success: function(user) {
-          user.updatePassword(password, 'new pass').then(function() {
-            AV.User.logIn(username, 'new pass').then(function(user) {
-              user.updatePassword('new pass', password).then(function() {
-                done();
-              });
-            });
-          });
-        },
-        error: function(err) {
-          done(err);
-        }
+    it("should update password", function() {
+      return AV.User.logIn(username, password).then(function(user) {
+        return user.updatePassword(password, 'new pass');
+      }).then(function() {
+        return AV.User.logIn(username, 'new pass');
+      }).then(function(user) {
+        return user.updatePassword('new pass', password);
       });
     });
   });
 
   describe("User query", function() {
-    it("should return conditoinal users", function(done) {
+    it("should return conditoinal users", function() {
       var query = new AV.Query(AV.User);
       query.equalTo("gender", "female"); // find all the women
-      query.find({
-        success: function(women) {
-          done();
-        }
-      });
-
+      return query.find();
     });
   });
 
 
   describe("Associations", function() {
-    it("return post relation to user", function(done) {
+    it("return post relation to user", function() {
       var user = AV.User.current();
 
       // Make a new post
@@ -190,77 +116,48 @@ describe("User", function() {
       post.set("title", "My New Post");
       post.set("body", "This is some great content.");
       post.set("user", user);
-      post.save(null, {
-        success: function(post) {
-          // Find all posts by the current user
-          var query = new AV.Query(Post);
-          query.equalTo("user", user);
-          query.find({
-            success: function(usersPosts) {
-              expect(usersPosts.length).to.be.ok();
-              done();
-            },
-            error: function(err) {
-              done(err);
-            }
-          });
-        }
+      return post.save().then(function(post) {
+        // Find all posts by the current user
+        var query = new AV.Query(Post);
+        query.equalTo("user", user);
+        return query.find();
+      }).then(function(usersPosts) {
+        expect(usersPosts.length).to.be.ok();
       });
-
     });
   });
 
   describe("Follow/unfollow users", function() {
-    it("should follow/unfollow", function(done) {
+    it("should follow/unfollow", function() {
       var user = AV.User.current();
-      user.follow('53fb0fd6e4b074a0f883f08a', {
-        success: function() {
-          var query = user.followeeQuery();
-          query.find({
-            success: function(results) {
-              expect(results.length).to.be(1);
-              debug(results);
-              expect(results[0].id).to.be('53fb0fd6e4b074a0f883f08a');
-              var followerQuery = AV.User.followerQuery('53fb0fd6e4b074a0f883f08a');
-              followerQuery.find().then(function(results) {
-                expect(results.filter(function(result) {
-                  return result.id === user.id;
-                })).not.to.be(0);
-                debug(results);
-                //unfollow
-                user.unfollow('53fb0fd6e4b074a0f883f08a').then(function() {
-                  //query should be emtpy
-                  var query = user.followeeQuery();
-                  query.find({
-                    success: function(results) {
-                      expect(results.length).to.be(0);
-                      done();
-                    },
-                    error: function(err) {
-                      done(err);
-                    }
-                  });
-                }, function(err) {
-                  done(err);
-                });
-              }, function(err) {
-                done(err);
-              });
-            },
-            error: function(err) {
-              done(err);
-            }
-          });
-        },
-        error: function(err) {
-          done(err);
-        }
+      return user.follow('53fb0fd6e4b074a0f883f08a').then(function() {
+        var query = user.followeeQuery();
+        return query.find();
+      }).then(function(results) {
+        expect(results.length).to.be(1);
+        debug(results);
+        expect(results[0].id).to.be('53fb0fd6e4b074a0f883f08a');
+        var followerQuery = AV.User.followerQuery('53fb0fd6e4b074a0f883f08a');
+        return followerQuery.find();
+      }).then(function(results) {
+        expect(results.filter(function(result) {
+          return result.id === user.id;
+        })).not.to.be(0);
+        debug(results);
+        //unfollow
+        return user.unfollow('53fb0fd6e4b074a0f883f08a');
+      }).then(function() {
+        //query should be emtpy
+        var query = user.followeeQuery();
+        return query.find();
+      }).then(function(results) {
+        expect(results.length).to.be(0);
       });
     });
   });
 
   describe("User logInAnonymously", function() {
-    it("should create anonymous user, and login with AV.User.signUpOrlogInWithAuthData()", function(done) {
+    it("should create anonymous user, and login with AV.User.signUpOrlogInWithAuthData()", function() {
       var getFixedId = function () {
         var rawId = 13334230101333423010;
         var result = rawId.toString(16);
@@ -270,11 +167,8 @@ describe("User", function() {
         id: getFixedId()
       }
 
-      AV.User.signUpOrlogInWithAuthData(data, 'anonymous').then(function(user) {
+      return AV.User.signUpOrlogInWithAuthData(data, 'anonymous').then(function(user) {
         expect(user.id).to.be.ok();
-        done();
-      }).catch(function(error) {
-        done(error);
       });
     });
   });
@@ -343,10 +237,8 @@ describe("User", function() {
     });
 
     it('User#save without token', function() {
-      return user.save({username: username + 'changed'}).then(function() {
-        throw new Error('Should not success');
-      }, function(err) {
-        expect(err.code).to.be.equal(206);
+      return user.save({username: username + 'changed'}).should.be.rejectedWith({
+        code: 206,
       });
     });
 
@@ -354,8 +246,8 @@ describe("User", function() {
       return user.save({
         username: username + 'changed'
       }, {sessionToken: user.getSessionToken()}).then(function() {
-        user.fetch().then(function() {
-          expect(user.username).to.be.equal(username + 'changed');
+        return user.fetch().then(function() {
+          expect(user.get('username')).to.be.equal(username + 'changed');
         });
       });
     });
