@@ -125,7 +125,7 @@ module.exports = function(AV) {
    */
 
   AV.Object.fetchAll = (objects, options) =>
-    AV.Promise.as().then(() =>
+    AV.Promise.resolve().then(() =>
       AVRequest('batch', null, null, 'POST', {
         requests: _.map(objects, object => {
           if (!object.className) throw new Error('object must have className to fetch');
@@ -604,7 +604,7 @@ module.exports = function(AV) {
      *   game.set("finished", true);</pre></p>
      *
      * @param {String} key The key to set.
-     * @param {} value The value to give it.
+     * @param {Any} value The value to give it.
      * @param {Object} options A set of Backbone-like options for the set.
      *     The only supported options are <code>silent</code>,
      *     <code>error</code>, and <code>promise</code>.
@@ -938,7 +938,7 @@ module.exports = function(AV) {
         setError = error;
       };
       if (attrs && !this.set(attrs, setOptions)) {
-        return AV.Promise.error(setError)._thenRunCallbacks(options, this);
+        return AV.Promise.reject(setError)._thenRunCallbacks(options, this);
       }
 
       var model = this;
@@ -955,15 +955,15 @@ module.exports = function(AV) {
         return AV.Object._deepSaveAsync(this.attributes, model, options).then(function() {
           return model.save(null, options);
         }, function(error) {
-          return AV.Promise.error(error)._thenRunCallbacks(options, model);
+          return AV.Promise.reject(error)._thenRunCallbacks(options, model);
         });
       }
 
       this._startSave();
       this._saving = (this._saving || 0) + 1;
 
-      this._allPreviousSaves = this._allPreviousSaves || AV.Promise.as();
-      this._allPreviousSaves = this._allPreviousSaves._continueWith(function() {
+      this._allPreviousSaves = this._allPreviousSaves || AV.Promise.resolve();
+      this._allPreviousSaves = this._allPreviousSaves.catch(e => {}).then(function() {
         var method = model.id ? 'PUT' : 'POST';
 
         var json = model._getSaveJSON();
@@ -986,7 +986,7 @@ module.exports = function(AV) {
           }
           if (!json._where) {
             var error = new Error('options.query is not an AV.Query');
-            return AV.Promise.error(error)._thenRunCallbacks(options, model);
+            return AV.Promise.reject(error)._thenRunCallbacks(options, model);
           }
         }
 
@@ -1014,7 +1014,7 @@ module.exports = function(AV) {
 
         }, function(error) {
           model._cancelSave();
-          return AV.Promise.error(error);
+          return AV.Promise.reject(error);
 
         })._thenRunCallbacks(options, model);
 
@@ -1301,7 +1301,7 @@ module.exports = function(AV) {
    AV.Object.destroyAll = function(objects, options){
       options = options || {};
       if (!objects || objects.length === 0){
-		    return AV.Promise.as()._thenRunCallbacks(options);
+		    return AV.Promise.resolve()._thenRunCallbacks(options);
       }
       var className = objects[0].className;
       var id = "";
@@ -1523,7 +1523,7 @@ module.exports = function(AV) {
       });
     }
 
-    var promise = AV.Promise.as();
+    var promise = AV.Promise.resolve();
     _.each(unsavedFiles, function(file) {
       promise = promise.then(function() {
         return file.save();
@@ -1558,23 +1558,19 @@ module.exports = function(AV) {
 
         // If we can't save any objects, there must be a circular reference.
         if (batch.length === 0) {
-          return AV.Promise.error(
+          return AV.Promise.reject(
             new AVError(AVError.OTHER_CAUSE,
                             "Tried to save a batch with a cycle."));
         }
 
         // Reserve a spot in every object's save queue.
-        var readyToStart = AV.Promise.when(_.map(batch, function(object) {
-          return object._allPreviousSaves || AV.Promise.as();
+        var readyToStart = AV.Promise.resolve(_.map(batch, function(object) {
+          return object._allPreviousSaves || AV.Promise.resolve();
         }));
-        var batchFinished = new AV.Promise();
-        AV._arrayEach(batch, function(object) {
-          object._allPreviousSaves = batchFinished;
-        });
 
         // Save a single batch, whether previous saves succeeded or failed.
-        return readyToStart._continueWith(function() {
-          return AVRequest("batch", null, null, "POST", {
+        const bathSavePromise = readyToStart.then(() =>
+          AVRequest("batch", null, null, "POST", {
             requests: _.map(batch, function(object) {
               var json = object._getSaveJSON();
               var method = "POST";
@@ -1606,18 +1602,16 @@ module.exports = function(AV) {
               }
             });
             if (error) {
-              return AV.Promise.error(
+              return AV.Promise.reject(
                 new AVError(error.code, error.error));
             }
 
-          }).then(function(results) {
-            batchFinished.resolve(results);
-            return results;
-          }, function(error) {
-            batchFinished.reject(error);
-            return AV.Promise.error(error);
-          });
+          })
+        );
+        AV._arrayEach(batch, function(object) {
+          object._allPreviousSaves = bathSavePromise;
         });
+        return bathSavePromise;
       });
     }).then(function() {
       return object;

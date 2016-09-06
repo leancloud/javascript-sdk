@@ -21,7 +21,7 @@ if (!localStorage.async) {
   _(syncApiNames).each(function(apiName) {
     if (typeof localStorage[apiName] === 'function') {
       localStorage[apiName + 'Async'] = function() {
-        return Promise.as(localStorage[apiName].apply(localStorage, arguments));
+        return Promise.resolve(localStorage[apiName].apply(localStorage, arguments));
       };
     }
   });

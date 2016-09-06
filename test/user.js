@@ -193,15 +193,13 @@ describe("User", function() {
   });
 
   describe('currentUser disabled', function() {
-    var user, originalUser, originalPromisesAPlusCompliant;
+    var user, originalUser;
 
     before(function() {
       originalUser = AV.User._currentUser;
       AV.User._currentUser = null;
       AV._config.disableCurrentUser = true;
       AV._useMasterKey = false;
-      originalPromisesAPlusCompliant = AV.Promise._isPromisesAPlusCompliant;
-      AV.Promise._isPromisesAPlusCompliant = true;
     });
 
     var username = 'u' + Date.now();
@@ -256,7 +254,6 @@ describe("User", function() {
       AV._config.disableCurrentUser = false;
       AV._useMasterKey = true;
       AV.User._currentUser = originalUser;
-      AV.Promise._isPromisesAPlusCompliant = originalPromisesAPlusCompliant;
     });
   });
 });

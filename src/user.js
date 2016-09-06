@@ -109,9 +109,9 @@ module.exports = function(AV) {
         // Some old version of leanengine-node-sdk will overwrite
         // AV.User._saveCurrentUser which returns no Promise.
         // So we need a Promise wrapper.
-        return AV.Promise.as(AV.User._saveCurrentUser(this));
+        return AV.Promise.resolve(AV.User._saveCurrentUser(this));
       } else {
-        return AV.Promise.as();
+        return AV.Promise.resolve();
       }
     },
 
@@ -801,7 +801,7 @@ module.exports = function(AV) {
     logOut: function() {
       if (AV._config.disableCurrentUser) {
         console.warn('AV.User.current() was disabled in multi-user environment, call logOut() from user object instead https://leancloud.cn/docs/leanengine-node-sdk-upgrade-1.html');
-        return AV.Promise.as(null);
+        return AV.Promise.resolve(null);
       }
 
       if (AV.User._currentUser !== null) {
@@ -983,16 +983,16 @@ module.exports = function(AV) {
     currentAsync: function() {
       if (AV._config.disableCurrentUser) {
         console.warn('AV.User.currentAsync() was disabled in multi-user environment, access user from request instead https://leancloud.cn/docs/leanengine-node-sdk-upgrade-1.html');
-        return AV.Promise.as(null);
+        return AV.Promise.resolve(null);
       }
 
       if (AV.User._currentUser) {
-        return AV.Promise.as(AV.User._currentUser);
+        return AV.Promise.resolve(AV.User._currentUser);
       }
 
       if (AV.User._currentUserMatchesDisk) {
 
-        return AV.Promise.as(AV.User._currentUser);
+        return AV.Promise.resolve(AV.User._currentUser);
       }
 
 
@@ -1079,7 +1079,7 @@ module.exports = function(AV) {
         promise = AV.User.logOut();
       }
       else {
-        promise = AV.Promise.as();
+        promise = AV.Promise.resolve();
       }
       return promise.then(function() {
         user._isCurrentUser = true;

@@ -56,7 +56,7 @@ module.exports = function(AV) {
      */
     destroy: function(options){
       if(!this.id)
-        return AV.Promise.error('The status id is not exists.')._thenRunCallbacks(options);
+        return AV.Promise.reject('The status id is not exists.')._thenRunCallbacks(options);
       var request = AVRequest('statuses', null, this.id, 'DELETE', options && options.sessionToken);
       return request._thenRunCallbacks(options);
     },

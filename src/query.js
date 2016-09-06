@@ -207,7 +207,7 @@ module.exports = function(AV) {
 
         var errorObject = new AVError(AVError.OBJECT_NOT_FOUND,
                                           "Object not found.");
-        return AV.Promise.error(errorObject);
+        return AV.Promise.reject(errorObject);
 
       })._thenRunCallbacks(options, null);
     },
@@ -888,7 +888,7 @@ module.exports = function(AV) {
       if (this._order || this._skip || (this._limit >= 0)) {
         var error =
           "Cannot iterate on a query with sort, skip, or limit.";
-        return AV.Promise.error(error)._thenRunCallbacks(options);
+        return AV.Promise.reject(error)._thenRunCallbacks(options);
       }
 
       var promise = new AV.Promise();
@@ -908,7 +908,7 @@ module.exports = function(AV) {
 
       }, function() {
         return query.find().then(function(results) {
-          var callbacksDone = AV.Promise.as();
+          var callbacksDone = AV.Promise.resolve();
           _.each(results, function(result) {
             callbacksDone = callbacksDone.then(function() {
               return callback(result);

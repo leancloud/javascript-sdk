@@ -252,7 +252,7 @@ const init = (AV) => {
   AV._getInstallationId = function() {
     // See if it's cached in RAM.
     if (AV._installationId) {
-      return AV.Promise.as(AV._installationId);
+      return AV.Promise.resolve(AV._installationId);
     }
 
     // Try to get it from localStorage.

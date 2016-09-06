@@ -13,33 +13,30 @@ module.exports = function upload(uploadInfo, data, file, saveOptions = {}) {
   file.attributes.url = uploadInfo.url;
   file._bucket = uploadInfo.bucket;
   file.id = uploadInfo.objectId;
-  //Get the uptoken to upload files to qiniu.
+  // Get the uptoken to upload files to qiniu.
   const uptoken = uploadInfo.token;
-
-  const promise = new Promise();
-
-  const req = request('POST', 'https://up.qbox.me')
-    .field('file', data)
-    .field('name', file.attributes.name)
-    .field('key', file._qiniu_key)
-    .field('token', uptoken);
-  if (saveOptions.onprogress) {
-    req.on('progress', saveOptions.onprogress);
-  }
-  req.end((err, res) => {
-    if (res) {
-      debug(res.status, res.body, res.text);
+  return new Promise((resolve, reject) => {
+    const req = request('POST', 'https://up.qbox.me')
+      .field('file', data)
+      .field('name', file.attributes.name)
+      .field('key', file._qiniu_key)
+      .field('token', uptoken);
+    if (saveOptions.onprogress) {
+      req.on('progress', saveOptions.onprogress);
     }
-    if (err) {
+    req.end((err, res) => {
       if (res) {
-        err.statusCode = res.status;
-        err.responseText = res.text;
-        err.response = res.body;
+        debug(res.status, res.body, res.text);
       }
-      return promise.reject(err);
-    }
-    promise.resolve(file);
+      if (err) {
+        if (res) {
+          err.statusCode = res.status;
+          err.responseText = res.text;
+          err.response = res.body;
+        }
+        return reject(err);
+      }
+      resolve(file);
+    });
   });
-
-  return promise;
 };

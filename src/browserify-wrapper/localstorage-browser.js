@@ -53,7 +53,7 @@ if (global.localStorage) {
   var AsyncStorage = require('react-native').AsyncStorage;
   _(apiNames).each(function(apiName) {
     Storage[apiName + 'Async'] = function() {
-      return Promise.as(AsyncStorage[apiName].apply(AsyncStorage, arguments));
+      return Promise.resolve(AsyncStorage[apiName].apply(AsyncStorage, arguments));
     };
   });
   Storage.async = true;

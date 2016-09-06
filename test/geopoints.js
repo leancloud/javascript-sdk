@@ -1,4 +1,4 @@
-const Post = AV.Object.extend('Post');
+var Post = AV.Object.extend('Post');
 describe('Geopoints', () => {
   before(function () {
     // Make a new post

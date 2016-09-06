@@ -135,9 +135,9 @@ module.exports = function(AV) {
       var self = this;
       return request.then(function(response) {
         if(response.error) {
-          return AV.Promise.error(new AVError(response.code, response.error));
+          return AV.Promise.reject(new AVError(response.code, response.error));
         }
-        return AV.Promise.as(response);
+        return AV.Promise.resolve(response);
       })._thenRunCallbacks(options);
     }
 

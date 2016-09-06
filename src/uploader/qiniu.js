@@ -5,29 +5,30 @@
 
 'use strict';
 
-//Use qiniu sdk to upload files to qiniu.
+// Use qiniu sdk to upload files to qiniu.
 const qiniu = require('qiniu');
 const Promise = require('../promise');
 
-module.exports =function upload(uploadInfo, data, file) {
-    file.attributes.url = uploadInfo.url;
-    file._bucket = uploadInfo.bucket;
-    file.id = uploadInfo.objectId;
-    //Get the uptoken to upload files to qiniu.
-    const uptoken = uploadInfo.token;
-    const promise = new Promise();
+module.exports = function upload(uploadInfo, data, file) {
+  file.attributes.url = uploadInfo.url;
+  file._bucket = uploadInfo.bucket;
+  file.id = uploadInfo.objectId;
+  // Get the uptoken to upload files to qiniu.
+  const uptoken = uploadInfo.token;
+  return new Promise((resolve, reject) => {
     const extra = new qiniu.io.PutExtra();
-    if(file.attributes.metaData.mime_type)
+    if (file.attributes.metaData.mime_type) {
       extra.mimeType = file.attributes.metaData.mime_type;
+    }
     const body = new Buffer(data, 'base64');
-    qiniu.io.put(uptoken, file._qiniu_key, body, extra, function(err, ret) {
+    qiniu.io.put(uptoken, file._qiniu_key, body, extra, (err) => {
       delete file._qiniu_key;
       delete file.attributes.base64;
-      if(!err) {
-        promise.resolve(file);
+      if (!err) {
+        resolve(file);
       } else {
-        promise.reject(err);
+        reject(err);
       }
     });
-    return promise;
+  });
 };

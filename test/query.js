@@ -1,7 +1,7 @@
 'use strict';
 
 var GameScore = AV.Object.extend('GameScore');
-var Person = AV.Object.extend('Person');
+var ES5Person = AV.Object.extend('Person');
 var TestClass = AV.Object.extend('TestClass');
 var query = new AV.Query(GameScore);
 
@@ -233,7 +233,7 @@ describe('Queries', function () {
         promises.unshift(test.save());
       }
       // AV.Promise.when(promises).then(function() {done();});
-      return AV.Promise.when(promises).then(function () {
+      return AV.Promise.all(promises).then(function () {
         var query = new AV.Query('deletedAll');
         return query.limit(1000).find();
       }).then(function (results) {
@@ -249,7 +249,7 @@ describe('Queries', function () {
 
   describe('Counts', function () {
     it('should return num', function () {
-      query = new AV.Query(Person);
+      query = new AV.Query(ES5Person);
       query.startsWith('pname', 'p');
       return query.count().then(function (count) {
         expect(count).to.be.a('number');

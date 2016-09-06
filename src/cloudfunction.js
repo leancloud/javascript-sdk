@@ -48,7 +48,7 @@ module.exports = function(AV) {
      */
     rpc: function(name, data, options) {
       if (_.isArray(data)) {
-        return AV.Promise.error(new Error('Can\'t pass Array as the param of rpc function in JavaScript SDK.'))
+        return AV.Promise.reject(new Error('Can\'t pass Array as the param of rpc function in JavaScript SDK.'))
           ._thenRunCallbacks(options);
       }
 

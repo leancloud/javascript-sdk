@@ -275,42 +275,6 @@ module.exports = function(AV) {
   };
 
   /**
-   * Reads a File using a FileReader.
-   * @param file {File} the File to read.
-   * @param type {String} (optional) the mimetype to override with.
-   * @return {AV.Promise} A Promise that will be fulfilled with a
-   *     base64-encoded string of the data and its mime type.
-   */
-  var readAsync = function(file, type) {
-    var promise = new AV.Promise();
-
-    if (typeof(FileReader) === "undefined") {
-      return AV.Promise.error(new AVError(
-          -1, "Attempted to use a FileReader on an unsupported browser."));
-    }
-
-    var reader = new global.FileReader();
-    reader.onloadend = function() {
-      if (reader.readyState !== 2) {
-        promise.reject(new AVError(-1, "Error reading file."));
-        return;
-      }
-
-      var dataURL = reader.result;
-      var matches = /^data:([^;]*);base64,(.*)$/.exec(dataURL);
-      if (!matches) {
-        promise.reject(
-            new AVError(-1, "Unable to interpret data URL: " + dataURL));
-        return;
-      }
-
-      promise.resolve(matches[2], type || matches[1]);
-    };
-    reader.readAsDataURL(file);
-    return promise;
-  };
-
-  /**
    * A AV.File is a local representation of a file that is saved to the AV
    * cloud.
    * @param name {String} The file's name. This will change to a unique value
@@ -384,18 +348,18 @@ module.exports = function(AV) {
       var parseBase64 = require('./browserify-wrapper/parse-base64');
       var dataBase64 = parseBase64(data.base64, guessedType);
       this.attributes.base64 = dataURLToBase64(data.base64);
-      this._source = AV.Promise.as(dataBase64, guessedType);
+      this._source = AV.Promise.resolve({ data: dataBase64, type: guessedType });
     } else if (data && data.blob) {
       if (!data.blob.type) {
         data.blob.type = guessedType;
       }
-      this._source = AV.Promise.as(data.blob, guessedType);
+      this._source = AV.Promise.resolve({ data: data.blob, type: guessedType });
     } else if (typeof File !== "undefined" && data instanceof global.File) {
-      this._source = AV.Promise.as(data, guessedType);
+      this._source = AV.Promise.resolve({ data, type: guessedType });
     } else if (typeof global.Buffer !== "undefined" && global.Buffer.isBuffer(data)) {
       // use global.Buffer to prevent browserify pack Buffer module
       this.attributes.metaData.size = data.length;
-      this._source = AV.Promise.as(data, guessedType);
+      this._source = AV.Promise.resolve({ data, type: guessedType });
     } else if (_.isString(data)) {
       throw new Error("Creating a AV.File from a String is not yet supported.");
     }
@@ -615,7 +579,7 @@ module.exports = function(AV) {
      */
     destroy: function(options) {
       if (!this.id) {
-        return AV.Promise.error('The file id is not eixsts.')._thenRunCallbacks(options);
+        return AV.Promise.reject('The file id is not eixsts.')._thenRunCallbacks(options);
       }
       var request = AVRequest("files", null, this.id, 'DELETE', options && options.sessionToken);
       return request._thenRunCallbacks(options);
@@ -676,7 +640,7 @@ module.exports = function(AV) {
       }
       if (!this._previousSave) {
         if (this._source) {
-          this._previousSave = this._source.then((data, type) =>
+          this._previousSave = this._source.then(({ data, type }) =>
             this._fileToken(type)
               .then(uploadInfo => {
                 let uploadPromise;
