@@ -87,24 +87,17 @@ describe('Objects', function(){
       return u.save();
     });
 
-    it('should validate failed.', function(done){
+    it('should validate failed.', function(){
       var TestObject = AV.Object.extend('TestObject', {
         validate: function (attrs, options){
-          return new Error('test');
+          throw new Error('test');
         }
       });
       var testObject = new TestObject();
-      testObject.set('a',1, {
-        success: function(){
-          throw "should not be here.";
-        },
-        error: function(obj, err){
-          debug(err);
-          expect(obj.get('a')).to.be(undefined);
-          expect(err.message).to.be('test');
-          done();
-        }
+      (() => testObject.set('a', 1)).should.throwError({
+        message: 'test',
       });
+      expect(testObject.get('a')).to.be(undefined);
     });
   });
 
@@ -297,6 +290,9 @@ describe('Objects', function(){
         var person = AV.Object.createWithoutData('Person', result.id);
         person.set('age', 30);
         return AV.Object.saveAll([person]);
+      }).then(([person]) => {
+        person.id.should.be.ok();
+        person.get('age').should.eql(30);
       });
     });
 

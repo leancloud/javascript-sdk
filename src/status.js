@@ -48,17 +48,14 @@ module.exports = function(AV) {
     },
     /**
      * Destroy this status,then it will not be avaiable in other user's inboxes.
-     * @param {Object} options An optional Backbone-like options object with
-     *     success and error callbacks that will be invoked once the iteration
-     *     has finished.
      * @return {AV.Promise} A promise that is fulfilled when the destroy
      *     completes.
      */
     destroy: function(options){
       if(!this.id)
-        return AV.Promise.reject('The status id is not exists.')._thenRunCallbacks(options);
+        return AV.Promise.reject('The status id is not exists.');
       var request = AVRequest('statuses', null, this.id, 'DELETE', options && options.sessionToken);
-      return request._thenRunCallbacks(options);
+      return request;
     },
     /**
       * Cast the AV.Status object to an AV.Object pointer.
@@ -87,15 +84,12 @@ module.exports = function(AV) {
     *      });
     * </pre></p>
     * @since 0.3.0
-    * @param {Object} options An optional Backbone-like options object with
-    *     success and error callbacks that will be invoked once the iteration
-    *     has finished.
     * @return {AV.Promise} A promise that is fulfilled when the send
     *     completes.
     */
     send: function(options){
       if(!AV.User.current()){
-        throw 'Please signin an user.';
+        throw new Error('Please signin an user.');
       }
       if(!this.query){
         return AV.Status.sendStatusToFollowers(this, options);
@@ -117,7 +111,7 @@ module.exports = function(AV) {
         self.id = response.objectId;
         self.createdAt = AV._parseDate(response.createdAt);
         return self;
-      })._thenRunCallbacks(options);
+      });
     },
 
     _finishFetch: function(serverData){
@@ -146,15 +140,12 @@ module.exports = function(AV) {
    * </pre></p>
    * @since 0.3.0
    * @param {AV.Status} status  A status object to be send to followers.
-   * @param {Object} options An optional Backbone-like options object with
-   *     success and error callbacks that will be invoked once the iteration
-   *     has finished.
    * @return {AV.Promise} A promise that is fulfilled when the send
    *     completes.
    */
   AV.Status.sendStatusToFollowers = function(status, options) {
     if(!AV.User.current()){
-      throw 'Please signin an user.';
+      throw new Error('Please signin an user.');
     }
     var query = {};
     query.className = '_Follower';
@@ -173,7 +164,7 @@ module.exports = function(AV) {
       status.id = response.objectId;
       status.createdAt = AV._parseDate(response.createdAt);
       return status;
-    })._thenRunCallbacks(options);
+    });
   };
 
   /**
@@ -190,23 +181,20 @@ module.exports = function(AV) {
    * </pre></p>
    * @since 0.3.0
    * @param {AV.Status} status  A status object to be send to followers.
-   * @param {} target The target user or user's objectId.
-   * @param {Object} options An optional Backbone-like options object with
-   *     success and error callbacks that will be invoked once the iteration
-   *     has finished.
+   * @param {String} target The target user or user's objectId.
    * @return {AV.Promise} A promise that is fulfilled when the send
    *     completes.
    */
   AV.Status.sendPrivateStatus = function(status, target, options) {
     if(!AV.User.current()){
-      throw 'Please signin an user.';
+      throw new Error('Please signin an user.');
     }
     if(!target){
-          throw "Invalid target user.";
+      throw new Error("Invalid target user.");
     }
     var userObjectId = _.isString(target) ? target: target.id;
     if(!userObjectId){
-        throw "Invalid target user.";
+      throw new Error("Invalid target user.");
     }
 
     var query = {};
@@ -226,7 +214,7 @@ module.exports = function(AV) {
       status.id = response.objectId;
       status.createdAt = AV._parseDate(response.createdAt);
       return status;
-    })._thenRunCallbacks(options);
+    });
   };
 
   /**
@@ -245,7 +233,7 @@ module.exports = function(AV) {
    */
   AV.Status.countUnreadStatuses = function(owner){
     if(!AV.User.current() && owner == null){
-      throw 'Please signin an user or pass the owner objectId.';
+      throw new Error('Please signin an user or pass the owner objectId.');
     }
     owner = owner || AV.User.current();
     var options = !_.isString(arguments[1]) ? arguments[1] : arguments[2];
@@ -254,7 +242,7 @@ module.exports = function(AV) {
     params.inboxType = AV._encode(inboxType);
     params.owner = AV._encode(owner);
     var request = AVRequest('subscribe/statuses/count', null, null, 'GET', params, options && options.sessionToken);
-    return request._thenRunCallbacks(options);
+    return request;
   };
 
   /**

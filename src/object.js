@@ -86,33 +86,18 @@ module.exports = function(AV) {
   /**
    * Saves the given list of AV.Object.
    * If any error is encountered, stops and calls the error handler.
-   * There are two ways you can call this function.
-   *
-   * The Backbone way:<pre>
-   *   AV.Object.saveAll([object1, object2, ...], {
-   *     success: function(list) {
-   *       // All the objects were saved.
-   *     },
-   *     error: function(error) {
-   *       // An error occurred while saving one of the objects.
-   *     },
+   * 
+   * <pre>
+   *   AV.Object.saveAll([object1, object2, ...]).then(function(list) {
+   *     // All the objects were saved.
+   *   }, function(error) {
+   *     // An error occurred while saving one of the objects.
    *   });
-   * </pre>
-   * A simplified syntax:<pre>
-   *   AV.Object.saveAll([object1, object2, ...], function(list, error) {
-   *     if (list) {
-   *       // All the objects were saved.
-   *     } else {
-   *       // An error occurred.
-   *     }
-   *   });
-   * </pre>
    *
    * @param {Array} list A list of <code>AV.Object</code>.
-   * @param {Object} options A Backbone-style callback object.
    */
   AV.Object.saveAll = function(list, options) {
-    return AV.Object._deepSaveAsync(list, null, options)._thenRunCallbacks(options);
+    return AV.Object._deepSaveAsync(list, null, options);
   };
 
   /**
@@ -655,9 +640,7 @@ module.exports = function(AV) {
       });
 
       // Run validation.
-      if (!this._validate(attrs, options)) {
-        return false;
-      }
+      this._validate(attrs, options);
 
       this._mergeMagicFields(attrs);
 
@@ -824,22 +807,11 @@ module.exports = function(AV) {
      * triggering a <code>"change"</code> event.
      * @param {Object} fetchOptions Optional options to set 'keys' and
      *      'include' option.
-     * @param {Object} options Optional Backbone-like options object to be
-     *     passed in to set.
      * @return {AV.Promise} A promise that is fulfilled when the fetch
      *     completes.
      */
-    fetch: function() {
-      var options = {};
-      var fetchOptions = {};
-      if(arguments.length === 1) {
-        options = arguments[0];
-      } else if(arguments.length === 2) {
-        fetchOptions = arguments[0];
-        options = arguments[1] || {};
-      }
-
-      if (fetchOptions && fetchOptions.include && _.isArray(fetchOptions.include)) {
+    fetch: function(fetchOptions = {}, options = {}) {
+      if (_.isArray(fetchOptions.include)) {
         fetchOptions.include = fetchOptions.include.join(',');
       }
 
@@ -849,7 +821,7 @@ module.exports = function(AV) {
       return request.then(function(response) {
         self._finishFetch(self.parse(response), true);
         return self;
-      })._thenRunCallbacks(options, this);
+      });
     },
 
     /**
@@ -868,24 +840,11 @@ module.exports = function(AV) {
      *   gameTurn.save({
      *     player: "Jake Cutter",
      *     diceRoll: 2
-     *   }, {
-     *     success: function(gameTurnAgain) {
-     *       // The save was successful.
-     *     },
-     *     error: function(gameTurnAgain, error) {
-     *       // The save failed.  Error is an instance of AVError.
-     *     }
-     *   });</pre>
-     * or with promises:<pre>
-     *   gameTurn.save({
-     *     player: "Jake Cutter",
-     *     diceRoll: 2
      *   }).then(function(gameTurnAgain) {
      *     // The save was successful.
      *   }, function(error) {
      *     // The save failed.  Error is an instance of AVError.
      *   });</pre>
-     * @param {Object} options Optional Backbone-like options object to be passed in to set.
      * @param {Boolean} options.fetchWhenSave fetch and update object after save succeeded
      * @param {AV.Query} options.query Save object only when it matches the query
      * @return {AV.Promise} A promise that is fulfilled when the save
@@ -903,27 +862,6 @@ module.exports = function(AV) {
         options = arg3;
       }
 
-      // Make save({ success: function() {} }) work.
-      if (!options && attrs) {
-        var extra_keys = _.reject(attrs, function(value, key) {
-          return _.include(["success", "error", "wait"], key);
-        });
-        if (extra_keys.length === 0) {
-          var all_functions = true;
-          if (_.has(attrs, "success") && !_.isFunction(attrs.success)) {
-            all_functions = false;
-          }
-          if (_.has(attrs, "error") && !_.isFunction(attrs.error)) {
-            all_functions = false;
-          }
-          if (all_functions) {
-            // This attrs object looks like it's really an options object,
-            // and there's no other options object, so let's just use it.
-            return this.save(null, attrs);
-          }
-        }
-      }
-
       options = _.clone(options) || {};
       if (options.wait) {
         current = _.clone(this.attributes);
@@ -933,12 +871,8 @@ module.exports = function(AV) {
       if (setOptions.wait) {
         setOptions.silent = true;
       }
-      var setError;
-      setOptions.error = function(model, error) {
-        setError = error;
-      };
-      if (attrs && !this.set(attrs, setOptions)) {
-        return AV.Promise.reject(setError)._thenRunCallbacks(options, this);
+      if (attrs) {
+        this.set(attrs, setOptions);
       }
 
       var model = this;
@@ -954,8 +888,6 @@ module.exports = function(AV) {
       if (unsavedChildren.length + unsavedFiles.length > 0) {
         return AV.Object._deepSaveAsync(this.attributes, model, options).then(function() {
           return model.save(null, options);
-        }, function(error) {
-          return AV.Promise.reject(error)._thenRunCallbacks(options, model);
         });
       }
 
@@ -986,7 +918,7 @@ module.exports = function(AV) {
           }
           if (!json._where) {
             var error = new Error('options.query is not an AV.Query');
-            return AV.Promise.reject(error)._thenRunCallbacks(options, model);
+            throw error;
           }
         }
 
@@ -1014,9 +946,8 @@ module.exports = function(AV) {
 
         }, function(error) {
           model._cancelSave();
-          return AV.Promise.reject(error);
-
-        })._thenRunCallbacks(options, model);
+          throw error;
+        });
 
         return request;
       });
@@ -1055,7 +986,7 @@ module.exports = function(AV) {
           triggerDestroy();
         }
         return model;
-      })._thenRunCallbacks(options, this);
+      });
     },
 
     /**
@@ -1220,16 +1151,15 @@ module.exports = function(AV) {
      * <code>save</code>.  Your implementation should return
      *
      * @param {Object} attrs The current data to validate.
-     * @param {Object} options A Backbone-like options object.
      * @return {} False if the data is valid.  An error object otherwise.
      * @see AV.Object#set
      */
-    validate: function(attrs, options) {
+    validate: function(attrs) {
       if (_.has(attrs, "ACL") && !(attrs.ACL instanceof AV.ACL)) {
-        return new AVError(AVError.OTHER_CAUSE,
+        throw new AVError(AVError.OTHER_CAUSE,
                                "ACL must be a AV.ACL.");
       }
-      return false;
+      return true;
     },
 
     /**
@@ -1242,16 +1172,7 @@ module.exports = function(AV) {
         return true;
       }
       attrs = _.extend({}, this.attributes, attrs);
-      var error = this.validate(attrs, options);
-      if (!error) {
-        return true;
-      }
-      if (options && options.error) {
-        options.error(this, error, options);
-      } else {
-        this.trigger('error', this, error, options);
-      }
-      return false;
+      return this.validate(attrs);
     },
 
     /**
@@ -1301,7 +1222,7 @@ module.exports = function(AV) {
    AV.Object.destroyAll = function(objects, options){
       options = options || {};
       if (!objects || objects.length === 0){
-		    return AV.Promise.resolve()._thenRunCallbacks(options);
+		    return AV.Promise.resolve();
       }
       var className = objects[0].className;
       var id = "";
@@ -1320,7 +1241,7 @@ module.exports = function(AV) {
       });
       var request =
           AVRequest('classes', className, id, 'DELETE', null, options.sessionToken);
-      return request._thenRunCallbacks(options);
+      return request;
    };
 
   /**

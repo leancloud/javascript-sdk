@@ -171,7 +171,7 @@ module.exports = function(AV) {
         count:  response.count,
         className: response.className
       };
-    })._thenRunCallbacks(options);
+    });
   };
 
   AV.Query._extend = AV._extend;
@@ -187,8 +187,7 @@ module.exports = function(AV) {
      * the server.  Either options.success or options.error is called when the
      * find completes.
      *
-     * @param {} objectId The id of the object to be fetched.
-     * @param {Object} options A Backbone-style options object.
+     * @param {String} objectId The id of the object to be fetched.
      */
     get: function(objectId, options) {
       if(!objectId) {
@@ -200,7 +199,7 @@ module.exports = function(AV) {
       var self = this;
       self.equalTo('objectId', objectId);
 
-      return self.first().then(function(response) {
+      return self.first(options).then(function(response) {
         if (!_.isEmpty(response)) {
           return response;
         }
@@ -209,7 +208,7 @@ module.exports = function(AV) {
                                           "Object not found.");
         return AV.Promise.reject(errorObject);
 
-      })._thenRunCallbacks(options, null);
+      });
     },
 
     /**
@@ -280,7 +279,7 @@ module.exports = function(AV) {
           }
           return obj;
         });
-      })._thenRunCallbacks(options);
+      });
     },
 
    /**
@@ -292,9 +291,9 @@ module.exports = function(AV) {
     */
      destroyAll: function(options){
        var self = this;
-       return self.find().then(function(objects){
+       return self.find(options).then(function(objects){
            return AV.Object.destroyAll(objects);
-       })._thenRunCallbacks(options);
+       });
      },
 
     /**
@@ -314,16 +313,12 @@ module.exports = function(AV) {
 
       return request.then(function(response) {
         return response.count;
-      })._thenRunCallbacks(options);
+      });
     },
 
     /**
      * Retrieves at most one AV.Object that satisfies this query.
      *
-     * Either options.success or options.error is called when it completes.
-     * success is passed the object if there is one. otherwise, undefined.
-     *
-     * @param {Object} options A Backbone-style options object.
      * @return {AV.Promise} A promise that is resolved with the object when
      * the query completes.
      */
@@ -342,7 +337,7 @@ module.exports = function(AV) {
           }
           return obj;
         })[0];
-      })._thenRunCallbacks(options);
+      });
     },
 
     /**
@@ -876,22 +871,16 @@ module.exports = function(AV) {
      * and may not use limit or skip.
      * @param callback {Function} Callback that will be called with each result
      *     of the query.
-     * @param options {Object} An optional Backbone-like options object with
-     *     success and error callbacks that will be invoked once the iteration
-     *     has finished.
      * @return {AV.Promise} A promise that will be fulfilled once the
      *     iteration has completed.
      */
-    each: function(callback, options) {
-      options = options || {};
+    each: function(callback, options = {}) {
 
       if (this._order || this._skip || (this._limit >= 0)) {
         var error =
           "Cannot iterate on a query with sort, skip, or limit.";
-        return AV.Promise.reject(error)._thenRunCallbacks(options);
+        return AV.Promise.reject(error);
       }
-
-      var promise = new AV.Promise();
 
       var query = new AV.Query(this.objectClass);
       // We can override the batch size from the options.
@@ -907,7 +896,7 @@ module.exports = function(AV) {
         return !finished;
 
       }, function() {
-        return query.find().then(function(results) {
+        return query.find(options).then(function(results) {
           var callbacksDone = AV.Promise.resolve();
           _.each(results, function(result) {
             callbacksDone = callbacksDone.then(function() {
@@ -923,7 +912,7 @@ module.exports = function(AV) {
             }
           });
         });
-      })._thenRunCallbacks(options);
+      });
     }
   };
 

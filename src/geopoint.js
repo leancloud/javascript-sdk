@@ -101,23 +101,16 @@ module.exports = function(AV) {
 
   /**
    * Creates a GeoPoint with the user's current location, if available.
-   * Calls options.success with a new GeoPoint instance or calls options.error.
-   * @param {Object} options An object with success and error callbacks.
+   * @return {Promise.<GeoPoint>}
    */
-  AV.GeoPoint.current = function(options) {
-    var promise = new AV.Promise();
+  AV.GeoPoint.current = () => new AV.Promise((resolve, reject) => {
     navigator.geolocation.getCurrentPosition(function(location) {
-      promise.resolve(new AV.GeoPoint({
+      resolve(new AV.GeoPoint({
         latitude: location.coords.latitude,
         longitude: location.coords.longitude
       }));
-
-    }, function(error) {
-      promise.reject(error);
-    });
-
-    return promise._thenRunCallbacks(options);
-  };
+    }, reject);
+  });
 
   AV.GeoPoint.prototype = {
     /**

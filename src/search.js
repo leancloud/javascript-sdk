@@ -226,11 +226,10 @@ module.exports = function(AV) {
      * completes.
      *
      * @see AV.Query#find
-     * @param {Object} options A Backbone-style options object.
      * @return {AV.Promise} A promise that is resolved with the results when
      * the query completes.
      */
-    find: function(options) {
+    find: function() {
       var self = this;
 
       var request = this._createRequest();
@@ -255,7 +254,7 @@ module.exports = function(AV) {
           obj._finishFetch(self._processResult(json), true);
           return obj;
         });
-      })._thenRunCallbacks(options);
+      });
     },
 
     toJSON: function(){

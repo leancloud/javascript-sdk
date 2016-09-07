@@ -36,13 +36,13 @@ module.exports = function(AV) {
    * an error function that takes a AVError and will be called if the push
    * failed.
    */
-  AV.Push.send = function(data, options) {
+  AV.Push.send = function(data) {
     if (data.where) {
       data.where = data.where.toJSON().where;
     }
 
     if(data.where && data.cql){
-      throw "Both where and cql can't be set";
+      throw new Error("Both where and cql can't be set");
     }
 
     if (data.push_time) {
@@ -54,10 +54,10 @@ module.exports = function(AV) {
     }
 
     if (data.expiration_time && data.expiration_time_interval) {
-      throw "Both expiration_time and expiration_time_interval can't be set";
+      throw new Error("Both expiration_time and expiration_time_interval can't be set");
     }
 
     var request = AVRequest('push', null, null, 'POST', data);
-    return request._thenRunCallbacks(options);
+    return request;
   };
 };

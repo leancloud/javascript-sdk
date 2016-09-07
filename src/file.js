@@ -574,15 +574,17 @@ module.exports = function(AV) {
 
      /**
      * Destroy the file.
+     * @param {Object} [options]
+     * @param {String} [options.sessionToken]
      * @return {AV.Promise} A promise that is fulfilled when the destroy
      *     completes.
      */
     destroy: function(options) {
       if (!this.id) {
-        return AV.Promise.reject('The file id is not eixsts.')._thenRunCallbacks(options);
+        return AV.Promise.reject(new Error('The file id is not eixsts.'));
       }
       var request = AVRequest("files", null, this.id, 'DELETE', options && options.sessionToken);
-      return request._thenRunCallbacks(options);
+      return request;
     },
 
     /**
@@ -618,25 +620,13 @@ module.exports = function(AV) {
      */
     /**
      * Saves the file to the AV cloud.
-     * @param {Object} saveOptions
-     * @param {UploadProgressCallback} [saveOptions.onProgress]
-     * @param {Object} options A Backbone-style options object.
+     * @param {Object} options
+     * @param {UploadProgressCallback} [options.onProgress]
      * @return {AV.Promise} Promise that is resolved when the save finishes.
      */
-    save(...args) {
+    save(options) {
       if (this.id) {
         throw new Error('File already saved. If you want to manipulate a file, use AV.Query to get it.');
-      }
-      let options;
-      let saveOptions = {};
-      switch (args.length) {
-        case 1:
-          options = args[0];
-          break;
-        case 2:
-          saveOptions = args[0];
-          options = args[1];
-          break;
       }
       if (!this._previousSave) {
         if (this._source) {
@@ -646,14 +636,14 @@ module.exports = function(AV) {
                 let uploadPromise;
                 switch (uploadInfo.provider) {
                   case 's3':
-                    uploadPromise = s3(uploadInfo, data, this, saveOptions);
+                    uploadPromise = s3(uploadInfo, data, this, options);
                     break;
                   case 'qcloud':
-                    uploadPromise = cos(uploadInfo, data, this, saveOptions);
+                    uploadPromise = cos(uploadInfo, data, this, options);
                     break;
                   case 'qiniu':
                   default:
-                    uploadPromise = qiniu(uploadInfo, data, this, saveOptions);
+                    uploadPromise = qiniu(uploadInfo, data, this, options);
                     break;
                 }
                 return uploadPromise.catch(err => {
@@ -683,29 +673,20 @@ module.exports = function(AV) {
           });
         }
       }
-      return this._previousSave._thenRunCallbacks(options);
+      return this._previousSave;
     },
     /**
     * fetch the file from server. If the server's representation of the
     * model differs from its current attributes, they will be overriden,
-    * @param {Object} fetchOptions Optional options to set 'keys' and
+    * @param {Object} options Optional options to set 'keys' and
     *      'include' option.
-    * @param {Object} options Optional Backbone-like options object to be
-    *     passed in to set.
     * @return {AV.Promise} A promise that is fulfilled when the fetch
     *     completes.
     */
-    fetch: function() {
+    fetch: function(options) {
         var options = null;
-        var fetchOptions = {};
-        if (arguments.length === 1) {
-          options = arguments[0];
-        } else if (arguments.length === 2) {
-          fetchOptions = arguments[0];
-          options = arguments[1];
-        }
 
-        var request = AVRequest('files', null, this.id, 'GET', fetchOptions);
+        var request = AVRequest('files', null, this.id, 'GET', options);
         return request.then((response) => {
           var value = AV.Object.prototype.parse(response);
           value.attributes = {
@@ -720,7 +701,7 @@ module.exports = function(AV) {
           delete value.name;
           _.extend(this, value);
           return this;
-        })._thenRunCallbacks(options);
+        });
     }
   };
 
