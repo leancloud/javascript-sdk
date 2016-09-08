@@ -3,6 +3,7 @@ demo
 node_modules
 src
 test
+script
 tools
 .babelrc
 .gitignore

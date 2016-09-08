@@ -9,10 +9,7 @@ import fs from 'fs';
 import gulp from 'gulp';
 import clean from 'gulp-clean';
 import concat from 'gulp-concat';
-import gzip from 'gulp-gzip';
 import rename from 'gulp-rename';
-import shell from 'gulp-shell';
-import tar from 'gulp-tar';
 import uglify from 'gulp-uglify';
 import source from 'vinyl-source-stream';
 import browserify from 'browserify';
@@ -94,22 +91,6 @@ gulp.task('uglify', ['babel-browser'], () => {
   //   .pipe(clean());
 });
 
-gulp.task('compress-scripts', ['uglify'], () => {
-  const version = getAVVersion();
-  gulp.src(['dist/*.tar.gz'])
-    .pipe(clean());
-
-  return gulp.src([
-      'dist/av-es6.js',
-      'dist/av.js',
-      'dist/av-min.js',
-      'readme.txt'
-    ])
-    .pipe(tar('avos-javascript-sdk-' + version + '.tar'))
-    .pipe(gzip())
-    .pipe(gulp.dest('dist'));
-});
-
 gulp.task('clean-node', () => {
   return gulp.src(['dist/node/**/*.*'])
     .pipe(clean({force: true}));
@@ -122,15 +103,6 @@ gulp.task('babel-node', ['clean-node'], () => {
     .pipe(babel())
     // .pipe(concat('av.js'))
     // .pipe(sourcemaps.write("."))
-    .pipe(gulp.dest('dist/node/'));
-});
-
-// 压缩 node 版本代码
-gulp.task('uglify-node', ['babel-node'], () => {
-  return gulp.src([
-      'dist/node/**/*.js'
-    ])
-    .pipe(uglify())
     .pipe(gulp.dest('dist/node/'));
 });
 
@@ -149,19 +121,6 @@ gulp.task('babel-demo', ['clean-demo'], () => {
     .pipe(gulp.dest('demo/'));
 });
 
-gulp.task('docs', shell.task([
-  'mkdir -p dist/js-sdk-api-docs',
-  'JSDOCDIR=tools/jsdoc-toolkit/ sh tools/jsdoc-toolkit/jsrun.sh -d=dist/js-sdk-api-docs -t=tools/jsdoc-toolkit/templates/jsdoc src/',
-]));
-
-gulp.task('compress-docs', ['docs'], () => {
-  const version = getAVVersion();
-  return gulp.src(['dist/js-sdk-api-docs/**'])
-    .pipe(tar('js-sdk-api-docs-' + version + '.tar'))
-    .pipe(gzip())
-    .pipe(gulp.dest('dist'));
-});
-
 // 上传到 CDN
 gulp.task('upload', () => {
   uploadCDN('./dist/av-min.js', getAVVersion(), () => {});
@@ -174,16 +133,9 @@ gulp.task('release', [
   'browserify',
   'babel-browser',
   'uglify',
-  'compress-scripts',
   // 生成 node 版本
   'clean-node',
   'babel-node'
-]);
-
-// 生成 API 文档
-gulp.task('doc', [
-  'docs',
-  'compress-docs'
 ]);
 
 // 浏览器开发时使用
