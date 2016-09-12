@@ -4,7 +4,7 @@ describe('analyse', function () {
       version: '1.8.6',
       channel: 'weixin',
       event: 'test-event-name',
-      attr: {
+      attributes: {
         testa: 123,
         testb: 'abc',
       },

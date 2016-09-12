@@ -33,7 +33,7 @@ av.Analyse.send({
   version: av.version,
   channel: 'JS 测试',
   event: 'test-event-name',
-  attr: {
+  attributes: {
     testa: 123,
     testb: 'abc',
   },

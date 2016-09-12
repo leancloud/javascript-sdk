@@ -30,7 +30,7 @@ const analyseObj = {
    * @param {String} [options.version] 自定义的版本号，用来区分当前产品版本
    * @param {String} [options.channel] 自定义的渠道名称，用来区分当前产品渠道
    * @param {String} [options.event] 自定义的事件名，用来自定义一个统计事件，相当于一类统计的标题
-   * @param {Object} [options.attr] 自定义的属性，可以传入任意的 Object，携带自定义的更多统计信息
+   * @param {Object} [options.attributes] 自定义的属性，可以传入任意的 Object，携带自定义的更多统计信息
    * @param {Number} [options.duration] 传入毫秒数访问时长，表示该次事件的持续时长
    * @return {Promise}
   */
@@ -50,7 +50,7 @@ const analyseObj = {
       event: options.event,
 
       // 事件属性，完全自定义
-      attributes: options.attr,
+      attributes: options.attributes,
 
       // 持续时长，单位毫秒
       duration: options.duration,
