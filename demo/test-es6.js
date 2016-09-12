@@ -28,6 +28,18 @@ const region = 'cn';
 
 av.init({ appId, appKey, region });
 
+// 发送统计自定义事件
+av.Analyse.send({
+  version: av.version,
+  channel: 'JS 测试',
+  event: 'test-event-name',
+  attr: {
+    testa: 123,
+    testb: 'abc',
+  },
+  duration: 6000,
+});
+
 // 基本存储
 const TestClass = av.Object.extend('TestClass');
 const testObj = new TestClass();

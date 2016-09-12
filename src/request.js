@@ -61,6 +61,7 @@ const checkRouter = (router) => {
     'subscribe/statuses/count',
     'subscribe/statuses',
     'installations',
+    'stats',
   ];
 
   if (routerList.indexOf(router) === -1 &&
@@ -161,6 +162,8 @@ const createApiUrl = (route, className, objectId, method, dataObject) => {
   if (objectId) {
     apiURL += `/${objectId}`;
   }
+
+  // 一些特例
   if ((route === 'users' || route === 'classes') && dataObject) {
     apiURL += '?';
     if (dataObject._fetchWhenSave) {
@@ -171,8 +174,11 @@ const createApiUrl = (route, className, objectId, method, dataObject) => {
       apiURL += `&where=${encodeURIComponent(JSON.stringify(dataObject._where))}`;
       delete dataObject._where;
     }
+  } else if (route === 'stats') {
+    apiURL += '/open/collect';
   }
 
+  // 对 get 请求的数据进行格式化
   if (method.toLowerCase() === 'get') {
     if (apiURL.indexOf('?') === -1) {
       apiURL += '?';
