@@ -1,8 +1,8 @@
 describe('analyse', function () {
   it('send custom event', function () {
     return AV.Analyse.send({
-      version: '1.8.6',
-      channel: 'weixin',
+      version: AV.version,
+      channel: 'JS 测试',
       event: 'test-event-name',
       attributes: {
         testa: 123,
