@@ -6,11 +6,6 @@
  * The LeanCloud JavaScript SDK is freely distributable under the MIT license.
  */
 
-/**
- * 每位工程师都有保持代码优雅的义务
- * Each engineer has a duty to keep the code elegant
-**/
-
 const AV = module.exports = require('./av');
 
 AV._ = require('underscore');
@@ -40,12 +35,11 @@ require('./status')(AV);
 require('./search')(AV);
 require('./insight')(AV);
 
-// TODO: deprecated AV.Error()
-const AVError = require('./error');
+AV.Error = require('./error');
+
 /**
- * @deprecated AV.Error() is deprecated, and will be removed in next release.
+ * Options to controll the authentication for an operation
+ * @typedef {Object} AuthOptions
+ * @property {String} sessionToken Specify a user to excute the operation as.
+ * @property {Boolean} useMasterKey Indicates whether masterKey is used for this operation. Only valid when masterKey is set.
  */
-AV.Error = (...args) => {
-  console.warn('AV.Error() is deprecated, and will be removed in next release.');
-  return new AVError(...args);
-};

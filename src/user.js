@@ -1,8 +1,3 @@
-/**
- * 每位工程师都有保持代码优雅的义务
- * Each engineer has a duty to keep the code elegant
-**/
-
 const _ = require('underscore');
 const AVError = require('./error');
 const AVRequest = require('./request').request;
@@ -11,9 +6,9 @@ module.exports = function(AV) {
   /**
    * @class
    *
-   * <p>A AV.User object is a local representation of a user persisted to the
-   * AV cloud. This class is a subclass of a AV.Object, and retains the
-   * same functionality of a AV.Object, but also extends it with various
+   * <p>An AV.User object is a local representation of a user persisted to the
+   * LeanCloud server. This class is a subclass of an AV.Object, and retains the
+   * same functionality of an AV.Object, but also extends it with various
    * user specific methods, like authentication, signing up, and validation of
    * uniqueness.</p>
    */
@@ -26,6 +21,7 @@ module.exports = function(AV) {
 
     /**
      * Internal method to handle special fields in a _User response.
+     * @private
      */
     _mergeMagicFields: function(attrs) {
       if (attrs.sessionToken) {
@@ -38,6 +34,7 @@ module.exports = function(AV) {
     /**
      * Removes null values from authData (which exist temporarily for
      * unlinking)
+     * @private
      */
     _cleanupAuthData: function() {
       if (!this.isCurrent()) {
@@ -56,6 +53,7 @@ module.exports = function(AV) {
 
     /**
      * Synchronizes authData for all providers.
+     * @private
      */
     _synchronizeAllAuthData: function() {
       var authData = this.get('authData');
@@ -72,6 +70,7 @@ module.exports = function(AV) {
     /**
      * Synchronizes auth data for a provider (e.g. puts the access token in the
      * right place to be used by the Facebook SDK).
+     * @private
      */
     _synchronizeAuthData: function(provider) {
       if (!this.isCurrent()) {
@@ -118,6 +117,7 @@ module.exports = function(AV) {
     /**
      * Unlike in the Android/iOS SDKs, logInWith is unnecessary, since you can
      * call linkWith on the user (even if it doesn't exist yet on the server).
+     * @private
      */
     _linkWith: function(provider, data) {
       var authType;
@@ -143,6 +143,7 @@ module.exports = function(AV) {
 
     /**
      * Unlinks a user from a service.
+     * @private
      */
     _unlinkFrom: function(provider) {
       if (_.isString(provider)) {
@@ -156,6 +157,7 @@ module.exports = function(AV) {
 
     /**
      * Checks whether a user is linked to a service.
+     * @private
      */
     _isLinked: function(provider) {
       var authType;
@@ -175,6 +177,7 @@ module.exports = function(AV) {
 
     /**
      * Deauthenticates all providers.
+     * @private
      */
     _logOutWithAll: function() {
       var authData = this.get('authData');
@@ -190,6 +193,7 @@ module.exports = function(AV) {
     /**
      * Deauthenticates a single provider (e.g. removing access tokens from the
      * Facebook SDK).
+     * @private
      */
     _logOutWith: function(provider) {
       if (!this.isCurrent()) {
@@ -211,10 +215,9 @@ module.exports = function(AV) {
      *
      * <p>A username and password must be set before calling signUp.</p>
      *
-     * <p>Calls options.success or options.error on completion.</p>
-     *
      * @param {Object} attrs Extra fields to set on the new user, or null.
-     * @return {AV.Promise} A promise that is fulfilled when the signup
+     * @param {AuthOptions} options
+     * @return {Promise} A promise that is fulfilled when the signup
      *     finishes.
      * @see AV.User.signUp
      */
@@ -253,10 +256,9 @@ module.exports = function(AV) {
      *
      * <p>A username and password must be set before calling signUp.</p>
      *
-     * <p>Calls options.success or options.error on completion.</p>
-     *
      * @param {Object} attrs Extra fields to set on the new user, or null.
-     * @return {AV.Promise} A promise that is fulfilled when the signup
+     * @param {AuthOptions} options
+     * @return {Promise} A promise that is fulfilled when the signup
      *     finishes.
      * @see AV.User.signUpOrlogInWithMobilePhone
      * @see AV.Cloud.requestSmsCode
@@ -302,10 +304,8 @@ module.exports = function(AV) {
      *
      * <p>A username and password must be set before calling logIn.</p>
      *
-     * <p>Calls options.success or options.error on completion.</p>
-     *
      * @see AV.User.logIn
-     * @return {AV.Promise} A promise that is fulfilled with the user when
+     * @return {Promise} A promise that is fulfilled with the user when
      *     the login is complete.
      */
     logIn: function() {
@@ -348,7 +348,8 @@ module.exports = function(AV) {
     /**
      * Follow a user
      * @since 0.3.0
-     * @param {} target The target user or user's objectId to follow.
+     * @param {AV.User | String} target The target user or user's objectId to follow.
+     * @param {AuthOptions} options
      */
     follow: function(target, options){
       if(!this.id){
@@ -369,7 +370,8 @@ module.exports = function(AV) {
     /**
      * Unfollow a user.
      * @since 0.3.0
-     * @param {} target The target user or user's objectId to unfollow.
+     * @param {AV.User | String} target The target user or user's objectId to unfollow.
+     * @param {AuthOptions} options
      */
     unfollow: function(target, options){
       if(!this.id){
@@ -419,11 +421,9 @@ module.exports = function(AV) {
 
     /**
      * Update user's new password safely based on old password.
-     * @param {String} oldPassword, the old password.
-     * @param {String} newPassword, the new password.
-     * @param {Object} An optional Backbone-like options object with
-     *     success and error callbacks that will be invoked once the iteration
-     *     has finished.
+     * @param {String} oldPassword the old password.
+     * @param {String} newPassword the new password.
+     * @param {AuthOptions} options
      */
     updatePassword: function(oldPassword, newPassword, options) {
       var route = 'users/' + this.id + '/updatePassword';
@@ -464,9 +464,9 @@ module.exports = function(AV) {
     /**
      * Calls set("mobilePhoneNumber", phoneNumber, options) and returns the result.
      * @param {String} mobilePhoneNumber
-     * @param {Object} options A Backbone-style options object.
+     * @param {AuthOptions} options
      * @return {Boolean}
-     * @see AV.Object.set
+     * @see AV.Object#set
      */
     setMobilePhoneNumber: function(phone, options) {
       return this.set("mobilePhoneNumber", phone, options);
@@ -475,9 +475,9 @@ module.exports = function(AV) {
     /**
      * Calls set("username", username, options) and returns the result.
      * @param {String} username
-     * @param {Object} options A Backbone-style options object.
+     * @param {AuthOptions} options
      * @return {Boolean}
-     * @see AV.Object.set
+     * @see AV.Object#set
      */
     setUsername: function(username, options) {
       return this.set("username", username, options);
@@ -486,9 +486,9 @@ module.exports = function(AV) {
     /**
      * Calls set("password", password, options) and returns the result.
      * @param {String} password
-     * @param {Object} options A Backbone-style options object.
+     * @param {AuthOptions} options
      * @return {Boolean}
-     * @see AV.Object.set
+     * @see AV.Object#set
      */
     setPassword: function(password, options) {
       return this.set("password", password, options);
@@ -506,9 +506,9 @@ module.exports = function(AV) {
     /**
      * Calls set("email", email, options) and returns the result.
      * @param {String} email
-     * @param {Object} options A Backbone-style options object.
+     * @param {AuthOptions} options
      * @return {Boolean}
-     * @see AV.Object.set
+     * @see AV.Object#set
      */
     setEmail: function(email, options) {
       return this.set("email", email, options);
@@ -523,6 +523,10 @@ module.exports = function(AV) {
           (!AV._config.disableCurrentUser && AV.User.current() && AV.User.current().id === this.id);
     },
 
+    /**
+     * Get sessionToken of current user.
+     * @return {String} sessionToken
+     */
     getSessionToken: function() {
       return this._sessionToken;
     },
@@ -552,13 +556,11 @@ module.exports = function(AV) {
      * session in localStorage so that you can access the user using
      * {@link #current}.
      *
-     * <p>Calls options.success or options.error on completion.</p>
-     *
      * @param {String} username The username (or email) to sign up with.
      * @param {String} password The password to sign up with.
      * @param {Object} attrs Extra fields to set on the new user.
-     * @param {Object} options A Backbone-style options object.
-     * @return {AV.Promise} A promise that is fulfilled with the user when
+     * @param {AuthOptions} options
+     * @return {Promise} A promise that is fulfilled with the user when
      *     the signup completes.
      * @see AV.User#signUp
      */
@@ -575,12 +577,10 @@ module.exports = function(AV) {
      * saves the session to disk, so you can retrieve the currently logged in
      * user using <code>current</code>.
      *
-     * <p>Calls options.success or options.error on completion.</p>
-     *
      * @param {String} username The username (or email) to log in with.
      * @param {String} password The password to log in with.
-     * @param {Object} options A Backbone-style options object.
-     * @return {AV.Promise} A promise that is fulfilled with the user when
+     * @param {AuthOptions} options
+     * @return {Promise} A promise that is fulfilled with the user when
      *     the login completes.
      * @see AV.User#logIn
      */
@@ -595,10 +595,8 @@ module.exports = function(AV) {
      * to disk, so you can retrieve the currently logged in user using
      * <code>current</code>.
      *
-     * <p>Calls options.success or options.error on completion.</p>
-     *
      * @param {String} sessionToken The sessionToken to log in with.
-     * @return {AV.Promise} A promise that is fulfilled with the user when
+     * @return {Promise} A promise that is fulfilled with the user when
      *     the login completes.
      */
     become: function(sessionToken) {
@@ -627,12 +625,10 @@ module.exports = function(AV) {
      * saves the session to disk, so you can retrieve the currently logged in
      * user using <code>current</code>.
      *
-     * <p>Calls options.success or options.error on completion.</p>
-     *
      * @param {String} mobilePhone The user's mobilePhoneNumber
      * @param {String} smsCode The sms code sent by AV.User.requestLoginSmsCode
-     * @param {Object} options A Backbone-style options object.
-     * @return {AV.Promise} A promise that is fulfilled with the user when
+     * @param {AuthOptions} options
+     * @return {Promise} A promise that is fulfilled with the user when
      *     the login completes.
      * @see AV.User#logIn
      */
@@ -647,13 +643,11 @@ module.exports = function(AV) {
      * On success, this saves the session to disk, so you can retrieve the currently
      * logged in user using <code>current</code>.
      *
-     * <p>Calls options.success or options.error on completion.</p>
-     *
      * @param {String} mobilePhoneNumber The user's mobilePhoneNumber.
      * @param {String} smsCode The sms code sent by AV.Cloud.requestSmsCode
      * @param {Object} attributes  The user's other attributes such as username etc.
-     * @param {Object} options A Backbone-style options object.
-     * @return {AV.Promise} A promise that is fulfilled with the user when
+     * @param {AuthOptions} options
+     * @return {Promise} A promise that is fulfilled with the user when
      *     the login completes.
      * @see AV.User#signUpOrlogInWithMobilePhone
      * @see AV.Cloud.requestSmsCode
@@ -672,12 +666,10 @@ module.exports = function(AV) {
      * saves the session to disk, so you can retrieve the currently logged in
      * user using <code>current</code>.
      *
-     * <p>Calls options.success or options.error on completion.</p>
-     *
      * @param {String} mobilePhone The user's mobilePhoneNumber
      * @param {String} password The password to log in with.
-     * @param {Object} options A Backbone-style options object.
-     * @return {AV.Promise} A promise that is fulfilled with the user when
+     * @param {AuthOptions} options
+     * @return {Promise} A promise that is fulfilled with the user when
      *     the login completes.
      * @see AV.User#logIn
      */
@@ -694,7 +686,7 @@ module.exports = function(AV) {
      *
      * @param {Object} authData The response json data returned from third party token, maybe like { openid: 'abc123', access_token: '123abc', expires_in: 1382686496 }
      * @param {string} platform Available platform for sign up.
-     * @return {AV.Promise} A promise that is fulfilled with the user when
+     * @return {Promise} A promise that is fulfilled with the user when
      *     the login completes.
      * @example AV.User.signUpOrlogInWithAuthData(authData, platform).then(function(user) {
      *   //Access user here
@@ -713,7 +705,7 @@ module.exports = function(AV) {
      * @param {AV.User} userObj A user which you want to associate.
      * @param {string} platform Available platform for sign up.
      * @param {Object} authData The response json data returned from third party token, maybe like { openid: 'abc123', access_token: '123abc', expires_in: 1382686496 }
-     * @return {AV.Promise} A promise that is fulfilled with the user when completed.
+     * @return {Promise} A promise that is fulfilled with the user when completed.
      * @example AV.User.associateWithAuthData(loginUser, 'weixin', {
      *   openid: 'abc123',
      *   access_token: '123abc',
@@ -731,6 +723,7 @@ module.exports = function(AV) {
      * Logs out the currently logged in user session. This will remove the
      * session from disk, log out of linked services, and future calls to
      * <code>current</code> will return <code>null</code>.
+     * @return {Promise}
      */
     logOut: function() {
       if (AV._config.disableCurrentUser) {
@@ -750,7 +743,8 @@ module.exports = function(AV) {
 
     /**
      *Create a follower query for special user to query the user's followers.
-     * @param userObjectId {String} The user object id.
+     * @param {String} userObjectId The user object id.
+     * @return {AV.FriendShipQuery}
      * @since 0.3.0
      */
     followerQuery: function(userObjectId) {
@@ -765,7 +759,8 @@ module.exports = function(AV) {
 
     /**
      *Create a followee query for special user to query the user's followees.
-     * @param userObjectId {String} The user object id.
+     * @param {String} userObjectId The user object id.
+     * @return {AV.FriendShipQuery}
      * @since 0.3.0
      */
     followeeQuery: function(userObjectId) {
@@ -785,6 +780,7 @@ module.exports = function(AV) {
      *
      * @param {String} email The email address associated with the user that
      *     forgot their password.
+     * @return {Promise}
      */
     requestPasswordReset: function(email) {
       var json = { email: email };
@@ -800,6 +796,7 @@ module.exports = function(AV) {
      *
      * @param {String} email The email address associated with the user that
      *     doesn't verify their email address.
+     * @return {Promise}
      */
     requestEmailVerify: function(email) {
       var json = { email: email };
@@ -825,6 +822,7 @@ module.exports = function(AV) {
      *
      * @param {String} mobilePhone The mobile phone number  associated with the
      *                  user that doesn't verify their mobile phone number.
+     * @return {Promise}
      */
     requestMobilePhoneVerify: function(mobilePhone){
       var json = { mobilePhoneNumber: mobilePhone };
@@ -841,6 +839,7 @@ module.exports = function(AV) {
      *
      * @param {String} mobilePhone The mobile phone number  associated with the
      *                  user that doesn't verify their mobile phone number.
+     * @return {Promise}
      */
     requestPasswordResetBySmsCode: function(mobilePhone){
       var json = { mobilePhoneNumber: mobilePhone };
@@ -851,10 +850,10 @@ module.exports = function(AV) {
 
     /**
      * Makes a call to reset user's account password by sms code and new password.
-    * The sms code is sent by AV.User.requestPasswordResetBySmsCode.
+     * The sms code is sent by AV.User.requestPasswordResetBySmsCode.
      * @param {String} code The sms code sent by AV.User.Cloud.requestSmsCode
      * @param {String} password The new password.
-     * @return {AV.Promise} A promise that will be resolved with the result
+     * @return {Promise} A promise that will be resolved with the result
      * of the function.
      */
     resetPasswordBySmsCode: function(code, password){
@@ -868,7 +867,7 @@ module.exports = function(AV) {
      * Makes a call to verify sms code that sent by AV.User.Cloud.requestSmsCode
      * If verify successfully,the user mobilePhoneVerified attribute will be true.
      * @param {String} code The sms code sent by AV.User.Cloud.requestSmsCode
-     * @return {AV.Promise} A promise that will be resolved with the result
+     * @return {Promise} A promise that will be resolved with the result
      * of the function.
      */
     verifyMobilePhone: function(code){
@@ -884,6 +883,7 @@ module.exports = function(AV) {
      *
      * @param {String} mobilePhone The mobile phone number  associated with the
      *           user that want to login by AV.User.logInWithMobilePhoneSmsCode
+     * @return {Promise}
      */
     requestLoginSmsCode: function(mobilePhone){
       var json = { mobilePhoneNumber: mobilePhone };
@@ -895,7 +895,7 @@ module.exports = function(AV) {
     /**
      * Retrieves the currently logged in AVUser with a valid session,
      * either from memory or localStorage, if necessary.
-     * @return {AV.Promise} resolved with the currently logged in AV.User.
+     * @return {Promise.<AV.User>} resolved with the currently logged in AV.User.
      */
     currentAsync: function() {
       if (AV._config.disableCurrentUser) {
@@ -944,7 +944,7 @@ module.exports = function(AV) {
     /**
      * Retrieves the currently logged in AVUser with a valid session,
      * either from memory or localStorage, if necessary.
-     * @return {AV.Object} The currently logged in AV.User.
+     * @return {AV.User} The currently logged in AV.User.
      */
     current: function() {
       if (AV._config.disableCurrentUser) {
@@ -989,6 +989,7 @@ module.exports = function(AV) {
 
     /**
      * Persists a user as currentUser to localStorage, and into the singleton.
+     * @private
      */
     _saveCurrentUser: function(user) {
       var promise;

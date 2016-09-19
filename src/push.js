@@ -1,40 +1,28 @@
-/**
- * 每位工程师都有保持代码优雅的义务
- * Each engineer has a duty to keep the code elegant
-**/
-
 const AVRequest = require('./request').request;
 
 module.exports = function(AV) {
   AV.Installation = AV.Object.extend("_Installation");
 
   /**
-   * Contains functions to deal with Push in AV
-   * @name AV.Push
    * @namespace
    */
   AV.Push = AV.Push || {};
 
   /**
    * Sends a push notification.
-   * @param {Object} data -  The data of the push notification.  Valid fields
-   * are:
+   * @param {Object} data The data of the push notification.
+   * @param {String[]} [data.channels] An Array of channels to push to.
+   * @param {Date} [data.push_time] A Date object for when to send the push.
+   * @param {Date} [data.expiration_time]  A Date object for when to expire
+   *         the push.
+   * @param {Number} [data.expiration_interval] The seconds from now to expire the push.
+   * @param {AV.Query} [data.where] An AV.Query over AV.Installation that is used to match
+   *         a set of installations to push to.
+   * @param {String} [data.cql] A CQL statement over AV.Installation that is used to match
+   *         a set of installations to push to.
+   * @param {Date} data.data The data to send as part of the push
    *   <ol>
-   *     <li>channels - An Array of channels to push to.</li>
-   *     <li>push_time - A Date object for when to send the push.</li>
-   *     <li>expiration_time -  A Date object for when to expire
-   *         the push.</li>
-   *     <li>expiration_interval - The seconds from now to expire the push.</li>
-   *     <li>where - A AV.Query over AV.Installation that is used to match
-   *         a set of installations to push to.</li>
-   *     <li>cql - A CQL statement over AV.Installation that is used to match
-   *         a set of installations to push to.</li>
-   *     <li>data - The data to send as part of the push</li>
-   *   <ol>
-   * @param {Object} options An object that has an optional success function,
-   * that takes no arguments and will be called on a successful push, and
-   * an error function that takes a AVError and will be called if the push
-   * failed.
+   * @return {Promise}
    */
   AV.Push.send = function(data) {
     if (data.where) {

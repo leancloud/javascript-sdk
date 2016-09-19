@@ -1,9 +1,5 @@
-/**
- * 每位工程师都有保持代码优雅的义务
- * Each engineer has a duty to keep the code elegant
-**/
+var _ = require('underscore');
 
-/*global _: false */
 module.exports = function(AV) {
   var eventSplitter = /\s+/;
   var slice = Array.prototype.slice;
@@ -20,15 +16,16 @@ module.exports = function(AV) {
    * Triggering an event fires all callbacks in the order that `on` was
    * called.
    *
-   * <pre>
-   *     var object = {};
-   *     _.extend(object, AV.Events);
-   *     object.on('expand', function(){ alert('expanded'); });
-   *     object.trigger('expand');</pre></p>
-   *
    * <p>For more information, see the
    * <a href="http://documentcloud.github.com/backbone/#Events">Backbone
    * documentation</a>.</p>
+   *
+   * @example
+   * var object = {};
+   * _.extend(object, AV.Events);
+   * object.on('expand', function(){ alert('expanded'); });
+   * object.trigger('expand');</pre></p>
+   *
    */
   AV.Events = {
     /**

@@ -9,6 +9,7 @@
   },
   "scripts": {
     "test": "NODE_ENV=test nyc --reporter lcov --reporter text mocha --timeout 300000 test/index.js",
+    "docs": "jsdoc src README.md package.json -d docs -c .jsdocrc.json",
     "build": "gulp release"
   },
   "dependencies": {
@@ -27,6 +28,7 @@
     "babel-register": "^6.14.0",
     "browser-sync": "^2.2.1",
     "browserify": "^11.0.1",
+    "docdash": "git+https://github.com/leeyeh/docdash.git#leancloud",
     "eslint": "^2.8.0",
     "eslint-config-airbnb": "^8.0.0",
     "eslint-plugin-import": "^1.6.0",
@@ -40,6 +42,7 @@
     "gulp-eslint": "^0.13.2",
     "gulp-rename": "^1.2.0",
     "gulp-uglify": "^1.0.2",
+    "jsdoc": "~3.4.0",
     "mocha": "^3.0.0",
     "nyc": "^8.1.0",
     "should": "^11.1.0",

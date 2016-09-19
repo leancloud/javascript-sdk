@@ -1,23 +1,17 @@
-/**
- * 每位工程师都有保持代码优雅的义务
- * Each engineer has a duty to keep the code elegant
-**/
-
 const _ = require('underscore');
 const AVRequest = require('./request').request;
 
 module.exports = function(AV) {
   /**
    * A builder to generate sort string for app searching.For example:
-   * <pre><code>
+   * @class
+   * @since 0.5.1
+   * @example
    *   var builder = new AV.SearchSortBuilder();
    *   builder.ascending('key1').descending('key2','max');
    *   var query = new AV.SearchQuery('Player');
    *   query.sortBy(builder);
-   *   query.find().then ...
-   * </code></pre>
-   * @class
-   * @since 0.5.1
+   *   query.find().then();
    */
   AV.SearchSortBuilder = function() {
     this._sortFields = [];
@@ -102,20 +96,18 @@ module.exports = function(AV) {
 
   /**
    * App searching query.Use just like AV.Query:
-   * <pre><code>
+   *
+   * Visit <a href='https://leancloud.cn/docs/app_search_guide.html'>App Searching Guide</a>
+   * for more details.
+   * @class
+   * @since 0.5.1
+   * @example
    *   var query = new AV.SearchQuery('Player');
    *   query.queryString('*');
    *   query.find().then(function(results) {
    *     console.log('Found %d objects', query.hits());
    *     //Process results
    *   });
-   *
-   * </code></pre>
-   * Visite <a href='https://leancloud.cn/docs/app_search_guide.html'>App Searching Guide</a>
-   * for more details.
-   * @class
-   * @since 0.5.1
-   *
    */
   AV.SearchQuery = AV.Query._extend(/** @lends AV.SearchQuery.prototype */{
      _sid: null,
@@ -156,7 +148,7 @@ module.exports = function(AV) {
      *   //or pass an array.
      *   query.highlights(['title', 'content'])
      * </code></pre>
-     * @param {Array} highlights a list of fields.
+     * @param {String[]} highlights a list of fields.
      * @return {AV.SearchQuery} Returns the query, so you can chain this call.
      */
     highlights: function(highlights) {

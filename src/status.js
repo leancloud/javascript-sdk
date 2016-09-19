@@ -1,16 +1,10 @@
-/**
- * 每位工程师都有保持代码优雅的义务
- * Each engineer has a duty to keep the code elegant
-**/
-
 const _ = require('underscore');
 const AVRequest = require('./request').request;
 
 module.exports = function(AV) {
   /**
-   * Contains functions to deal with Status in AVOS Cloud.
-   * @name AV.Status
-   * @namespace
+   * Contains functions to deal with Status in LeanCloud.
+   * @class
    */
   AV.Status = function(imageUrl, message) {
     this.data = {};
@@ -48,7 +42,8 @@ module.exports = function(AV) {
     },
     /**
      * Destroy this status,then it will not be avaiable in other user's inboxes.
-     * @return {AV.Promise} A promise that is fulfilled when the destroy
+     * @param {AuthOptions} options
+     * @return {Promise} A promise that is fulfilled when the destroy
      *     completes.
      */
     destroy: function(options){
@@ -71,8 +66,13 @@ module.exports = function(AV) {
       return AV._encode(json);
     },
    /**
-    * Send  a status by a AV.Query object.
-    * <p>For example,send a status to male users:<br/><pre>
+    * Send a status by a AV.Query object.
+    * @since 0.3.0
+    * @param {AuthOptions} options
+    * @return {Promise} A promise that is fulfilled when the send
+    *     completes.
+    * @example
+    *     // send a status to male users
     *     var status = new AVStatus('image url', 'a message');
     *     status.query = new AV.Query('_User');
     *     status.query.equalTo('gender', 'male');
@@ -82,10 +82,6 @@ module.exports = function(AV) {
     *             //an error threw.
     *             console.dir(err);
     *      });
-    * </pre></p>
-    * @since 0.3.0
-    * @return {AV.Promise} A promise that is fulfilled when the send
-    *     completes.
     */
     send: function(options){
       if(!AV.User.current()){
@@ -128,8 +124,13 @@ module.exports = function(AV) {
   };
 
   /**
-   * Send  a status to current signined user's followers.For example:
-   * <p><pre>
+   * Send a status to current signined user's followers.
+   * @since 0.3.0
+   * @param {AV.Status} status  A status object to be send to followers.
+   * @param {AuthOptions} options
+   * @return {Promise} A promise that is fulfilled when the send
+   *     completes.
+   * @example
    *     var status = new AVStatus('image url', 'a message');
    *     AV.Status.sendStatusToFollowers(status).then(function(){
    *              //send status successfully.
@@ -137,11 +138,6 @@ module.exports = function(AV) {
    *             //an error threw.
    *             console.dir(err);
    *      });
-   * </pre></p>
-   * @since 0.3.0
-   * @param {AV.Status} status  A status object to be send to followers.
-   * @return {AV.Promise} A promise that is fulfilled when the send
-   *     completes.
    */
   AV.Status.sendStatusToFollowers = function(status, options) {
     if(!AV.User.current()){
@@ -169,21 +165,21 @@ module.exports = function(AV) {
 
   /**
    * <p>Send  a status from current signined user to other user's private status inbox.</p>
-   * <p>For example,send a private status to user '52e84e47e4b0f8de283b079b':<br/>
-   * <pre>
-   *    var status = new AVStatus('image url', 'a message');
+   * @since 0.3.0
+   * @param {AV.Status} status  A status object to be send to followers.
+   * @param {String} target The target user or user's objectId.
+   * @param {AuthOptions} options
+   * @return {Promise} A promise that is fulfilled when the send
+   *     completes.
+   * @example
+   *     // send a private status to user '52e84e47e4b0f8de283b079b'
+   *     var status = new AVStatus('image url', 'a message');
    *     AV.Status.sendPrivateStatus(status, '52e84e47e4b0f8de283b079b').then(function(){
    *              //send status successfully.
    *      }, function(err){
    *             //an error threw.
    *             console.dir(err);
    *      });
-   * </pre></p>
-   * @since 0.3.0
-   * @param {AV.Status} status  A status object to be send to followers.
-   * @param {String} target The target user or user's objectId.
-   * @return {AV.Promise} A promise that is fulfilled when the send
-   *     completes.
    */
   AV.Status.sendPrivateStatus = function(status, target, options) {
     if(!AV.User.current()){
@@ -218,18 +214,18 @@ module.exports = function(AV) {
   };
 
   /**
-   * Count unread statuses in someone's inbox.For example:<br/>
-   * <p><pre>
+   * Count unread statuses in someone's inbox.
+   * @since 0.3.0
+   * @param {Object} source The status source.
+   * @param {String} inboxType The inbox type,'default' by default.
+   * @param {AuthOptions} options
+   * @return {Promise} A promise that is fulfilled when the count
+   *     completes.
+   * @example
    *  AV.Status.countUnreadStatuses(AV.User.current()).then(function(response){
    *    console.log(response.unread); //unread statuses number.
    *    console.log(response.total);  //total statuses number.
    *  });
-   * </pre></p>
-   * @since 0.3.0
-   * @param {Object} source The status source.
-   * @return {AV.Query} The query object for status.
-   * @return {AV.Promise} A promise that is fulfilled when the count
-   *     completes.
    */
   AV.Status.countUnreadStatuses = function(owner){
     if(!AV.User.current() && owner == null){
@@ -246,17 +242,16 @@ module.exports = function(AV) {
   };
 
   /**
-   * Create a status query to find someone's published statuses.For example:<br/>
-   * <p><pre>
+   * Create a status query to find someone's published statuses.
+   * @since 0.3.0
+   * @param {Object} source The status source.
+   * @return {AV.Query} The query object for status.
+   * @example
    *   //Find current user's published statuses.
    *   var query = AV.Status.statusQuery(AV.User.current());
    *   query.find().then(function(statuses){
    *      //process statuses
    *   });
-   * </pre></p>
-   * @since 0.3.0
-   * @param {Object} source The status source.
-   * @return {AV.Query} The query object for status.
    */
   AV.Status.statusQuery = function(source){
     var query = new AV.Query('_Status');
@@ -268,7 +263,6 @@ module.exports = function(AV) {
 
    /**
     * <p>AV.InboxQuery defines a query that is used to fetch somebody's inbox statuses.</p>
-    * @see AV.Status#inboxQuery
     * @class
     */
    AV.InboxQuery = AV.Query._extend(/** @lends AV.InboxQuery.prototype */{
@@ -337,8 +331,13 @@ module.exports = function(AV) {
    });
 
   /**
-   * Create a inbox status query to find someone's inbox statuses.For example:<br/>
-   * <p><pre>
+   * Create a inbox status query to find someone's inbox statuses.
+   * @since 0.3.0
+   * @param {Object} owner The inbox's owner
+   * @param {String} inboxType The inbox type,'default' by default.
+   * @return {AV.InboxQuery} The inbox query object.
+   * @see AV.InboxQuery
+   * @example
    *   //Find current user's default inbox statuses.
    *   var query = AV.Status.inboxQuery(AV.User.current());
    *   //find the statuses after the last message id
@@ -346,12 +345,6 @@ module.exports = function(AV) {
    *   query.find().then(function(statuses){
    *      //process statuses
    *   });
-   * </pre></p>
-   * @since 0.3.0
-   * @param {Object} owner The inbox's owner
-   * @param {String} inboxType The inbox type,'default' by default.
-   * @return {AV.InboxQuery} The inbox query object.
-   * @see AV.InboxQuery
    */
   AV.Status.inboxQuery = function(owner, inboxType){
     var query = new AV.InboxQuery(AV.Status);

@@ -1,8 +1,3 @@
-/**
- * 每位工程师都有保持代码优雅的义务
- * Each engineer has a duty to keep the code elegant
-**/
-
 const _ = require('underscore');
 const request = require('./request');
 
@@ -47,10 +42,7 @@ const init = (AV) => {
 
   /**
    * Contains all AV API classes and functions.
-   * @name AV
-   * @namespace
-   *
-   * Contains all AV API classes and functions.
+   * @namespace AV
    */
 
   // Check whether we are running in Node.js.
@@ -129,10 +121,10 @@ const init = (AV) => {
     * Call this method first to set up your authentication tokens for AV.
     * You can get your app keys from the LeanCloud dashboard on http://leancloud.cn .
     * @function AV.init
-    * @param args initialize options.
-    * @param args.appId application id
-    * @param args.appKey application key
-    * @param args.masterKey application master key
+    * @param {Object} options
+    * @param {String} options.appId application id
+    * @param {String} options.appKey application key
+    * @param {String} options.masterKey application master key
   */
 
   AV.init = (...args) => {
@@ -227,6 +219,7 @@ const init = (AV) => {
    * @param {String} path The relative suffix to append to it.
    *     null or undefined is treated as the empty string.
    * @return {String} The full key name.
+   * @private
    */
   AV._getAVPath = function(path) {
     if (!AV.applicationId) {
@@ -247,6 +240,7 @@ const init = (AV) => {
   /**
    * Returns the unique string for this app on this machine.
    * Gets reset when localStorage is cleared.
+   * @private
    */
   AV._installationId = null;
   AV._getInstallationId = function() {
@@ -335,6 +329,7 @@ const init = (AV) => {
    * as a pointer.  This array will be used to prevent going into an infinite
    * loop because we have circular references.  If <seenObjects>
    * is set, then none of the AV Objects that are serialized can be dirty.
+   * @private
    */
   AV._encode = function(value, seenObjects, disallowObjects) {
     if (value instanceof AV.Object) {
@@ -399,6 +394,7 @@ const init = (AV) => {
   /**
    * The inverse function of AV._encode.
    * TODO: make decode not mutate value.
+   * @private
    */
   AV._decode = function(key, value) {
     if (!_.isObject(value)) {
@@ -506,6 +502,7 @@ const init = (AV) => {
    *     be passed the item as an argument. If it returns a truthy value, that
    *     value will replace the item in its parent container.
    * @returns {} the result of calling func on the top-level object itself.
+   * @private
    */
   AV._traverse = function(object, func, seen) {
     if (object instanceof AV.Object) {
@@ -548,6 +545,7 @@ const init = (AV) => {
    * This is like _.each, except:
    * * it doesn't work for so-called array-like objects,
    * * it does work for dictionaries with a "length" attribute.
+   * @private
    */
   AV._objectEach = AV._each = function(obj, callback) {
     if (_.isObject(obj)) {

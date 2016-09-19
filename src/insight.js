@@ -1,19 +1,15 @@
-/**
- * 每位工程师都有保持代码优雅的义务
- * Each engineer has a duty to keep the code elegant
-**/
-
 const _ = require('underscore');
 const AVError = require('./error');
 const AVRequest = require('./request').request;
 
 module.exports = function(AV) {
   /**
-   * @namespace 包含了使用了 LeanCloud
+   * 包含了使用了 LeanCloud
    *  <a href='/docs/leaninsight_guide.html'>离线数据分析功能</a>的函数。
    * <p><strong><em>
    *   部分函数仅在云引擎运行环境下有效。
    * </em></strong></p>
+   * @namespace
    */
   AV.Insight = AV.Insight || {};
 
@@ -31,7 +27,7 @@ module.exports = function(AV) {
      *                   }
      *                  </pre></code>
      *               sql 指定任务执行的 SQL 语句， saveAs（可选） 指定将结果保存在哪张表里，limit 最大 1000。
-     * @return {AV.Promise} A promise that will be resolved with the result
+     * @return {Promise} A promise that will be resolved with the result
      * of the function.
      */
     startJob: function(jobConfig) {
@@ -110,7 +106,7 @@ module.exports = function(AV) {
      * results 数组表示任务结果数组，previewCount 表示可以返回的结果总数，任务的开始和截止时间
      * startTime、endTime 等信息。
      *
-     * @return {AV.Promise} A promise that will be resolved with the result
+     * @return {Promise} A promise that will be resolved with the result
      * of the function.
      *
      */

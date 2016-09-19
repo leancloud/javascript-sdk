@@ -1,14 +1,10 @@
-/**
- * 每位工程师都有保持代码优雅的义务
- * Each engineer has a duty to keep the code elegant
-**/
-
 const _ = require('underscore');
 const cos = require('./uploader/cos');
 const qiniu = require('./uploader/qiniu');
 const s3 = require('./uploader/s3');
 const AVError = require('./error');
 const AVRequest = require('./request').request;
+const Promise = require('./promise');
 
 module.exports = function(AV) {
 
@@ -275,7 +271,7 @@ module.exports = function(AV) {
   };
 
   /**
-   * A AV.File is a local representation of a file that is saved to the AV
+   * An AV.File is a local representation of a file that is saved to the AV
    * cloud.
    * @param name {String} The file's name. This will change to a unique value
    *     once the file has finished saving.
@@ -284,8 +280,9 @@ module.exports = function(AV) {
    *     2. an Object like { base64: "..." } with a base64-encoded String.
    *     3. a File object selected with a file upload control. (3) only works
    *        in Firefox 3.6+, Safari 6.0.2+, Chrome 7+, and IE 10+.
-   *        For example:<pre>
    *     4.a Buffer object in Node.js runtime.
+   *
+   *        For example:<pre>
    * var fileUploadControl = $("#profilePhotoFileUpload")[0];
    * if (fileUploadControl.files.length > 0) {
    *   var file = fileUploadControl.files[0];
@@ -299,7 +296,7 @@ module.exports = function(AV) {
    * }</pre>
    *
    * @class
-   * @param type {String} Optional Content-Type header to use for the file. If
+   * @param [type] {String} Content-Type header to use for the file. If
    *     this is omitted, the content type will be inferred from the name's
    *     extension.
    */
@@ -348,18 +345,18 @@ module.exports = function(AV) {
       var parseBase64 = require('./browserify-wrapper/parse-base64');
       var dataBase64 = parseBase64(data.base64, guessedType);
       this.attributes.base64 = dataURLToBase64(data.base64);
-      this._source = AV.Promise.resolve({ data: dataBase64, type: guessedType });
+      this._source = Promise.resolve({ data: dataBase64, type: guessedType });
     } else if (data && data.blob) {
       if (!data.blob.type) {
         data.blob.type = guessedType;
       }
-      this._source = AV.Promise.resolve({ data: data.blob, type: guessedType });
+      this._source = Promise.resolve({ data: data.blob, type: guessedType });
     } else if (typeof File !== "undefined" && data instanceof global.File) {
-      this._source = AV.Promise.resolve({ data, type: guessedType });
+      this._source = Promise.resolve({ data, type: guessedType });
     } else if (typeof global.Buffer !== "undefined" && global.Buffer.isBuffer(data)) {
       // use global.Buffer to prevent browserify pack Buffer module
       this.attributes.metaData.size = data.length;
-      this._source = AV.Promise.resolve({ data, type: guessedType });
+      this._source = Promise.resolve({ data, type: guessedType });
     } else if (_.isString(data)) {
       throw new Error("Creating a AV.File from a String is not yet supported.");
     }
@@ -369,8 +366,8 @@ module.exports = function(AV) {
    * Creates a fresh AV.File object with exists url for saving to AVOS Cloud.
    * @param {String} name the file name
    * @param {String} url the file url.
-   * @param {Object} metaData the file metadata object,it's optional.
-   * @param {String} Optional Content-Type header to use for the file. If
+   * @param {Object} [metaData] the file metadata object.
+   * @param {String} [type] Content-Type header to use for the file. If
    *     this is omitted, the content type will be inferred from the name's
    *     extension.
    * @return {AV.File} the file object
@@ -451,7 +448,7 @@ module.exports = function(AV) {
     /**
     * Gets the attributs of the file object.
     * @param {String} The attribute name which want to get.
-    * @returns {String|Number|Array|Object}
+    * @returns {Any}
     */
     get: function(attrName) {
       switch (attrName) {
@@ -574,14 +571,13 @@ module.exports = function(AV) {
 
      /**
      * Destroy the file.
-     * @param {Object} [options]
-     * @param {String} [options.sessionToken]
-     * @return {AV.Promise} A promise that is fulfilled when the destroy
+     * @param {AuthOptions} options
+     * @return {Promise} A promise that is fulfilled when the destroy
      *     completes.
      */
     destroy: function(options) {
       if (!this.id) {
-        return AV.Promise.reject(new Error('The file id is not eixsts.'));
+        return Promise.reject(new Error('The file id is not eixsts.'));
       }
       var request = AVRequest("files", null, this.id, 'DELETE', options && options.sessionToken);
       return request;
@@ -590,7 +586,7 @@ module.exports = function(AV) {
     /**
      * Request Qiniu upload token
      * @param {string} type
-     * @return {AV.Promise} Resolved with the response
+     * @return {Promise} Resolved with the response
      * @private
      */
     _fileToken(type, route = 'fileTokens') {
@@ -620,9 +616,9 @@ module.exports = function(AV) {
      */
     /**
      * Saves the file to the AV cloud.
-     * @param {Object} options
+     * @param {Object} [options]
      * @param {UploadProgressCallback} [options.onProgress]
-     * @return {AV.Promise} Promise that is resolved when the save finishes.
+     * @return {Promise} Promise that is resolved when the save finishes.
      */
     save(options) {
       if (this.id) {
@@ -678,9 +674,8 @@ module.exports = function(AV) {
     /**
     * fetch the file from server. If the server's representation of the
     * model differs from its current attributes, they will be overriden,
-    * @param {Object} options Optional options to set 'keys' and
-    *      'include' option.
-    * @return {AV.Promise} A promise that is fulfilled when the fetch
+    * @param {AuthOptions} options AuthOptions plus 'keys' and 'include' option.
+    * @return {Promise} A promise that is fulfilled when the fetch
     *     completes.
     */
     fetch: function(options) {
@@ -704,5 +699,4 @@ module.exports = function(AV) {
         });
     }
   };
-
 };
