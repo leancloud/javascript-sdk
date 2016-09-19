@@ -12,7 +12,9 @@ install:
 script:
   - npm test && codecov
   - npm run build
+  - npm run docs
 after_success:
   - if [[ `node -v` == v4* ]] && [[ "$TRAVIS_BRANCH" == "next" ]] && [[ "${TRAVIS_PULL_REQUEST}" = "false" ]]; then
       ./script/release.sh;
+      ./script/deploy.sh;
     fi
