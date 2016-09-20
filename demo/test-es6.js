@@ -73,6 +73,6 @@ query.find().then((list) => {
 });
 
 // 用户登录
-AV.User.login('ttt', '123456')
+AV.User.logIn('ttt', '123456')
 .then((res) => console.log(res))
 .catch(err => console.log(err));

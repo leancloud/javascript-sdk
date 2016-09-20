@@ -8,6 +8,7 @@ const getUniqueId = require('./utils').getUniqueId;
 const now = require('./utils').now;
 const localStorage = require('./localstorage');
 
+let analyseObj = {};
 let win = {};
 if (typeof(window) !== 'undefined') {
   win = window;
@@ -23,61 +24,7 @@ const getId = () => {
   return id;
 };
 
-const analyseObj = {
-  /**
-   * 发送自定义统计事件
-   * @param {Object} [options] 传入的设置项
-   * @param {String} [options.version] 自定义的版本号，用来区分当前产品版本
-   * @param {String} [options.channel] 自定义的渠道名称，用来区分当前产品渠道
-   * @param {String} [options.event] 自定义的事件名，用来自定义一个统计事件，相当于一类统计的标题
-   * @param {Object} [options.attributes] 自定义的属性，可以传入任意的 Object，携带自定义的更多统计信息
-   * @param {Number} [options.duration] 传入毫秒数访问时长，表示该次事件的持续时长
-   * @return {Promise}
-  */
-  send(options) {
-    // 应用版本
-    const appVersion = options.version || null;
-
-    // 推广渠道
-    const appChannel = options.channel || null;
-
-    if (!options || !options.event) {
-      throw new Error('AV.Analyse send eventObject must have a event value.');
-    }
-
-    const eventObj = {
-      // 事件名称
-      event: options.event,
-
-      // 事件属性，完全自定义
-      attributes: options.attributes,
-
-      // 持续时长，单位毫秒
-      duration: options.duration,
-
-      // LeanCloud 内部使用
-      tag: options.tag,
-    };
-
-    const data = {
-      client: {
-        // 服务器端会统一按照小写字母校验
-        platform: 'web',
-        id: getId(),
-        app_version: appVersion,
-        app_channel: appChannel,
-      },
-      session: {
-        id: getId(),
-      },
-      events: [eventObj],
-    };
-
-    return AVRequest('stats', null, null, 'post', data);
-  },
-};
-
-const pageView = () => {
+const pageview = () => {
   let startTime;
   let endTime;
   let page;
@@ -134,12 +81,85 @@ const sessionView = () => {
   });
 };
 
-if (win.addEventListener) {
-  // 启动自动页面时长统计
-  pageView();
+analyseObj = {
 
-  // 启动自动 session 时长统计
-  sessionView();
-}
+  /**
+   * 开启统计 Pageview（页面访问）
+   * @return {Undefined}
+  */
+  recordPageview() {
+    if (win.addEventListener) {
+      // 启动自动页面时长统计
+      pageview();
+    } else {
+      throw new Error('This runtime can not support record pageview.');
+    }
+  },
+
+  /**
+   * 开启统计 Session-view（会话访问）
+   * @return {Undefined}
+  */
+  recordSessionView() {
+    if (win.addEventListener) {
+      // 启动自动 session 时长统计
+      sessionView();
+    } else {
+      throw new Error('This runtime can not support record session-view.');
+    }
+  },
+
+  /**
+   * 发送自定义统计事件
+   * @param {Object} [options] 传入的设置项
+   * @param {String} [options.version] 自定义的版本号，用来区分当前产品版本
+   * @param {String} [options.channel] 自定义的渠道名称，用来区分当前产品渠道
+   * @param {String} [options.event] 自定义的事件名，用来自定义一个统计事件，相当于一类统计的标题
+   * @param {Object} [options.attributes] 自定义的属性，可以传入任意的 Object，携带自定义的更多统计信息
+   * @param {Number} [options.duration] 传入毫秒数访问时长，表示该次事件的持续时长
+   * @return {Promise}
+  */
+  send(options) {
+    // 应用版本
+    const appVersion = options.version || null;
+
+    // 推广渠道
+    const appChannel = options.channel || null;
+
+    if (!options || !options.event) {
+      throw new Error('AV.Analyse send eventObject must have a event value.');
+    }
+
+    const eventObj = {
+      // 事件名称
+      event: options.event,
+
+      // 事件属性，完全自定义
+      attributes: options.attributes,
+
+      // 持续时长，单位毫秒
+      duration: options.duration,
+
+      // LeanCloud 内部使用
+      tag: options.tag,
+    };
+
+    const data = {
+      client: {
+        // 服务器端会统一按照小写字母校验
+        platform: 'web',
+        id: getId(),
+        app_version: appVersion,
+        app_channel: appChannel,
+      },
+      session: {
+        id: getId(),
+      },
+      events: [eventObj],
+    };
+
+    return AVRequest('stats', null, null, 'post', data);
+  },
+};
 
 module.exports = analyseObj;
