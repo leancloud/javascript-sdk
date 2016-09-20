@@ -84,7 +84,7 @@ module.exports = function(AV) {
     *      });
     */
     send: function(options){
-      if(!AV.User.current()){
+      if(!AV.User.current() && !(options && options.sessionToken)){
         throw new Error('Please signin an user.');
       }
       if(!this.query){
@@ -140,7 +140,7 @@ module.exports = function(AV) {
    *      });
    */
   AV.Status.sendStatusToFollowers = function(status, options) {
-    if(!AV.User.current()){
+    if(!AV.User.current() && !(options && options.sessionToken)){
       throw new Error('Please signin an user.');
     }
     var query = {};
@@ -182,7 +182,7 @@ module.exports = function(AV) {
    *      });
    */
   AV.Status.sendPrivateStatus = function(status, target, options) {
-    if(!AV.User.current()){
+    if(!AV.User.current() && !(options && options.sessionToken)){
       throw new Error('Please signin an user.');
     }
     if(!target){
@@ -228,12 +228,12 @@ module.exports = function(AV) {
    *  });
    */
   AV.Status.countUnreadStatuses = function(owner){
-    if(!AV.User.current() && owner == null){
+    var options = !_.isString(arguments[1]) ? arguments[1] : arguments[2];
+    var inboxType =  !_.isString(arguments[1]) ? 'default' : arguments[1];
+    if(!AV.User.current() && !(options && options.sessionToken) && owner == null){
       throw new Error('Please signin an user or pass the owner objectId.');
     }
     owner = owner || AV.User.current();
-    var options = !_.isString(arguments[1]) ? arguments[1] : arguments[2];
-    var inboxType =  !_.isString(arguments[1]) ? 'default' : arguments[1];
     var params = {};
     params.inboxType = AV._encode(inboxType);
     params.owner = AV._encode(owner);
