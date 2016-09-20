@@ -1,5 +1,6 @@
 #!/bin/sh
 echo "Deploy docs to github pages.";
+npm run docs;
 mkdir gh_pages;
 cp -r docs gh_pages/;
 cd gh_pages && git init;
