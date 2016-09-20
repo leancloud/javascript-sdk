@@ -179,6 +179,26 @@ describe("User", function() {
     });
   });
 
+  describe('User#getRoles', function() {
+    it('Should get the current user\'s role', function() {
+      var user = AV.User.current();
+      return new AV.Query('_Role').equalTo('name', 'testRole').first()
+      .then(function(role) {
+        return role.destroy();
+      }).catch(function() {
+        // already destroyed
+      }).then(function() {
+        var role = new AV.Role("testRole");
+        role.getUsers().add(user);
+        return role.save()
+      }).then(function() {
+        return user.getRoles()
+      }).then(function(roles) {
+        expect(roles.length).to.be(1);
+        expect(roles[0].getName()).to.be('testRole');
+      });
+    });
+  });
 
   describe("Associations", function() {
     it("return post relation to user", function(done) {

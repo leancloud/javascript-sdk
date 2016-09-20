@@ -294,7 +294,7 @@ describe('Queries', function () {
   });
 
   describe('destroyAll', function () {
-    it('should be deleted', function (done) {
+    it('should be deleted', function () {
       // save some objects
       var promises = [];
       for (var i = 0; i < 10; i++) {
@@ -302,22 +302,12 @@ describe('Queries', function () {
         test.set('number', i);
         promises.unshift(test.save());
       }
-      // AV.Promise.when(promises).then(function() {done();});
-      AV.Promise.when(promises).then(function () {
-        var query = new AV.Query('deletedAll');
-        query.limit(1000).find().then(function (results) {
-          // expect(results.length).to.be(10);
-          query.destroyAll().then(function () {
-            query.find().then(function (results) {
-              expect(results.length).to.be(0);
-              done();
-            });
-          }, function (err) {
-            done(err);
-          });
-        }, function (err) {
-          done(err);
-        });
+      return AV.Promise.when(promises).then(function () {
+        return new AV.Query('deletedAll').limit(300).destroyAll();
+      }).then(function() {
+        return new AV.Query('deletedAll').count();
+      }).then(function(count) {
+        expect(count).to.be(0);
       });
     });
   });
