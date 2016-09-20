@@ -1,6 +1,15 @@
 const _ = require('underscore');
 const AVRequest = require('./request').request;
 
+const getUser = (options = {}) => AV.User.currentAsync()
+  .then(currUser => currUser
+    ? currUser
+    : AV.User._fetchUserBySessionToken(options.sessionToken));
+
+const getUserPointer = options => getUser(options)
+  .then(currUser => AV.Object.createWithoutData('_User', currUser.id)._toPointer());
+
+
 module.exports = function(AV) {
   /**
    * Contains functions to deal with Status in LeanCloud.
@@ -83,30 +92,30 @@ module.exports = function(AV) {
     *             console.dir(err);
     *      });
     */
-    send: function(options){
-      if(!AV.User.current() && !(options && options.sessionToken)){
+    send: function(options = {}){
+      if(!AV.User.current() && !options.sessionToken) {
         throw new Error('Please signin an user.');
       }
       if(!this.query){
         return AV.Status.sendStatusToFollowers(this, options);
       }
 
-      var query = this.query.toJSON();
-      query.className = this.query.className;
-      var data = {};
-      data.query = query;
-      this.data = this.data || {};
-      var currUser =  AV.Object.createWithoutData('_User', AV.User.current().id)._toPointer();
-      this.data.source =  this.data.source || currUser;
-      data.data = this._getDataJSON();
-      data.inboxType = this.inboxType || 'default';
+      return getUserPointer(options).then(currUser => {
+        var query = this.query.toJSON();
+        query.className = this.query.className;
+        var data = {};
+        data.query = query;
+        this.data = this.data || {};
+        this.data.source =  this.data.source || currUser;
+        data.data = this._getDataJSON();
+        data.inboxType = this.inboxType || 'default';
 
-      var request = AVRequest('statuses', null, null, 'POST', data, options && options.sessionToken);
-      var self = this;
-      return request.then(function(response){
-        self.id = response.objectId;
-        self.createdAt = AV._parseDate(response.createdAt);
-        return self;
+        return AVRequest('statuses', null, null, 'POST', data, options.sessionToken);
+      })
+      .then((response) => {
+        this.id = response.objectId;
+        this.createdAt = AV._parseDate(response.createdAt);
+        return this;
       });
     },
 
@@ -139,27 +148,28 @@ module.exports = function(AV) {
    *             console.dir(err);
    *      });
    */
-  AV.Status.sendStatusToFollowers = function(status, options) {
-    if(!AV.User.current() && !(options && options.sessionToken)){
+  AV.Status.sendStatusToFollowers = function(status, options = {}) {
+    if(!AV.User.current() && !options.sessionToken){
       throw new Error('Please signin an user.');
     }
-    var query = {};
-    query.className = '_Follower';
-    query.keys = 'follower';
-    var currUser =  AV.Object.createWithoutData('_User', AV.User.current().id). _toPointer();
-    query.where = {user: currUser};
-    var data = {};
-    data.query = query;
-    status.data = status.data || {};
-    status.data.source =  status.data.source || currUser;
-    data.data = status._getDataJSON();
-    data.inboxType = status.inboxType || 'default';
+    return getUserPointer(options).then(currUser => {
+      var query = {};
+      query.className = '_Follower';
+      query.keys = 'follower';
+      query.where = {user: currUser};
+      var data = {};
+      data.query = query;
+      status.data = status.data || {};
+      status.data.source =  status.data.source || currUser;
+      data.data = status._getDataJSON();
+      data.inboxType = status.inboxType || 'default';
 
-    var request = AVRequest('statuses', null, null, 'POST', data, options && options.sessionToken);
-    return request.then(function(response){
-      status.id = response.objectId;
-      status.createdAt = AV._parseDate(response.createdAt);
-      return status;
+      var request = AVRequest('statuses', null, null, 'POST', data, options.sessionToken);
+      return request.then(function(response){
+        status.id = response.objectId;
+        status.createdAt = AV._parseDate(response.createdAt);
+        return status;
+      });
     });
   };
 
@@ -181,8 +191,8 @@ module.exports = function(AV) {
    *             console.dir(err);
    *      });
    */
-  AV.Status.sendPrivateStatus = function(status, target, options) {
-    if(!AV.User.current() && !(options && options.sessionToken)){
+  AV.Status.sendPrivateStatus = function(status, target, options = {}) {
+    if(!AV.User.current() && !options.sessionToken){
       throw new Error('Please signin an user.');
     }
     if(!target){
@@ -192,24 +202,24 @@ module.exports = function(AV) {
     if(!userObjectId){
       throw new Error("Invalid target user.");
     }
+    return getUserPointer(options).then(currUser => {
+      var query = {};
+      query.className = '_User';
+      query.where = {objectId: userObjectId};
+      var data = {};
+      data.query = query;
+      status.data = status.data || {};
+      status.data.source =  status.data.source || currUser;
+      data.data = status._getDataJSON();
+      data.inboxType = 'private';
+      status.inboxType = 'private';
 
-    var query = {};
-    query.className = '_User';
-    var currUser =  AV.Object.createWithoutData('_User', AV.User.current().id). _toPointer();
-    query.where = {objectId: userObjectId};
-    var data = {};
-    data.query = query;
-    status.data = status.data || {};
-    status.data.source =  status.data.source || currUser;
-    data.data = status._getDataJSON();
-    data.inboxType = 'private';
-    status.inboxType = 'private';
-
-    var request = AVRequest('statuses', null, null, 'POST', data, options && options.sessionToken);
-    return request.then(function(response){
-      status.id = response.objectId;
-      status.createdAt = AV._parseDate(response.createdAt);
-      return status;
+      var request = AVRequest('statuses', null, null, 'POST', data, options.sessionToken);
+      return request.then(function(response){
+        status.id = response.objectId;
+        status.createdAt = AV._parseDate(response.createdAt);
+        return status;
+      });
     });
   };
 
@@ -228,17 +238,17 @@ module.exports = function(AV) {
    *  });
    */
   AV.Status.countUnreadStatuses = function(owner){
-    var options = !_.isString(arguments[1]) ? arguments[1] : arguments[2];
+    var options = (!_.isString(arguments[1]) ? arguments[1] : arguments[2]) || {};
     var inboxType =  !_.isString(arguments[1]) ? 'default' : arguments[1];
-    if(!AV.User.current() && !(options && options.sessionToken) && owner == null){
+    if(!AV.User.current() && !options.sessionToken && owner == null){
       throw new Error('Please signin an user or pass the owner objectId.');
     }
-    owner = owner || AV.User.current();
-    var params = {};
-    params.inboxType = AV._encode(inboxType);
-    params.owner = AV._encode(owner);
-    var request = AVRequest('subscribe/statuses/count', null, null, 'GET', params, options && options.sessionToken);
-    return request;
+    return getUser(options).then(owner => {
+      var params = {};
+      params.inboxType = AV._encode(inboxType);
+      params.owner = AV._encode(owner);
+      return AVRequest('subscribe/statuses/count', null, null, 'GET', params, options.sessionToken);
+    });
   };
 
   /**

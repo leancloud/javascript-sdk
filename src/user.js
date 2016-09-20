@@ -600,25 +600,27 @@ module.exports = function(AV) {
      *     the login completes.
      */
     become: function(sessionToken) {
-
-      var user = AV.Object._create("_User");
-      return AVRequest(
-          "users",
-          "me",
-          null,
-          "GET",
-          {
-            session_token: sessionToken
-          }
-      ).then(function(resp) {
-          var serverAttrs = user.parse(resp);
-          user._finishFetch(serverAttrs);
-          return user._handleSaveResult(true).then(function() {
-            return user;
-          });
-      });
+      return this._fetchUserBySessionToken(sessionToken).then(user =>
+        user._handleSaveResult(true).then(() => user)
+      );
     },
 
+    _fetchUserBySessionToken: function (sessionToken) {
+      var user = AV.Object._create("_User");
+      return AVRequest(
+        "users",
+        "me",
+        null,
+        "GET", {
+          session_token: sessionToken
+        }
+      ).then(function (resp) {
+        var serverAttrs = user.parse(resp);
+        user._finishFetch(serverAttrs);
+        return user;
+      });
+    },
+    
     /**
      * Logs in a user with a mobile phone number and sms code sent by
      * AV.User.requestLoginSmsCode.On success, this
