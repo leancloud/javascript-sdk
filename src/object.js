@@ -1076,16 +1076,6 @@ module.exports = function(AV) {
     },
 
     /**
-     * (DEPRECATED) Returns true if this object was created by the AV server when the
-     * object might have already been there (e.g. in the case of a Facebook
-     * login)
-     */
-    existed: function() {
-      console.warn('AV.Object.prototype.existed() is deprecated.');
-      return false;
-    },
-
-    /**
      * Determine if the model has changed since the last <code>"change"</code>
      * event.  If you specify an attribute name, determine if that attribute
      * has changed.

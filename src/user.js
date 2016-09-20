@@ -805,16 +805,6 @@ module.exports = function(AV) {
       return request;
     },
 
-   /**
-    * @Deprecated typo error, please use requestEmailVerify
-    */
-    requestEmailVerfiy: function(email) {
-      var json = { email: email };
-      var request = AVRequest("requestEmailVerify", null, null, "POST",
-                                   json);
-      return request;
-    },
-
     /**
      * Requests a verify sms code to be sent to the specified mobile phone
      * number associated with the user account. This sms code allows the user to

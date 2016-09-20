@@ -197,24 +197,6 @@ const init = (AV) => {
   };
 
   /**
-   * @deprecated Please use AV.init(), you can set the region of server .
-  **/
-  // TODO: 后续不再暴露此接口
-  AV.useAVCloudCN = function(){
-    request.setServerUrlByRegion('cn');
-    console.warn('Do not use AV.useAVCloudCN. Please use AV.init(), you can set the region of server.');
-  };
-
-  /**
-   * @deprecated Please use AV.init(), you can set the region of server .
-  **/
-  // TODO: 后续不再暴露此接口
-  AV.useAVCloudUS = function(){
-    request.setServerUrlByRegion('us');
-    console.warn('Do not use AV.useAVCloudUS. Please use AV.init(), you can set the region of server.');
-  };
-
-  /**
    * Returns prefix for localStorage keys used by this instance of AV.
    * @param {String} path The relative suffix to append to it.
    *     null or undefined is treated as the empty string.
@@ -291,18 +273,6 @@ const init = (AV) => {
     var milli = match[8] || 0;
 
     return new Date(Date.UTC(year, month, day, hour, minute, second, milli));
-  };
-
-  // TODO: Next version remove
-  AV._ajax = (...args) => {
-    console.warn('AV._ajax is deprecated, and will be removed in next release.');
-    request.ajax(...args);
-  };
-
-  // TODO: Next version remove
-  AV._request = (...args) => {
-    console.warn('AV._request is deprecated, and will be removed in next release.');
-    request.request(...args);
   };
 
   // A self-propagating extend function.
