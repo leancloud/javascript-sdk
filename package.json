@@ -65,6 +65,7 @@
   "react-native": {
     "react-native": "react-native"
   },
+  "typings": "./storage.d.ts",
   "eslintConfig": {
     "env": {
       "es6": true,
