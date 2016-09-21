@@ -620,7 +620,7 @@ module.exports = function(AV) {
         return user;
       });
     },
-    
+
     /**
      * Logs in a user with a mobile phone number and sms code sent by
      * AV.User.requestLoginSmsCode.On success, this
@@ -697,7 +697,7 @@ module.exports = function(AV) {
      * });
      * @see {@link https://leancloud.cn/docs/js_guide.html#绑定第三方平台账户}
      */
-    signUpOrlogInWithAuthData(authData, platform, callback) {
+    signUpOrlogInWithAuthData(authData, platform) {
       return AV.User._logInWith(platform, authData);
     },
 
@@ -719,7 +719,7 @@ module.exports = function(AV) {
      * });
      */
     associateWithAuthData(userObj, platform, authData) {
-      return userObj._linkWith(platform, { authData });
+      return userObj._linkWith(platform, authData);
     },
     /**
      * Logs out the currently logged in user session. This will remove the
