@@ -1138,7 +1138,12 @@ module.exports = function(AV) {
      * @return {Boolean}
      */
     isValid: function() {
-      return !this.validate(this.attributes);
+      try {
+        this.validate(this.attributes);
+      } catch (error) {
+        return false;
+      }
+      return true;
     },
 
     /**
@@ -1156,7 +1161,6 @@ module.exports = function(AV) {
         throw new AVError(AVError.OTHER_CAUSE,
                                "ACL must be a AV.ACL.");
       }
-      return true;
     },
 
     /**
@@ -1167,10 +1171,10 @@ module.exports = function(AV) {
      */
     _validate: function(attrs, options) {
       if (options.silent || !this.validate) {
-        return true;
+        return;
       }
       attrs = _.extend({}, this.attributes, attrs);
-      return this.validate(attrs);
+      this.validate(attrs);
     },
 
     /**
