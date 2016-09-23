@@ -13,6 +13,7 @@ AV.version = require('./version');
 AV.Promise = require('./promise');
 AV.localStorage = require('./localstorage');
 AV.Cache = require('./cache');
+AV.Error = require('./error');
 
 // All internal configuration items
 AV._config = AV._config || {};
@@ -34,8 +35,6 @@ require('./push')(AV);
 require('./status')(AV);
 require('./search')(AV);
 require('./insight')(AV);
-
-AV.Error = require('./error');
 
 /**
  * Options to controll the authentication for an operation

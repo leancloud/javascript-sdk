@@ -605,7 +605,7 @@ module.exports = function(AV) {
       );
     },
 
-    _fetchUserBySessionToken: function (sessionToken) {
+    _fetchUserBySessionToken: function(sessionToken) {
       var user = AV.Object._create("_User");
       return AVRequest(
         "users",
@@ -614,7 +614,7 @@ module.exports = function(AV) {
         "GET", {
           session_token: sessionToken
         }
-      ).then(function (resp) {
+      ).then(function(resp) {
         var serverAttrs = user.parse(resp);
         user._finishFetch(serverAttrs);
         return user;

@@ -95,9 +95,6 @@ module.exports = function(AV) {
       var params = {};
       if(_.isString(phone)) {
          params['mobilePhoneNumber'] = phone;
-      } else {
-        // To be compatible with old versions.
-         options = phone;
       }
 
       var request = AVRequest("verifySmsCode", code, null, 'POST',
