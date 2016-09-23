@@ -66,6 +66,165 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
       module.exports = charenc;
     }, {}], 3: [function (require, module, exports) {
+
+      /**
+       * Expose `Emitter`.
+       */
+
+      if (typeof module !== 'undefined') {
+        module.exports = Emitter;
+      }
+
+      /**
+       * Initialize a new `Emitter`.
+       *
+       * @api public
+       */
+
+      function Emitter(obj) {
+        if (obj) return mixin(obj);
+      };
+
+      /**
+       * Mixin the emitter properties.
+       *
+       * @param {Object} obj
+       * @return {Object}
+       * @api private
+       */
+
+      function mixin(obj) {
+        for (var key in Emitter.prototype) {
+          obj[key] = Emitter.prototype[key];
+        }
+        return obj;
+      }
+
+      /**
+       * Listen on the given `event` with `fn`.
+       *
+       * @param {String} event
+       * @param {Function} fn
+       * @return {Emitter}
+       * @api public
+       */
+
+      Emitter.prototype.on = Emitter.prototype.addEventListener = function (event, fn) {
+        this._callbacks = this._callbacks || {};
+        (this._callbacks['$' + event] = this._callbacks['$' + event] || []).push(fn);
+        return this;
+      };
+
+      /**
+       * Adds an `event` listener that will be invoked a single
+       * time then automatically removed.
+       *
+       * @param {String} event
+       * @param {Function} fn
+       * @return {Emitter}
+       * @api public
+       */
+
+      Emitter.prototype.once = function (event, fn) {
+        function on() {
+          this.off(event, on);
+          fn.apply(this, arguments);
+        }
+
+        on.fn = fn;
+        this.on(event, on);
+        return this;
+      };
+
+      /**
+       * Remove the given callback for `event` or all
+       * registered callbacks.
+       *
+       * @param {String} event
+       * @param {Function} fn
+       * @return {Emitter}
+       * @api public
+       */
+
+      Emitter.prototype.off = Emitter.prototype.removeListener = Emitter.prototype.removeAllListeners = Emitter.prototype.removeEventListener = function (event, fn) {
+        this._callbacks = this._callbacks || {};
+
+        // all
+        if (0 == arguments.length) {
+          this._callbacks = {};
+          return this;
+        }
+
+        // specific event
+        var callbacks = this._callbacks['$' + event];
+        if (!callbacks) return this;
+
+        // remove all handlers
+        if (1 == arguments.length) {
+          delete this._callbacks['$' + event];
+          return this;
+        }
+
+        // remove specific handler
+        var cb;
+        for (var i = 0; i < callbacks.length; i++) {
+          cb = callbacks[i];
+          if (cb === fn || cb.fn === fn) {
+            callbacks.splice(i, 1);
+            break;
+          }
+        }
+        return this;
+      };
+
+      /**
+       * Emit `event` with the given args.
+       *
+       * @param {String} event
+       * @param {Mixed} ...
+       * @return {Emitter}
+       */
+
+      Emitter.prototype.emit = function (event) {
+        this._callbacks = this._callbacks || {};
+        var args = [].slice.call(arguments, 1),
+            callbacks = this._callbacks['$' + event];
+
+        if (callbacks) {
+          callbacks = callbacks.slice(0);
+          for (var i = 0, len = callbacks.length; i < len; ++i) {
+            callbacks[i].apply(this, args);
+          }
+        }
+
+        return this;
+      };
+
+      /**
+       * Return array of callbacks for `event`.
+       *
+       * @param {String} event
+       * @return {Array}
+       * @api public
+       */
+
+      Emitter.prototype.listeners = function (event) {
+        this._callbacks = this._callbacks || {};
+        return this._callbacks['$' + event] || [];
+      };
+
+      /**
+       * Check if this emitter has `event` handlers.
+       *
+       * @param {String} event
+       * @return {Boolean}
+       * @api public
+       */
+
+      Emitter.prototype.hasListeners = function (event) {
+        return !!this.listeners(event).length;
+      };
+    }, {}], 4: [function (require, module, exports) {
       (function () {
         var base64map = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/',
             crypt = {
@@ -155,7 +314,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
         module.exports = crypt;
       })();
-    }, {}], 4: [function (require, module, exports) {
+    }, {}], 5: [function (require, module, exports) {
 
       /**
        * This is the web browser implementation of `debug()`.
@@ -306,7 +465,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           return window.localStorage;
         } catch (e) {}
       }
-    }, { "./debug": 5 }], 5: [function (require, module, exports) {
+    }, { "./debug": 6 }], 6: [function (require, module, exports) {
 
       /**
        * This is the common logic for both the Node.js and web browser
@@ -503,21 +662,29 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         if (val instanceof Error) return val.stack || val.message;
         return val;
       }
-    }, { "ms": 9 }], 6: [function (require, module, exports) {
-      /**
-       * Determine if an object is Buffer
+    }, { "ms": 10 }], 7: [function (require, module, exports) {
+      /*!
+       * Determine if an object is a Buffer
        *
-       * Author:   Feross Aboukhadijeh <feross@feross.org> <http://feross.org>
-       * License:  MIT
-       *
-       * `npm install is-buffer`
+       * @author   Feross Aboukhadijeh <feross@feross.org> <http://feross.org>
+       * @license  MIT
        */
 
+      // The _isBuffer check is for Safari 5-7 support, because it's missing
+      // Object.prototype.constructor. Remove this eventually
       module.exports = function (obj) {
-        return !!(obj != null && (obj._isBuffer || // For Safari 5-7 (missing Object.prototype.constructor)
-        obj.constructor && typeof obj.constructor.isBuffer === 'function' && obj.constructor.isBuffer(obj)));
+        return obj != null && (isBuffer(obj) || isSlowBuffer(obj) || !!obj._isBuffer);
       };
-    }, {}], 7: [function (require, module, exports) {
+
+      function isBuffer(obj) {
+        return !!obj.constructor && typeof obj.constructor.isBuffer === 'function' && obj.constructor.isBuffer(obj);
+      }
+
+      // For Node v0.10 support. Remove this eventually.
+      function isSlowBuffer(obj) {
+        return typeof obj.readFloatLE === 'function' && typeof obj.slice === 'function' && isBuffer(obj.slice(0, 0));
+      }
+    }, {}], 8: [function (require, module, exports) {
       (function (root) {
         var localStorageMemory = {};
         var cache = {};
@@ -600,7 +767,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           root.localStorageMemory = localStorageMemory;
         }
       })(this);
-    }, {}], 8: [function (require, module, exports) {
+    }, {}], 9: [function (require, module, exports) {
       (function () {
         var crypt = require('crypt'),
             utf8 = require('charenc').utf8,
@@ -745,13 +912,13 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         md5._digestsize = 16;
 
         module.exports = function (message, options) {
-          if (typeof message == 'undefined') return;
+          if (message === undefined || message === null) throw new Error('Illegal argument ' + message);
 
           var digestbytes = crypt.wordsToBytes(md5(message, options));
           return options && options.asBytes ? digestbytes : options && options.asString ? bin.bytesToString(digestbytes) : crypt.bytesToHex(digestbytes);
         };
       })();
-    }, { "charenc": 2, "crypt": 3, "is-buffer": 6 }], 9: [function (require, module, exports) {
+    }, { "charenc": 2, "crypt": 4, "is-buffer": 7 }], 10: [function (require, module, exports) {
       /**
        * Helpers.
        */
@@ -871,10 +1038,91 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         if (ms < n * 1.5) return Math.floor(ms / n) + ' ' + name;
         return Math.ceil(ms / n) + ' ' + name + 's';
       }
-    }, {}], 10: [function (require, module, exports) {
+    }, {}], 11: [function (require, module, exports) {
       // shim for using process in browser
-
       var process = module.exports = {};
+
+      // cached from whatever global is present so that test runners that stub it
+      // don't break things.  But we need to wrap it in a try catch in case it is
+      // wrapped in strict mode code which doesn't define any globals.  It's inside a
+      // function because try/catches deoptimize in certain engines.
+
+      var cachedSetTimeout;
+      var cachedClearTimeout;
+
+      function defaultSetTimout() {
+        throw new Error('setTimeout has not been defined');
+      }
+      function defaultClearTimeout() {
+        throw new Error('clearTimeout has not been defined');
+      }
+      (function () {
+        try {
+          if (typeof setTimeout === 'function') {
+            cachedSetTimeout = setTimeout;
+          } else {
+            cachedSetTimeout = defaultSetTimout;
+          }
+        } catch (e) {
+          cachedSetTimeout = defaultSetTimout;
+        }
+        try {
+          if (typeof clearTimeout === 'function') {
+            cachedClearTimeout = clearTimeout;
+          } else {
+            cachedClearTimeout = defaultClearTimeout;
+          }
+        } catch (e) {
+          cachedClearTimeout = defaultClearTimeout;
+        }
+      })();
+      function runTimeout(fun) {
+        if (cachedSetTimeout === setTimeout) {
+          //normal enviroments in sane situations
+          return setTimeout(fun, 0);
+        }
+        // if setTimeout wasn't available but was latter defined
+        if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
+          cachedSetTimeout = setTimeout;
+          return setTimeout(fun, 0);
+        }
+        try {
+          // when when somebody has screwed with setTimeout but no I.E. maddness
+          return cachedSetTimeout(fun, 0);
+        } catch (e) {
+          try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
+            return cachedSetTimeout.call(null, fun, 0);
+          } catch (e) {
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
+            return cachedSetTimeout.call(this, fun, 0);
+          }
+        }
+      }
+      function runClearTimeout(marker) {
+        if (cachedClearTimeout === clearTimeout) {
+          //normal enviroments in sane situations
+          return clearTimeout(marker);
+        }
+        // if clearTimeout wasn't available but was latter defined
+        if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
+          cachedClearTimeout = clearTimeout;
+          return clearTimeout(marker);
+        }
+        try {
+          // when when somebody has screwed with setTimeout but no I.E. maddness
+          return cachedClearTimeout(marker);
+        } catch (e) {
+          try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
+            return cachedClearTimeout.call(null, marker);
+          } catch (e) {
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
+            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
+            return cachedClearTimeout.call(this, marker);
+          }
+        }
+      }
       var queue = [];
       var draining = false;
       var currentQueue;
@@ -899,7 +1147,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         if (draining) {
           return;
         }
-        var timeout = setTimeout(cleanUpNextTick);
+        var timeout = runTimeout(cleanUpNextTick);
         draining = true;
 
         var len = queue.length;
@@ -916,7 +1164,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         }
         currentQueue = null;
         draining = false;
-        clearTimeout(timeout);
+        runClearTimeout(timeout);
       }
 
       process.nextTick = function (fun) {
@@ -928,7 +1176,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         }
         queue.push(new Item(fun, args));
         if (queue.length === 1 && !draining) {
-          setTimeout(drainQueue, 0);
+          runTimeout(drainQueue);
         }
       };
 
@@ -970,7 +1218,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       process.umask = function () {
         return 0;
       };
-    }, {}], 11: [function (require, module, exports) {
+    }, {}], 12: [function (require, module, exports) {
       /**
        * Root reference for iframes.
        */
@@ -1952,7 +2200,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         if (fn) req.end(fn);
         return req;
       };
-    }, { "./is-object": 12, "./request": 14, "./request-base": 13, "emitter": 15 }], 12: [function (require, module, exports) {
+    }, { "./is-object": 13, "./request": 15, "./request-base": 14, "emitter": 3 }], 13: [function (require, module, exports) {
       /**
        * Check if `obj` is an object.
        *
@@ -1966,7 +2214,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       }
 
       module.exports = isObject;
-    }, {}], 13: [function (require, module, exports) {
+    }, {}], 14: [function (require, module, exports) {
       /**
        * Module of mixed-in functions shared between node and client code
        */
@@ -2311,7 +2559,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         if (!type) this.type('json');
         return this;
       };
-    }, { "./is-object": 12 }], 14: [function (require, module, exports) {
+    }, { "./is-object": 13 }], 15: [function (require, module, exports) {
       // The node and browser modules expose versions of this with the
       // appropriate constructor function bound as first argument
       /**
@@ -2344,165 +2592,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       }
 
       module.exports = request;
-    }, {}], 15: [function (require, module, exports) {
-
-      /**
-       * Expose `Emitter`.
-       */
-
-      if (typeof module !== 'undefined') {
-        module.exports = Emitter;
-      }
-
-      /**
-       * Initialize a new `Emitter`.
-       *
-       * @api public
-       */
-
-      function Emitter(obj) {
-        if (obj) return mixin(obj);
-      };
-
-      /**
-       * Mixin the emitter properties.
-       *
-       * @param {Object} obj
-       * @return {Object}
-       * @api private
-       */
-
-      function mixin(obj) {
-        for (var key in Emitter.prototype) {
-          obj[key] = Emitter.prototype[key];
-        }
-        return obj;
-      }
-
-      /**
-       * Listen on the given `event` with `fn`.
-       *
-       * @param {String} event
-       * @param {Function} fn
-       * @return {Emitter}
-       * @api public
-       */
-
-      Emitter.prototype.on = Emitter.prototype.addEventListener = function (event, fn) {
-        this._callbacks = this._callbacks || {};
-        (this._callbacks['$' + event] = this._callbacks['$' + event] || []).push(fn);
-        return this;
-      };
-
-      /**
-       * Adds an `event` listener that will be invoked a single
-       * time then automatically removed.
-       *
-       * @param {String} event
-       * @param {Function} fn
-       * @return {Emitter}
-       * @api public
-       */
-
-      Emitter.prototype.once = function (event, fn) {
-        function on() {
-          this.off(event, on);
-          fn.apply(this, arguments);
-        }
-
-        on.fn = fn;
-        this.on(event, on);
-        return this;
-      };
-
-      /**
-       * Remove the given callback for `event` or all
-       * registered callbacks.
-       *
-       * @param {String} event
-       * @param {Function} fn
-       * @return {Emitter}
-       * @api public
-       */
-
-      Emitter.prototype.off = Emitter.prototype.removeListener = Emitter.prototype.removeAllListeners = Emitter.prototype.removeEventListener = function (event, fn) {
-        this._callbacks = this._callbacks || {};
-
-        // all
-        if (0 == arguments.length) {
-          this._callbacks = {};
-          return this;
-        }
-
-        // specific event
-        var callbacks = this._callbacks['$' + event];
-        if (!callbacks) return this;
-
-        // remove all handlers
-        if (1 == arguments.length) {
-          delete this._callbacks['$' + event];
-          return this;
-        }
-
-        // remove specific handler
-        var cb;
-        for (var i = 0; i < callbacks.length; i++) {
-          cb = callbacks[i];
-          if (cb === fn || cb.fn === fn) {
-            callbacks.splice(i, 1);
-            break;
-          }
-        }
-        return this;
-      };
-
-      /**
-       * Emit `event` with the given args.
-       *
-       * @param {String} event
-       * @param {Mixed} ...
-       * @return {Emitter}
-       */
-
-      Emitter.prototype.emit = function (event) {
-        this._callbacks = this._callbacks || {};
-        var args = [].slice.call(arguments, 1),
-            callbacks = this._callbacks['$' + event];
-
-        if (callbacks) {
-          callbacks = callbacks.slice(0);
-          for (var i = 0, len = callbacks.length; i < len; ++i) {
-            callbacks[i].apply(this, args);
-          }
-        }
-
-        return this;
-      };
-
-      /**
-       * Return array of callbacks for `event`.
-       *
-       * @param {String} event
-       * @return {Array}
-       * @api public
-       */
-
-      Emitter.prototype.listeners = function (event) {
-        this._callbacks = this._callbacks || {};
-        return this._callbacks['$' + event] || [];
-      };
-
-      /**
-       * Check if this emitter has `event` handlers.
-       *
-       * @param {String} event
-       * @return {Boolean}
-       * @api public
-       */
-
-      Emitter.prototype.hasListeners = function (event) {
-        return !!this.listeners(event).length;
-      };
     }, {}], 16: [function (require, module, exports) {
       //     Underscore.js 1.8.3
       //     http://underscorejs.org
@@ -4402,7 +4491,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
         module.exports = Storage;
       }).call(this, typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {});
-    }, { "../promise": 32, "localstorage-memory": 7, "react-native": 1, "underscore": 16 }], 20: [function (require, module, exports) {
+    }, { "../promise": 32, "localstorage-memory": 8, "react-native": 1, "underscore": 16 }], 20: [function (require, module, exports) {
       /**
        * 每位工程师都有保持代码优雅的义务
        * Each engineer has a duty to keep the code elegant
@@ -5434,7 +5523,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
               base64: ''
             };
 
-            var owner = undefined;
+            var owner = void 0;
             if (data && data.owner) {
               owner = data.owner;
             } else if (!AV._config.disableCurrentUser) {
@@ -5476,6 +5565,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
               }
               this._source = AV.Promise.as(data.blob, guessedType);
             } else if (typeof File !== "undefined" && data instanceof global.File) {
+              if (data.size) {
+                this.attributes.metaData.size = data.size;
+              }
               this._source = AV.Promise.as(data, guessedType);
             } else if (typeof global.Buffer !== "undefined" && global.Buffer.isBuffer(data)) {
               // use global.Buffer to prevent browserify pack Buffer module
@@ -5614,15 +5706,19 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 }
               };
 
-              switch (arguments.length) {
+              for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+                args[_key] = arguments[_key];
+              }
+
+              switch (args.length) {
                 case 1:
                   // 传入一个 Object
-                  for (var k in arguments.length <= 0 ? undefined : arguments[0]) {
-                    set(k, (arguments.length <= 0 ? undefined : arguments[0])[k]);
+                  for (var k in args[0]) {
+                    set(k, args[0][k]);
                   }
                   break;
                 case 2:
-                  set(arguments.length <= 0 ? undefined : arguments[0], arguments.length <= 1 ? undefined : arguments[1]);
+                  set(args[0], args[1]);
                   break;
               }
             },
@@ -5756,7 +5852,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
               if (this.id) {
                 throw new Error('File already saved. If you want to manipulate a file, use AV.Query to get it.');
               }
-              var options = undefined;
+              var options = void 0;
               var saveOptions = {};
               switch (arguments.length) {
                 case 1:
@@ -5771,7 +5867,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 if (this._source) {
                   this._previousSave = this._source.then(function (data, type) {
                     return _this2._fileToken(type).then(function (uploadInfo) {
-                      var uploadPromise = undefined;
+                      var uploadPromise = void 0;
                       switch (uploadInfo.provider) {
                         case 's3':
                           uploadPromise = s3(uploadInfo, data, _this2, saveOptions);
@@ -6080,8 +6176,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
        * @deprecated AV.Error() is deprecated, and will be removed in next release.
        */
       AV.Error = function () {
-        for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-          args[_key] = arguments[_key];
+        for (var _len2 = arguments.length, args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+          args[_key2] = arguments[_key2];
         }
 
         console.warn('AV.Error() is deprecated, and will be removed in next release.');
@@ -8580,8 +8676,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                       //It's rejected already, so we ignore it.
                     }
                   } else {
-                      promise.resolve.apply(promise, results);
-                    }
+                    promise.resolve.apply(promise, results);
+                  }
                 }
               }
             };
@@ -9003,7 +9099,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
          */
         Promise.prototype.try = Promise.prototype.done;
       }).call(this, require('_process'));
-    }, { "_process": 10, "underscore": 16 }], 33: [function (require, module, exports) {
+    }, { "_process": 11, "underscore": 16 }], 33: [function (require, module, exports) {
       /**
        * 每位工程师都有保持代码优雅的义务
        * Each engineer has a duty to keep the code elegant
@@ -10143,7 +10239,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         var AV = require('./av');
         var _ = require('underscore');
 
-        var getServerURLPromise = undefined;
+        var getServerURLPromise = void 0;
 
         // 服务器请求的节点 host
         var API_HOST = {
@@ -10426,7 +10522,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           setServerUrlByRegion: setServerUrlByRegion
         };
       }).call(this, require('_process'));
-    }, { "./av": 18, "./cache": 21, "./error": 23, "./promise": 32, "_process": 10, "debug": 4, "md5": 8, "superagent": 11, "underscore": 16 }], 37: [function (require, module, exports) {
+    }, { "./av": 18, "./cache": 21, "./error": 23, "./promise": 32, "_process": 11, "debug": 5, "md5": 9, "superagent": 12, "underscore": 16 }], 37: [function (require, module, exports) {
       /**
        * 每位工程师都有保持代码优雅的义务
        * Each engineer has a duty to keep the code elegant
@@ -11268,7 +11364,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
         return promise;
       };
-    }, { "../promise": 32, "debug": 4, "superagent": 11 }], 41: [function (require, module, exports) {
+    }, { "../promise": 32, "debug": 5, "superagent": 12 }], 41: [function (require, module, exports) {
       /**
        * 每位工程师都有保持代码优雅的义务
        * Each engineer has a duty to keep the code elegant
@@ -11312,7 +11408,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
         return promise;
       };
-    }, { "../promise": 32, "debug": 4, "superagent": 11 }], 42: [function (require, module, exports) {
+    }, { "../promise": 32, "debug": 5, "superagent": 12 }], 42: [function (require, module, exports) {
       /**
        * 每位工程师都有保持代码优雅的义务
        * Each engineer has a duty to keep the code elegant
@@ -11347,7 +11443,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
         return promise;
       };
-    }, { "../promise": 32, "superagent": 11 }], 43: [function (require, module, exports) {
+    }, { "../promise": 32, "superagent": 12 }], 43: [function (require, module, exports) {
       /**
        * 每位工程师都有保持代码优雅的义务
        * Each engineer has a duty to keep the code elegant
@@ -11919,8 +12015,17 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
           getSessionToken: function getSessionToken() {
             return this._sessionToken;
-          }
+          },
 
+          /**
+           * Get this user's Roles.
+           * @param {Object} options A Backbone-style options object.
+           * @return {AV.Promise} A promise that is fulfilled with the roles when
+           *     the query is complete.
+           */
+          getRoles: function getRoles(options) {
+            return AV.Relation.reverseQuery("_Role", "users", this).find(options);
+          }
         }, /** @lends AV.User */{
           // Class Variables
 
@@ -12987,12 +13092,12 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           ensureArray: ensureArray
         };
       }).call(this, require('_process'));
-    }, { "./request": 36, "_process": 10, "underscore": 16 }], 45: [function (require, module, exports) {
+    }, { "./request": 36, "_process": 11, "underscore": 16 }], 45: [function (require, module, exports) {
       /**
        * 每位工程师都有保持代码优雅的义务
        * Each engineer has a duty to keep the code elegant
       **/
 
-      module.exports = 'js1.4.0';
+      module.exports = 'js1.5.0';
     }, {}] }, {}, [27])(27);
 });

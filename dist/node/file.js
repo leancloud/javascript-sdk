@@ -338,7 +338,7 @@ module.exports = function (AV) {
       base64: ''
     };
 
-    var owner = undefined;
+    var owner = void 0;
     if (data && data.owner) {
       owner = data.owner;
     } else if (!AV._config.disableCurrentUser) {
@@ -380,6 +380,9 @@ module.exports = function (AV) {
       }
       this._source = AV.Promise.as(data.blob, guessedType);
     } else if (typeof File !== "undefined" && data instanceof global.File) {
+      if (data.size) {
+        this.attributes.metaData.size = data.size;
+      }
       this._source = AV.Promise.as(data, guessedType);
     } else if (typeof global.Buffer !== "undefined" && global.Buffer.isBuffer(data)) {
       // use global.Buffer to prevent browserify pack Buffer module
@@ -518,15 +521,19 @@ module.exports = function (AV) {
         }
       };
 
-      switch (arguments.length) {
+      for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+        args[_key] = arguments[_key];
+      }
+
+      switch (args.length) {
         case 1:
           // 传入一个 Object
-          for (var k in arguments.length <= 0 ? undefined : arguments[0]) {
-            set(k, (arguments.length <= 0 ? undefined : arguments[0])[k]);
+          for (var k in args[0]) {
+            set(k, args[0][k]);
           }
           break;
         case 2:
-          set(arguments.length <= 0 ? undefined : arguments[0], arguments.length <= 1 ? undefined : arguments[1]);
+          set(args[0], args[1]);
           break;
       }
     },
@@ -660,7 +667,7 @@ module.exports = function (AV) {
       if (this.id) {
         throw new Error('File already saved. If you want to manipulate a file, use AV.Query to get it.');
       }
-      var options = undefined;
+      var options = void 0;
       var saveOptions = {};
       switch (arguments.length) {
         case 1:
@@ -675,7 +682,7 @@ module.exports = function (AV) {
         if (this._source) {
           this._previousSave = this._source.then(function (data, type) {
             return _this2._fileToken(type).then(function (uploadInfo) {
-              var uploadPromise = undefined;
+              var uploadPromise = void 0;
               switch (uploadInfo.provider) {
                 case 's3':
                   uploadPromise = s3(uploadInfo, data, _this2, saveOptions);

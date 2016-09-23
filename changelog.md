@@ -1,9 +1,14 @@
+# 1.5.0 (2016-9-23)
+* 增加了 `AV.User#getRoles` 方法
+* 增加了 TypeScript 定义文件
+* 修复了通过浏览器 input 上传文件 metaData.size 信息缺失的问题
+
 ## 1.4.0 (2016-9-1)
 相比于 v1.4.0-beta.0:
 * 修复了 `AV.File#save` 方法的 `onprogress` 参数失效的问题
 
 # 1.4.0-beta.0 (2016-8-23)
-* 支持 ES2015 的 extends 语法来声明 `AV.Object` 的子类，增加了 `AV.Object.register` 方法用于注册声明的子类。
+* 支持 ES2015 的 extends 语法来声明 `AV.Object` 的子类，增加了 `AV.Object.register` 方法用于注册声明的子类
 
   ```javascript
   class Article extends AV.Object {}

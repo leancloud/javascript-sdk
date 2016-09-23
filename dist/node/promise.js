@@ -177,8 +177,8 @@ _.extend(Promise, /** @lends AV.Promise */{
               //It's rejected already, so we ignore it.
             }
           } else {
-              promise.resolve.apply(promise, results);
-            }
+            promise.resolve.apply(promise, results);
+          }
         }
       }
     };

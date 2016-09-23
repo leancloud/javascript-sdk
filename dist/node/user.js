@@ -571,8 +571,17 @@ module.exports = function (AV) {
 
     getSessionToken: function getSessionToken() {
       return this._sessionToken;
-    }
+    },
 
+    /**
+     * Get this user's Roles.
+     * @param {Object} options A Backbone-style options object.
+     * @return {AV.Promise} A promise that is fulfilled with the roles when
+     *     the query is complete.
+     */
+    getRoles: function getRoles(options) {
+      return AV.Relation.reverseQuery("_Role", "users", this).find(options);
+    }
   }, /** @lends AV.User */{
     // Class Variables
 

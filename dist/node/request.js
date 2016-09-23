@@ -16,7 +16,7 @@ var AVError = require('./error');
 var AV = require('./av');
 var _ = require('underscore');
 
-var getServerURLPromise = undefined;
+var getServerURLPromise = void 0;
 
 // 服务器请求的节点 host
 var API_HOST = {
