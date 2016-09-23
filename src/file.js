@@ -391,6 +391,9 @@ module.exports = function(AV) {
       }
       this._source = AV.Promise.as(data.blob, guessedType);
     } else if (typeof File !== "undefined" && data instanceof global.File) {
+      if (data.size) {
+        this.attributes.metaData.size = data.size;
+      }
       this._source = AV.Promise.as(data, guessedType);
     } else if (typeof global.Buffer !== "undefined" && global.Buffer.isBuffer(data)) {
       // use global.Buffer to prevent browserify pack Buffer module
