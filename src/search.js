@@ -117,7 +117,7 @@ module.exports = function(AV) {
      _sortBuilder: null,
     _createRequest: function(params, options){
       return AVRequest('search/select', null, null, 'GET',
-                                   params || this.toJSON(), options && options.sessionToken);
+                                   params || this.toJSON(), options);
     },
 
     /**

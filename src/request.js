@@ -6,6 +6,9 @@ const Cache = require('./cache');
 const AVError = require('./error');
 const AV = require('./av');
 const _ = require('underscore');
+const {
+  getSessionToken,
+} = require('./utils');
 
 let getServerURLPromise;
 
@@ -97,13 +100,18 @@ const ajax = (method, resourceUrl, data, headers = {}, onprogress) => {
   });
 };
 
-const setHeaders = (sessionToken) => {
+const setHeaders = (authOptions = {}) => {
   const headers = {
     'X-LC-Id': AV.applicationId,
     'Content-Type': 'application/json;charset=UTF-8',
   };
-  if (AV.masterKey && AV._useMasterKey) {
-    headers['X-LC-Sign'] = sign(AV.masterKey, true);
+  if (AV._useMasterKey || authOptions.useMasterKey) {
+    if (AV.masterKey) {
+      headers['X-LC-Sign'] = sign(AV.masterKey, true);
+    } else {
+      console.warn('masterKey is not set, fall back to use appKey');
+      headers['X-LC-Sign'] = sign(AV.applicationKey);
+    }
   } else {
     headers['X-LC-Sign'] = sign(AV.applicationKey);
   }
@@ -119,9 +127,9 @@ const setHeaders = (sessionToken) => {
 
   return Promise.resolve().then(() => {
     // Pass the session token
+    const sessionToken = getSessionToken(authOptions);
     if (sessionToken) {
       headers['X-LC-Session'] = sessionToken;
-      return headers;
     } else if (!AV._config.disableCurrentUser) {
       return AV.User.currentAsync().then((currentUser) => {
         if (currentUser && currentUser._sessionToken) {
@@ -129,9 +137,8 @@ const setHeaders = (sessionToken) => {
         }
         return headers;
       });
-    } else {
-      return headers;
     }
+    return headers;
   });
 };
 
@@ -282,7 +289,7 @@ const setServerUrlByRegion = (region = 'cn') => {
  * dataObject is the payload as an object, or null if there is none.
  * @ignore
  */
-const AVRequest = (route, className, objectId, method, dataObject = {}, sessionToken) => {
+const AVRequest = (route, className, objectId, method, dataObject = {}, authOptions) => {
   if (!AV.applicationId) {
     throw new Error('You must specify your applicationId using AV.init()');
   }
@@ -298,7 +305,7 @@ const AVRequest = (route, className, objectId, method, dataObject = {}, sessionT
   }
   return getServerURLPromise.then(() => {
     const apiURL = createApiUrl(route, className, objectId, method, dataObject);
-    return setHeaders(sessionToken).then(
+    return setHeaders(authOptions).then(
       headers => ajax(method, apiURL, dataObject, headers)
         .then(
           null,

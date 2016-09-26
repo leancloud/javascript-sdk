@@ -21,10 +21,10 @@ module.exports = function(AV) {
    * @param {String} [data.cql] A CQL statement over AV.Installation that is used to match
    *         a set of installations to push to.
    * @param {Date} data.data The data to send as part of the push
-   *   <ol>
+   * @param {AuthOptions} [options]
    * @return {Promise}
    */
-  AV.Push.send = function(data) {
+  AV.Push.send = function(data, options) {
     if (data.where) {
       data.where = data.where.toJSON().where;
     }
@@ -45,7 +45,7 @@ module.exports = function(AV) {
       throw new Error("Both expiration_time and expiration_time_interval can't be set");
     }
 
-    var request = AVRequest('push', null, null, 'POST', data);
+    var request = AVRequest('push', null, null, 'POST', data, options);
     return request;
   };
 };

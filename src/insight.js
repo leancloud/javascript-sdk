@@ -27,10 +27,11 @@ module.exports = function(AV) {
      *                   }
      *                  </pre></code>
      *               sql 指定任务执行的 SQL 语句， saveAs（可选） 指定将结果保存在哪张表里，limit 最大 1000。
+     * @param {AuthOptions} [options]
      * @return {Promise} A promise that will be resolved with the result
      * of the function.
      */
-    startJob: function(jobConfig) {
+    startJob: function(jobConfig, options) {
       if(!jobConfig || !jobConfig.sql) {
         throw new Error('Please provide the sql to run the job.');
       }
@@ -39,7 +40,7 @@ module.exports = function(AV) {
         appId: AV.applicationId
       };
       var request = AVRequest("bigquery", 'jobs', null, 'POST',
-                                   AV._encode(data, null, true));
+                                   AV._encode(data, null, true), options);
 
       return request.then(function(resp) {
         return AV._decode(null, resp).id;
@@ -106,18 +107,19 @@ module.exports = function(AV) {
      * results 数组表示任务结果数组，previewCount 表示可以返回的结果总数，任务的开始和截止时间
      * startTime、endTime 等信息。
      *
+     * @param {AuthOptions} [options]
      * @return {Promise} A promise that will be resolved with the result
      * of the function.
      *
      */
-    find: function() {
+    find: function(options) {
       var params = {
         skip: this._skip,
         limit: this._limit
       };
 
       var request = AVRequest("bigquery", 'jobs', this.id, "GET",
-                                   params);
+                                   params, options);
       var self = this;
       return request.then(function(response) {
         if(response.error) {

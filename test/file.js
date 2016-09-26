@@ -18,7 +18,7 @@ describe('File', function() {
         expect(file.ownerId()).to.be.ok();
         expect(file.id).to.be.ok();
         expect(file.metaData('format')).to.be('txt file');
-        return file.destroy();
+        return file.destroy({ useMasterKey: true });
       });
     });
   });
@@ -67,7 +67,7 @@ describe('File', function() {
             expect(file.size()).to.be(11);
             expect(file.ownerId()).to.be.ok();
             expect(file.id).to.be.ok();
-            return file.destroy();
+            return file.destroy({ useMasterKey: true });
           });
       });
     });
@@ -92,7 +92,7 @@ describe('File', function() {
           });
         }).then(function(res) {
           expect(res.text).to.be('leancloud');
-          return file.destroy();
+          return file.destroy({ useMasterKey: true });
         });
     });
   });
@@ -114,7 +114,7 @@ describe('File', function() {
             expect(arf).to.be.ok();
             expect(arf.size()).to.be(9);
             expect(arf.ownerId()).to.be.ok();
-            return file.destroy();
+            return file.destroy({ useMasterKey: true });
           });
         });
       });
@@ -161,7 +161,7 @@ describe('File', function() {
         expect(file.get('createdAt')).to.be(file.createdAt);
         expect(file.get('updatedAt')).to.be(file.updatedAt);
 
-        return file.destroy();
+        return file.destroy({ useMasterKey: true });
       });
     });
   });
