@@ -1,31 +1,22 @@
-/**
- * 每位工程师都有保持代码优雅的义务
- * Each engineer has a duty to keep the code elegant
-**/
-
 const _ = require('underscore');
 const AVError = require('./error');
 
 module.exports = function(AV) {
-  /**
-   * Represents a Role on the AV server. Roles represent groupings of
-   * Users for the purposes of granting permissions (e.g. specifying an ACL
-   * for an Object). Roles are specified by their sets of child users and
-   * child roles, all of which are granted any permissions that the parent
-   * role has.
-   *
-   * <p>Roles must have a name (which cannot be changed after creation of the
-   * role), and must specify an ACL.</p>
-   * @class
-   * A AV.Role is a local representation of a role persisted to the AV
-   * cloud.
-   */
   AV.Role = AV.Object.extend("_Role", /** @lends AV.Role.prototype */ {
     // Instance Methods
 
     /**
-     * Constructs a new AVRole with the given name and ACL.
-     *
+    * Represents a Role on the AV server. Roles represent groupings of
+    * Users for the purposes of granting permissions (e.g. specifying an ACL
+    * for an Object). Roles are specified by their sets of child users and
+    * child roles, all of which are granted any permissions that the parent
+    * role has.
+    *
+    * <p>Roles must have a name (which cannot be changed after creation of the
+    * role), and must specify an ACL.</p>
+    * An AV.Role is a local representation of a role persisted to the AV
+    * cloud.
+     * @class AV.Role
      * @param {String} name The name of the Role to create.
      * @param {AV.ACL} [acl] The ACL for this role. if absent, the default ACL
      *    `{'*': { read: true }}` will be used.
@@ -72,8 +63,6 @@ module.exports = function(AV) {
      * <p>This is equivalent to calling role.set("name", name)</p>
      *
      * @param {String} name The name of the role.
-     * @param {Object} options Standard options object with success and error
-     *     callbacks.
      */
     setName: function(name, options) {
       return this.set("name", name, options);

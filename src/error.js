@@ -1,18 +1,16 @@
-/**
- * 每位工程师都有保持代码优雅的义务
- * Each engineer has a duty to keep the code elegant
-**/
-
 const _ = require('underscore');
 
-// Class used for all objects passed to error callbacks
+/**
+ * @class AV.Error
+ */
+
 function AVError(code, message) {
   const error = new Error(message);
   error.code = code;
   return error;
 }
 
-_.extend(AVError, {
+_.extend(AVError, /** @lends AV.Error */ {
   /**
    * Error code indicating some error other than those enumerated here.
    * @constant

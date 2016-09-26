@@ -1,10 +1,9 @@
 'use strict';
 
 if (typeof require !== 'undefined') {
-  GLOBAL.debug = require('debug')('test');
-  GLOBAL.expect = require('expect.js');
-  GLOBAL.serverURL = 'http://192.168.1.216:3000';
-  GLOBAL.AV = require('..');
+  global.debug = require('debug')('test');
+  global.expect = require('expect.js');
+  global.AV = require('../src');
 }
 
 // AV._config.APIServerURL = 'https://cn-stg1.avoscloud.com';

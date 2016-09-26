@@ -1,16 +1,19 @@
-/**
- * 每位工程师都有保持代码优雅的义务
- * Each engineer has a duty to keep the code elegant
-**/
-
 const _ = require('underscore');
 const AVRequest = require('./request').request;
 
+const getUser = (options = {}) => AV.User.currentAsync()
+  .then(currUser => currUser
+    ? currUser
+    : AV.User._fetchUserBySessionToken(options.sessionToken));
+
+const getUserPointer = options => getUser(options)
+  .then(currUser => AV.Object.createWithoutData('_User', currUser.id)._toPointer());
+
+
 module.exports = function(AV) {
   /**
-   * Contains functions to deal with Status in AVOS Cloud.
-   * @name AV.Status
-   * @namespace
+   * Contains functions to deal with Status in LeanCloud.
+   * @class
    */
   AV.Status = function(imageUrl, message) {
     this.data = {};
@@ -48,17 +51,15 @@ module.exports = function(AV) {
     },
     /**
      * Destroy this status,then it will not be avaiable in other user's inboxes.
-     * @param {Object} options An optional Backbone-like options object with
-     *     success and error callbacks that will be invoked once the iteration
-     *     has finished.
-     * @return {AV.Promise} A promise that is fulfilled when the destroy
+     * @param {AuthOptions} options
+     * @return {Promise} A promise that is fulfilled when the destroy
      *     completes.
      */
     destroy: function(options){
       if(!this.id)
-        return AV.Promise.error('The status id is not exists.')._thenRunCallbacks(options);
+        return AV.Promise.reject(new Error('The status id is not exists.'));
       var request = AVRequest('statuses', null, this.id, 'DELETE', options && options.sessionToken);
-      return request._thenRunCallbacks(options);
+      return request;
     },
     /**
       * Cast the AV.Status object to an AV.Object pointer.
@@ -74,8 +75,13 @@ module.exports = function(AV) {
       return AV._encode(json);
     },
    /**
-    * Send  a status by a AV.Query object.
-    * <p>For example,send a status to male users:<br/><pre>
+    * Send a status by a AV.Query object.
+    * @since 0.3.0
+    * @param {AuthOptions} options
+    * @return {Promise} A promise that is fulfilled when the send
+    *     completes.
+    * @example
+    *     // send a status to male users
     *     var status = new AVStatus('image url', 'a message');
     *     status.query = new AV.Query('_User');
     *     status.query.equalTo('gender', 'male');
@@ -85,39 +91,32 @@ module.exports = function(AV) {
     *             //an error threw.
     *             console.dir(err);
     *      });
-    * </pre></p>
-    * @since 0.3.0
-    * @param {Object} options An optional Backbone-like options object with
-    *     success and error callbacks that will be invoked once the iteration
-    *     has finished.
-    * @return {AV.Promise} A promise that is fulfilled when the send
-    *     completes.
     */
-    send: function(options){
-      if(!AV.User.current()){
-        throw 'Please signin an user.';
+    send: function(options = {}){
+      if(!options.sessionToken && !AV.User.current()) {
+        throw new Error('Please signin an user.');
       }
       if(!this.query){
         return AV.Status.sendStatusToFollowers(this, options);
       }
 
-      var query = this.query.toJSON();
-      query.className = this.query.className;
-      var data = {};
-      data.query = query;
-      this.data = this.data || {};
-      var currUser =  AV.Object.createWithoutData('_User', AV.User.current().id)._toPointer();
-      this.data.source =  this.data.source || currUser;
-      data.data = this._getDataJSON();
-      data.inboxType = this.inboxType || 'default';
+      return getUserPointer(options).then(currUser => {
+        var query = this.query.toJSON();
+        query.className = this.query.className;
+        var data = {};
+        data.query = query;
+        this.data = this.data || {};
+        this.data.source =  this.data.source || currUser;
+        data.data = this._getDataJSON();
+        data.inboxType = this.inboxType || 'default';
 
-      var request = AVRequest('statuses', null, null, 'POST', data, options && options.sessionToken);
-      var self = this;
-      return request.then(function(response){
-        self.id = response.objectId;
-        self.createdAt = AV._parseDate(response.createdAt);
-        return self;
-      })._thenRunCallbacks(options);
+        return AVRequest('statuses', null, null, 'POST', data, options.sessionToken);
+      })
+      .then((response) => {
+        this.id = response.objectId;
+        this.createdAt = AV._parseDate(response.createdAt);
+        return this;
+      });
     },
 
     _finishFetch: function(serverData){
@@ -134,8 +133,13 @@ module.exports = function(AV) {
   };
 
   /**
-   * Send  a status to current signined user's followers.For example:
-   * <p><pre>
+   * Send a status to current signined user's followers.
+   * @since 0.3.0
+   * @param {AV.Status} status  A status object to be send to followers.
+   * @param {AuthOptions} options
+   * @return {Promise} A promise that is fulfilled when the send
+   *     completes.
+   * @example
    *     var status = new AVStatus('image url', 'a message');
    *     AV.Status.sendStatusToFollowers(status).then(function(){
    *              //send status successfully.
@@ -143,132 +147,121 @@ module.exports = function(AV) {
    *             //an error threw.
    *             console.dir(err);
    *      });
-   * </pre></p>
-   * @since 0.3.0
-   * @param {AV.Status} status  A status object to be send to followers.
-   * @param {Object} options An optional Backbone-like options object with
-   *     success and error callbacks that will be invoked once the iteration
-   *     has finished.
-   * @return {AV.Promise} A promise that is fulfilled when the send
-   *     completes.
    */
-  AV.Status.sendStatusToFollowers = function(status, options) {
-    if(!AV.User.current()){
-      throw 'Please signin an user.';
+  AV.Status.sendStatusToFollowers = function(status, options = {}) {
+    if(!options.sessionToken && !AV.User.current()){
+      throw new Error('Please signin an user.');
     }
-    var query = {};
-    query.className = '_Follower';
-    query.keys = 'follower';
-    var currUser =  AV.Object.createWithoutData('_User', AV.User.current().id). _toPointer();
-    query.where = {user: currUser};
-    var data = {};
-    data.query = query;
-    status.data = status.data || {};
-    status.data.source =  status.data.source || currUser;
-    data.data = status._getDataJSON();
-    data.inboxType = status.inboxType || 'default';
+    return getUserPointer(options).then(currUser => {
+      var query = {};
+      query.className = '_Follower';
+      query.keys = 'follower';
+      query.where = {user: currUser};
+      var data = {};
+      data.query = query;
+      status.data = status.data || {};
+      status.data.source =  status.data.source || currUser;
+      data.data = status._getDataJSON();
+      data.inboxType = status.inboxType || 'default';
 
-    var request = AVRequest('statuses', null, null, 'POST', data, options && options.sessionToken);
-    return request.then(function(response){
-      status.id = response.objectId;
-      status.createdAt = AV._parseDate(response.createdAt);
-      return status;
-    })._thenRunCallbacks(options);
+      var request = AVRequest('statuses', null, null, 'POST', data, options.sessionToken);
+      return request.then(function(response){
+        status.id = response.objectId;
+        status.createdAt = AV._parseDate(response.createdAt);
+        return status;
+      });
+    });
   };
 
   /**
    * <p>Send  a status from current signined user to other user's private status inbox.</p>
-   * <p>For example,send a private status to user '52e84e47e4b0f8de283b079b':<br/>
-   * <pre>
-   *    var status = new AVStatus('image url', 'a message');
+   * @since 0.3.0
+   * @param {AV.Status} status  A status object to be send to followers.
+   * @param {String} target The target user or user's objectId.
+   * @param {AuthOptions} options
+   * @return {Promise} A promise that is fulfilled when the send
+   *     completes.
+   * @example
+   *     // send a private status to user '52e84e47e4b0f8de283b079b'
+   *     var status = new AVStatus('image url', 'a message');
    *     AV.Status.sendPrivateStatus(status, '52e84e47e4b0f8de283b079b').then(function(){
    *              //send status successfully.
    *      }, function(err){
    *             //an error threw.
    *             console.dir(err);
    *      });
-   * </pre></p>
-   * @since 0.3.0
-   * @param {AV.Status} status  A status object to be send to followers.
-   * @param {} target The target user or user's objectId.
-   * @param {Object} options An optional Backbone-like options object with
-   *     success and error callbacks that will be invoked once the iteration
-   *     has finished.
-   * @return {AV.Promise} A promise that is fulfilled when the send
-   *     completes.
    */
-  AV.Status.sendPrivateStatus = function(status, target, options) {
-    if(!AV.User.current()){
-      throw 'Please signin an user.';
+  AV.Status.sendPrivateStatus = function(status, target, options = {}) {
+    if(!options.sessionToken && !AV.User.current()){
+      throw new Error('Please signin an user.');
     }
     if(!target){
-          throw "Invalid target user.";
+      throw new Error("Invalid target user.");
     }
     var userObjectId = _.isString(target) ? target: target.id;
     if(!userObjectId){
-        throw "Invalid target user.";
+      throw new Error("Invalid target user.");
     }
+    return getUserPointer(options).then(currUser => {
+      var query = {};
+      query.className = '_User';
+      query.where = {objectId: userObjectId};
+      var data = {};
+      data.query = query;
+      status.data = status.data || {};
+      status.data.source =  status.data.source || currUser;
+      data.data = status._getDataJSON();
+      data.inboxType = 'private';
+      status.inboxType = 'private';
 
-    var query = {};
-    query.className = '_User';
-    var currUser =  AV.Object.createWithoutData('_User', AV.User.current().id). _toPointer();
-    query.where = {objectId: userObjectId};
-    var data = {};
-    data.query = query;
-    status.data = status.data || {};
-    status.data.source =  status.data.source || currUser;
-    data.data = status._getDataJSON();
-    data.inboxType = 'private';
-    status.inboxType = 'private';
-
-    var request = AVRequest('statuses', null, null, 'POST', data, options && options.sessionToken);
-    return request.then(function(response){
-      status.id = response.objectId;
-      status.createdAt = AV._parseDate(response.createdAt);
-      return status;
-    })._thenRunCallbacks(options);
+      var request = AVRequest('statuses', null, null, 'POST', data, options.sessionToken);
+      return request.then(function(response){
+        status.id = response.objectId;
+        status.createdAt = AV._parseDate(response.createdAt);
+        return status;
+      });
+    });
   };
 
   /**
-   * Count unread statuses in someone's inbox.For example:<br/>
-   * <p><pre>
+   * Count unread statuses in someone's inbox.
+   * @since 0.3.0
+   * @param {Object} source The status source.
+   * @param {String} inboxType The inbox type,'default' by default.
+   * @param {AuthOptions} options
+   * @return {Promise} A promise that is fulfilled when the count
+   *     completes.
+   * @example
    *  AV.Status.countUnreadStatuses(AV.User.current()).then(function(response){
    *    console.log(response.unread); //unread statuses number.
    *    console.log(response.total);  //total statuses number.
    *  });
-   * </pre></p>
-   * @since 0.3.0
-   * @param {Object} source The status source.
-   * @return {AV.Query} The query object for status.
-   * @return {AV.Promise} A promise that is fulfilled when the count
-   *     completes.
    */
   AV.Status.countUnreadStatuses = function(owner){
-    if(!AV.User.current() && owner == null){
-      throw 'Please signin an user or pass the owner objectId.';
-    }
-    owner = owner || AV.User.current();
-    var options = !_.isString(arguments[1]) ? arguments[1] : arguments[2];
+    var options = (!_.isString(arguments[1]) ? arguments[1] : arguments[2]) || {};
     var inboxType =  !_.isString(arguments[1]) ? 'default' : arguments[1];
-    var params = {};
-    params.inboxType = AV._encode(inboxType);
-    params.owner = AV._encode(owner);
-    var request = AVRequest('subscribe/statuses/count', null, null, 'GET', params, options && options.sessionToken);
-    return request._thenRunCallbacks(options);
+    if(!options.sessionToken && owner == null && !AV.User.current()){
+      throw new Error('Please signin an user or pass the owner objectId.');
+    }
+    return getUser(options).then(owner => {
+      var params = {};
+      params.inboxType = AV._encode(inboxType);
+      params.owner = AV._encode(owner);
+      return AVRequest('subscribe/statuses/count', null, null, 'GET', params, options.sessionToken);
+    });
   };
 
   /**
-   * Create a status query to find someone's published statuses.For example:<br/>
-   * <p><pre>
+   * Create a status query to find someone's published statuses.
+   * @since 0.3.0
+   * @param {Object} source The status source.
+   * @return {AV.Query} The query object for status.
+   * @example
    *   //Find current user's published statuses.
    *   var query = AV.Status.statusQuery(AV.User.current());
    *   query.find().then(function(statuses){
    *      //process statuses
    *   });
-   * </pre></p>
-   * @since 0.3.0
-   * @param {Object} source The status source.
-   * @return {AV.Query} The query object for status.
    */
   AV.Status.statusQuery = function(source){
     var query = new AV.Query('_Status');
@@ -280,7 +273,6 @@ module.exports = function(AV) {
 
    /**
     * <p>AV.InboxQuery defines a query that is used to fetch somebody's inbox statuses.</p>
-    * @see AV.Status#inboxQuery
     * @class
     */
    AV.InboxQuery = AV.Query._extend(/** @lends AV.InboxQuery.prototype */{
@@ -349,8 +341,13 @@ module.exports = function(AV) {
    });
 
   /**
-   * Create a inbox status query to find someone's inbox statuses.For example:<br/>
-   * <p><pre>
+   * Create a inbox status query to find someone's inbox statuses.
+   * @since 0.3.0
+   * @param {Object} owner The inbox's owner
+   * @param {String} inboxType The inbox type,'default' by default.
+   * @return {AV.InboxQuery} The inbox query object.
+   * @see AV.InboxQuery
+   * @example
    *   //Find current user's default inbox statuses.
    *   var query = AV.Status.inboxQuery(AV.User.current());
    *   //find the statuses after the last message id
@@ -358,12 +355,6 @@ module.exports = function(AV) {
    *   query.find().then(function(statuses){
    *      //process statuses
    *   });
-   * </pre></p>
-   * @since 0.3.0
-   * @param {Object} owner The inbox's owner
-   * @param {String} inboxType The inbox type,'default' by default.
-   * @return {AV.InboxQuery} The inbox query object.
-   * @see AV.InboxQuery
    */
   AV.Status.inboxQuery = function(owner, inboxType){
     var query = new AV.InboxQuery(AV.Status);

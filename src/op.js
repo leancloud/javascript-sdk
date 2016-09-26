@@ -1,14 +1,9 @@
-/**
- * 每位工程师都有保持代码优雅的义务
- * Each engineer has a duty to keep the code elegant
-**/
-
-'use strict';
 var _ = require('underscore');
 
 module.exports = function(AV) {
 
   /**
+   * @private
    * @class
    * A AV.Op is an atomic operation that can be applied to a field in a
    * AV.Object. For example, calling <code>object.set("foo", "bar")</code>
@@ -31,6 +26,7 @@ module.exports = function(AV) {
   _.extend(AV.Op, {
     /**
      * To create a new Op, call AV.Op._extend();
+     * @private
      */
     _extend: AV._extend,
 
@@ -40,6 +36,7 @@ module.exports = function(AV) {
     /**
      * Registers a function to convert a json object with an __op field into an
      * instance of a subclass of AV.Op.
+     * @private
      */
     _registerDecoder: function(opName, decoder) {
       AV.Op._opDecoderMap[opName] = decoder;
@@ -47,6 +44,7 @@ module.exports = function(AV) {
 
     /**
      * Converts a json object into an instance of a subclass of AV.Op.
+     * @private
      */
     _decode: function(json) {
       var decoder = AV.Op._opDecoderMap[json.__op];
@@ -71,6 +69,7 @@ module.exports = function(AV) {
   });
 
   /**
+   * @private
    * @class
    * A Set operation indicates that either the field was changed using
    * AV.Object.set, or it is a mutable container that was detected as being
@@ -113,6 +112,7 @@ module.exports = function(AV) {
   AV.Op._UNSET = {};
 
   /**
+   * @private
    * @class
    * An Unset operation indicates that this field has been deleted from the
    * object.
@@ -140,6 +140,7 @@ module.exports = function(AV) {
   });
 
   /**
+   * @private
    * @class
    * An Increment is an atomic operation where the numeric value for the field
    * will be increased by a given amount.
@@ -194,6 +195,7 @@ module.exports = function(AV) {
   });
 
   /**
+   * @private
    * @class
    * Add is an atomic operation where the given objects will be appended to the
    * array that is stored in this field.
@@ -247,6 +249,7 @@ module.exports = function(AV) {
   });
 
   /**
+   * @private
    * @class
    * AddUnique is an atomic operation where the given items will be appended to
    * the array that is stored in this field only if they were not already
@@ -322,6 +325,7 @@ module.exports = function(AV) {
   });
 
   /**
+   * @private
    * @class
    * Remove is an atomic operation where the given objects will be removed from
    * the array that is stored in this field.
@@ -384,6 +388,7 @@ module.exports = function(AV) {
   });
 
   /**
+   * @private
    * @class
    * A Relation operation indicates that the field is an instance of
    * AV.Relation, and objects are being added to, or removed from, that

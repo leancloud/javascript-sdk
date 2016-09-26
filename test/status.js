@@ -1,66 +1,55 @@
 'use strict';
 
 describe("AV.Status",function(){
+  before(function() {
+    var userName = this.userName = 'StatusTest' + Date.now();
+    return AV.User.signUp(userName, userName).then(user => {
+      this.user = user;
+    });
+  });
+
+  after(() => AV.User.logOut());
 
   describe("Send status.",function(){
-    it("should send status to followers.",function(done){
+    it("should send status to followers.",function(){
       var status = new AV.Status('image url', 'message');
-      AV.Status.sendStatusToFollowers(status).then(function(status){
-        debug(status);
-        done();
-      }, done);
+      return AV.Status.sendStatusToFollowers(status);
     });
 
-    it("should send private status to an user.",function(done){
+    it("should send private status to an user.",function(){
       var status = new AV.Status('image url', 'message');
-      AV.Status.sendPrivateStatus(status, '5627906060b22ef9c464cc99').then(function(status){
-        debug(status);
-        done();
-      }, done);
+      return AV.Status.sendPrivateStatus(status, '5627906060b22ef9c464cc99');
     });
 
-    it("should send  status to a female user.",function(done){
+    it("should send  status to a female user.",function(){
       var status = new AV.Status('image url', 'message');
       status.query = new AV.Query('_User');
       status.query.equalTo('gender', 'female');
-      status.send().then(function(status){
-        debug(status);
-        done();
-      }, done);
+      return status.send();
     });
   });
 
   describe("Query statuses.", function(){
-    it("should return unread count.", function(done){
-      AV.Status.countUnreadStatuses(null, function(response){
-        debug(response);
+    it("should return unread count.", function(){
+      return AV.Status.countUnreadStatuses().then(function(response){
         expect(response.total).to.be.a('number');
         expect(response.unread).to.be.a('number');
-        done();
       });
     });
 
-    it("should return unread count that is greater than zero.", function(done){
-      AV.Status.countUnreadStatuses(AV.Object.createWithoutData('_User', '5627906060b22ef9c464cc99'),'private', function(response){
-        debug(response);
+    it("should return unread count that is greater than zero.", function(){
+      return AV.Status.countUnreadStatuses(AV.Object.createWithoutData('_User', '5627906060b22ef9c464cc99'),'private').then(function(response){
         expect(response.total).to.be.a('number');
         expect(response.unread).to.be.a('number');
-        done();
       });
     });
-    it("should return private statuses.", function(done){
+    it("should return private statuses.", function(){
       var query = AV.Status.inboxQuery(AV.Object.createWithoutData('_User', '5627906060b22ef9c464cc99'), 'private');
-      query.find().then(function(statuses){
-        debug(statuses);
-        done();
-      }, done);
+      return query.find();
     });
-    it("should return published statuses.", function(done){
+    it("should return published statuses.", function(){
       var query = AV.Status.statusQuery(AV.User.current());
-      query.find().then(function(statuses){
-        debug(statuses);
-        done();
-      }, done);
+      return query.find();
     });
   });
 
@@ -68,26 +57,25 @@ describe("AV.Status",function(){
     //follow 5627906060b22ef9c464cc99
     //unfolow 5627906060b22ef9c464cc99
     var targetUser = '5627906060b22ef9c464cc99';
-    it("should follow/unfollow successfully.", function(done){
-      AV.User.current().follow(targetUser).then(function(){
+    it("should follow/unfollow successfully.", function(){
+      return AV.User.current().follow(targetUser).then(function(){
         var query = AV.User.current().followeeQuery();
         query.include('followee');
-        query.find().then(function(followees){
-          debug(followees);
-          expect(followees.length).to.be(1);
-          expect(followees[0].id).to.be('5627906060b22ef9c464cc99');
-          expect(followees[0].get('username')).to.be('leeyeh');
-          AV.User.current().unfollow(targetUser).then(function(){
-            var query = AV.User.current().followeeQuery();
-            query.include('followee');
-            query.find().then(function(followees){
-              debug(followees);
-              expect(followees.length).to.be(0);
-              done();
-            }, done);
-          }, done);
-        }, done);
-      }, done);
+        return query.find();
+      }).then(function(followees){
+        debug(followees);
+        expect(followees.length).to.be(1);
+        expect(followees[0].id).to.be('5627906060b22ef9c464cc99');
+        expect(followees[0].get('username')).to.be('leeyeh');
+        return AV.User.current().unfollow(targetUser);
+      }).then(function(){
+        var query = AV.User.current().followeeQuery();
+        query.include('followee');
+        return query.find();
+      }).then(function(followees){
+        debug(followees);
+        expect(followees.length).to.be(0);
+      });
     });
     var targetUserObject = AV.Object.createWithoutData('_User', targetUser);
     it.skip("should send statuses.", function(done){

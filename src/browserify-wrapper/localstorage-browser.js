@@ -1,10 +1,3 @@
-/**
- * 每位工程师都有保持代码优雅的义务
- * Each engineer has a duty to keep the code elegant
-**/
-
-'use strict';
-
 var _ = require('underscore');
 var Promise = require('../promise');
 
@@ -53,7 +46,7 @@ if (global.localStorage) {
   var AsyncStorage = require('react-native').AsyncStorage;
   _(apiNames).each(function(apiName) {
     Storage[apiName + 'Async'] = function() {
-      return Promise.as(AsyncStorage[apiName].apply(AsyncStorage, arguments));
+      return Promise.resolve(AsyncStorage[apiName].apply(AsyncStorage, arguments));
     };
   });
   Storage.async = true;

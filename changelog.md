@@ -1,3 +1,81 @@
+# 2.0.0-beta.0 (2016-9-27)
+### Breaking Changes
+* 移除了所有 Backbone callbacks 回调风格的参数，请使用 Promise 处理异步操作的结果：
+
+  ```javascript
+  // Backbone callback 回调风格的参数的用法
+  object.save(null, {
+    success: function(object) {},
+    error: function(error, object) {},
+  });
+
+  // 需要替换为
+  object.save().then(
+    function(object) {},
+    function(error) {}
+  );
+  ```
+
+* `AV.Promise` 现在是一个满足 Promises/A+ 标准的实现，所有非标准的方法已被移除，所有非标准的行为已被修正。关于标准 Promise 的更多信息推荐阅读 [《JavaScript Promise 迷你书》](http://liubin.org/promises-book/)。
+
+* 如果你 extend 的 `AV.Object` 子类重写了 `validate` 方法，当属性无效时现在需要 throw 一个 Error（之前是 return 一个 Error）。相应的，`AV.Object#set` 方法如果 set 的值无效，需要通过 try catch 捕获异常（之前通过检查返回值是 false）。
+
+  ```javascript
+  // 之前的用法
+  var Student = AV.Object.extend('Student', {
+    validate: function(attibutes) {
+      if (attributes.age < 0) return new Error('negative age set');
+    }
+  });
+  var tom = new Student();
+  if (tom.set('age', -1) === false) {
+    console.error('something wrong');
+  } else {
+    tom.save();
+  }
+
+  // 现在的用法
+  var Student = AV.Object.extend('Student', {
+    validate: function(attibutes) {
+      if (attributes.age < 0) throw new Error('negative age set');
+    }
+  });
+  var tom = new Student();
+  try {
+    tom.set('age', -1);
+  } catch (error) {
+    console.error(error.message);
+  }
+  tom.save();
+  ```
+
+* `AV.User#_linkWith` 的第二个参数中的 `options.authData` 字段提升为第二个参数。
+
+  ```javascript
+  // 之前的用法
+  user._linkWith('weixin', {
+    authData: {
+      access_token: 'access_token'
+    },
+  });
+
+  // 现在的用法
+  user._linkWith('weixin', {
+    access_token: 'access_token'
+  });
+  ```
+
+* 移除了 deprecated 的 API，包括：
+  - `AV.Object#existed`
+  - `AV.User.requestEmailVerfiy` (typo)
+  - `AV.useAVCloudCN`
+  - `AV.useAVCloudUS`
+  - `AV._ajax`
+  - `AV._request`
+
+### Bug Fixes
+* 修复了应用内社交模块的方法在未登录状态下传入了 sessionToken 仍然抛未登录异常的问题
+
 ## 1.4.0 (2016-9-1)
 相比于 v1.4.0-beta.0:
 * 修复了 `AV.File#save` 方法的 `onprogress` 参数失效的问题

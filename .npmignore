@@ -3,6 +3,7 @@ demo
 node_modules
 src
 test
+script
 tools
 .babelrc
 .gitignore
@@ -10,4 +11,4 @@ tools
 bower.json
 gulpfile.babel.js
 readme.txt
-.idea
+.nyc_output

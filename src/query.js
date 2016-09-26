@@ -1,8 +1,3 @@
-/**
- * 每位工程师都有保持代码优雅的义务
- * Each engineer has a duty to keep the code elegant
-**/
-
 const _ = require('underscore');
 const AVError = require('./error');
 const AVRequest = require('./request').request;
@@ -10,9 +5,8 @@ const AVRequest = require('./request').request;
 // AV.Query is a way to create a list of AV.Objects.
 module.exports = function(AV) {
   /**
-   * Creates a new avoscloud AV.Query for the given AV.Object subclass.
-   * @param objectClass -
-   *   An instance of a subclass of AV.Object, or a AV className string.
+   * Creates a new AV.Query for the given AV.Object subclass.
+   * @param {Class|String} objectClass An instance of a subclass of AV.Object, or a AV className string.
    * @class
    *
    * <p>AV.Query defines a query that is used to fetch AV.Objects. The
@@ -23,46 +17,34 @@ module.exports = function(AV) {
    *
    * <pre>
    * var query = new AV.Query(MyClass);
-   * query.find({
-   *   success: function(results) {
-   *     // results is an array of AV.Object.
-   *   },
-   *
-   *   error: function(error) {
-   *     // error is an instance of AVError.
-   *   }
+   * query.find().then(function(results) {
+   *   // results is an array of AV.Object.
+   * }, function(error) {
+   *   // error is an instance of AVError.
    * });</pre></p>
    *
-   * <p>A AV.Query can also be used to retrieve a single object whose id is
+   * <p>An AV.Query can also be used to retrieve a single object whose id is
    * known, through the get method. For example, this sample code fetches an
    * object of class <code>MyClass</code> and id <code>myId</code>. It calls a
    * different function depending on whether the fetch succeeded or not.
    *
    * <pre>
    * var query = new AV.Query(MyClass);
-   * query.get(myId, {
-   *   success: function(object) {
-   *     // object is an instance of AV.Object.
-   *   },
-   *
-   *   error: function(object, error) {
-   *     // error is an instance of AVError.
-   *   }
+   * query.get(myId).then(function(object) {
+   *   // object is an instance of AV.Object.
+   * }, function(error) {
+   *   // error is an instance of AVError.
    * });</pre></p>
    *
-   * <p>A AV.Query can also be used to count the number of objects that match
+   * <p>An AV.Query can also be used to count the number of objects that match
    * the query without retrieving all of those objects. For example, this
    * sample code counts the number of objects of the class <code>MyClass</code>
    * <pre>
    * var query = new AV.Query(MyClass);
-   * query.count({
-   *   success: function(number) {
-   *     // There are number instances of MyClass.
-   *   },
-   *
-   *   error: function(error) {
-   *     // error is an instance of AVError.
-   *   }
+   * query.count().then(function(number) {
+   *   // There are number instances of MyClass.
+   * }, function(error) {
+   *   // error is an instance of AVError.
    * });</pre></p>
    */
   AV.Query = function(objectClass) {
@@ -137,15 +119,13 @@ module.exports = function(AV) {
 
   /**
    * Retrieves a list of AVObjects that satisfy the CQL.
-   * CQL syntax please see <a href='https://cn.avoscloud.com/docs/cql_guide.html'>CQL Guide.</a>
-   * Either options.success or options.error is called when the find
-   * completes.
+   * CQL syntax please see {@link https://leancloud.cn/docs/cql_guide.html CQL Guide}.
    *
-   * @param {String} cql,  A CQL string, see <a href='https://cn.avoscloud.com/docs/cql_guide.html'>CQL Guide.</a>
-   * @param {Array} pvalues, An array contains placeholder values.
-   * @param {Object} options A Backbone-style options object,it's optional.
-   * @return {AV.Promise} A promise that is resolved with the results when
-   * the query completes,it's optional.
+   * @param {String} cql A CQL string, see {@link https://leancloud.cn/docs/cql_guide.html CQL Guide}.
+   * @param {Array} pvalues An array contains placeholder values.
+   * @param {AuthOptions} options
+   * @return {Promise} A promise that is resolved with the results when
+   * the query completes.
    */
   AV.Query.doCloudQuery = function(cql, pvalues, options) {
     var params = { cql: cql };
@@ -171,7 +151,7 @@ module.exports = function(AV) {
         count:  response.count,
         className: response.className
       };
-    })._thenRunCallbacks(options);
+    });
   };
 
   AV.Query._extend = AV._extend;
@@ -183,12 +163,12 @@ module.exports = function(AV) {
     },
 
     /**
-     * Constructs a AV.Object whose id is already known by fetching data from
-     * the server.  Either options.success or options.error is called when the
-     * find completes.
+     * Constructs an AV.Object whose id is already known by fetching data from
+     * the server.
      *
-     * @param {} objectId The id of the object to be fetched.
-     * @param {Object} options A Backbone-style options object.
+     * @param {String} objectId The id of the object to be fetched.
+     * @param {AuthOptions} options
+     * @return {Promise.<AV.Object>}
      */
     get: function(objectId, options) {
       if(!objectId) {
@@ -200,16 +180,16 @@ module.exports = function(AV) {
       var self = this;
       self.equalTo('objectId', objectId);
 
-      return self.first().then(function(response) {
+      return self.first(options).then(function(response) {
         if (!_.isEmpty(response)) {
           return response;
         }
 
         var errorObject = new AVError(AVError.OBJECT_NOT_FOUND,
                                           "Object not found.");
-        return AV.Promise.error(errorObject);
+        return AV.Promise.reject(errorObject);
 
-      })._thenRunCallbacks(options, null);
+      });
     },
 
     /**
@@ -260,11 +240,9 @@ module.exports = function(AV) {
 
     /**
      * Retrieves a list of AVObjects that satisfy this query.
-     * Either options.success or options.error is called when the find
-     * completes.
      *
-     * @param {Object} options A Backbone-style options object.
-     * @return {AV.Promise} A promise that is resolved with the results when
+     * @param {AuthOptions} options
+     * @return {Promise} A promise that is resolved with the results when
      * the query completes.
      */
     find: function(options) {
@@ -280,21 +258,20 @@ module.exports = function(AV) {
           }
           return obj;
         });
-      })._thenRunCallbacks(options);
+      });
     },
 
    /**
     * Delete objects retrieved by this query.
-    * @param {Object} options Standard options object with success and error
-    *     callbacks.
-    * @return {AV.Promise} A promise that is fulfilled when the save
+    * @param {AuthOptions} options
+    * @return {Promise} A promise that is fulfilled when the save
     *     completes.
     */
      destroyAll: function(options){
        var self = this;
-       return self.find().then(function(objects){
+       return self.find(options).then(function(objects){
            return AV.Object.destroyAll(objects);
-       })._thenRunCallbacks(options);
+       });
      },
 
     /**
@@ -302,8 +279,8 @@ module.exports = function(AV) {
      * Either options.success or options.error is called when the count
      * completes.
      *
-     * @param {Object} options A Backbone-style options object.
-     * @return {AV.Promise} A promise that is resolved with the count when
+     * @param {AuthOptions} options
+     * @return {Promise} A promise that is resolved with the count when
      * the query completes.
      */
     count: function(options) {
@@ -314,17 +291,14 @@ module.exports = function(AV) {
 
       return request.then(function(response) {
         return response.count;
-      })._thenRunCallbacks(options);
+      });
     },
 
     /**
      * Retrieves at most one AV.Object that satisfies this query.
      *
-     * Either options.success or options.error is called when it completes.
-     * success is passed the object if there is one. otherwise, undefined.
-     *
-     * @param {Object} options A Backbone-style options object.
-     * @return {AV.Promise} A promise that is resolved with the object when
+     * @param {AuthOptions} options
+     * @return {Promise} A promise that is resolved with the object when
      * the query completes.
      */
     first: function(options) {
@@ -342,19 +316,7 @@ module.exports = function(AV) {
           }
           return obj;
         })[0];
-      })._thenRunCallbacks(options);
-    },
-
-    /**
-     * Returns a new instance of AV.Collection backed by this query.
-     * @return {AV.Collection}
-     */
-    collection: function(items, options) {
-      options = options || {};
-      return new AV.Collection(items, _.extend(options, {
-        model: this._objectClass || this.objectClass,
-        query: this
-      }));
+      });
     },
 
     /**
@@ -394,6 +356,7 @@ module.exports = function(AV) {
 
     /**
      * Helper for condition queries
+     * @private
      */
     _addCondition: function(key, condition, value) {
       // Check if we already have a condition
@@ -626,6 +589,7 @@ module.exports = function(AV) {
      * Add constraint that at least one of the passed in queries matches.
      * @param {Array} queries
      * @return {AV.Query} Returns the query, so you can chain this call.
+     * @private
      */
     _orQuery: function(queries) {
       var queryJSON = _.map(queries, function(q) {
@@ -640,6 +604,7 @@ module.exports = function(AV) {
      * Add constraint that both of the passed in queries matches.
      * @param {Array} queries
      * @return {AV.Query} Returns the query, so you can chain this call.
+     * @private
      */
     _andQuery: function(queries) {
       var queryJSON = _.map(queries, function(q) {
@@ -655,6 +620,7 @@ module.exports = function(AV) {
      * Converts a string into a regex that matches it.
      * Surrounding with \Q .. \E does this, we just need to escape \E's in
      * the text separately.
+     * @private
      */
     _quote: function(s) {
       return "\\Q" + s.replace("\\E", "\\E\\\\E\\Q") + "\\E";
@@ -876,22 +842,16 @@ module.exports = function(AV) {
      * and may not use limit or skip.
      * @param callback {Function} Callback that will be called with each result
      *     of the query.
-     * @param options {Object} An optional Backbone-like options object with
-     *     success and error callbacks that will be invoked once the iteration
-     *     has finished.
-     * @return {AV.Promise} A promise that will be fulfilled once the
+     * @return {Promise} A promise that will be fulfilled once the
      *     iteration has completed.
      */
-    each: function(callback, options) {
-      options = options || {};
+    each: function(callback, options = {}) {
 
       if (this._order || this._skip || (this._limit >= 0)) {
         var error =
-          "Cannot iterate on a query with sort, skip, or limit.";
-        return AV.Promise.error(error)._thenRunCallbacks(options);
+          new Error("Cannot iterate on a query with sort, skip, or limit.");
+        return AV.Promise.reject(error);
       }
-
-      var promise = new AV.Promise();
 
       var query = new AV.Query(this.objectClass);
       // We can override the batch size from the options.
@@ -907,8 +867,8 @@ module.exports = function(AV) {
         return !finished;
 
       }, function() {
-        return query.find().then(function(results) {
-          var callbacksDone = AV.Promise.as();
+        return query.find(options).then(function(results) {
+          var callbacksDone = AV.Promise.resolve();
           _.each(results, function(result) {
             callbacksDone = callbacksDone.then(function() {
               return callback(result);
@@ -923,7 +883,7 @@ module.exports = function(AV) {
             }
           });
         });
-      })._thenRunCallbacks(options);
+      });
     }
   };
 

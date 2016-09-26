@@ -1,9 +1,9 @@
 'use strict';
 
 var GameScore = AV.Object.extend("GameScore");
-describe("ObjectACL",function(){
-  describe("*",function(){
-    it("set * acl",function(done){
+describe("ObjectACL", function () {
+  describe("*", function () {
+    it("set * acl", function () {
       var gameScore = new GameScore();
       gameScore.set("score", 2);
       gameScore.set("playerName", "sdf");
@@ -13,21 +13,14 @@ describe("ObjectACL",function(){
       postACL.setPublicReadAccess(true);
       postACL.setPublicWriteAccess(true);
 
-      postACL.setReadAccess("546",true);
-      postACL.setReadAccess("56238",true);
-      postACL.setWriteAccess("5a061",true);
-      postACL.setRoleWriteAccess("r6",true);
+      postACL.setReadAccess("546", true);
+      postACL.setReadAccess("56238", true);
+      postACL.setWriteAccess("5a061", true);
+      postACL.setRoleWriteAccess("r6", true);
       gameScore.setACL(postACL);
-      gameScore.save(null, {
-        success: function(result) {
-          expect(result.id).to.be.ok();
-          gameScore.destroy().then(function() {
-            done();
-          });
-        },
-        error: function(gameScore, error) {
-          throw error;
-        }
+      return gameScore.save().then(result => {
+        result.id.should.be.ok();
+        return gameScore.destroy();
       });
     });
   });

@@ -1,0 +1,13 @@
+require('should');
+require('./test.js');
+require('./file.js');
+require('./error.js');
+require('./object.js');
+require('./user.js');
+require('./query.js');
+require('./geopoints.js');
+require('./acl.js');
+require('./role.js');
+require('./status.js');
+require('./sms.js');
+require('./search.js');

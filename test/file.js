@@ -7,7 +7,7 @@ try {
   request = superagent;
 }
 
-describe('files', function() {
+describe('File', function() {
   describe('Saving base64', function() {
     it('should be saved', function() {
       var base64 = 'd29ya2luZyBhdCBhdm9zY2xvdWQgaXMgZ3JlYXQh';
@@ -48,16 +48,13 @@ describe('files', function() {
 
   describe('Test withURL', function() {
 
-    it('should be saved', function(done) {
+    it('should be saved', function() {
       var url = 'http://i1.wp.com/blog.avoscloud.com/wp-content/uploads/2014/05/screen568x568-1.jpg?resize=202%2C360';
       var file = AV.File.withURL('screen.jpg', url);
-      file.save().then(function() {
+      return file.save().then(function() {
         expect(file.ownerId()).to.be.ok();
         expect(file.id).to.be.ok();
         expect(file.metaData('__source')).to.be('external');
-        done();
-      }, function(error) {
-        done(error);
       });
     });
   });
@@ -137,27 +134,24 @@ describe('files', function() {
         file.save();
       }).to.throwError(/File already saved\./);
     });
-    it('fetch() should retrieve all data', function(done) {
+    it('fetch() should retrieve all data', function() {
       var file = AV.File.createWithoutData(fileId);
-      file.fetch().then(function(file) {
+      return file.fetch().then(function(file) {
         expect(file).to.be.a(AV.File);
         expect(file.id).to.be(fileId);
         expect(file.name()).to.be('myfile.txt');
         expect(typeof file.url()).to.be('string');
-        done();
-      }).catch(function(err) {
-        console.log(err);
       });
     });
   });
 
   describe('File get and set', function() {
-    it('should be equal', function(done) {
+    it('should be equal', function() {
       var base64 = 'd29ya2luZyBhdCBhdm9zY2xvdWQgaXMgZ3JlYXQh';
       var file = new AV.File('myfile.txt', { base64: base64 });
       file.set('format','txt file');
       file.set('name', 'tttt');
-      file.save().then(function() {
+      return file.save().then(function() {
 
         expect(file.url()).to.be(file.get('url'));
         expect(file.name()).to.be('tttt');
@@ -167,15 +161,8 @@ describe('files', function() {
         expect(file.get('createdAt')).to.be(file.createdAt);
         expect(file.get('updatedAt')).to.be(file.updatedAt);
 
-        file.destroy().then(function() {
-          done();
-        }, function(error) {
-          done(error);
-        });
-      }, function(error) {
-        done(error);
+        return file.destroy();
       });
     });
   });
-
 });

@@ -1,12 +1,7 @@
-/**
- * 每位工程师都有保持代码优雅的义务
- * Each engineer has a duty to keep the code elegant
-**/
-
 const request = require('superagent');
 const debug = require('debug')('leancloud:request');
 const md5 = require('md5');
-const AVPromise = require('./promise');
+const Promise = require('./promise');
 const Cache = require('./cache');
 const AVError = require('./error');
 const AV = require('./av');
@@ -78,13 +73,16 @@ const ajax = (method, resourceUrl, data, headers = {}, onprogress) => {
 
   debug(`request(${count})`, method, resourceUrl, data, headers);
 
-  const promise = new AVPromise();
-  const req = request(method, resourceUrl)
-    .set(headers)
-    .send(data)
-    .end((err, res) => {
+  return new Promise((resolve, reject) => {
+    const req = request(method, resourceUrl)
+      .set(headers)
+      .send(data);
+    if (onprogress) {
+      req.on('progress', onprogress);
+    }
+    req.end((err, res) => {
       if (res) {
-        debug(`response(${count})`, res.status, res.body && res.text, res.header);
+        debug(`response(${count})`, res.status, res.body || res.text, res.header);
       }
       if (err) {
         if (res) {
@@ -92,14 +90,11 @@ const ajax = (method, resourceUrl, data, headers = {}, onprogress) => {
           err.responseText = res.text;
           err.response = res.body;
         }
-        return promise.reject(err);
+        return reject(err);
       }
-      return promise.resolve(res.body, res.status, res);
+      return resolve(res.body);
     });
-  if (onprogress) {
-    req.on('progress', onprogress);
-  }
-  return promise;
+  });
 };
 
 const setHeaders = (sessionToken) => {
@@ -122,24 +117,22 @@ const setHeaders = (sessionToken) => {
     headers['User-Agent'] = AV._config.userAgent || `AV/${AV.version}; Node.js/${process.version}`;
   }
 
-  const promise = new AVPromise();
-
-  // Pass the session token
-  if (sessionToken) {
-    headers['X-LC-Session'] = sessionToken;
-    promise.resolve(headers);
-  } else if (!AV._config.disableCurrentUser) {
-    AV.User.currentAsync().then((currentUser) => {
-      if (currentUser && currentUser._sessionToken) {
-        headers['X-LC-Session'] = currentUser._sessionToken;
-      }
-      promise.resolve(headers);
-    });
-  } else {
-    promise.resolve(headers);
-  }
-
-  return promise;
+  return Promise.resolve().then(() => {
+    // Pass the session token
+    if (sessionToken) {
+      headers['X-LC-Session'] = sessionToken;
+      return headers;
+    } else if (!AV._config.disableCurrentUser) {
+      return AV.User.currentAsync().then((currentUser) => {
+        if (currentUser && currentUser._sessionToken) {
+          headers['X-LC-Session'] = currentUser._sessionToken;
+        }
+        return headers;
+      });
+    } else {
+      return headers;
+    }
+  });
 };
 
 const createApiUrl = (route, className, objectId, method, dataObject) => {
@@ -197,36 +190,36 @@ const cacheServerURL = (serverURL, ttl) => {
 
 // handle AV._request Error
 const handleError = (res) => {
-  const promise = new AVPromise();
-  /**
-    When API request need to redirect to the right location,
-    can't use browser redirect by http status 307, as the reason of CORS,
-    so API server response http status 410 and the param "location" for this case.
-  */
-  if (res.statusCode === 410) {
-    cacheServerURL(res.response.api_server, res.response.ttl).then(() => {
-      promise.resolve(res.response.location);
-    }).catch((error) => {
-      promise.reject(error);
-    });
-  } else {
-    let errorJSON = { code: -1, error: res.responseText };
-    if (res.response && res.response.code) {
-      errorJSON = res.response;
-    } else if (res.responseText) {
-      try {
-        errorJSON = JSON.parse(res.responseText);
-      } catch (e) {
-        // If we fail to parse the error text, that's okay.
+  return new Promise((resolve, reject) => {
+    /**
+      When API request need to redirect to the right location,
+      can't use browser redirect by http status 307, as the reason of CORS,
+      so API server response http status 410 and the param "location" for this case.
+    */
+    if (res.statusCode === 410) {
+      cacheServerURL(res.response.api_server, res.response.ttl).then(() => {
+        resolve(res.response.location);
+      }).catch((error) => {
+        reject(error);
+      });
+    } else {
+      let errorJSON = { code: -1, error: res.responseText };
+      if (res.response && res.response.code) {
+        errorJSON = res.response;
+      } else if (res.responseText) {
+        try {
+          errorJSON = JSON.parse(res.responseText);
+        } catch (e) {
+          // If we fail to parse the error text, that's okay.
+        }
       }
-    }
 
-    // Transform the error into an instance of AVError by trying to parse
-    // the error string as JSON.
-    const error = new AVError(errorJSON.code, errorJSON.error);
-    promise.reject(error);
-  }
-  return promise;
+      // Transform the error into an instance of AVError by trying to parse
+      // the error string as JSON.
+      const error = new AVError(errorJSON.code, errorJSON.error);
+      reject(error);
+    }
+  });
 };
 
 const setServerUrl = (serverURL) => {
@@ -255,31 +248,31 @@ const refreshServerUrlByRouter = () => {
 };
 
 const setServerUrlByRegion = (region = 'cn') => {
-  getServerURLPromise = new AVPromise();
-  const promise = getServerURLPromise;
-  // 如果用户在 init 之前设置了 APIServerURL，则跳过请求 router
-  if (AV._config.APIServerURL) {
-    promise.resolve();
-    return;
-  }
-  // if not china server region, do not use router
-  if (region === 'cn') {
-    Cache.getAsync('APIServerURL').then((serverURL) => {
-      if (serverURL) {
-        setServerUrl(serverURL);
-      } else {
-        return refreshServerUrlByRouter();
-      }
-    }).then(() => {
-      promise.resolve();
-    }).catch((error) => {
-      promise.reject(error);
-    });
-  } else {
-    AV._config.region = region;
-    AV._config.APIServerURL = API_HOST[region];
-    promise.resolve();
-  }
+  getServerURLPromise = new Promise((resolve, reject) => {
+    // 如果用户在 init 之前设置了 APIServerURL，则跳过请求 router
+    if (AV._config.APIServerURL) {
+      resolve();
+      return;
+    }
+    // if not china server region, do not use router
+    if (region === 'cn') {
+      return Cache.getAsync('APIServerURL').then((serverURL) => {
+        if (serverURL) {
+          setServerUrl(serverURL);
+        } else {
+          return refreshServerUrlByRouter();
+        }
+      }).then(() => {
+        resolve();
+      }).catch((error) => {
+        reject(error);
+      });
+    } else {
+      AV._config.region = region;
+      AV._config.APIServerURL = API_HOST[region];
+      resolve();
+    }
+  });
 };
 
 /**
@@ -301,7 +294,7 @@ const AVRequest = (route, className, objectId, method, dataObject = {}, sessionT
   checkRouter(route);
 
   if (!getServerURLPromise) {
-    return AVPromise.error(new Error('Not initialized'));
+    return Promise.reject(new Error('Not initialized'));
   }
   return getServerURLPromise.then(() => {
     const apiURL = createApiUrl(route, className, objectId, method, dataObject);

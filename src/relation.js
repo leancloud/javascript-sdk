@@ -1,16 +1,10 @@
-/**
- * 每位工程师都有保持代码优雅的义务
- * Each engineer has a duty to keep the code elegant
-**/
-
-'use strict';
 var _ = require('underscore');
 
 module.exports = function(AV) {
   /**
    * Creates a new Relation for the given parent object and key. This
    * constructor should rarely be used directly, but rather created by
-   * AV.Object.relation.
+   * {@link AV.Object#relation}.
    * @param {AV.Object} parent The parent of this relation.
    * @param {String} key The key for this relation on the parent.
    * @see AV.Object#relation
@@ -47,21 +41,22 @@ module.exports = function(AV) {
   AV.Relation.prototype = {
     /**
      * Makes sure that this relation has the right parent and key.
+     * @private
      */
     _ensureParentAndKey: function(parent, key) {
       this.parent = this.parent || parent;
       this.key = this.key || key;
       if (this.parent !== parent) {
-        throw "Internal Error. Relation retrieved from two different Objects.";
+        throw new Error("Internal Error. Relation retrieved from two different Objects.");
       }
       if (this.key !== key) {
-        throw "Internal Error. Relation retrieved from two different keys.";
+        throw new Error("Internal Error. Relation retrieved from two different keys.");
       }
     },
 
     /**
      * Adds a AV.Object or an array of AV.Objects to the relation.
-     * @param {} objects The item or items to add.
+     * @param {AV.Object|AV.Object[]} objects The item or items to add.
      */
     add: function(objects) {
       if (!_.isArray(objects)) {
@@ -75,7 +70,7 @@ module.exports = function(AV) {
 
     /**
      * Removes a AV.Object or an array of AV.Objects from this relation.
-     * @param {} objects The item or items to remove.
+     * @param {AV.Object|AV.Object[]} objects The item or items to remove.
      */
     remove: function(objects) {
       if (!_.isArray(objects)) {

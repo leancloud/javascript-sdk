@@ -1,8 +1,3 @@
-/**
- * 每位工程师都有保持代码优雅的义务
- * Each engineer has a duty to keep the code elegant
-**/
-
 const _ = require('underscore');
 const request = require('./request');
 
@@ -47,10 +42,7 @@ const init = (AV) => {
 
   /**
    * Contains all AV API classes and functions.
-   * @name AV
-   * @namespace
-   *
-   * Contains all AV API classes and functions.
+   * @namespace AV
    */
 
   // Check whether we are running in Node.js.
@@ -129,10 +121,10 @@ const init = (AV) => {
     * Call this method first to set up your authentication tokens for AV.
     * You can get your app keys from the LeanCloud dashboard on http://leancloud.cn .
     * @function AV.init
-    * @param args initialize options.
-    * @param args.appId application id
-    * @param args.appKey application key
-    * @param args.masterKey application master key
+    * @param {Object} options
+    * @param {String} options.appId application id
+    * @param {String} options.appKey application key
+    * @param {String} options.masterKey application master key
   */
 
   AV.init = (...args) => {
@@ -205,28 +197,11 @@ const init = (AV) => {
   };
 
   /**
-   * @deprecated Please use AV.init(), you can set the region of server .
-  **/
-  // TODO: 后续不再暴露此接口
-  AV.useAVCloudCN = function(){
-    request.setServerUrlByRegion('cn');
-    console.warn('Do not use AV.useAVCloudCN. Please use AV.init(), you can set the region of server.');
-  };
-
-  /**
-   * @deprecated Please use AV.init(), you can set the region of server .
-  **/
-  // TODO: 后续不再暴露此接口
-  AV.useAVCloudUS = function(){
-    request.setServerUrlByRegion('us');
-    console.warn('Do not use AV.useAVCloudUS. Please use AV.init(), you can set the region of server.');
-  };
-
-  /**
    * Returns prefix for localStorage keys used by this instance of AV.
    * @param {String} path The relative suffix to append to it.
    *     null or undefined is treated as the empty string.
    * @return {String} The full key name.
+   * @private
    */
   AV._getAVPath = function(path) {
     if (!AV.applicationId) {
@@ -247,12 +222,13 @@ const init = (AV) => {
   /**
    * Returns the unique string for this app on this machine.
    * Gets reset when localStorage is cleared.
+   * @private
    */
   AV._installationId = null;
   AV._getInstallationId = function() {
     // See if it's cached in RAM.
     if (AV._installationId) {
-      return AV.Promise.as(AV._installationId);
+      return AV.Promise.resolve(AV._installationId);
     }
 
     // Try to get it from localStorage.
@@ -299,18 +275,6 @@ const init = (AV) => {
     return new Date(Date.UTC(year, month, day, hour, minute, second, milli));
   };
 
-  // TODO: Next version remove
-  AV._ajax = (...args) => {
-    console.warn('AV._ajax is deprecated, and will be removed in next release.');
-    request.ajax(...args);
-  };
-
-  // TODO: Next version remove
-  AV._request = (...args) => {
-    console.warn('AV._request is deprecated, and will be removed in next release.');
-    request.request(...args);
-  };
-
   // A self-propagating extend function.
   AV._extend = function(protoProps, classProps) {
     var child = inherits(this, protoProps, classProps);
@@ -335,6 +299,7 @@ const init = (AV) => {
    * as a pointer.  This array will be used to prevent going into an infinite
    * loop because we have circular references.  If <seenObjects>
    * is set, then none of the AV Objects that are serialized can be dirty.
+   * @private
    */
   AV._encode = function(value, seenObjects, disallowObjects) {
     if (value instanceof AV.Object) {
@@ -399,6 +364,7 @@ const init = (AV) => {
   /**
    * The inverse function of AV._encode.
    * TODO: make decode not mutate value.
+   * @private
    */
   AV._decode = function(key, value) {
     if (!_.isObject(value)) {
@@ -506,6 +472,7 @@ const init = (AV) => {
    *     be passed the item as an argument. If it returns a truthy value, that
    *     value will replace the item in its parent container.
    * @returns {} the result of calling func on the top-level object itself.
+   * @private
    */
   AV._traverse = function(object, func, seen) {
     if (object instanceof AV.Object) {
@@ -548,6 +515,7 @@ const init = (AV) => {
    * This is like _.each, except:
    * * it doesn't work for so-called array-like objects,
    * * it does work for dictionaries with a "length" attribute.
+   * @private
    */
   AV._objectEach = AV._each = function(obj, callback) {
     if (_.isObject(obj)) {

@@ -1,21 +1,15 @@
-/**
- * 每位工程师都有保持代码优雅的义务
- * Each engineer has a duty to keep the code elegant
-**/
-
 var _ = require('underscore');
 
 /*global navigator: false */
 module.exports = function(AV) {
   /**
    * Creates a new GeoPoint with any of the following forms:<br>
-   *   <pre>
-   *   new GeoPoint(otherGeoPoint)
-   *   new GeoPoint(30, 30)
-   *   new GeoPoint([30, 30])
-   *   new GeoPoint({latitude: 30, longitude: 30})
-   *   new GeoPoint()  // defaults to (0, 0)
-   *   </pre>
+   * @example
+   * new GeoPoint(otherGeoPoint)
+   * new GeoPoint(30, 30)
+   * new GeoPoint([30, 30])
+   * new GeoPoint({latitude: 30, longitude: 30})
+   * new GeoPoint()  // defaults to (0, 0)
    * @class
    *
    * <p>Represents a latitude / longitude point that may be associated
@@ -83,41 +77,35 @@ module.exports = function(AV) {
 
   /**
    * Throws an exception if the given lat-long is out of bounds.
+   * @private
    */
   AV.GeoPoint._validate = function(latitude, longitude) {
     if (latitude < -90.0) {
-      throw "AV.GeoPoint latitude " + latitude + " < -90.0.";
+      throw new Error("AV.GeoPoint latitude " + latitude + " < -90.0.");
     }
     if (latitude > 90.0) {
-      throw "AV.GeoPoint latitude " + latitude + " > 90.0.";
+      throw new Error("AV.GeoPoint latitude " + latitude + " > 90.0.");
     }
     if (longitude < -180.0) {
-      throw "AV.GeoPoint longitude " + longitude + " < -180.0.";
+      throw new Error("AV.GeoPoint longitude " + longitude + " < -180.0.");
     }
     if (longitude > 180.0) {
-      throw "AV.GeoPoint longitude " + longitude + " > 180.0.";
+      throw new Error("AV.GeoPoint longitude " + longitude + " > 180.0.");
     }
   };
 
   /**
    * Creates a GeoPoint with the user's current location, if available.
-   * Calls options.success with a new GeoPoint instance or calls options.error.
-   * @param {Object} options An object with success and error callbacks.
+   * @return {Promise.<AV.GeoPoint>}
    */
-  AV.GeoPoint.current = function(options) {
-    var promise = new AV.Promise();
+  AV.GeoPoint.current = () => new AV.Promise((resolve, reject) => {
     navigator.geolocation.getCurrentPosition(function(location) {
-      promise.resolve(new AV.GeoPoint({
+      resolve(new AV.GeoPoint({
         latitude: location.coords.latitude,
         longitude: location.coords.longitude
       }));
-
-    }, function(error) {
-      promise.reject(error);
-    });
-
-    return promise._thenRunCallbacks(options);
-  };
+    }, reject);
+  });
 
   AV.GeoPoint.prototype = {
     /**

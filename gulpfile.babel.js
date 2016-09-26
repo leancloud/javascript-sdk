@@ -9,18 +9,11 @@ import fs from 'fs';
 import gulp from 'gulp';
 import clean from 'gulp-clean';
 import concat from 'gulp-concat';
-import gzip from 'gulp-gzip';
-import istanbul from 'gulp-istanbul';
-import mocha from 'gulp-mocha';
 import rename from 'gulp-rename';
-import shell from 'gulp-shell';
-import tar from 'gulp-tar';
 import uglify from 'gulp-uglify';
-import order from 'gulp-order';
 import source from 'vinyl-source-stream';
 import browserify from 'browserify';
 import browserSync from 'browser-sync';
-import sourcemaps from 'gulp-sourcemaps';
 import babel from 'gulp-babel';
 import { version } from './package.json';
 
@@ -98,22 +91,6 @@ gulp.task('uglify', ['babel-browser'], () => {
   //   .pipe(clean());
 });
 
-gulp.task('compress-scripts', ['uglify'], () => {
-  const version = getAVVersion();
-  gulp.src(['dist/*.tar.gz'])
-    .pipe(clean());
-
-  return gulp.src([
-      'dist/av-es6.js',
-      'dist/av.js',
-      'dist/av-min.js',
-      'readme.txt'
-    ])
-    .pipe(tar('avos-javascript-sdk-' + version + '.tar'))
-    .pipe(gzip())
-    .pipe(gulp.dest('dist'));
-});
-
 gulp.task('clean-node', () => {
   return gulp.src(['dist/node/**/*.*'])
     .pipe(clean({force: true}));
@@ -126,15 +103,6 @@ gulp.task('babel-node', ['clean-node'], () => {
     .pipe(babel())
     // .pipe(concat('av.js'))
     // .pipe(sourcemaps.write("."))
-    .pipe(gulp.dest('dist/node/'));
-});
-
-// 压缩 node 版本代码
-gulp.task('uglify-node', ['babel-node'], () => {
-  return gulp.src([
-      'dist/node/**/*.js'
-    ])
-    .pipe(uglify())
     .pipe(gulp.dest('dist/node/'));
 });
 
@@ -153,54 +121,6 @@ gulp.task('babel-demo', ['clean-demo'], () => {
     .pipe(gulp.dest('demo/'));
 });
 
-gulp.task('docs', shell.task([
-  'mkdir -p dist/js-sdk-api-docs',
-  'JSDOCDIR=tools/jsdoc-toolkit/ sh tools/jsdoc-toolkit/jsrun.sh -d=dist/js-sdk-api-docs -t=tools/jsdoc-toolkit/templates/jsdoc src/',
-]));
-
-gulp.task('compress-docs', ['docs'], () => {
-  const version = getAVVersion();
-  return gulp.src(['dist/js-sdk-api-docs/**'])
-    .pipe(tar('js-sdk-api-docs-' + version + '.tar'))
-    .pipe(gzip())
-    .pipe(gulp.dest('dist'));
-});
-
-// Istanbul unit test coverage plugin for gulp.
-gulp.task('instrument', ['release'], () => {
-  return gulp.src(['dist/node/**/*.js'])
-    .pipe(istanbul())
-    .pipe(istanbul.hookRequire());
-});
-
-// 执行单元测试
-gulp.task('test', [
-  'instrument', 'release'
-], () => {
-  return gulp.src('test/*.js', {
-      read: false
-    })
-    .pipe(order([
-      'test.js',
-      'file.js',
-      'error.js',
-      'object.js',
-      'user.js',
-      'query.js',
-      'geopoint.js',
-      'acl.js',
-      'role.js',
-      'master_key.js',
-      'status.js',
-      'sms.js',
-      'search.js'
-    ]))
-    .pipe(mocha({
-      timeout: 300000,
-    }))
-    .pipe(istanbul.writeReports());
-});
-
 // 上传到 CDN
 gulp.task('upload', () => {
   uploadCDN('./dist/av-min.js', getAVVersion(), () => {});
@@ -213,16 +133,9 @@ gulp.task('release', [
   'browserify',
   'babel-browser',
   'uglify',
-  'compress-scripts',
   // 生成 node 版本
   'clean-node',
   'babel-node'
-]);
-
-// 生成 API 文档
-gulp.task('doc', [
-  'docs',
-  'compress-docs'
 ]);
 
 // 浏览器开发时使用
