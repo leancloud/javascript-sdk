@@ -57,7 +57,7 @@ module.exports = function(AV) {
      */
     destroy: function(options){
       if(!this.id)
-        return AV.Promise.reject('The status id is not exists.');
+        return AV.Promise.reject(new Error('The status id is not exists.'));
       var request = AVRequest('statuses', null, this.id, 'DELETE', options && options.sessionToken);
       return request;
     },
@@ -93,7 +93,7 @@ module.exports = function(AV) {
     *      });
     */
     send: function(options = {}){
-      if(!AV.User.current() && !options.sessionToken) {
+      if(!options.sessionToken && !AV.User.current()) {
         throw new Error('Please signin an user.');
       }
       if(!this.query){
@@ -149,7 +149,7 @@ module.exports = function(AV) {
    *      });
    */
   AV.Status.sendStatusToFollowers = function(status, options = {}) {
-    if(!AV.User.current() && !options.sessionToken){
+    if(!options.sessionToken && !AV.User.current()){
       throw new Error('Please signin an user.');
     }
     return getUserPointer(options).then(currUser => {
@@ -192,7 +192,7 @@ module.exports = function(AV) {
    *      });
    */
   AV.Status.sendPrivateStatus = function(status, target, options = {}) {
-    if(!AV.User.current() && !options.sessionToken){
+    if(!options.sessionToken && !AV.User.current()){
       throw new Error('Please signin an user.');
     }
     if(!target){
@@ -240,7 +240,7 @@ module.exports = function(AV) {
   AV.Status.countUnreadStatuses = function(owner){
     var options = (!_.isString(arguments[1]) ? arguments[1] : arguments[2]) || {};
     var inboxType =  !_.isString(arguments[1]) ? 'default' : arguments[1];
-    if(!AV.User.current() && !options.sessionToken && owner == null){
+    if(!options.sessionToken && owner == null && !AV.User.current()){
       throw new Error('Please signin an user or pass the owner objectId.');
     }
     return getUser(options).then(owner => {

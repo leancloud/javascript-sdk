@@ -82,7 +82,7 @@ const ajax = (method, resourceUrl, data, headers = {}, onprogress) => {
     }
     req.end((err, res) => {
       if (res) {
-        debug(`response(${count})`, res.status, res.body && res.text, res.header);
+        debug(`response(${count})`, res.status, res.body || res.text, res.header);
       }
       if (err) {
         if (res) {
@@ -117,20 +117,20 @@ const setHeaders = (sessionToken) => {
     headers['User-Agent'] = AV._config.userAgent || `AV/${AV.version}; Node.js/${process.version}`;
   }
 
-  return new Promise((resolve) => {
+  return Promise.resolve().then(() => {
     // Pass the session token
     if (sessionToken) {
       headers['X-LC-Session'] = sessionToken;
-      resolve(headers);
+      return headers;
     } else if (!AV._config.disableCurrentUser) {
-      AV.User.currentAsync().then((currentUser) => {
+      return AV.User.currentAsync().then((currentUser) => {
         if (currentUser && currentUser._sessionToken) {
           headers['X-LC-Session'] = currentUser._sessionToken;
         }
-        resolve(headers);
+        return headers;
       });
     } else {
-      resolve(headers);
+      return headers;
     }
   });
 };

@@ -1,6 +1,14 @@
 'use strict';
 
 describe("AV.Status",function(){
+  before(function() {
+    var userName = this.userName = 'StatusTest' + Date.now();
+    return AV.User.signUp(userName, userName).then(user => {
+      this.user = user;
+    });
+  });
+
+  after(() => AV.User.logOut());
 
   describe("Send status.",function(){
     it("should send status to followers.",function(){
