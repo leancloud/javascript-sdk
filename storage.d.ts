@@ -4,15 +4,13 @@ declare namespace AV {
     export var applicationKey: string;
     export var masterKey: string;
 
-    export interface SuccessOption {
-        success?: Function;
-    }
-
-    export interface ErrorOption {
-        error?: Function;
-    }
-
-    export interface SuccessFailureOptions extends SuccessOption, ErrorOption {
+    export interface AuthOptions {
+        /**
+         * In Cloud Code and Node only, causes the Master Key to be used for this request.
+         */
+        useMasterKey?: boolean;
+        sessionToken?: string;
+        user?: User;
     }
 
     export interface WaitOption {
@@ -23,62 +21,11 @@ declare namespace AV {
         wait?: boolean;
     }
 
-    interface UseMasterKeyOption {
-        /**
-         * In Cloud Code and Node only, causes the Master Key to be used for this request.
-         */
-        useMasterKey?: boolean;
-    }
-
     export interface SilentOption {
         /**
          * Set to true to avoid firing the event.
          */
         silent?: boolean;
-    }
-
-    /**
-     * A Promise is returned by async methods as a hook to provide callbacks to be
-     * called when the async task is fulfilled.
-     *
-     * <p>Typical usage would be like:<pre>
-     *    query.find().then(function(results) {
-     *      results[0].set("foo", "bar");
-     *      return results[0].saveAsync();
-     *    }).then(function(result) {
-     *      console.log("Updated " + result.id);
-     *    });
-     * </pre></p>
-     *
-     * @see AV.Promise.prototype.then
-     * @class
-     */
-
-    interface IPromise<T> {
-
-        then<U>(resolvedCallback: (value: T) => IPromise<U>, rejectedCallback?: (reason: any) => IPromise<U>): IPromise<T>;
-        then<U>(resolvedCallback: (value: T) => U, rejectedCallback?: (reason: any) => IPromise<U>): IPromise<U>;
-        then<U>(resolvedCallback: (value: T) => U, rejectedCallback?: (reason: any) => U): IPromise<U>;
-    }
-
-    export class Promise<T> {
-
-        static as<U>(resolvedValue: U): Promise<U>;
-        static error<U>(error: U): Promise<U>;
-        static is(possiblePromise: any): Boolean;
-        static when(promises: Promise<any>[]): Promise<any>;
-
-        always(callback: Function): Promise<T>;
-        done(callback: Function): Promise<T>;
-        fail(callback: Function): Promise<T>;
-        reject(error: any): void;
-        resolve(result: any): void;
-        then<U>(resolvedCallback: (value: T) => Promise<U>,
-            rejectedCallback?: (reason: any) => Promise<U>): IPromise<U>;
-        then<U>(resolvedCallback: (value: T) => U,
-            rejectedCallback?: (reason: any) => IPromise<U>): IPromise<U>;
-        then<U>(resolvedCallback: (value: T) => U,
-            rejectedCallback?: (reason: any) => U): IPromise<U>;
     }
 
     export interface IBaseObject {
@@ -174,13 +121,15 @@ declare namespace AV {
         static createWithoutData(objectId: string): File;
 
         destroy<T>(): Promise<T>;
+        fetch<T>(options?: AuthOptions): Promise<T>;
         metaData(): any;
         metaData(metaKey: string): any;
         metaData(metaKey: string, metaValue: any): any;
         name(): string;
         ownerId(): string;
         url(): string;
-        save<T>(options?: SuccessFailureOptions): Promise<T>;
+        save<T>(options?: AuthOptions): Promise<T>;
+        setACL(acl?: ACL): any;
         size(): any;
         thumbnailURL(width: number, height: number): string;
     }
@@ -215,7 +164,7 @@ declare namespace AV {
 
         constructor(arg1?: any, arg2?: any);
 
-        current(options?: SuccessFailureOptions): GeoPoint;
+        static current(options?: AuthOptions): Promise<GeoPoint>;
         radiansTo(point: GeoPoint): number;
         kilometersTo(point: GeoPoint): number;
         milesTo(point: GeoPoint): number;
@@ -232,6 +181,7 @@ declare namespace AV {
         targetClassName: string;
 
         constructor(parent?: Object, key?: string);
+        static reverseQuery(parentClass: string, relationKey: string, child: Object): Query;
 
         //Adds a AV.Object or an array of AV.Objects to the relation.
         add(object: Object): void;
@@ -289,8 +239,8 @@ declare namespace AV {
         @static*/
         static createWithoutData(className: string, objectId: string): Object;
         static extend(className: string, protoProps?: any, classProps?: any): any;
-        static fetchAll<T>(list: Object[], options?: SuccessFailureOptions): Promise<T>;
-        static fetchAllIfNeeded<T>(list: Object[], options: SuccessFailureOptions): Promise<T>;
+        static fetchAll<T>(list: Object[], options?: AuthOptions): Promise<T>;
+        static fetchAllIfNeeded<T>(list: Object[], options: AuthOptions): Promise<T>;
         static destroyAll<T>(list: Object[], options?: Object.DestroyAllOptions): Promise<T>;
         static saveAll<T>(list: Object[], options?: Object.SaveAllOptions): Promise<T>;
 
@@ -305,7 +255,6 @@ declare namespace AV {
         dirty(attr: String): boolean;
         dirtyKeys(): string[];
         escape(attr: string): string;
-        existed(): boolean;
         fetch<T>(fetchOptions?: any, options?: Object.FetchOptions): Promise<T>;
         fetchWhenSave(enable: boolean): any;
         get(attr: string): any;
@@ -321,26 +270,24 @@ declare namespace AV {
         remove(attr: string, item: any): any;
         save<T>(options?: Object.SaveOptions, arg2?: any, arg3?: any): Promise<T>;
         set(key: string, value: any, options?: Object.SetOptions): boolean;
-        setACL(acl: ACL, options?: SuccessFailureOptions): boolean;
-        unset(attr: string, options?: any): any;
-        validate(attrs: any, options?: SuccessFailureOptions): boolean;
+        setACL(acl: ACL, options?: Object.SetOptions): boolean;
+        unset(attr: string, options?: Object.SetOptions): any;
+        validate(attrs: any): any;
 
     }
 
     export namespace Object {
-        interface DestroyOptions extends SuccessFailureOptions, WaitOption, UseMasterKeyOption { }
+        interface DestroyOptions extends AuthOptions, WaitOption { }
 
-        interface DestroyAllOptions extends SuccessFailureOptions, UseMasterKeyOption { }
+        interface DestroyAllOptions extends AuthOptions { }
 
-        interface FetchOptions extends SuccessFailureOptions, UseMasterKeyOption { }
+        interface FetchOptions extends AuthOptions { }
 
-        interface SaveOptions extends SuccessFailureOptions, SilentOption, UseMasterKeyOption, WaitOption { }
+        interface SaveOptions extends AuthOptions, SilentOption, WaitOption { }
 
-        interface SaveAllOptions extends SuccessFailureOptions, UseMasterKeyOption { }
+        interface SaveAllOptions extends AuthOptions { }
 
-        interface SetOptions extends ErrorOption, SilentOption {
-            promise?: any;
-        }
+        interface SetOptions extends SilentOption { }
     }
 
     /**
@@ -362,80 +309,6 @@ declare namespace AV {
         AVVersion: string;
         appIdentifier: string;
 
-    }
-
-    /**
-     * Creates a new instance with the given models and options.  Typically, you
-     * will not call this method directly, but will instead make a subclass using
-     * <code>AV.Collection.extend</code>.
-     *
-     * @param {Array} models An array of instances of <code>AV.Object</code>.
-     *
-     * @param {Object} options An optional object with Backbone-style options.
-     * Valid options are:<ul>
-     *   <li>model: The AV.Object subclass that this collection contains.
-     *   <li>query: An instance of AV.Query to use when fetching items.
-     *   <li>comparator: A string property name or function to sort by.
-     * </ul>
-     *
-     * @see AV.Collection.extend
-     *
-     * @class
-     *
-     * <p>Provides a standard collection class for our sets of models, ordered
-     * or unordered.  For more information, see the
-     * <a href="http://documentcloud.github.com/backbone/#Collection">Backbone
-     * documentation</a>.</p>
-     */
-    export class Collection<T> extends Events implements IBaseObject {
-
-        model: Object;
-        models: Object[];
-        query: Query;
-        comparator: (object: Object) => any;
-
-        constructor(models?: Object[], options?: Collection.Options);
-        static extend(instanceProps: any, classProps: any): any;
-
-        initialize(): void;
-        add(models: any[], options?: Collection.AddOptions): Collection<T>;
-        at(index: number): Object;
-        fetch(options?: Collection.FetchOptions): Promise<T>;
-        create(model: Object, options?: Collection.CreateOptions): Object;
-        get(id: string): Object;
-        getByCid(cid: any): any;
-        pluck(attr: string): any[];
-        remove(model: any, options?: Collection.RemoveOptions): Collection<T>;
-        remove(models: any[], options?: Collection.RemoveOptions): Collection<T>;
-        reset(models: any[], options?: Collection.ResetOptions): Collection<T>;
-        sort(options?: Collection.SortOptions): Collection<T>;
-        toJSON(): any;
-    }
-
-    export namespace Collection {
-        interface Options {
-            model?: Object;
-            query?: Query;
-            comparator?: string;
-        }
-
-        interface AddOptions extends SilentOption {
-            /**
-             * The index at which to add the models.
-             */
-            at?: number;
-        }
-
-        interface CreateOptions extends SuccessFailureOptions, WaitOption, SilentOption, UseMasterKeyOption {
-        }
-
-        interface FetchOptions extends SuccessFailureOptions, SilentOption, UseMasterKeyOption { }
-
-        interface RemoveOptions extends SilentOption { }
-
-        interface ResetOptions extends SilentOption { }
-
-        interface SortOptions extends SilentOption { }
     }
 
     /**
@@ -549,7 +422,6 @@ declare namespace AV {
         addDescending(key: string[]): Query;
         ascending(key: string): Query;
         ascending(key: string[]): Query;
-        collection(items?: Object[], options?: Collection.Options): Collection<Object>;
         containedIn(key: string, values: any[]): Query;
         contains(key: string, substring: string): Query;
         containsAll(key: string, values: any[]): Query;
@@ -559,7 +431,7 @@ declare namespace AV {
         doesNotExist(key: string): Query;
         doesNotMatchKeyInQuery(key: string, queryKey: string, query: Query): Query;
         doesNotMatchQuery(key: string, query: Query): Query;
-        each<T>(callback: Function, options?: SuccessFailureOptions): Promise<T>;
+        each<T>(callback: Function, options?: AuthOptions): Promise<T>;
         endsWith(key: string, suffix: string): Query;
         equalTo(key: string, value: any): Query;
         exists(key: string): Query;
@@ -589,10 +461,10 @@ declare namespace AV {
     }
 
     export namespace Query {
-        interface CountOptions extends SuccessFailureOptions, UseMasterKeyOption { }
-        interface FindOptions extends SuccessFailureOptions, UseMasterKeyOption { }
-        interface FirstOptions extends SuccessFailureOptions, UseMasterKeyOption { }
-        interface GetOptions extends SuccessFailureOptions, UseMasterKeyOption { }
+        interface CountOptions extends AuthOptions { }
+        interface FindOptions extends AuthOptions { }
+        interface FirstOptions extends AuthOptions { }
+        interface GetOptions extends AuthOptions { }
     }
 
     /**
@@ -615,7 +487,7 @@ declare namespace AV {
         getRoles(): Relation;
         getUsers(): Relation;
         getName(): string;
-        setName(name: string, options?: SuccessFailureOptions): any;
+        setName(name: string): Role;
     }
 
     /**
@@ -630,49 +502,45 @@ declare namespace AV {
     export class User extends Object {
 
         static current(): User;
-        static signUp<T>(username: string, password: string, attrs: any, options?: SuccessFailureOptions): Promise<T>;
-        static logIn<T>(username: string, password: string, options?: SuccessFailureOptions): Promise<T>;
+        static signUp<T>(username: string, password: string, attrs: any, options?: AuthOptions): Promise<T>;
+        static logIn<T>(username: string, password: string, options?: AuthOptions): Promise<T>;
         static logOut<T>(): Promise<T>;
         static allowCustomUserClass(isAllowed: boolean): void;
-        static become<T>(sessionToken: string, options?: SuccessFailureOptions): Promise<T>;
+        static become<T>(sessionToken: string, options?: AuthOptions): Promise<T>;
 
-        static logInWithMobilePhone<T>(mobilePhone: string, password: string, options?: SuccessFailureOptions): Promise<T>;
-        static logInWithMobilePhoneSmsCode<T>(mobilePhone: string, smsCode: string, options?: SuccessFailureOptions): Promise<T>;
-        static signUpOrlogInWithAuthData<T>(data: any, platform: string, options?: SuccessFailureOptions): Promise<T>;
-        static signUpOrlogInWithMobilePhone<T>(mobilePhoneNumber: string, smsCode: string, attributes?: any, options?: SuccessFailureOptions): Promise<T>;
-        static requestEmailVerfiy<T>(email: string, options?: SuccessFailureOptions): Promise<T>;
-        static requestLoginSmsCode<T>(mobilePhone: string, options?: SuccessFailureOptions): Promise<T>;
-        static requestMobilePhoneVerify<T>(mobilePhone: string, options?: SuccessFailureOptions): Promise<T>;
-        static requestPasswordReset<T>(email: string, options?: SuccessFailureOptions): Promise<T>;
-        static requestPasswordResetBySmsCode<T>(mobilePhone: string, options?: SuccessFailureOptions): Promise<T>;
-        static resetPasswordBySmsCode<T>(code: string, password: string, options?: SuccessFailureOptions): Promise<T>;
-        static verifyMobilePhone<T>(code: string, options?: SuccessFailureOptions): Promise<T>;
-        signUp<T>(attrs?: any, options?: SuccessFailureOptions): Promise<T>;
-        logIn<T>(options?: SuccessFailureOptions): Promise<T>;
-        fetch<T>(options?: SuccessFailureOptions): Promise<T>;
+        static logInWithMobilePhone<T>(mobilePhone: string, password: string, options?: AuthOptions): Promise<T>;
+        static logInWithMobilePhoneSmsCode<T>(mobilePhone: string, smsCode: string, options?: AuthOptions): Promise<T>;
+        static signUpOrlogInWithAuthData<T>(data: any, platform: string, options?: AuthOptions): Promise<T>;
+        static signUpOrlogInWithMobilePhone<T>(mobilePhoneNumber: string, smsCode: string, attributes?: any, options?: AuthOptions): Promise<T>;
+        static requestEmailVerify<T>(email: string, options?: AuthOptions): Promise<T>;
+        static requestLoginSmsCode<T>(mobilePhone: string, options?: AuthOptions): Promise<T>;
+        static requestMobilePhoneVerify<T>(mobilePhone: string, options?: AuthOptions): Promise<T>;
+        static requestPasswordReset<T>(email: string, options?: AuthOptions): Promise<T>;
+        static requestPasswordResetBySmsCode<T>(mobilePhone: string, options?: AuthOptions): Promise<T>;
+        static resetPasswordBySmsCode<T>(code: string, password: string, options?: AuthOptions): Promise<T>;
+        static verifyMobilePhone<T>(code: string, options?: AuthOptions): Promise<T>;
+        signUp<T>(attrs?: any, options?: AuthOptions): Promise<T>;
+        logIn<T>(options?: AuthOptions): Promise<T>;
+        fetch<T>(options?: AuthOptions): Promise<T>;
         save<T>(arg1?: any, arg2?: any, arg3?: any): Promise<T>;
         authenticated(): boolean;
         isCurrent(): boolean;
 
 
         getEmail(): string;
-        setEmail(email: string, options?: SuccessFailureOptions): boolean;
+        setEmail(email: string, options?: AuthOptions): boolean;
 
-        setMobilePhoneNumber(mobilePhoneNumber: string, options?: SuccessFailureOptions): boolean;
+        setMobilePhoneNumber(mobilePhoneNumber: string, options?: AuthOptions): boolean;
         getMobilePhoneNumber(): string;
 
         getUsername(): string;
-        setUsername(username: string, options?: SuccessFailureOptions): boolean;
+        setUsername(username: string, options?: AuthOptions): boolean;
 
-        setPassword(password: string, options?: SuccessFailureOptions): boolean;
+        setPassword(password: string, options?: AuthOptions): boolean;
         getSessionToken(): string;
+
+        getRoles(options?: AuthOptions): Promise<Role>;
     }
-
-    export namespace Analytics {
-
-        function track<T>(name: string, dimensions: any): Promise<T>;
-    }
-
 
     export class Error {
 
@@ -790,7 +658,7 @@ declare namespace AV {
      * @namespace
      */
     export namespace Push {
-        function send<T>(data: PushData, options?: SendOptions): Promise<T>;
+        function send<T>(data: PushData, options?: AuthOptions): Promise<T>;
 
         interface PushData {
             channels?: string[];
@@ -805,16 +673,12 @@ declare namespace AV {
             title?: string;
         }
 
-        interface SendOptions {
-            success?: () => void;
-            error?: (error: Error) => void;
-        }
     }
 
     export namespace Cloud {
-        function run<T>(name: string, data?: any, options?: SuccessFailureOptions): Promise<T>;
-        function requestSmsCode<T>(data: any, options?: SuccessFailureOptions): Promise<T>;
-        function verifySmsCode<T>(code: string, phone: string, options?: SuccessFailureOptions): Promise<T>;
+        function run<T>(name: string, data?: any, options?: AuthOptions): Promise<T>;
+        function requestSmsCode<T>(data: any, options?: AuthOptions): Promise<T>;
+        function verifySmsCode<T>(code: string, phone: string, options?: AuthOptions): Promise<T>;
     }
 
     /**
@@ -829,6 +693,5 @@ declare namespace AV {
     *options : {appId:'',appKey:'',masterKey:''}
     */
     export function init(options: any): void;
-    export function useAVCloudUS(): void;
 }
 export = AV;
