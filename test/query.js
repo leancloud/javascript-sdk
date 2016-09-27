@@ -232,17 +232,12 @@ describe('Queries', function () {
         test.set('number', i);
         promises.unshift(test.save());
       }
-      // AV.Promise.when(promises).then(function() {done();});
       return AV.Promise.all(promises).then(function () {
-        var query = new AV.Query('deletedAll');
-        return query.limit(1000).find();
-      }).then(function (results) {
-        // expect(results.length).to.be(10);
-        return query.destroyAll();
-      }).then(function () {
-        return query.find();
-      }).then(function (results) {
-        expect(results.length).to.be(0);
+        return new AV.Query('deletedAll').limit(300).destroyAll();
+      }).then(function() {
+        return new AV.Query('deletedAll').count();
+      }).then(function(count) {
+        expect(count).to.be(0);
       });
     });
   });
