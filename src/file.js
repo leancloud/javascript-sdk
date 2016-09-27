@@ -579,7 +579,7 @@ module.exports = function(AV) {
       if (!this.id) {
         return Promise.reject(new Error('The file id is not eixsts.'));
       }
-      var request = AVRequest("files", null, this.id, 'DELETE', options && options.sessionToken);
+      var request = AVRequest("files", null, this.id, 'DELETE', null, options);
       return request;
     },
 

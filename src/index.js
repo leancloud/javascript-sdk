@@ -6,7 +6,7 @@
  * The LeanCloud JavaScript SDK is freely distributable under the MIT license.
  */
 
-const AV = module.exports = require('./av');
+const AV = require('./av');
 
 AV._ = require('underscore');
 AV.version = require('./version');
@@ -15,11 +15,7 @@ AV.localStorage = require('./localstorage');
 AV.Cache = require('./cache');
 AV.Error = require('./error');
 
-// All internal configuration items
-AV._config = AV._config || {};
-
-require('./utils').init(AV);
-
+require('./init');
 require('./event')(AV);
 require('./geopoint')(AV);
 require('./acl')(AV);
@@ -36,9 +32,12 @@ require('./status')(AV);
 require('./search')(AV);
 require('./insight')(AV);
 
+module.exports = AV;
+
 /**
  * Options to controll the authentication for an operation
  * @typedef {Object} AuthOptions
- * @property {String} sessionToken Specify a user to excute the operation as.
- * @property {Boolean} useMasterKey Indicates whether masterKey is used for this operation. Only valid when masterKey is set.
+ * @property {String} [sessionToken] Specify a user to excute the operation as.
+ * @property {AV.User} [user] Specify a user to excute the operation as. The user must have _sessionToken. This option will be ignored if sessionToken option provided.
+ * @property {Boolean} [useMasterKey] Indicates whether masterKey is used for this operation. Only valid when masterKey is set.
  */

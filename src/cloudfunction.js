@@ -23,7 +23,7 @@ module.exports = function(AV) {
      */
     run: function(name, data, options) {
       var request = AVRequest('functions', name, null, 'POST',
-                                   AV._encode(data, null, true), options && options.sessionToken);
+                                   AV._encode(data, null, true), options);
 
       return request.then(function(resp) {
         return AV._decode(null, resp).result;
@@ -43,8 +43,7 @@ module.exports = function(AV) {
         return Promise.reject(new Error('Can\'t pass Array as the param of rpc function in JavaScript SDK.'));
       }
 
-      return AVRequest('call', name, null, 'POST', AV._encodeObjectOrArray(data),
-                       options && options.sessionToken).then(function(resp) {
+      return AVRequest('call', name, null, 'POST', AV._encodeObjectOrArray(data), options).then(function(resp) {
         return AV._decode('', resp).result;
       });
     },

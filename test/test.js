@@ -18,4 +18,3 @@ AV.init({
   masterKey: 'ue9M9nqwD4MQNXD3oiN5rAOv',
 });
 AV.setProduction(true);
-AV._useMasterKey = true;

@@ -113,7 +113,7 @@ module.exports = function(AV) {
             path: `/1.1/classes/${object.className}/${object.id}`,
           };
         }),
-      }, options && options.sessionToken)
+      }, options)
     ).then(function(response) {
       _.forEach(objects, function(object, i) {
         if (response[i].success) {
@@ -815,14 +815,14 @@ module.exports = function(AV) {
      * @return {Promise} A promise that is fulfilled when the fetch
      *     completes.
      */
-    fetch: function(fetchOptions = {}, options = {}) {
+    fetch: function(fetchOptions = {}, options) {
       if (_.isArray(fetchOptions.include)) {
         fetchOptions.include = fetchOptions.include.join(',');
       }
 
       var self = this;
       var request = AVRequest('classes', this.className, this.id, 'GET',
-                                fetchOptions, options.sessionToken);
+                                fetchOptions, options);
       return request.then(function(response) {
         self._finishFetch(self.parse(response), true);
         return self;
@@ -937,7 +937,7 @@ module.exports = function(AV) {
         }
         //hook makeRequest in options.
         var makeRequest = options._makeRequest || AVRequest;
-        var request = makeRequest(route, className, model.id, method, json, options.sessionToken);
+        var request = makeRequest(route, className, model.id, method, json, options);
 
         request = request.then(function(resp) {
           var serverAttrs = model.parse(resp);
@@ -987,7 +987,7 @@ module.exports = function(AV) {
       }
 
       var request =
-          AVRequest('classes', this.className, this.id, 'DELETE', null, options.sessionToken);
+          AVRequest('classes', this.className, this.id, 'DELETE', null, options);
       return request.then(function() {
         if (options.wait) {
           triggerDestroy();
@@ -1241,7 +1241,7 @@ module.exports = function(AV) {
           }
       });
       var request =
-          AVRequest('classes', className, id, 'DELETE', null, options.sessionToken);
+          AVRequest('classes', className, id, 'DELETE', null, options);
       return request;
    };
 
@@ -1514,7 +1514,7 @@ module.exports = function(AV) {
               };
             })
 
-          }, options && options.sessionToken).then(function(response) {
+          }, options).then(function(response) {
             var error;
             AV._arrayEach(batch, function(object, i) {
               if (response[i].success) {
