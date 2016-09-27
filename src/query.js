@@ -178,18 +178,17 @@ module.exports = function(AV) {
       }
 
       var self = this;
-      self.equalTo('objectId', objectId);
 
-      return self.first(options).then(function(response) {
-        if (!_.isEmpty(response)) {
-          return response;
-        }
+      var obj = self._newObject();
+      obj.id = objectId;
 
-        var errorObject = new AVError(AVError.OBJECT_NOT_FOUND,
-                                          "Object not found.");
-        return AV.Promise.reject(errorObject);
+      var queryJSON = self.toJSON();
+      var fetchOptions = {};
 
-      });
+      if (queryJSON.keys) fetchOptions.keys = queryJSON.keys;
+      if (queryJSON.include) fetchOptions.include = queryJSON.include;
+
+      return obj.fetch(fetchOptions, options);
     },
 
     /**

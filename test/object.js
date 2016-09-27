@@ -11,10 +11,8 @@ var BackbonePerson = AV.Object.extend('Person');
 describe('Objects', function(){
   var objId;
   var gameScore = GameScore.new();
-  after(function(done) {
-    gameScore.destroy().then(function() {
-      done();
-    });
+  after(function() {
+    return gameScore.destroy();
   });
   it('getter/setter compatible', function() {
     Object.defineProperty(Post.prototype, 'name', {
@@ -138,14 +136,14 @@ describe('Objects', function(){
   });
 
   describe('Fetching Objects', () => {
-    it('fetch', () => 
+    it('fetch', () =>
       AV.Object.createWithoutData('GameScore', gameScore.id).fetch().then(score => {
         expect(score.get('score')).to.be.a('number');
         expect(score.createdAt).to.be.a(Date);
         expect(score.id).to.be.eql(gameScore.id);
       })
     );
-    it('fetchAll', () => 
+    it('fetchAll', () =>
       AV.Object.fetchAll([
         AV.Object.createWithoutData('GameScore', gameScore.id),
         AV.Object.createWithoutData('GameScore', gameScore.id),
@@ -252,7 +250,7 @@ describe('Objects', function(){
         query.include("parent");
         return query.get(myComment.id);
       }).then(function(obj) {
-        expect(obj.get("parent").get("title")).to.be("post1");        
+        expect(obj.get("parent").get("title")).to.be("post1");
       });
     });
 
@@ -358,8 +356,20 @@ describe('Objects', function(){
         });
       });
     });
-    
 
+    it("fetchOptions keys", function(){
+      var person = new Person();
+      person.set('pname', 'dennis');
+      person.set('age', 1)
+      return person.save().then(() =>
+        AV.Object.createWithoutData('Person', person.id).fetch({
+          keys: ['pname'],
+        })
+      ).then(function(person) {
+        expect(person.get('pname')).to.be('dennis');
+        expect(person.get('age')).to.be(undefined);
+      });
+    });
 
   });
 
