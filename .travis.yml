@@ -6,6 +6,8 @@ node_js:
 
 sudo: false
 
+before_install:
+  - if [[ `npm -v` != 3* ]]; then npm i -g npm; fi
 install:
   - npm install -g codecov
   - npm install
