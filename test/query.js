@@ -34,16 +34,10 @@ describe('Queries', function () {
 
       query = new AV.Query(GameScore);
       expect(function() {
-        query.get(null, {
-          success: function () {},
-          error: function () {}
-        });
+        query.get(null);
       }).to.throwError();
       expect(function() {
-        query.get(undefined, {
-          success: function () {},
-          error: function () {}
-        });
+        query.get(undefined);
       }).to.throwError();
 
     });
@@ -120,11 +114,30 @@ describe('Queries', function () {
   });
 
   describe('Query Constraints', function () {
+    before(function() {
+      return new GameScore({
+        playerName: 'testname',
+      }).save().then(gameScore => this.gameScore = gameScore);
+    });
+
+    after(function() {
+      return this.gameScore.destroy();
+    });
 
     it('basic', function () {
       query = new AV.Query(GameScore);
       query.equalTo('playerName', 'testname');
-      return query.first();
+      return query.first().then(gameScore => {
+        expect(gameScore.get('playerName')).to.be('testname');
+      });
+    });
+
+    it('param check', () => {
+      const query = new AV.Query(GameScore);
+      expect(() => query.equalTo('playerName', undefined)).to.throwError();
+      expect(() => query.contains('playerName', undefined)).to.throwError();
+      expect(() => query.limit(undefined)).to.throwError();
+      expect(() => query.addAscending(undefined)).to.throwError();
     });
 
     it('sizeEqualTo', function () {
