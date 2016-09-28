@@ -1,6 +1,13 @@
 const _ = require('underscore');
 const AVError = require('./error');
 const AVRequest = require('./request').request;
+const { ensureArray } = require('./utils');
+
+const requires = (value, message) => {
+  if (value === undefined) {
+    throw new Error(message);
+  }
+};
 
 // AV.Query is a way to create a list of AV.Objects.
 module.exports = function(AV) {
@@ -58,6 +65,7 @@ module.exports = function(AV) {
 
     this._where = {};
     this._include = [];
+    this._select = [];
     this._limit = -1; // negative limit means, do not send a limit
     this._skip = 0;
     this._extraOptions = {};
@@ -203,7 +211,7 @@ module.exports = function(AV) {
       if (this._include.length > 0) {
         params.include = this._include.join(",");
       }
-      if (this._select) {
+      if (this._select.length > 0) {
         params.keys = this._select.join(",");
       }
       if (this._limit >= 0) {
@@ -275,8 +283,6 @@ module.exports = function(AV) {
 
     /**
      * Counts the number of objects that match this query.
-     * Either options.success or options.error is called when the count
-     * completes.
      *
      * @param {AuthOptions} options
      * @return {Promise} A promise that is resolved with the count when
@@ -326,6 +332,7 @@ module.exports = function(AV) {
      * @return {AV.Query} Returns the query, so you can chain this call.
      */
     skip: function(n) {
+      requires(n, 'undefined is not a valid skip value');
       this._skip = n;
       return this;
     },
@@ -337,6 +344,7 @@ module.exports = function(AV) {
      * @return {AV.Query} Returns the query, so you can chain this call.
      */
     limit: function(n) {
+      requires(n, 'undefined is not a valid limit value');
       this._limit = n;
       return this;
     },
@@ -349,6 +357,8 @@ module.exports = function(AV) {
      * @return {AV.Query} Returns the query, so you can chain this call.
      */
     equalTo: function(key, value) {
+      requires(key, 'undefined is not a valid key');
+      requires(value, 'undefined is not a valid value');
       this._where[key] = AV._encode(value);
       return this;
     },
@@ -358,6 +368,10 @@ module.exports = function(AV) {
      * @private
      */
     _addCondition: function(key, condition, value) {
+      requires(key, 'undefined is not a valid condition key');
+      requires(condition, 'undefined is not a valid condition');
+      requires(value, 'undefined is not a valid condition value');
+
       // Check if we already have a condition
       if (!this._where[key]) {
         this._where[key] = {};
@@ -669,6 +683,7 @@ module.exports = function(AV) {
      * @return {AV.Query} Returns the query, so you can chain this call.
      */
     ascending: function(key) {
+      requires(key, 'undefined is not a valid key');
       this._order = key;
       return this;
     },
@@ -681,6 +696,7 @@ module.exports = function(AV) {
    * @return {AV.Query} Returns the query so you can chain this call.
    */
    addAscending: function(key){
+     requires(key, 'undefined is not a valid key');
      if(this._order)
        this._order +=  ','  + key;
     else
@@ -695,6 +711,7 @@ module.exports = function(AV) {
      * @return {AV.Query} Returns the query, so you can chain this call.
      */
     descending: function(key) {
+      requires(key, 'undefined is not a valid key');
       this._order = "-" + key;
       return this;
     },
@@ -707,6 +724,7 @@ module.exports = function(AV) {
    * @return {AV.Query} Returns the query so you can chain this call.
    */
    addDescending: function(key){
+     requires(key, 'undefined is not a valid key');
      if(this._order)
        this._order += ',-' + key;
      else
@@ -797,18 +815,12 @@ module.exports = function(AV) {
     /**
      * Include nested AV.Objects for the provided key.  You can use dot
      * notation to specify which fields in the included object are also fetch.
-     * @param {String} key The name of the key to include.
+     * @param {String[]} keys The name of the key to include.
      * @return {AV.Query} Returns the query, so you can chain this call.
      */
-    include: function() {
-      var self = this;
-      AV._arrayEach(arguments, function(key) {
-        if (_.isArray(key)) {
-          self._include = self._include.concat(key);
-        } else {
-          self._include.push(key);
-        }
-      });
+    include: function(keys) {
+      requires(keys, 'undefined is not a valid key');
+      this._include = this._include.concat(ensureArray(keys));
       return this;
     },
 
@@ -816,19 +828,12 @@ module.exports = function(AV) {
      * Restrict the fields of the returned AV.Objects to include only the
      * provided keys.  If this is called multiple times, then all of the keys
      * specified in each of the calls will be included.
-     * @param {Array} keys The names of the keys to include.
+     * @param {String[]} keys The names of the keys to include.
      * @return {AV.Query} Returns the query, so you can chain this call.
      */
-    select: function() {
-      var self = this;
-      this._select = this._select || [];
-      AV._arrayEach(arguments, function(key) {
-        if (_.isArray(key)) {
-          self._select = self._select.concat(key);
-        } else {
-          self._select.push(key);
-        }
-      });
+    select: function(keys) {
+      requires(keys, 'undefined is not a valid key');
+      this._select = this._select.concat(ensureArray(keys));
       return this;
     },
 
