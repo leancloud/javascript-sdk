@@ -105,7 +105,13 @@ const setHeaders = (authOptions = {}) => {
     'X-LC-Id': AV.applicationId,
     'Content-Type': 'application/json;charset=UTF-8',
   };
-  if (AV._useMasterKey || authOptions.useMasterKey) {
+  let useMasterKey = false;
+  if (typeof authOptions.useMasterKey === 'boolean') {
+    useMasterKey = authOptions.useMasterKey;
+  } else if (typeof AV._useMasterKey === 'boolean') {
+    useMasterKey = AV._useMasterKey;
+  }
+  if (useMasterKey) {
     if (AV.masterKey) {
       headers['X-LC-Sign'] = sign(AV.masterKey, true);
     } else {
