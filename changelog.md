@@ -1,4 +1,4 @@
-# 2.0.0-beta.0 (2016-9-27)
+# 2.0.0-beta.0 (2016-9-29)
 ### Breaking Changes
 * 移除了所有 Backbone callbacks 回调风格的参数，请使用 Promise 处理异步操作的结果：
 
@@ -16,9 +16,9 @@
   );
   ```
 
-* `AV.Promise` 现在是一个满足 Promises/A+ 标准的实现，所有非标准的方法已被移除，所有非标准的行为已被修正。关于标准 Promise 的更多信息推荐阅读 [《JavaScript Promise 迷你书》](http://liubin.org/promises-book/)。
+* `AV.Promise` 现在是一个满足 Promises/A+ 标准的实现，所有非标准的方法已被移除，所有非标准的行为已被修正。关于标准 Promise 的更多信息推荐阅读 [《JavaScript Promise 迷你书》](http://liubin.org/promises-book/)
 
-* 如果你 extend 的 `AV.Object` 子类重写了 `validate` 方法，当属性无效时现在需要 throw 一个 Error（之前是 return 一个 Error）。相应的，`AV.Object#set` 方法如果 set 的值无效，需要通过 try catch 捕获异常（之前通过检查返回值是 false）。
+* 如果你 extend 的 `AV.Object` 子类重写了 `validate` 方法，当属性无效时现在需要 throw 一个 Error（之前是 return 一个 Error）。相应的，`AV.Object#set` 方法如果 set 的值无效，需要通过 try catch 捕获异常（之前通过检查返回值是 false）
 
   ```javascript
   // 之前的用法
@@ -49,7 +49,16 @@
   tom.save();
   ```
 
-* `AV.User#_linkWith` 的第二个参数中的 `options.authData` 字段提升为第二个参数。
+* `AV.Query` 中的大部分 API 启用了更加严格的参数检查。特别的，对于以下 API，当指定 value 的值为 `undefined` 时会抛出异常（之前会直接忽略这个条件或限制）
+
+  - 参数形如 `(key, value)` 类型的条件限制 API，如 `AV.Query#equalTo(key, value)`
+  - `AV.Query#limit(value)`
+  - `AV.Query#select(value)`
+
+
+* `AV.Query#get` 方法现在尊重 Class 的 get 权限设置（之前检查的是 find 权限）
+
+* `AV.User#_linkWith` 的第二个参数中的 `options.authData` 字段提升为第二个参数
 
   ```javascript
   // 之前的用法
@@ -75,6 +84,10 @@
 
 ### Bug Fixes
 * 修复了应用内社交模块的方法在未登录状态下传入了 sessionToken 仍然抛未登录异常的问题
+
+### Features
+* 对象存储功能支持微信小程序
+* 绝大部分会发起网络请求的 API（如保存一个对象）支持通过 `option.useMasterKey` 参数指定该次操作是否要使用 masterKey，设置了该选项的操作会忽略全局的 useMasterKey 设置
 
 ## 1.4.0 (2016-9-1)
 相比于 v1.4.0-beta.0:
