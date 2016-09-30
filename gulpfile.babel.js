@@ -11,7 +11,9 @@ import clean from 'gulp-clean';
 import concat from 'gulp-concat';
 import rename from 'gulp-rename';
 import uglify from 'gulp-uglify';
+import insert from 'gulp-insert';
 import source from 'vinyl-source-stream';
+import streamify from 'gulp-streamify';
 import browserify from 'browserify';
 import browserSync from 'browser-sync';
 import babel from 'gulp-babel';
@@ -54,42 +56,49 @@ gulp.task('clean-dist', () => {
   ));
 });
 
-gulp.task('browserify', ['clean-dist'], () => {
-  const bundle = browserify({
+// 编译浏览器版本
+gulp.task('bundle-browser', () => {
+  return browserify({
     entries: './src/index.js',
     standalone: 'AV'
-  });
-  return bundle.bundle()
-    .pipe(source('av-es6.js'))
-    .pipe(gulp.dest('dist'));
-});
-
-// 编译浏览器版本
-gulp.task('babel-browser', ['browserify'], () => {
-  return gulp.src('dist/av-es6.js')
+  }).bundle()
+  .pipe(source('av.js'))
     // .pipe(sourcemaps.init())
-    .pipe(babel({
+    .pipe(streamify(babel({
       compact: false
-    }))
-    .pipe(concat('av.js'))
+    })))
     // .pipe(sourcemaps.write("."))
     .pipe(gulp.dest('dist'));
 });
 
-gulp.task('uglify', ['babel-browser'], () => {
+gulp.task('uglify', ['bundle-browser', 'bundle-weapp'], () => {
   return gulp.src([
-      'dist/av.js'
+      'dist/av.js',
+      'dist/av-weapp.js'
     ])
     .pipe(uglify())
     .pipe(rename((path) => {
-      // path.basename += '-mini';
-      path.basename = 'av-min';
+      path.basename += '-min';
     }))
     .pipe(gulp.dest('dist'));
 
   // return gulp.src(['dist/av-es5.js'])
   //   .pipe(clean());
 });
+
+gulp.task('bundle-weapp', () =>
+  browserify({
+    entries: './src/index-weapp.js',
+    standalone: 'AV'
+  })
+  .bundle()
+  .pipe(source('av-weapp.js'))
+  .pipe(streamify(babel({
+    compact: false
+  })))
+  .pipe(streamify(insert.prepend('var exports = module.exports = {};')))
+  .pipe(gulp.dest('dist'))
+)
 
 gulp.task('clean-node', () => {
   return gulp.src(['dist/node/**/*.*'])
@@ -130,8 +139,8 @@ gulp.task('upload', () => {
 gulp.task('release', [
   // 生成浏览器版本
   'clean-dist',
-  'browserify',
-  'babel-browser',
+  'bundle-browser',
+  'bundle-weapp',
   'uglify',
   // 生成 node 版本
   'clean-node',
@@ -141,9 +150,7 @@ gulp.task('release', [
 // 浏览器开发时使用
 gulp.task('dev', [
   'clean-dist',
-  'browserify',
-  'babel-browser',
-  'uglify',
+  'bundle-browser',
   'babel-demo'
 ], () => {
   browserSync({
