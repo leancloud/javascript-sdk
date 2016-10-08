@@ -97,10 +97,10 @@ analyseObj = {
   },
 
   /**
-   * 开启统计 Session-view（会话访问）
+   * 开启统计 Session view（会话访问）
    * @return {Undefined}
   */
-  recordSessionView() {
+  recordSession() {
     if (win.addEventListener) {
       // 启动自动 session 时长统计
       sessionView();
