@@ -11,7 +11,6 @@ import clean from 'gulp-clean';
 import concat from 'gulp-concat';
 import rename from 'gulp-rename';
 import uglify from 'gulp-uglify';
-import insert from 'gulp-insert';
 import source from 'vinyl-source-stream';
 import streamify from 'gulp-streamify';
 import browserify from 'browserify';
@@ -96,7 +95,6 @@ gulp.task('bundle-weapp', () =>
   .pipe(streamify(babel({
     compact: false
   })))
-  .pipe(streamify(insert.prepend('var exports = module.exports = {};')))
   .pipe(gulp.dest('dist'))
 )
 
@@ -133,6 +131,9 @@ gulp.task('babel-demo', ['clean-demo'], () => {
 // 上传到 CDN
 gulp.task('upload', () => {
   uploadCDN('./dist/av-min.js', getAVVersion(), () => {});
+  uploadCDN('./dist/av-weapp-min.js', getAVVersion(), () => {});
+  uploadCDN('./dist/av.js', getAVVersion(), () => {});
+  uploadCDN('./dist/av-weapp.js', getAVVersion(), () => {});
 });
 
 // 生成 release 文件

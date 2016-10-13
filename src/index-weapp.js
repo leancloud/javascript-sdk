@@ -1,3 +1,3 @@
-require('weapp-polyfill').polyfill(window);
+require('weapp-polyfill/auto-polyfill');
 
 module.exports = require('./index');
