@@ -1,3 +1,7 @@
+# 2.0.0-beta.1 (2016-10-13)
+### Features
+* 支持微信小程序 0.10.101100
+
 # 2.0.0-beta.0 (2016-9-29)
 ### Breaking Changes
 * 移除了所有 Backbone callbacks 回调风格的参数，请使用 Promise 处理异步操作的结果：
