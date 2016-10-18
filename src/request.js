@@ -102,15 +102,23 @@ const ajax = (method, resourceUrl, data, headers = {}, onprogress) => {
   return promise;
 };
 
-const setHeaders = (sessionToken) => {
+const setHeaders = (sessionToken, signKey) => {
   const headers = {
     'X-LC-Id': AV.applicationId,
     'Content-Type': 'application/json;charset=UTF-8',
   };
   if (AV.masterKey && AV._useMasterKey) {
-    headers['X-LC-Sign'] = sign(AV.masterKey, true);
+    if (signKey) {
+      headers['X-LC-Sign'] = sign(AV.masterKey, true);
+    } else {
+      headers['X-LC-Key'] = `${AV.masterKey},master`;
+    }
   } else {
-    headers['X-LC-Sign'] = sign(AV.applicationKey);
+    if (signKey) {
+      headers['X-LC-Sign'] = sign(AV.applicationKey);
+    } else {
+      headers['X-LC-Key'] = AV.applicationKey;
+    }
   }
   if (AV._config.applicationProduction !== null) {
     headers['X-LC-Prod'] = AV._config.applicationProduction;
@@ -305,7 +313,7 @@ const AVRequest = (route, className, objectId, method, dataObject = {}, sessionT
   }
   return getServerURLPromise.then(() => {
     const apiURL = createApiUrl(route, className, objectId, method, dataObject);
-    return setHeaders(sessionToken).then(
+    return setHeaders(sessionToken, route !== 'bigquery').then(
       headers => ajax(method, apiURL, dataObject, headers)
         .then(
           null,
