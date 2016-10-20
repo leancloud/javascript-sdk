@@ -48,7 +48,7 @@
     "nyc": "^8.1.0",
     "should": "^11.1.0",
     "vinyl-source-stream": "^1.1.0",
-    "weapp-polyfill": "github:leancloud/weapp-polyfill#33be189"
+    "weapp-polyfill": "github:leancloud/weapp-polyfill#8545044"
   },
   "license": "MIT",
   "author": {
