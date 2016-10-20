@@ -10296,15 +10296,23 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           return promise;
         };
 
-        var setHeaders = function setHeaders(sessionToken) {
+        var setHeaders = function setHeaders(sessionToken, signKey) {
           var headers = {
             'X-LC-Id': AV.applicationId,
             'Content-Type': 'application/json;charset=UTF-8'
           };
           if (AV.masterKey && AV._useMasterKey) {
-            headers['X-LC-Sign'] = sign(AV.masterKey, true);
+            if (signKey) {
+              headers['X-LC-Sign'] = sign(AV.masterKey, true);
+            } else {
+              headers['X-LC-Key'] = AV.masterKey + ",master";
+            }
           } else {
-            headers['X-LC-Sign'] = sign(AV.applicationKey);
+            if (signKey) {
+              headers['X-LC-Sign'] = sign(AV.applicationKey);
+            } else {
+              headers['X-LC-Key'] = AV.applicationKey;
+            }
           }
           if (AV._config.applicationProduction !== null) {
             headers['X-LC-Prod'] = AV._config.applicationProduction;
@@ -10506,7 +10514,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           }
           return getServerURLPromise.then(function () {
             var apiURL = createApiUrl(route, className, objectId, method, dataObject);
-            return setHeaders(sessionToken).then(function (headers) {
+            return setHeaders(sessionToken, route !== 'bigquery').then(function (headers) {
               return ajax(method, apiURL, dataObject, headers).then(null, function (res) {
                 return handleError(res).then(function (location) {
                   return ajax(method, location, dataObject, headers);
@@ -13098,6 +13106,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
        * Each engineer has a duty to keep the code elegant
       **/
 
-      module.exports = 'js1.5.0';
+      module.exports = 'js1.5.1';
     }, {}] }, {}, [27])(27);
 });

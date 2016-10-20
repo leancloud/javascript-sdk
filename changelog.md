@@ -1,4 +1,7 @@
 # 1.5.0 (2016-9-23)
+* 修复了 `AV.Insight.startJob` 方法中 saveAs 参数未生效的问题
+
+# 1.5.0 (2016-9-23)
 * 增加了 `AV.User#getRoles` 方法
 * 增加了 TypeScript 定义文件
 * 修复了通过浏览器 input 上传文件 metaData.size 信息缺失的问题
