@@ -59,6 +59,7 @@ module.exports = function(AV) {
 
     this._serverData = {};  // The last known data for this object from cloud.
     this._opSetQueue = [{}];  // List of sets of changes to the data.
+    this._flags = {};
     this.attributes = {};  // The best estimate of this's current data.
 
     this._hashedJSON = {};  // Hash of values of containers at last save.
@@ -990,6 +991,8 @@ module.exports = function(AV) {
           }
         }
 
+        _.extend(json, model._flags);
+
         var route = "classes";
         var className = model.className;
         if (model.className === "_User" && !model.id) {
@@ -1273,8 +1276,23 @@ module.exports = function(AV) {
      */
     setACL: function(acl, options) {
       return this.set("ACL", acl, options);
-    }
+    },
 
+    ignoreHook: function(hookName) {
+      if (!_.contains(['beforeSave', 'afterSave', 'beforeUpdate', 'afterUpdate', 'beforeDelete', 'afterDelete'], hookName)) {
+        console.trace('Unsupported hookName: ' + hookName);
+      }
+
+      if (!AV.masterKey || !AV._useMasterKey) {
+        console.trace('ignoreHook required masterKey');
+      }
+
+      if (!this._flags.__ignore_hooks) {
+        this._flags.__ignore_hooks = [];
+      }
+
+      this._flags.__ignore_hooks.push(hookName);
+    }
   });
 
    /**
