@@ -1052,7 +1052,7 @@ module.exports = function(AV) {
       }
 
       var request =
-          AVRequest('classes', this.className, this.id, 'DELETE', null, options.sessionToken);
+          AVRequest('classes', this.className, this.id, 'DELETE', this._flags, options.sessionToken);
       return request.then(function() {
         if (options.wait) {
           triggerDestroy();
@@ -1595,6 +1595,7 @@ module.exports = function(AV) {
           return AVRequest("batch", null, null, "POST", {
             requests: _.map(batch, function(object) {
               var json = object._getSaveJSON();
+              _.extend(json, object._flags);
               var method = "POST";
 
               var path = "/1.1/classes/" + object.className;
