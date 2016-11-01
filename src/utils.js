@@ -115,13 +115,14 @@ const init = (AV) => {
    * @param {String} applicationId Your AV Application ID.
    * @param {String} applicationKey Your AV Application Key
    */
-  const initialize = (appId, appKey, masterKey) => {
+  const initialize = (appId, appKey, masterKey, hookKey) => {
     if (AV.applicationId && appId !== AV.applicationId && appKey !== AV.applicationKey && masterKey !== AV.masterKey) {
       console.warn('LeanCloud SDK is already initialized, please do not reinitialize it.');
     }
     AV.applicationId = appId;
     AV.applicationKey = appKey;
     AV.masterKey = masterKey;
+    AV.hookKey = hookKey || (AVConfig.isNode && process.env.LEANCLOUD_APP_HOOK_KEY);
     AV._useMasterKey = false;
   };
 
@@ -149,7 +150,7 @@ const init = (AV) => {
           if (!AVConfig.isNode && options.masterKey) {
             masterKeyWarn();
           }
-          initialize(options.appId, options.appKey, options.masterKey);
+          initialize(options.appId, options.appKey, options.masterKey, options.hookKey);
           request.setServerUrlByRegion(options.region);
           AVConfig.disableCurrentUser = options.disableCurrentUser;
         } else {
