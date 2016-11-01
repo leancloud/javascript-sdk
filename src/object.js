@@ -1309,7 +1309,7 @@ module.exports = function(AV) {
      return result;
    };
    /**
-    * Delete objects in batch.The objects className must be the same.
+    * Delete objects in batch.
     * @param {Array} The <code>AV.Object</code> array to be deleted.
     * @param {Object} options Standard options object with success and error
     *     callbacks.
@@ -1321,24 +1321,20 @@ module.exports = function(AV) {
       if (!objects || objects.length === 0){
 		    return AV.Promise.as()._thenRunCallbacks(options);
       }
-      var className = objects[0].className;
-      var id = "";
-      var wasFirst = true;
-      objects.forEach(function(obj){
-        if(obj.className != className)
-			  throw "AV.Object.destroyAll requires the argument object array's classNames must be the same";
-          if(!obj.id)
-              throw "Could not delete unsaved object";
-          if(wasFirst){
-              id = obj.id;
-              wasFirst = false;
-          }else{
-              id = id + ',' + obj.id;
+
+      return AVRequest('batch', null, null, 'POST', {
+        requests: objects.map(function(object) {
+          if (!object.id) {
+            throw "Could not delete unsaved object";
           }
-      });
-      var request =
-          AVRequest('classes', className, id, 'DELETE', null, options.sessionToken);
-      return request._thenRunCallbacks(options);
+
+          return {
+            method: 'DELETE',
+            path: `/1.1/classes/${object.className}/${object.id}`,
+            body: object._flags
+          };
+        })
+      }, options.sessionToken)._thenRunCallbacks(options);
    };
 
   /**
