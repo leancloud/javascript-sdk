@@ -1278,6 +1278,18 @@ module.exports = function(AV) {
       return this.set("ACL", acl, options);
     },
 
+    disableBeforeHook: function() {
+      this.ignoreHook('beforeSave');
+      this.ignoreHook('beforeUpdate');
+      this.ignoreHook('beforeDelete');
+    },
+
+    disableAfterHook: function() {
+      this.ignoreHook('afterSave');
+      this.ignoreHook('afterUpdate');
+      this.ignoreHook('afterDelete');
+    },
+
     ignoreHook: function(hookName) {
       if (!_.contains(['beforeSave', 'afterSave', 'beforeUpdate', 'afterUpdate', 'beforeDelete', 'afterDelete'], hookName)) {
         console.trace('Unsupported hookName: ' + hookName);
