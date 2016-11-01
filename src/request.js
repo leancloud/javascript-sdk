@@ -133,6 +133,9 @@ const setHeaders = (authOptions = {}, signKey) => {
   } else {
     setAppId(headers, signKey);
   }
+  if (AV.hookKey) {
+    headers['X-LC-Hook-Key'] = AV.hookKey;
+  }
   if (AV._config.applicationProduction !== null) {
     headers['X-LC-Prod'] = String(AV._config.applicationProduction);
   }
