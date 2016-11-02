@@ -1228,8 +1228,8 @@ module.exports = function(AV) {
         console.trace('Unsupported hookName: ' + hookName);
       }
 
-      if (!AV.masterKey || !AV._useMasterKey) {
-        console.trace('ignoreHook required masterKey');
+      if (!AV.hookKey) {
+        console.trace('ignoreHook required hookKey');
       }
 
       if (!this._flags.__ignore_hooks) {

@@ -12,3 +12,4 @@ require('./role.js');
 require('./status.js');
 require('./sms.js');
 require('./search.js');
+require('./hooks.js');
