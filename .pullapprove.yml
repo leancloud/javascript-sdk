@@ -1,10 +1,19 @@
-approve_by_comment: true
-approve_regex: '^(Reviewed|Approved|LGTM)'
-reject_regex: '^Rejected'
-reset_on_push: false
-reviewers:
-  required: 1
-  members:
-    - leeyeh
-    - jwfing
-  name: default
+version: 2
+
+group_defaults:
+  reset_on_push:
+    enabled: true
+  github_reviews:
+    enabled: true
+  approve_by_comment:
+    enabled: true
+    approve_regex: '^(Reviewed|Approved|LGTM)'
+    reject_regex: '^Rejected'
+
+groups:
+  reviewers:
+    required: 1
+    users:
+      - jwfing
+      - leeyeh
+      - aisk
