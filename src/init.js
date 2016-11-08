@@ -1,12 +1,6 @@
 const AV = require('./av');
 const request = require('./request');
 
-/**
- * Call this method first to set up authentication tokens for AV.
- * This method is for AV's own private use.
- * @param {String} applicationId Your AV Application ID.
- * @param {String} applicationKey Your AV Application Key
- */
 const initialize = (appId, appKey, masterKey) => {
   if (AV.applicationId && appId !== AV.applicationId && appKey !== AV.applicationKey && masterKey !== AV.masterKey) {
     console.warn('LeanCloud SDK is already initialized, please do not reinitialize it.');
