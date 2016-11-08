@@ -820,7 +820,7 @@ module.exports = function(AV) {
      */
     include: function(keys) {
       requires(keys, 'undefined is not a valid key');
-      Array.from(arguments).forEach(keys => {
+      _(arguments).forEach(keys => {
         this._include = this._include.concat(ensureArray(keys))
       });
       return this;
@@ -835,7 +835,7 @@ module.exports = function(AV) {
      */
     select: function(keys) {
       requires(keys, 'undefined is not a valid key');
-      Array.from(arguments).forEach(keys => {
+      _(arguments).forEach(keys => {
         this._select = this._select.concat(ensureArray(keys));
       });
       return this;
