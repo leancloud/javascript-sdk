@@ -1,3 +1,8 @@
+## 2.0.0-beta.3 (2016-11-8)
+### Bug Fixes
+* 修复了微信小程序在真机上抛 `ReferenceError: Can't find variable: FormData` 异常的问题
+* 修复了 2.0.0 中引入的 `AV.Query#select`、`AV.Query#include` 不支持多个参数的问题
+
 ## 2.0.0-beta.2 (2016-10-20)
 ### Features
 * `AV.File` 支持微信小程序
