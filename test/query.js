@@ -117,6 +117,9 @@ describe('Queries', function () {
     before(function() {
       return new GameScore({
         playerName: 'testname',
+        score: 1000,
+        players: ['a', 'b'],
+        test: new TestClass({ foo: 'bar' }),
       }).save().then(gameScore => this.gameScore = gameScore);
     });
 
@@ -142,16 +145,54 @@ describe('Queries', function () {
 
     it('sizeEqualTo', function () {
       var gameScore = new GameScore();
-      return gameScore.save({
-        players: ['a', 'b']
-      }).then(function () {
-        query = new AV.Query(GameScore);
-        query.sizeEqualTo('players', 2);
-        return query.first();
-      }).then(function (object) {
+      var query = new AV.Query(GameScore);
+      query.sizeEqualTo('players', 2);
+      return query.first().then(function (object) {
         expect(object.get('players').length).to.be(2);
         return gameScore.destroy();
       });
+    });
+
+    it('select with multi params', function() {
+      return new AV.Query(GameScore)
+        .select('test', 'score')
+        .equalTo('objectId', this.gameScore.id)
+        .find()
+        .then(([gameScore]) => {
+          expect(gameScore.get('score')).to.be(1000);
+          expect(gameScore.get('playerName')).to.be(undefined);
+        });
+    });
+
+    it('select', function() {
+      return new AV.Query(GameScore)
+        .select(['test', 'score'])
+        .equalTo('objectId', this.gameScore.id)
+        .find()
+        .then(([gameScore]) => {
+          expect(gameScore.get('score')).to.be(1000);
+          expect(gameScore.get('playerName')).to.be(undefined);
+        });
+    });
+    
+    it('include with multi params', function() {
+      return new AV.Query(GameScore)
+        .include('score', 'test')
+        .equalTo('objectId', this.gameScore.id)
+        .find()
+        .then(([gameScore]) => {
+          expect(gameScore.get('test').get('foo')).to.be('bar');
+        });
+    });
+
+    it('include', function() {
+      return new AV.Query(GameScore)
+        .include(['score', 'test'])
+        .equalTo('objectId', this.gameScore.id)
+        .find()
+        .then(([gameScore]) => {
+          expect(gameScore.get('test').get('foo')).to.be('bar');
+        });
     });
   });
 
