@@ -44,6 +44,7 @@ describe("User", function() {
         expect(theUser.get("username")).to.be(username);
       });
     });
+    
 
     it("should fail with wrong password", function() {
       return AV.User.logIn(username, 'wrong password')
@@ -57,12 +58,32 @@ describe("User", function() {
 
 
   describe("Current User", function() {
-    it("should return current user", function() {
-
+    it("current()", function() {
       var currentUser = AV.User.current();
       expect(currentUser).to.be.ok();
-      return AV.User.currentAsync().then(function(user) {
+    });
+    it('currentAsync()', () =>
+      AV.User.currentAsync().then(function(user) {
         expect(user).to.be.ok();
+      })
+    );
+  });
+  
+  describe('authenticated', () => {
+    it('authenticated()', () => {
+      AV.User.current().authenticated().should.be.ok();
+      new AV.User().authenticated().should.not.be.ok();
+    });
+    describe('isAuthenticated', () => {
+      it('currentUser.isAuthenticated()', () =>
+        AV.User.current().isAuthenticated().should.be.fulfilledWith(true)
+      );
+      it('user.isAuthenticated()', () =>
+        new AV.User().isAuthenticated().should.be.fulfilledWith(false)
+      );
+      it('outdated sessionToken', () => {
+        AV.User.current()._sessionToken = '0';
+        return new AV.User.current().isAuthenticated().should.be.fulfilledWith(false)
       });
     });
   });
