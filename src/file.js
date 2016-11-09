@@ -456,7 +456,6 @@ module.exports = function(AV) {
     get: function(attrName) {
       switch (attrName) {
         case 'objectId':
-        case 'id':
           return this.id;
         case 'url':
         case 'name':

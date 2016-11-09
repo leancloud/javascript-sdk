@@ -25,6 +25,19 @@ describe('Objects', function(){
     });
     new Post().name;
   });
+  
+  it('reserved keys', () => {
+    (() => new Person({
+      objectId: '0'
+    })).should.throwError(/reserved/);
+    (() => new Person({
+      createdAt: '0'
+    })).should.throwError(/reserved/);
+    (() => new Person({
+      updatedAt: '0'
+    })).should.throwError(/reserved/);
+    (() => new Person().set('objectId', '1')).should.throwError(/reserved/);
+  })
 
   describe('#extend', () => {
     it('extend for multiple times should not throw', () => {
@@ -69,6 +82,7 @@ describe('Objects', function(){
       gameScore.set("playerName", "dd");
       gameScore.set("cheatMode", false);
       gameScore.set("arr", ["arr1","arr2"]);
+      gameScore.set('id', 'id');
       return gameScore.save().then(function(result) {
         expect(result.id).to.be.ok();
         objId=result.id;
@@ -107,6 +121,7 @@ describe('Objects', function(){
       return query.get(objId).then(function(result) {
         expect(gameScore.id).to.be.ok();
         expect(gameScore.get('objectId')).to.be(gameScore.id);
+        expect(gameScore.get('id')).to.be('id');
       });
     });
   });
