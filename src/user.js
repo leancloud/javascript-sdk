@@ -1,6 +1,24 @@
 const _ = require('underscore');
 const AVError = require('./error');
 const AVRequest = require('./request').request;
+const Promise = require('./promise');
+
+const getWeappLoginCode = () => {
+  if (typeof wx === 'undefined' || typeof wx.login !== 'function') {
+    throw new Error('Weapp Login is only available in Weapp');
+  }
+  return new Promise((resolve, reject) => {
+    wx.login({
+      success: ({ code, errMsg }) => {
+        if (code) {
+          resolve(code);
+        } else {
+          reject(new Error(errMsg));
+        }
+      },
+    });
+  });
+};
 
 module.exports = function(AV) {
   /**
@@ -108,9 +126,9 @@ module.exports = function(AV) {
         // Some old version of leanengine-node-sdk will overwrite
         // AV.User._saveCurrentUser which returns no Promise.
         // So we need a Promise wrapper.
-        return AV.Promise.resolve(AV.User._saveCurrentUser(this));
+        return Promise.resolve(AV.User._saveCurrentUser(this));
       } else {
-        return AV.Promise.resolve();
+        return Promise.resolve();
       }
     },
 
@@ -139,6 +157,16 @@ module.exports = function(AV) {
       } else {
         return provider.authenticate().then(result => this._linkWith(provider, result));
       }
+    },
+
+    /**
+     * 将用户与小程序用户进行关联。适用于为已经在用户系统中存在的用户关联当前使用小程序的微信帐号。
+     * 仅在小程序中可用。
+     *
+     * @return {AV.User}
+     */
+    linkWithWeapp() {
+      return getWeappLoginCode().then(code => this._linkWith('lc_weapp', { code }));
     },
 
     /**
@@ -736,6 +764,17 @@ module.exports = function(AV) {
     },
 
     /**
+     * 使用当前使用小程序的微信用户身份注册或登录，成功后用户的 session 会在设备上持久化保存，之后可以使用 AV.User.current() 获取当前登录用户。
+     * 仅在小程序中可用。
+     *
+     * @since 2.0.0
+     * @return {AV.User}
+     */
+    loginWithWeapp() {
+      return getWeappLoginCode().then(code => this.signUpOrlogInWithAuthData({ code }, 'lc_weapp'));
+    },
+
+    /**
      * Associate a user with a third party auth data(AccessToken).
      *
      * @param {AV.User} userObj A user which you want to associate.
@@ -764,7 +803,7 @@ module.exports = function(AV) {
     logOut: function() {
       if (AV._config.disableCurrentUser) {
         console.warn('AV.User.current() was disabled in multi-user environment, call logOut() from user object instead https://leancloud.cn/docs/leanengine-node-sdk-upgrade-1.html');
-        return AV.Promise.resolve(null);
+        return Promise.resolve(null);
       }
 
       if (AV.User._currentUser !== null) {
@@ -926,16 +965,16 @@ module.exports = function(AV) {
     currentAsync: function() {
       if (AV._config.disableCurrentUser) {
         console.warn('AV.User.currentAsync() was disabled in multi-user environment, access user from request instead https://leancloud.cn/docs/leanengine-node-sdk-upgrade-1.html');
-        return AV.Promise.resolve(null);
+        return Promise.resolve(null);
       }
 
       if (AV.User._currentUser) {
-        return AV.Promise.resolve(AV.User._currentUser);
+        return Promise.resolve(AV.User._currentUser);
       }
 
       if (AV.User._currentUserMatchesDisk) {
 
-        return AV.Promise.resolve(AV.User._currentUser);
+        return Promise.resolve(AV.User._currentUser);
       }
 
 
@@ -1023,7 +1062,7 @@ module.exports = function(AV) {
         promise = AV.User.logOut();
       }
       else {
-        promise = AV.Promise.resolve();
+        promise = Promise.resolve();
       }
       return promise.then(function() {
         user._isCurrentUser = true;
