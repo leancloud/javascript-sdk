@@ -134,7 +134,7 @@ const setHeaders = (authOptions = {}, signKey) => {
     setAppId(headers, signKey);
   }
   if (AV._config.applicationProduction !== null) {
-    headers['X-LC-Prod'] = AV._config.applicationProduction;
+    headers['X-LC-Prod'] = String(AV._config.applicationProduction);
   }
   headers[AV._config.isNode ? 'User-Agent' : 'X-LC-UA'] = AV._config.userAgent;
 
