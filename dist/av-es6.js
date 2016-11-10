@@ -10441,7 +10441,7 @@ const setHeaders = (sessionToken, signKey) => {
     }
   }
   if (AV._config.applicationProduction !== null) {
-    headers['X-LC-Prod'] = AV._config.applicationProduction;
+    headers['X-LC-Prod'] = String(AV._config.applicationProduction);
   }
   if (!AV._config.isNode) {
     headers['X-LC-UA'] = `AV/${AV.version}`;
@@ -13302,7 +13302,7 @@ module.exports = {
  * Each engineer has a duty to keep the code elegant
 **/
 
-module.exports = 'js1.5.1';
+module.exports = 'js1.5.2';
 
 },{}]},{},[27])(27)
 });

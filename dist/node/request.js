@@ -92,7 +92,7 @@ var setHeaders = function setHeaders(sessionToken, signKey) {
     }
   }
   if (AV._config.applicationProduction !== null) {
-    headers['X-LC-Prod'] = AV._config.applicationProduction;
+    headers['X-LC-Prod'] = String(AV._config.applicationProduction);
   }
   if (!AV._config.isNode) {
     headers['X-LC-UA'] = 'AV/' + AV.version;

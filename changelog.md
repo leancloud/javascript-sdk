@@ -1,3 +1,6 @@
+## 1.5.2 (2016-11-10)
+* 修复了在 React Native 中调用 `AV.setProduction` 方法导致 React Native 异常的问题
+
 ## 1.5.1 (2016-10-20)
 * 修复了 `AV.Insight.startJob` 方法中 saveAs 参数未生效的问题
 
