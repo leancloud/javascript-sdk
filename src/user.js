@@ -544,11 +544,35 @@ module.exports = function(AV) {
 
     /**
      * Checks whether this user is the current user and has been authenticated.
+     * @deprecated 如果要判断当前用户的登录状态是否有效，请使用 currentUser.isAuthenticated().then()，
+     * 如果要判断该用户是否是当前登录用户，请使用 user.id === currentUser.id
      * @return (Boolean) whether this user is the current user and is logged in.
      */
     authenticated: function() {
+      console.warn('DEPRECATED: 如果要判断当前用户的登录状态是否有效，请使用 currentUser.isAuthenticated().then()，如果要判断该用户是否是当前登录用户，请使用 user.id === currentUser.id。')
       return !!this._sessionToken &&
           (!AV._config.disableCurrentUser && AV.User.current() && AV.User.current().id === this.id);
+    },
+
+    /**
+     * 检查该用户的登录状态是否有效，请注意该方法会校验 sessionToken 的有效性，是个异步方法。
+     *
+     * @since 2.0.0
+     * @return Promise.<Boolean>
+     */
+    isAuthenticated() {
+      return Promise.resolve().then(() =>
+        !!this._sessionToken &&
+        AV.User._fetchUserBySessionToken(this._sessionToken).then(
+          () => true,
+          (error) => {
+            if (error.code === 211) {
+              return false;
+            }
+            throw error;
+          }
+        )
+      );
     },
 
     /**
