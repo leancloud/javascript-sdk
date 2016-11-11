@@ -3,6 +3,13 @@ const AVError = require('./error');
 const AVRequest = require('./request').request;
 const utils = require('./utils');
 
+const RESERVED_KEYS = ['objectId', 'createdAt', 'updatedAt'];
+const checkReservedKey = key => {
+  if (RESERVED_KEYS.indexOf(key) !== -1) {
+    throw new Error(`key[${key}] is reserved`);
+  }
+};
+
 // AV.Object is analogous to the Java AVObject.
 // It also implements the same interface as a Backbone model.
 
@@ -289,7 +296,6 @@ module.exports = function(AV) {
     get: function(attr) {
       switch (attr) {
         case 'objectId':
-        case 'id':
           return this.id;
         case 'createdAt':
         case 'updatedAt':
@@ -355,7 +361,7 @@ module.exports = function(AV) {
     _mergeMagicFields: function(attrs) {
       // Check for changes of magic fields.
       var model = this;
-      var specialFields = ["id", "objectId", "createdAt", "updatedAt"];
+      var specialFields = ["objectId", "createdAt", "updatedAt"];
       AV._arrayEach(specialFields, function(attr) {
         if (attrs[attr]) {
           if (attr === "objectId") {
@@ -363,8 +369,8 @@ module.exports = function(AV) {
           } else if ((attr === "createdAt" || attr === "updatedAt") &&
                      !_.isDate(attrs[attr])) {
             model[attr] = AV._parseDate(attrs[attr]);
-          } else {
-            model[attr] = attrs[attr];
+          } else { 
+            model[attr] = attrs[attr]; 
           }
           delete attrs[attr];
         }
@@ -604,11 +610,13 @@ module.exports = function(AV) {
       if (_.isObject(key) || utils.isNullOrUndefined(key)) {
         attrs = key;
         AV._objectEach(attrs, function(v, k) {
+          checkReservedKey(k);
           attrs[k] = AV._decode(k, v);
         });
         options = value;
       } else {
         attrs = {};
+        checkReservedKey(key);
         attrs[key] = AV._decode(key, value);
       }
 
