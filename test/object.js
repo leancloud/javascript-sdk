@@ -89,6 +89,17 @@ describe('Objects', function(){
       });
     });
 
+    it('toJSON and parse', () => {
+      const json = gameScore.toJSON();
+      json.objectId.should.eql(gameScore.id);
+      json.id.should.eql(gameScore.get('id'));
+      json.score.should.eql(gameScore.get('score'));
+      const parsedGameScore = new GameScore(json, { parse: true });
+      parsedGameScore.id.should.eql(gameScore.id);
+      parsedGameScore.get('id').should.eql(gameScore.get('id'));
+      parsedGameScore.get('score').should.eql(gameScore.get('score'));
+    });
+
     it('should create a User',function(){
       var User = AV.Object.extend("User");
       var u = new User();

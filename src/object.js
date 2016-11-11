@@ -50,6 +50,7 @@ module.exports = function(AV) {
     attributes = attributes || {};
     if (options && options.parse) {
       attributes = this.parse(attributes);
+      attributes = this._mergeMagicFields(attributes);
     }
     var defaults = AV._getValue(this, 'defaults');
     if (defaults) {
@@ -375,6 +376,7 @@ module.exports = function(AV) {
           delete attrs[attr];
         }
       });
+      return attrs;
     },
 
     /**
@@ -651,8 +653,6 @@ module.exports = function(AV) {
 
       // Run validation.
       this._validate(attrs, options);
-
-      this._mergeMagicFields(attrs);
 
       options.changes = {};
       var escaped = this._escapedAttributes;
