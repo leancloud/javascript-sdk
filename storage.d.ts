@@ -508,6 +508,7 @@ declare namespace AV {
         static allowCustomUserClass(isAllowed: boolean): void;
         static become<T>(sessionToken: string, options?: AuthOptions): Promise<T>;
 
+        static loginWithWeapp<T>(): Promise<T>;
         static logInWithMobilePhone<T>(mobilePhone: string, password: string, options?: AuthOptions): Promise<T>;
         static logInWithMobilePhoneSmsCode<T>(mobilePhone: string, smsCode: string, options?: AuthOptions): Promise<T>;
         static signUpOrlogInWithAuthData<T>(data: any, platform: string, options?: AuthOptions): Promise<T>;
@@ -521,9 +522,10 @@ declare namespace AV {
         static verifyMobilePhone<T>(code: string, options?: AuthOptions): Promise<T>;
         signUp<T>(attrs?: any, options?: AuthOptions): Promise<T>;
         logIn<T>(options?: AuthOptions): Promise<T>;
+        linkWithWeapp<T>(): Promise<T>;
         fetch<T>(options?: AuthOptions): Promise<T>;
         save<T>(arg1?: any, arg2?: any, arg3?: any): Promise<T>;
-        authenticated(): boolean;
+        isAuthenticated(): Promise<boolean>;
         isCurrent(): boolean;
 
 

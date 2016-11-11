@@ -1,3 +1,12 @@
+# 2.0.0-beta.4 (2016-11-11)
+### Breaking Changes
+* `objectId`、`createdAt`、`updatedAt` 现在是只读字段，尝试 set 这些字段时 SDK 会抛出异常
+* `object.get('id')` 与 `object.set('id', '')` 现在将会正确的读、写数据表中的 `id` 字段（之前映射的是 `objectId`）。你现在依然可以使用 `object.id` 来访问数据的 `objectId`。
+
+### Features
+* 增加了 `AV.User.loginWithWeapp()` 与 `AV.User#linkWithWeapp()` ，支持在微信小程序中登录
+* 增加了 `AV.User#isAuthenticated()`，该方法会校验 sessionToken 的有效性, 废弃 `AV.User#authenticated()`
+
 ## 2.0.0-beta.3 (2016-11-8)
 ### Bug Fixes
 * 修复了微信小程序在真机上抛 `ReferenceError: Can't find variable: FormData` 异常的问题
