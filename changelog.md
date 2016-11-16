@@ -1,3 +1,7 @@
+## 2.0.0-beta.5 (2016-11-16)
+### Bug Fixes
+* 修复了在 Android 微信小程序上运行时抛 `undefined is not a function` 异常的问题
+
 # 2.0.0-beta.4 (2016-11-11)
 ### Breaking Changes
 * `objectId`、`createdAt`、`updatedAt` 现在是只读字段，尝试 set 这些字段时 SDK 会抛出异常
@@ -9,7 +13,7 @@
 
 ## 2.0.0-beta.3 (2016-11-8)
 ### Bug Fixes
-* 修复了微信小程序在真机上抛 `ReferenceError: Can't find variable: FormData` 异常的问题
+* 修复了在微信小程序真机上运行时抛 `ReferenceError: Can't find variable: FormData` 异常的问题
 * 修复了 2.0.0 中引入的 `AV.Query#select`、`AV.Query#include` 不支持多个参数的问题
 
 ## 2.0.0-beta.2 (2016-10-20)
