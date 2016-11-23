@@ -1,16 +1,13 @@
 const _ = require('underscore');
 const AVRequest = require('./request').request;
 
-const getUser = (options = {}) => AV.User.currentAsync()
-  .then(currUser => currUser
-    ? currUser
-    : AV.User._fetchUserBySessionToken(options.sessionToken));
-
-const getUserPointer = options => getUser(options)
-  .then(currUser => AV.Object.createWithoutData('_User', currUser.id)._toPointer());
-
-
 module.exports = function(AV) {
+  const getUser = (options = {}) => AV.User.currentAsync()
+    .then(currUser => currUser || AV.User._fetchUserBySessionToken(options.sessionToken));
+
+  const getUserPointer = options => getUser(options)
+    .then(currUser => AV.Object.createWithoutData('_User', currUser.id)._toPointer());
+
   /**
    * Contains functions to deal with Status in LeanCloud.
    * @class
