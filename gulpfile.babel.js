@@ -8,17 +8,9 @@ import qiniu from 'qiniu';
 import fs from 'fs';
 import gulp from 'gulp';
 import clean from 'gulp-clean';
-import concat from 'gulp-concat';
-import rename from 'gulp-rename';
-import uglify from 'gulp-uglify';
-import source from 'vinyl-source-stream';
-import streamify from 'gulp-streamify';
-import browserify from 'browserify';
-import browserSync from 'browser-sync';
 import babel from 'gulp-babel';
+import shell from 'gulp-shell';
 import { version } from './package.json';
-
-const reload = browserSync.reload;
 
 // 获取当前版本号
 const getAVVersion = () => version;
@@ -56,47 +48,14 @@ gulp.task('clean-dist', () => {
 });
 
 // 编译浏览器版本
-gulp.task('bundle-browser', () => {
-  return browserify({
-    entries: './src/index.js',
-    standalone: 'AV'
-  }).bundle()
-  .pipe(source('av.js'))
-    // .pipe(sourcemaps.init())
-    .pipe(streamify(babel({
-      compact: false
-    })))
-    // .pipe(sourcemaps.write("."))
-    .pipe(gulp.dest('dist'));
-});
+gulp.task('bundle-browser', shell.task('npm run build:browser'));
+gulp.task('bundle-rn', shell.task('npm run build:rn'));
+gulp.task('bundle-weapp', shell.task('npm run build:weapp'));
 
-gulp.task('uglify', ['bundle-browser', 'bundle-weapp'], () => {
-  return gulp.src([
-      'dist/av.js',
-      'dist/av-weapp.js'
-    ])
-    .pipe(uglify())
-    .pipe(rename((path) => {
-      path.basename += '-min';
-    }))
-    .pipe(gulp.dest('dist'));
-
-  // return gulp.src(['dist/av-es5.js'])
-  //   .pipe(clean());
-});
-
-gulp.task('bundle-weapp', () =>
-  browserify({
-    entries: './src/index-weapp.js',
-    standalone: 'AV'
-  })
-  .bundle()
-  .pipe(source('av-weapp.js'))
-  .pipe(streamify(babel({
-    compact: false
-  })))
-  .pipe(gulp.dest('dist'))
-)
+gulp.task('uglify', ['bundle-browser', 'bundle-weapp'], shell.task([
+  'npm run uglify:browser',
+  'npm run uglify:weapp',
+]));
 
 gulp.task('clean-node', () => {
   return gulp.src(['dist/node/**/*.*'])
@@ -106,10 +65,7 @@ gulp.task('clean-node', () => {
 // 编译出 Node 版本
 gulp.task('babel-node', ['clean-node'], () => {
   return gulp.src('src/**/*.js')
-    // .pipe(sourcemaps.init())
     .pipe(babel())
-    // .pipe(concat('av.js'))
-    // .pipe(sourcemaps.write("."))
     .pipe(gulp.dest('dist/node/'));
 });
 
@@ -137,46 +93,12 @@ gulp.task('upload', () => {
 });
 
 // 生成 release 文件
-gulp.task('release', [
-  // 生成浏览器版本
+gulp.task('build', [
   'clean-dist',
   'bundle-browser',
+  'bundle-rn',
   'bundle-weapp',
   'uglify',
-  // 生成 node 版本
   'clean-node',
   'babel-node'
 ]);
-
-// 浏览器开发时使用
-gulp.task('dev', [
-  'clean-dist',
-  'bundle-browser',
-  'babel-demo'
-], () => {
-  browserSync({
-    notify: false,
-    port: 8888,
-    server: {
-      baseDir: ['demo'],
-      routes: {
-        '/dist': 'dist'
-      }
-    }
-  });
-
-  gulp.watch('src/**/*.js', [
-    'clean-dist',
-    'browserify',
-    'babel-browser',
-    'uglify'
-  ]);
-
-  gulp.watch([
-    'demo/*.html',
-    'demo/*.js',
-    'dist/*.js'
-  ], [
-    'babel-demo'
-  ]).on('change', reload);
-});

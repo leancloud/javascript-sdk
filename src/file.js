@@ -342,7 +342,7 @@ module.exports = function(AV) {
       data = { base64: encodeBase64(data) };
     }
     if (data && data.base64) {
-      var parseBase64 = require('./browserify-wrapper/parse-base64');
+      var parseBase64 = require('./utils/parse-base64');
       var dataBase64 = parseBase64(data.base64, guessedType);
       this.attributes.base64 = dataURLToBase64(data.base64);
       this._source = Promise.resolve({ data: dataBase64, type: guessedType });

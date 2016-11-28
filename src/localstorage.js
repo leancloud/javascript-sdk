@@ -1,6 +1,6 @@
 var _ = require('underscore');
 var Promise = require('./promise');
-var localStorage = require('./browserify-wrapper/localStorage');
+var localStorage = require('./utils/localstorage');
 
 var syncApiNames = [
   'getItem',
