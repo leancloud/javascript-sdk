@@ -11,6 +11,10 @@ module.exports = function() {
     },
     resolve: {},
     devtool: 'source-map',
+    node: {
+      // do not polyfill Buffer
+      Buffer: false,
+    },
     module: {
       loaders: [
         {

@@ -351,13 +351,12 @@ module.exports = function(AV) {
         data.blob.type = guessedType;
       }
       this._source = Promise.resolve({ data: data.blob, type: guessedType });
-    } else if (typeof File !== "undefined" && data instanceof global.File) {
+    } else if (typeof File !== "undefined" && data instanceof File) {
       if (data.size) {
         this.attributes.metaData.size = data.size;
       }
       this._source = Promise.resolve({ data, type: guessedType });
-    } else if (typeof global.Buffer !== "undefined" && global.Buffer.isBuffer(data)) {
-      // use global.Buffer to prevent browserify pack Buffer module
+    } else if (typeof Buffer !== "undefined" && Buffer.isBuffer(data)) {
       this.attributes.metaData.size = data.length;
       this._source = Promise.resolve({ data, type: guessedType });
     } else if (_.isString(data)) {
