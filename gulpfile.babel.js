@@ -12,10 +12,7 @@ import babel from 'gulp-babel';
 import shell from 'gulp-shell';
 import { version } from './package.json';
 
-// 获取当前版本号
-const getAVVersion = () => version;
-
-const uploadCDN = (file, version, cb) => {
+const uploadCDN = (file) => {
   qiniu.conf.ACCESS_KEY = process.env.CDN_QINIU_KEY;
   qiniu.conf.SECRET_KEY = process.env.CDN_QINIU_SECRET;
   if (!qiniu.conf.ACCESS_KEY || !qiniu.conf.SECRET_KEY) {
@@ -34,8 +31,8 @@ const uploadCDN = (file, version, cb) => {
     } else {
       console.log(err);
     }
-    cb();
   });
+  return file;
 };
 
 gulp.task('clean-dist', () => {
@@ -86,10 +83,12 @@ gulp.task('babel-demo', ['clean-demo'], () => {
 
 // 上传到 CDN
 gulp.task('upload', () => {
-  uploadCDN('./dist/av-min.js', getAVVersion(), () => {});
-  uploadCDN('./dist/av-weapp-min.js', getAVVersion(), () => {});
-  uploadCDN('./dist/av.js', getAVVersion(), () => {});
-  uploadCDN('./dist/av-weapp.js', getAVVersion(), () => {});
+  [
+    './dist/av-min.js',
+    './dist/av-weapp-min.js',
+    './dist/av.js',
+    './dist/av-weapp.js',
+  ].map(uploadCDN).map(file => `${file}.map`).map(uploadCDN);
 });
 
 // 生成 release 文件
