@@ -19,7 +19,7 @@ const uploadCDN = (file) => {
     throw new Error('Need Qiniu CDN_QINIU_KEY and CDN_QINIU_SECRET');
   }
   const bucketname = 'paas_files';
-  const key = 'static/js/' + path.basename(file, '.js') + '-' + version + '.js';
+  const key = `static/js/${version}/${path.basename(file)}`;
   const putPolicy = new qiniu.rs.PutPolicy(bucketname + ':' + key);
   const uptoken = putPolicy.token();
   const extra = new qiniu.io.PutExtra();
