@@ -1,4 +1,5 @@
 var path = require('path');
+var webpack = require('webpack');
 
 module.exports = function() {
   return {
@@ -29,6 +30,11 @@ module.exports = function() {
           }
         }
       ]
-    }
+    },
+    plugins: [
+      new webpack.EnvironmentPlugin([
+        "PLATFORM"
+      ])
+    ]
   }
 };

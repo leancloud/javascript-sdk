@@ -11,9 +11,9 @@
     "test": "NODE_ENV=test nyc --reporter lcov --reporter text mocha --timeout 300000 test/index.js",
     "docs": "jsdoc src README.md package.json -d docs -c .jsdocrc.json",
     "build:node": "gulp babel-node",
-    "build:browser": "webpack --config webpack/browser.js",
-    "build:rn": "webpack --config webpack/rn.js",
-    "build:weapp": "webpack --config webpack/weapp.js",
+    "build:browser": "PLATFORM=Browser webpack --config webpack/browser.js",
+    "build:rn": "PLATFORM=ReactNative webpack --config webpack/rn.js",
+    "build:weapp": "PLATFORM=Weapp webpack --config webpack/weapp.js",
     "uglify:browser": "cd dist; uglifyjs av.js -m -c -o av-min.js --in-source-map av.js.map --source-map av-min.js.map; cd ..;",
     "uglify:weapp": "cd dist; uglifyjs av-weapp.js -m -c -o av-weapp-min.js --in-source-map av-weapp.js.map --source-map av-weapp-min.js.map; cd ..;",
     "build": "gulp build"
@@ -43,10 +43,7 @@
     "gulp": "^3.8.10",
     "gulp-babel": "^6.1.1",
     "gulp-clean": "^0.3.1",
-    "gulp-eslint": "^0.13.2",
-    "gulp-rename": "^1.2.0",
     "gulp-shell": "^0.5.2",
-    "gulp-uglify": "^1.0.2",
     "jsdoc": "~3.4.0",
     "mocha": "^3.0.0",
     "nyc": "^8.1.0",
@@ -64,14 +61,12 @@
     "./src/uploader/qiniu.js": "./src/uploader/qiniu-browser.js",
     "./src/utils/localstorage.js": "./src/utils/localstorage-browser.js",
     "./src/utils/parse-base64.js": "./src/utils/parse-base64-browser.js",
+    "./src/ua/comments.js": "./src/ua/comments-browser.js",
     "./dist/node/index.js": "./dist/av.js"
   },
   "react-native": {
     "./src/utils/localstorage.js": "./src/utils/localstorage-rn.js",
     "./dist/node/index.js": "./dist/av-rn.js"
-  },
-  "weapp": {
-    "./dist/node/index.js": "./dist/av-weapp.js"
   },
   "typings": "./storage.d.ts",
   "nyc": {
