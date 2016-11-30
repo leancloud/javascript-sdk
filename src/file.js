@@ -342,7 +342,7 @@ module.exports = function(AV) {
       data = { base64: encodeBase64(data) };
     }
     if (data && data.base64) {
-      var parseBase64 = require('./browserify-wrapper/parse-base64');
+      var parseBase64 = require('./utils/parse-base64');
       var dataBase64 = parseBase64(data.base64, guessedType);
       this.attributes.base64 = dataURLToBase64(data.base64);
       this._source = Promise.resolve({ data: dataBase64, type: guessedType });
@@ -351,13 +351,12 @@ module.exports = function(AV) {
         data.blob.type = guessedType;
       }
       this._source = Promise.resolve({ data: data.blob, type: guessedType });
-    } else if (typeof File !== "undefined" && data instanceof global.File) {
+    } else if (typeof File !== "undefined" && data instanceof File) {
       if (data.size) {
         this.attributes.metaData.size = data.size;
       }
       this._source = Promise.resolve({ data, type: guessedType });
-    } else if (typeof global.Buffer !== "undefined" && global.Buffer.isBuffer(data)) {
-      // use global.Buffer to prevent browserify pack Buffer module
+    } else if (typeof Buffer !== "undefined" && Buffer.isBuffer(data)) {
       this.attributes.metaData.size = data.length;
       this._source = Promise.resolve({ data, type: guessedType });
     } else if (_.isString(data)) {

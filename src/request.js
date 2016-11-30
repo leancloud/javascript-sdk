@@ -124,12 +124,7 @@ const setHeaders = (authOptions = {}) => {
   if (AV._config.applicationProduction !== null) {
     headers['X-LC-Prod'] = AV._config.applicationProduction;
   }
-  if (!AV._config.isNode) {
-    headers['X-LC-UA'] = `AV/${AV.version}`;
-  } else {
-    // LeanEngine need use AV._config.userAgent
-    headers['User-Agent'] = AV._config.userAgent || `AV/${AV.version}; Node.js/${process.version}`;
-  }
+  headers[AV._config.isNode ? 'User-Agent' : 'X-LC-UA'] = AV._config.userAgent;
 
   return Promise.resolve().then(() => {
     // Pass the session token

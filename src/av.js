@@ -1,4 +1,5 @@
 const _ = require('underscore');
+const userAgent = require('./ua');
 const {
   isNullOrUndefined,
 } = require('./utils');
@@ -24,7 +25,7 @@ _.extend(AVConfig, {
   disableCurrentUser: false,
 
   // Internal config can modifie the UserAgent
-  userAgent: null,
+  userAgent,
 
   // set production environment or test environment
   // 1: production environment, 0: test environment, null: default environment
