@@ -1,3 +1,11 @@
+## 2.0.0-beta.6 (2016-11-30)
+### Bug Fixes
+* 修复了 Android 微信小程序上初始化失败的问题
+* 修复了小程序中使用应用内社交抛 `AV is not defined` 异常的问题
+
+### Features
+* 增加了 sourcemaps
+
 ## 2.0.0-beta.5 (2016-11-16)
 ### Bug Fixes
 * 修复了在 Android 微信小程序上运行时抛 `undefined is not a function` 异常的问题
