@@ -197,26 +197,27 @@ const cacheServerURL = (serverURL, ttl) => {
 };
 
 // handle AV._request Error
-const handleError = (res) => {
+const handleError = (error) => {
   return new Promise((resolve, reject) => {
     /**
       When API request need to redirect to the right location,
       can't use browser redirect by http status 307, as the reason of CORS,
       so API server response http status 410 and the param "location" for this case.
     */
-    if (res.statusCode === 410) {
-      cacheServerURL(res.response.api_server, res.response.ttl).then(() => {
-        resolve(res.response.location);
-      }).catch((error) => {
-        reject(error);
-      });
+    if (error.statusCode === 410) {
+      cacheServerURL(error.response.api_server, error.response.ttl).then(() => {
+        resolve(error.response.location);
+      }).catch(reject);
     } else {
-      let errorJSON = { code: -1, error: res.responseText };
-      if (res.response && res.response.code) {
-        errorJSON = res.response;
-      } else if (res.responseText) {
+      let errorJSON = {
+        code: error.code || -1,
+        error: error.message || error.responseText
+      };
+      if (error.response && error.response.code) {
+        errorJSON = error.response;
+      } else if (error.responseText) {
         try {
-          errorJSON = JSON.parse(res.responseText);
+          errorJSON = JSON.parse(error.responseText);
         } catch (e) {
           // If we fail to parse the error text, that's okay.
         }
@@ -224,8 +225,7 @@ const handleError = (res) => {
 
       // Transform the error into an instance of AVError by trying to parse
       // the error string as JSON.
-      const error = new AVError(errorJSON.code, errorJSON.error);
-      reject(error);
+      reject(new AVError(errorJSON.code, errorJSON.error));
     }
   });
 };
