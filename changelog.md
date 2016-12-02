@@ -1,3 +1,6 @@
+## 1.5.3 (2016-12-02)
+* 修复了请求失败的情况下捕获的 Error(code = -1) 没有 message 的问题
+
 ## 1.5.2 (2016-11-10)
 * 修复了在 React Native 中调用 `AV.setProduction` 方法导致 React Native 异常的问题
 

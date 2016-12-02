@@ -234,7 +234,7 @@ var init = function init(AV) {
    */
   AV._getAVPath = function (path) {
     if (!AV.applicationId) {
-      throw "You need to call AV.initialize before using AV.";
+      throw new Error('You need to call AV.init() before using AV.');
     }
     if (!path) {
       path = "";
