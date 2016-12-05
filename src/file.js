@@ -97,6 +97,8 @@ module.exports = function(AV) {
       base64: '',
     };
 
+    this._extName = '';
+
     let owner;
     if (data && data.owner) {
       owner = data.owner;
@@ -130,10 +132,16 @@ module.exports = function(AV) {
       if (!data.blob.type) {
         data.blob.type = mimeType;
       }
+      if (process.env.PLATFORM === 'ReactNative' || process.env.PLATFORM === 'Weapp') {
+        this._extName = extname(data.blob.uri);
+      }
       this._source = Promise.resolve({ data: data.blob, type: mimeType });
     } else if (typeof File !== "undefined" && data instanceof File) {
       if (data.size) {
         this.attributes.metaData.size = data.size;
+      }
+      if (data.name) {
+        this._extName = extname(data.name);
       }
       this._source = Promise.resolve({ data, type: mimeType });
     } else if (typeof Buffer !== "undefined" && Buffer.isBuffer(data)) {
@@ -156,7 +164,7 @@ module.exports = function(AV) {
    */
   AV.File.withURL = function(name, url, metaData, type) {
     if (!name || !url){
-      throw "Please provide file name and url";
+      throw new Error("Please provide file name and url");
     }
     var file = new AV.File(name, null, type);
     //copy metaData properties to file.
@@ -374,7 +382,7 @@ module.exports = function(AV) {
       const name = this.attributes.name;
 
       // Create 16-bits uuid as qiniu key.
-      const extName = extname(name);
+      const extName = extname(name) || this._extName;
       const hexOctet = () => Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
       const key = hexOctet() + hexOctet() + hexOctet() + hexOctet() + hexOctet() + extName;
       const data = {
