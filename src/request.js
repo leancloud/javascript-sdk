@@ -120,6 +120,9 @@ const setHeaders = (sessionToken, signKey) => {
       headers['X-LC-Key'] = AV.applicationKey;
     }
   }
+  if (AV.hookKey) {
+    headers['X-LC-Hook-Key'] = AV.hookKey;
+  }
   if (AV._config.applicationProduction !== null) {
     headers['X-LC-Prod'] = String(AV._config.applicationProduction);
   }
