@@ -20,10 +20,10 @@
   },
   "dependencies": {
     "debug": "^2.2.0",
+    "es6-promise": "^4.0.5",
     "localstorage-memory": "^1.0.1",
     "md5": "^2.0.0",
     "qiniu": "^6.1.11",
-    "rsvp": "^3.2.1",
     "superagent": "^2.0.0",
     "underscore": "^1.8.3"
   },
