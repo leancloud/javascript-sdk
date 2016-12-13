@@ -15,6 +15,7 @@ module.exports = function() {
     node: {
       // do not polyfill Buffer
       Buffer: false,
+      process: false,
     },
     module: {
       loaders: [

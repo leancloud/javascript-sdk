@@ -1,5 +1,5 @@
 var _ = require('underscore');
-var Promise = require('rsvp').Promise;
+var Promise = require('es6-promise').Promise;
 
 Promise._continueWhile = function(predicate, asyncFunction) {
   if (predicate()) {
