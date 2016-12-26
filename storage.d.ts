@@ -652,6 +652,7 @@ declare namespace AV {
         fetch<T>(options?: SuccessFailureOptions): Promise<T>;
         save<T>(arg1?: any, arg2?: any, arg3?: any): Promise<T>;
         authenticated(): boolean;
+        isAuthenticated(): Promise<boolean>;
         isCurrent(): boolean;
 
 
@@ -754,7 +755,7 @@ declare namespace AV {
      * You should not create subclasses of AV.Op or instantiate AV.Op
      * directly.
      */
-   export namespace Op {
+    export namespace Op {
 
         interface BaseOperation extends IBaseObject {
             objects(): any[];
