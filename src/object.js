@@ -315,7 +315,7 @@ module.exports = function(AV) {
       var value = this.get(attr);
       if (value) {
         if (!(value instanceof AV.Relation)) {
-          throw "Called relation() on non-relation field " + attr;
+          throw new Error("Called relation() on non-relation field " + attr);
         }
         value._ensureParentAndKey(this, attr);
         return value;
@@ -441,7 +441,7 @@ module.exports = function(AV) {
       this._mergeMagicFields(serverData);
       var self = this;
       AV._objectEach(serverData, function(value, key) {
-        self._serverData[key] = AV._decode(key, value);
+        self._serverData[key] = AV._decode(value, key);
 
         // Look for any objects that might have become unfetched and fix them
         // by replacing their values with the previously observed values.
@@ -471,7 +471,7 @@ module.exports = function(AV) {
       this._mergeMagicFields(serverData);
       var self = this;
       AV._objectEach(serverData, function(value, key) {
-        self._serverData[key] = AV._decode(key, value);
+        self._serverData[key] = AV._decode(value, key);
       });
 
       // Refresh the attributes.
@@ -608,18 +608,17 @@ module.exports = function(AV) {
      * @see AV.Object#validate
      */
     set: function(key, value, options) {
-      var attrs, attr;
+      var attrs;
       if (_.isObject(key) || utils.isNullOrUndefined(key)) {
-        attrs = key;
-        AV._objectEach(attrs, function(v, k) {
+        attrs = _.mapObject(key, function(v, k) {
           checkReservedKey(k);
-          attrs[k] = AV._decode(k, v);
+          return AV._decode(v, k);
         });
         options = value;
       } else {
         attrs = {};
         checkReservedKey(key);
-        attrs[key] = AV._decode(key, value);
+        attrs[key] = AV._decode(value, key);
       }
 
       // Extract attributes and options.

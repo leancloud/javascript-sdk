@@ -124,6 +124,27 @@ describe('Objects', function(){
     });
   });
 
+  describe('set', () => {
+    it('should not mute value', () => {
+      const originalValue = {
+        name: 'LC',
+        objectId: '11111111111',
+        className: '_User',
+        __type: 'Object',
+        avatar: {
+          __type: 'File',
+          id: '11111111111',
+          name: 'avatar',
+          url: 'url'
+        }
+      };
+      const originalString = JSON.stringify(originalValue);
+      new GameScore().set('user', originalValue);
+      JSON.stringify(originalValue).should.be.exactly(originalString);
+      originalValue.should.not.be.instanceof(AV.Object);
+    });
+  });
+
   describe("Retrieving Objects",function(){
     it("should be the just save Object",function(){
       var GameScore = AV.Object.extend("GameScore");

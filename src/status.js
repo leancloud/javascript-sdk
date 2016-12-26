@@ -125,7 +125,7 @@ module.exports = function(AV) {
         delete serverData.objectId;
         delete serverData.createdAt;
         delete serverData.updatedAt;
-        this.data = AV._decode(undefined, serverData);
+        this.data = AV._decode(serverData);
     }
   };
 

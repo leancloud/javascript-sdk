@@ -117,13 +117,13 @@ AV.setProduction = (production) => {
  */
 AV._getAVPath = function(path) {
   if (!AV.applicationId) {
-    throw "You need to call AV.initialize before using AV.";
+    throw new Error("You need to call AV.initialize before using AV.");
   }
   if (!path) {
     path = "";
   }
   if (!_.isString(path)) {
-    throw "Tried to get a localStorage path that wasn't a String.";
+    throw new Error("Tried to get a localStorage path that wasn't a String.");
   }
   if (path[0] === "/") {
     path = path.substring(1);
@@ -216,7 +216,7 @@ AV._getValue = function(object, prop) {
 AV._encode = function(value, seenObjects, disallowObjects) {
   if (value instanceof AV.Object) {
     if (disallowObjects) {
-      throw "AV.Objects not allowed here";
+      throw new Error("AV.Objects not allowed here");
     }
     if (!seenObjects || _.include(seenObjects, value) || !value._hasData) {
       return value._toPointer();
@@ -227,7 +227,7 @@ AV._encode = function(value, seenObjects, disallowObjects) {
                            seenObjects,
                            disallowObjects);
     }
-    throw "Tried to save an object with a pointer to a new, unsaved object.";
+    throw new Error("Tried to save an object with a pointer to a new, unsaved object.");
   }
   if (value instanceof AV.ACL) {
     return value.toJSON();
@@ -254,7 +254,7 @@ AV._encode = function(value, seenObjects, disallowObjects) {
   }
   if (value instanceof AV.File) {
     if (!value.url() && !value.id) {
-      throw "Tried to save an object containing an unsaved file.";
+      throw new Error("Tried to save an object containing an unsaved file.");
     }
     return {
       __type: "File",
@@ -264,29 +264,21 @@ AV._encode = function(value, seenObjects, disallowObjects) {
     };
   }
   if (_.isObject(value)) {
-    var output = {};
-    AV._objectEach(value, function(v, k) {
-      output[k] = AV._encode(v, seenObjects, disallowObjects);
-    });
-    return output;
+    return _.mapObject(value, (v, k) => AV._encode(v, seenObjects, disallowObjects));
   }
   return value;
 };
 
 /**
  * The inverse function of AV._encode.
- * TODO: make decode not mutate value.
  * @private
  */
-AV._decode = function(key, value) {
+AV._decode = function(value, key) {
   if (!_.isObject(value)) {
     return value;
   }
   if (_.isArray(value)) {
-    AV._arrayEach(value, function(v, k) {
-      value[k] = AV._decode(k, v);
-    });
-    return value;
+    return _.map(value, v => AV._decode(v));
   }
   if (value instanceof AV.Object) {
     return value;
@@ -297,6 +289,12 @@ AV._decode = function(key, value) {
   if (value instanceof AV.Op) {
     return value;
   }
+  if (value instanceof AV.GeoPoint) {
+    return value;
+  }
+  if (value instanceof AV.ACL) {
+    return value;
+  }
   if (value.__op) {
     return AV.Op._decode(value);
   }
@@ -305,9 +303,10 @@ AV._decode = function(key, value) {
     className = value.className;
     var pointer = AV.Object._create(className);
     if(Object.keys(value).length > 3) {
-        delete value.__type;
-        delete value.className;
-        pointer._finishFetch(value, true);
+        const v = _.clone(value);
+        delete v.__type;
+        delete v.className;
+        pointer._finishFetch(v, true);
     }else{
         pointer._finishFetch({ objectId: value.objectId }, false);
     }
@@ -316,10 +315,11 @@ AV._decode = function(key, value) {
   if (value.__type === "Object") {
     // It's an Object included in a query result.
     className = value.className;
-    delete value.__type;
-    delete value.className;
+    const v = _.clone(value);
+    delete v.__type;
+    delete v.className;
     var object = AV.Object._create(className);
-    object._finishFetch(value, true);
+    object._finishFetch(v, true);
     return object;
   }
   if (value.__type === "Date") {
@@ -331,13 +331,8 @@ AV._decode = function(key, value) {
       longitude: value.longitude
     });
   }
-  if (key === "ACL") {
-    if (value instanceof AV.ACL) {
-      return value;
-    }
-    return new AV.ACL(value);
-  }
   if (value.__type === "Relation") {
+    if (!key) throw new Error('key missing decoding a Relation');
     var relation = new AV.Relation(null, key);
     relation.targetClassName = value.className;
     return relation;
@@ -349,10 +344,12 @@ AV._decode = function(key, value) {
     file.id = value.objectId;
     return file;
   }
-  AV._objectEach(value, function(v, k) {
-    value[k] = AV._decode(k, v);
+  return _.mapObject(value, function(v, k) {
+    if (k === "ACL") {
+      return new AV.ACL(v);
+    }
+    return AV._decode(v, k);
   });
-  return value;
 };
 
 AV._encodeObjectOrArray = function(value) {

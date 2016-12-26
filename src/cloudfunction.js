@@ -26,7 +26,7 @@ module.exports = function(AV) {
                                    AV._encode(data, null, true), options);
 
       return request.then(function(resp) {
-        return AV._decode(null, resp).result;
+        return AV._decode(resp).result;
       });
     },
 
@@ -44,7 +44,7 @@ module.exports = function(AV) {
       }
 
       return AVRequest('call', name, null, 'POST', AV._encodeObjectOrArray(data), options).then(function(resp) {
-        return AV._decode('', resp).result;
+        return AV._decode(resp).result;
       });
     },
 
@@ -58,7 +58,7 @@ module.exports = function(AV) {
       var request = AVRequest("date", null, null, 'GET');
 
       return request.then(function(resp) {
-        return AV._decode(null, resp);
+        return AV._decode(resp);
       });
     },
 

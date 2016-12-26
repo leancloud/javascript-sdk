@@ -1,5 +1,6 @@
 require('should');
 require('./test.js');
+require('./av.js');
 require('./file.js');
 require('./error.js');
 require('./object.js');
