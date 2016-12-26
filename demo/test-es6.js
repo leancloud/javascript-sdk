@@ -28,6 +28,18 @@ const region = 'cn';
 
 av.init({ appId, appKey, region });
 
+// 发送统计自定义事件
+av.Analyse.send({
+  version: av.version,
+  channel: 'JS 测试',
+  event: 'test-event-name',
+  attributes: {
+    testa: 123,
+    testb: 'abc',
+  },
+  duration: 6000,
+});
+
 // 基本存储
 const TestClass = av.Object.extend('TestClass');
 const testObj = new TestClass();
@@ -61,6 +73,6 @@ query.find().then((list) => {
 });
 
 // 用户登录
-AV.User.login('ttt', '123456')
+AV.User.logIn('ttt', '123456')
 .then((res) => console.log(res))
 .catch(err => console.log(err));

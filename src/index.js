@@ -18,6 +18,7 @@ AV.version = require('./version');
 AV.Promise = require('./promise');
 AV.localStorage = require('./localstorage');
 AV.Cache = require('./cache');
+AV.Analyse = require('./analyse');
 
 // All internal configuration items
 AV._config = AV._config || {};

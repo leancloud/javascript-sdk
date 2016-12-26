@@ -19,6 +19,16 @@ const ensureArray = target => {
   return [target];
 };
 
+// 获取一个唯一 id
+const getUniqueId = () => {
+  // 与时间相关的随机因子
+  const getIdItem = () => new Date().getTime().toString(36) + Math.random().toString(36).substring(2, 3);
+  return `LC${getIdItem()}${getIdItem()}${getIdItem()}`;
+};
+
+// 获取当前时间的时间戳
+const now = () => new Date().getTime();
+
 const init = (AV) => {
   // 挂载一些配置
   const AVConfig = AV._config;
@@ -565,4 +575,6 @@ module.exports = {
   init,
   isNullOrUndefined,
   ensureArray,
+  getUniqueId,
+  now,
 };
