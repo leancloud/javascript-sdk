@@ -245,7 +245,7 @@ module.exports = function(AV) {
   });
 
   AV.Op._registerDecoder("Add", function(json) {
-    return new AV.Op.Add(AV._decode(undefined, json.objects));
+    return new AV.Op.Add(AV._decode(json.objects));
   });
 
   /**
@@ -321,7 +321,7 @@ module.exports = function(AV) {
   });
 
   AV.Op._registerDecoder("AddUnique", function(json) {
-    return new AV.Op.AddUnique(AV._decode(undefined, json.objects));
+    return new AV.Op.AddUnique(AV._decode(json.objects));
   });
 
   /**
@@ -384,7 +384,7 @@ module.exports = function(AV) {
   });
 
   AV.Op._registerDecoder("Remove", function(json) {
-    return new AV.Op.Remove(AV._decode(undefined, json.objects));
+    return new AV.Op.Remove(AV._decode(json.objects));
   });
 
   /**
@@ -531,10 +531,10 @@ module.exports = function(AV) {
   });
 
   AV.Op._registerDecoder("AddRelation", function(json) {
-    return new AV.Op.Relation(AV._decode(undefined, json.objects), []);
+    return new AV.Op.Relation(AV._decode(json.objects), []);
   });
   AV.Op._registerDecoder("RemoveRelation", function(json) {
-    return new AV.Op.Relation([], AV._decode(undefined, json.objects));
+    return new AV.Op.Relation([], AV._decode(json.objects));
   });
 
 };

@@ -43,7 +43,7 @@ module.exports = function(AV) {
                                    AV._encode(data, null, true), options);
 
       return request.then(function(resp) {
-        return AV._decode(null, resp).id;
+        return AV._decode(resp).id;
       });
     },
 
