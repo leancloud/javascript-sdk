@@ -1226,7 +1226,7 @@ module.exports = function(AV) {
    };
    /**
     * Delete objects in batch.The objects className must be the same.
-    * @param {Array} The <code>AV.Object</code> array to be deleted.
+    * @param {AV.Object[]} objects The <code>AV.Object</code> array to be deleted.
     * @param {AuthOptions} options
     * @return {Promise} A promise that is fulfilled when the save
     *     completes.
@@ -1385,7 +1385,7 @@ module.exports = function(AV) {
   // ES6 class syntax support
   Object.defineProperty(AV.Object.prototype, 'className', {
     get: function(){
-      const className = this._className || this.constructor.name;
+      const className = this._className || this.constructor._LCClassName || this.constructor.name;
       // If someone tries to subclass "User", coerce it to the right type.
       if (className === "User") {
         return "_User";
@@ -1394,13 +1394,26 @@ module.exports = function(AV) {
     },
   });
 
-  AV.Object.register = klass => {
+  /**
+   * Register a class.
+   * If a subclass of <code>AV.Object</code> is defined with your own implement
+   * rather then <code>AV.Object.extend</code>, the subclass must be registered.
+   * @param {Function} klass A subclass of <code>AV.Object</code>
+   * @param {String} [name] Specify the name of the class. Useful when the class might be uglified.
+   * @example
+   * class Person extend AV.Object {}
+   * AV.Object.register(Person);
+   */
+  AV.Object.register = (klass, name) => {
     if (!(klass.prototype instanceof AV.Object)) {
       throw new Error('registered class is not a subclass of AV.Object');
     }
-    const className = klass.name;
+    const className = name || klass.name;
     if (!className.length) {
       throw new Error('registered class must be named');
+    }
+    if (name) {
+      klass._LCClassName = name;
     }
     AV.Object._classMap[className] = klass;
   };

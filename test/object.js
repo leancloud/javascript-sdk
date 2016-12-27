@@ -6,6 +6,7 @@ var Post=AV.Object.extend("Post");
 
 // for #extend test
 class Person extends AV.Object {}
+class UglifiedClass extends AV.Object {}
 var BackbonePerson = AV.Object.extend('Person');
 
 describe('Objects', function(){
@@ -57,12 +58,18 @@ describe('Objects', function(){
       expect(backbonePerson._toFullJSON()).to.eql(es6Person._toFullJSON());
     });
 
-    it('#resiger an ES6 class', () => {
+    it('#register an ES6 class', () => {
       expect(new AV.Object('Person')).to.be.a(BackbonePerson);
       AV.Object.register(Person);
       expect(new AV.Object('Person')).to.be.a(Person);
       expect(() => AV.Object.register(1)).to.throwError();
       expect(() => AV.Object.register(function(){})).to.throwError();
+    });
+
+    it('#register with name', () => {
+      AV.Object.register(UglifiedClass, 'RealClass');
+      expect(new AV.Object('RealClass')).to.be.a(UglifiedClass);
+      expect(AV._encode(new UglifiedClass()).className).to.equal('RealClass');
     })
   });
 
