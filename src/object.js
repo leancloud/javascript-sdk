@@ -62,6 +62,7 @@ module.exports = function(AV) {
 
     this._serverData = {};  // The last known data for this object from cloud.
     this._opSetQueue = [{}];  // List of sets of changes to the data.
+    this._flags = {};
     this.attributes = {};  // The best estimate of this's current data.
 
     this._hashedJSON = {};  // Hash of values of containers at last save.
@@ -938,6 +939,8 @@ module.exports = function(AV) {
           }
         }
 
+        _.extend(json, model._flags);
+
         var route = "classes";
         var className = model.className;
         if (model.className === "_User" && !model.id) {
@@ -997,7 +1000,7 @@ module.exports = function(AV) {
       }
 
       var request =
-          AVRequest('classes', this.className, this.id, 'DELETE', null, options);
+          AVRequest('classes', this.className, this.id, 'DELETE', this._flags, options);
       return request.then(function() {
         if (options.wait) {
           triggerDestroy();
@@ -1206,8 +1209,35 @@ module.exports = function(AV) {
      */
     setACL: function(acl, options) {
       return this.set("ACL", acl, options);
-    }
+    },
 
+    disableBeforeHook: function() {
+      this.ignoreHook('beforeSave');
+      this.ignoreHook('beforeUpdate');
+      this.ignoreHook('beforeDelete');
+    },
+
+    disableAfterHook: function() {
+      this.ignoreHook('afterSave');
+      this.ignoreHook('afterUpdate');
+      this.ignoreHook('afterDelete');
+    },
+
+    ignoreHook: function(hookName) {
+      if (!_.contains(['beforeSave', 'afterSave', 'beforeUpdate', 'afterUpdate', 'beforeDelete', 'afterDelete'], hookName)) {
+        console.trace('Unsupported hookName: ' + hookName);
+      }
+
+      if (!AV.hookKey) {
+        console.trace('ignoreHook required hookKey');
+      }
+
+      if (!this._flags.__ignore_hooks) {
+        this._flags.__ignore_hooks = [];
+      }
+
+      this._flags.__ignore_hooks.push(hookName);
+    }
   });
 
    /**
@@ -1224,35 +1254,31 @@ module.exports = function(AV) {
      return result;
    };
    /**
-    * Delete objects in batch.The objects className must be the same.
+    * Delete objects in batch.
     * @param {AV.Object[]} objects The <code>AV.Object</code> array to be deleted.
     * @param {AuthOptions} options
     * @return {Promise} A promise that is fulfilled when the save
     *     completes.
     */
-   AV.Object.destroyAll = function(objects, options){
-      options = options || {};
+   AV.Object.destroyAll = function(objects, options = {}){
       if (!objects || objects.length === 0){
 		    return AV.Promise.resolve();
       }
-      var className = objects[0].className;
-      var id = "";
-      var wasFirst = true;
-      objects.forEach(function(obj){
-        if(obj.className != className)
-			  throw "AV.Object.destroyAll requires the argument object array's classNames must be the same";
-          if(!obj.id)
-              throw "Could not delete unsaved object";
-          if(wasFirst){
-              id = obj.id;
-              wasFirst = false;
-          }else{
-              id = id + ',' + obj.id;
+      const objectsByClassNameAndFlags = _.groupBy(objects, object => JSON.stringify({
+        className: object.className,
+        flags: object._flags
+      }));
+      const body = {
+        requests: _.map(objectsByClassNameAndFlags, objects => {
+          const ids = _.map(objects, 'id').join(',');
+          return {
+            method: 'DELETE',
+            path: `/1.1/classes/${objects[0].className}/${ids}`,
+            body: objects[0]._flags
           }
-      });
-      var request =
-          AVRequest('classes', className, id, 'DELETE', null, options);
-      return request;
+        })
+      };
+      return AVRequest('batch', null, null, 'POST', body, options);
    };
 
   /**
@@ -1520,6 +1546,7 @@ module.exports = function(AV) {
           AVRequest("batch", null, null, "POST", {
             requests: _.map(batch, function(object) {
               var json = object._getSaveJSON();
+              _.extend(json, object._flags);
               var method = "POST";
 
               var path = "/1.1/classes/" + object.className;
