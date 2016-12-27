@@ -1242,35 +1242,31 @@ module.exports = function(AV) {
      return result;
    };
    /**
-    * Delete objects in batch.The objects className must be the same.
+    * Delete objects in batch.
     * @param {AV.Object[]} objects The <code>AV.Object</code> array to be deleted.
     * @param {AuthOptions} options
     * @return {Promise} A promise that is fulfilled when the save
     *     completes.
     */
-   AV.Object.destroyAll = function(objects, options){
-      options = options || {};
+   AV.Object.destroyAll = function(objects, options = {}){
       if (!objects || objects.length === 0){
 		    return AV.Promise.resolve();
       }
-      var className = objects[0].className;
-      var id = "";
-      var wasFirst = true;
-      objects.forEach(function(obj){
-        if(obj.className != className)
-			  throw "AV.Object.destroyAll requires the argument object array's classNames must be the same";
-          if(!obj.id)
-              throw "Could not delete unsaved object";
-          if(wasFirst){
-              id = obj.id;
-              wasFirst = false;
-          }else{
-              id = id + ',' + obj.id;
+      const objectsByClassNameAndFlags = _.groupBy(objects, object => JSON.stringify({
+        className: object.className,
+        flags: object._flags
+      }));
+      const body = {
+        requests: _.map(objectsByClassNameAndFlags, objects => {
+          const ids = _.map(objects, 'id').join(',');
+          return {
+            method: 'DELETE',
+            path: `/1.1/classes/${objects[0].className}/${ids}`,
+            body: objects[0]._flags
           }
-      });
-      var request =
-          AVRequest('classes', className, id, 'DELETE', null, options);
-      return request;
+        })
+      };
+      return AVRequest('batch', null, null, 'POST', body, options);
    };
 
   /**
