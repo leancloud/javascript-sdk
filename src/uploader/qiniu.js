@@ -16,7 +16,6 @@ module.exports = function upload(uploadInfo, data, file) {
     const body = new Buffer(data, 'base64');
     qiniu.io.put(uptoken, file._qiniu_key, body, extra, (err) => {
       delete file._qiniu_key;
-      delete file.attributes.base64;
       if (!err) {
         resolve(file);
       } else {

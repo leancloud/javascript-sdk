@@ -5,17 +5,16 @@ var dataURItoBlob = function(dataURI, type) {
   if (dataURI.indexOf('base64') < 0) {
     byteString = atob(dataURI);
   } else if (dataURI.split(',')[0].indexOf('base64') >= 0) {
+    type = type || dataURI.split(',')[0].split(':')[1].split(';')[0];
     byteString = atob(dataURI.split(',')[1]);
   } else {
     byteString = unescape(dataURI.split(',')[1]);
   }
-  // separate out the mime component
-  var mimeString = type || dataURI.split(',')[0].split(':')[1].split(';')[0];
   var ia = new Uint8Array(byteString.length);
   for (var i = 0; i < byteString.length; i ++) {
       ia[i] = byteString.charCodeAt(i);
   }
-  return new Blob([ia], {type:mimeString});
+  return new Blob([ia], {type});
 };
 
 module.exports = dataURItoBlob;
