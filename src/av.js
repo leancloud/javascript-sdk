@@ -18,9 +18,6 @@ _.extend(AVConfig, {
   // 服务器的 URL，默认初始化时被设置为大陆节点地址
   APIServerURL: AVConfig.APIServerURL || '',
 
-  // 当前是否为 nodejs 环境
-  isNode: false,
-
   // 禁用 currentUser，通常用于多用户环境
   disableCurrentUser: false,
 
@@ -36,11 +33,6 @@ _.extend(AVConfig, {
  * Contains all AV API classes and functions.
  * @namespace AV
  */
-
-// Check whether we are running in Node.js.
-if (typeof(process) !== 'undefined' && process.versions && process.versions.node) {
-  AVConfig.isNode = true;
-}
 
 // Helpers
 // -------

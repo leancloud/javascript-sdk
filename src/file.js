@@ -132,7 +132,7 @@ module.exports = function(AV) {
       if (!data.blob.type) {
         data.blob.type = mimeType;
       }
-      if (process.env.PLATFORM === 'ReactNative' || process.env.PLATFORM === 'Weapp') {
+      if (process.env.CLIENT_PLATFORM === 'ReactNative' || process.env.CLIENT_PLATFORM === 'Weapp') {
         this._extName = extname(data.blob.uri);
       }
       this._source = Promise.resolve({ data: data.blob, type: mimeType });

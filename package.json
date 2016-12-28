@@ -11,9 +11,9 @@
     "test": "NODE_ENV=test nyc --reporter lcov --reporter text mocha --timeout 300000 test/index.js",
     "docs": "jsdoc src README.md package.json -d docs -c .jsdocrc.json",
     "build:node": "gulp babel-node",
-    "build:browser": "PLATFORM=Browser webpack --config webpack/browser.js",
-    "build:rn": "PLATFORM=ReactNative webpack --config webpack/rn.js",
-    "build:weapp": "PLATFORM=Weapp webpack --config webpack/weapp.js",
+    "build:browser": "CLIENT_PLATFORM=Browser webpack --config webpack/browser.js",
+    "build:rn": "CLIENT_PLATFORM=ReactNative webpack --config webpack/rn.js",
+    "build:weapp": "CLIENT_PLATFORM=Weapp webpack --config webpack/weapp.js",
     "uglify:browser": "cd dist; uglifyjs av.js -m -c -o av-min.js --in-source-map av.js.map --source-map av-min.js.map; cd ..;",
     "uglify:weapp": "cd dist; uglifyjs av-weapp.js -m -c -o av-weapp-min.js --in-source-map av-weapp.js.map --source-map av-weapp-min.js.map; cd ..;",
     "build": "gulp build"
