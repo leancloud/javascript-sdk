@@ -194,6 +194,12 @@ describe('Queries', function () {
           expect(gameScore.get('test').get('foo')).to.be('bar');
         });
     });
+
+    it('containsAll with an large array should not cause URI too long', () => {
+      return new AV.Query(GameScore)
+        .containsAll('test', new Array(1000).fill('5821abe62e958a00540046d5'))
+        .find();
+    });
   });
 
   describe('Query with different condtions', function () {
