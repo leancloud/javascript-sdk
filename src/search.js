@@ -259,7 +259,7 @@ module.exports = function(AV) {
         params.sid = this._sid;
       }
       if(!this._queryString) {
-        throw 'Please set query string.';
+        throw new Error('Please set query string.');
       } else {
         params.q = this._queryString;
       }
@@ -267,7 +267,7 @@ module.exports = function(AV) {
         params.highlights = this._highlights.join(',');
       }
       if(this._sortBuilder && params.order) {
-        throw 'sort and order can not be set at same time.';
+        throw new Error('sort and order can not be set at same time.');
       }
       if(this._sortBuilder) {
         params.sort = this._sortBuilder.build();

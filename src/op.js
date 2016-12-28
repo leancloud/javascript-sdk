@@ -178,7 +178,7 @@ module.exports = function(AV) {
       } else if (previous instanceof AV.Op.Increment) {
         return new AV.Op.Increment(this.amount() + previous.amount());
       } else {
-        throw "Op is invalid after previous op.";
+        throw new Error('Op is invalid after previous op.');
       }
     },
 
@@ -231,7 +231,7 @@ module.exports = function(AV) {
       } else if (previous instanceof AV.Op.Add) {
         return new AV.Op.Add(previous.objects().concat(this.objects()));
       } else {
-        throw "Op is invalid after previous op.";
+        throw new Error('Op is invalid after previous op.');
       }
     },
 
@@ -288,7 +288,7 @@ module.exports = function(AV) {
       } else if (previous instanceof AV.Op.AddUnique) {
         return new AV.Op.AddUnique(this._estimate(previous.objects()));
       } else {
-        throw "Op is invalid after previous op.";
+        throw new Error('Op is invalid after previous op.');
       }
     },
 
@@ -361,7 +361,7 @@ module.exports = function(AV) {
       } else if (previous instanceof AV.Op.Remove) {
         return new AV.Op.Remove(_.union(previous.objects(), this.objects()));
       } else {
-        throw "Op is invalid after previous op.";
+        throw new Error('Op is invalid after previous op.');
       }
     },
 
@@ -405,14 +405,14 @@ module.exports = function(AV) {
       var pointerToId = function(object) {
         if (object instanceof AV.Object) {
           if (!object.id) {
-            throw "You can't add an unsaved AV.Object to a relation.";
+            throw new Error('You can\'t add an unsaved AV.Object to a relation.');
           }
           if (!self._targetClassName) {
             self._targetClassName = object.className;
           }
           if (self._targetClassName !== object.className) {
-            throw "Tried to create a AV.Relation with 2 different types: " +
-                  self._targetClassName + " and " + object.className + ".";
+            throw new Error("Tried to create a AV.Relation with 2 different types: " +
+                  self._targetClassName + " and " + object.className + ".");
           }
           return object.id;
         }
@@ -486,12 +486,12 @@ module.exports = function(AV) {
       if (!previous) {
         return this;
       } else if (previous instanceof AV.Op.Unset) {
-        throw "You can't modify a relation after deleting it.";
+        throw new Error('You can\'t modify a relation after deleting it.');
       } else if (previous instanceof AV.Op.Relation) {
         if (previous._targetClassName &&
             previous._targetClassName !== this._targetClassName) {
-          throw "Related object must be of class " + previous._targetClassName +
-              ", but " + this._targetClassName + " was passed in.";
+          throw new Error("Related object must be of class " + previous._targetClassName +
+              ", but " + this._targetClassName + " was passed in.");
         }
         var newAdd = _.union(_.difference(previous.relationsToAdd,
                                           this.relationsToRemove),
@@ -504,7 +504,7 @@ module.exports = function(AV) {
         newRelation._targetClassName = this._targetClassName;
         return newRelation;
       } else {
-        throw "Op is invalid after previous op.";
+        throw new Error('Op is invalid after previous op.');
       }
     },
 
@@ -516,8 +516,8 @@ module.exports = function(AV) {
         if (this._targetClassName) {
           if (oldValue.targetClassName) {
             if (oldValue.targetClassName !== this._targetClassName) {
-              throw "Related object must be a " + oldValue.targetClassName +
-                  ", but a " + this._targetClassName + " was passed in.";
+              throw new Error("Related object must be a " + oldValue.targetClassName +
+                  ", but a " + this._targetClassName + " was passed in.");
             }
           } else {
             oldValue.targetClassName = this._targetClassName;
@@ -525,7 +525,7 @@ module.exports = function(AV) {
         }
         return oldValue;
       } else {
-        throw "Op is invalid after previous op.";
+        throw new Error('Op is invalid after previous op.');
       }
     }
   });

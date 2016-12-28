@@ -381,14 +381,14 @@ module.exports = function(AV) {
      */
     follow: function(target, options){
       if(!this.id){
-          throw "Please signin.";
+          throw new Error('Please signin.');
       }
       if(!target){
-          throw "Invalid target user.";
+          throw new Error('Invalid target user.');
       }
       var userObjectId = _.isString(target) ? target: target.id;
       if(!userObjectId){
-          throw "Invalid target user.";
+          throw new Error('Invalid target user.');
       }
       var route = 'users/' + this.id + '/friendship/' + userObjectId;
       var request = AVRequest(route, null, null, 'POST', null, options);
@@ -403,14 +403,14 @@ module.exports = function(AV) {
      */
     unfollow: function(target, options){
       if(!this.id){
-          throw "Please signin.";
+          throw new Error('Please signin.');
       }
       if(!target){
-          throw "Invalid target user.";
+          throw new Error('Invalid target user.');
       }
       var userObjectId = _.isString(target) ? target: target.id;
       if(!userObjectId){
-          throw "Invalid target user.";
+          throw new Error('Invalid target user.');
       }
       var route = 'users/' + this.id + '/friendship/' + userObjectId;
       var request = AVRequest(route, null, null, 'DELETE', null, options);
@@ -824,7 +824,7 @@ module.exports = function(AV) {
      */
     followerQuery: function(userObjectId) {
         if(!userObjectId || !_.isString(userObjectId)) {
-          throw "Invalid user object id.";
+          throw new Error('Invalid user object id.');
         }
         var query = new AV.FriendShipQuery('_Follower');
         query._friendshipTag ='follower';
@@ -840,7 +840,7 @@ module.exports = function(AV) {
      */
     followeeQuery: function(userObjectId) {
         if(!userObjectId || !_.isString(userObjectId)) {
-          throw "Invalid user object id.";
+          throw new Error('Invalid user object id.');
         }
         var query = new AV.FriendShipQuery('_Followee');
         query._friendshipTag ='followee';

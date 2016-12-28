@@ -16,10 +16,7 @@ module.exports = function(AV) {
    * Triggering an event fires all callbacks in the order that `on` was
    * called.
    *
-   * <p>For more information, see the
-   * <a href="http://documentcloud.github.com/backbone/#Events">Backbone
-   * documentation</a>.</p>
-   *
+   * @private
    * @example
    * var object = {};
    * _.extend(object, AV.Events);

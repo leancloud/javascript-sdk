@@ -74,7 +74,7 @@ module.exports = function(AV) {
         data = { mobilePhoneNumber: data };
       }
       if(!data.mobilePhoneNumber) {
-        throw "Missing mobilePhoneNumber.";
+        throw new Error('Missing mobilePhoneNumber.');
       }
       var request = AVRequest("requestSmsCode", null, null, 'POST',
                                     data);
@@ -90,7 +90,7 @@ module.exports = function(AV) {
      */
     verifySmsCode: function(code, phone){
       if(!code)
-        throw "Missing sms code.";
+        throw new Error('Missing sms code.');
       var params = {};
       if(_.isString(phone)) {
          params['mobilePhoneNumber'] = phone;
