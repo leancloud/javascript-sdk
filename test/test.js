@@ -16,5 +16,6 @@ AV.init({
   appId: '95TNUaOSUd8IpKNW0RSqSEOm-9Nh9j0Va',
   appKey: 'gNAE1iHowdQvV7cqpfCMGaGN',
   masterKey: 'ue9M9nqwD4MQNXD3oiN5rAOv',
+  hookKey: '2iCbUZDgEF0siKxmCn2kVQXV'
 });
 AV.setProduction(true);

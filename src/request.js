@@ -100,7 +100,15 @@ const ajax = (method, resourceUrl, data, headers = {}, onprogress) => {
   });
 };
 
-const setHeaders = (authOptions = {}) => {
+const setAppId = (headers, signKey) => {
+  if (signKey) {
+    headers['X-LC-Sign'] = sign(AV.applicationKey);
+  } else {
+    headers['X-LC-Key'] = AV.applicationKey;
+  }
+};
+
+const setHeaders = (authOptions = {}, signKey) => {
   const headers = {
     'X-LC-Id': AV.applicationId,
     'Content-Type': 'application/json;charset=UTF-8',
@@ -113,16 +121,23 @@ const setHeaders = (authOptions = {}) => {
   }
   if (useMasterKey) {
     if (AV.masterKey) {
-      headers['X-LC-Sign'] = sign(AV.masterKey, true);
+      if (signKey) {
+        headers['X-LC-Sign'] = sign(AV.masterKey, true);
+      } else {
+        headers['X-LC-Key'] = `${AV.masterKey},master`;
+      }
     } else {
       console.warn('masterKey is not set, fall back to use appKey');
-      headers['X-LC-Sign'] = sign(AV.applicationKey);
+      setAppId(headers, signKey);
     }
   } else {
-    headers['X-LC-Sign'] = sign(AV.applicationKey);
+    setAppId(headers, signKey);
+  }
+  if (AV.hookKey) {
+    headers['X-LC-Hook-Key'] = AV.hookKey;
   }
   if (AV._config.applicationProduction !== null) {
-    headers['X-LC-Prod'] = AV._config.applicationProduction;
+    headers['X-LC-Prod'] = String(AV._config.applicationProduction);
   }
   headers[AV._config.isNode ? 'User-Agent' : 'X-LC-UA'] = AV._config.userAgent;
 
