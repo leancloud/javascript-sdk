@@ -321,6 +321,16 @@ const AVRequest = (route, className, objectId, method, dataObject = {}, authOpti
   }
   return getServerURLPromise.then(() => {
     const apiURL = createApiUrl(route, className, objectId, method, dataObject);
+    // prevent URI too long
+    if (apiURL.length > 2000 && method.toLowerCase() === 'get') {
+      const body = {
+        request: {
+          method,
+          path: apiURL,
+        },
+      };
+      return AVRequest('batch', null, null, 'POST', body, authOptions);
+    }
     return setHeaders(authOptions).then(
       headers => ajax(method, apiURL, dataObject, headers)
         .then(
