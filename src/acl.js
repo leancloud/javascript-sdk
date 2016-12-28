@@ -26,19 +26,19 @@ module.exports = function(AV) {
         self.setWriteAccess(arg1, true);
       } else {
         if (_.isFunction(arg1)) {
-          throw "AV.ACL() called with a function.  Did you forget ()?";
+          throw new Error('AV.ACL() called with a function.  Did you forget ()?');
         }
         AV._objectEach(arg1, function(accessList, userId) {
           if (!_.isString(userId)) {
-            throw "Tried to create an ACL with an invalid userId.";
+            throw new Error('Tried to create an ACL with an invalid userId.');
           }
           self.permissionsById[userId] = {};
           AV._objectEach(accessList, function(allowed, permission) {
             if (permission !== "read" && permission !== "write") {
-              throw "Tried to create an ACL with an invalid permission type.";
+              throw new Error('Tried to create an ACL with an invalid permission type.');
             }
             if (!_.isBoolean(allowed)) {
-              throw "Tried to create an ACL with an invalid permission value.";
+              throw new Error('Tried to create an ACL with an invalid permission value.');
             }
             self.permissionsById[userId][permission] = allowed;
           });
@@ -62,10 +62,10 @@ module.exports = function(AV) {
       userId = "role:" + userId.getName();
     }
     if (!_.isString(userId)) {
-      throw "userId must be a string.";
+      throw new Error('userId must be a string.');
     }
     if (!_.isBoolean(allowed)) {
-      throw "allowed must be either true or false.";
+      throw new Error('allowed must be either true or false.');
     }
     var permissions = this.permissionsById[userId];
     if (!permissions) {
@@ -192,7 +192,7 @@ module.exports = function(AV) {
     if (_.isString(role)) {
       return this.getReadAccess("role:" + role);
     }
-    throw "role must be a AV.Role or a String";
+    throw new Error('role must be a AV.Role or a String');
   };
 
   /**
@@ -212,7 +212,7 @@ module.exports = function(AV) {
     if (_.isString(role)) {
       return this.getWriteAccess("role:" + role);
     }
-    throw "role must be a AV.Role or a String";
+    throw new Error('role must be a AV.Role or a String');
   };
 
   /**
@@ -232,7 +232,7 @@ module.exports = function(AV) {
       this.setReadAccess("role:" + role, allowed);
       return;
     }
-    throw "role must be a AV.Role or a String";
+    throw new Error('role must be a AV.Role or a String');
   };
 
   /**
@@ -252,7 +252,7 @@ module.exports = function(AV) {
       this.setWriteAccess("role:" + role, allowed);
       return;
     }
-    throw "role must be a AV.Role or a String";
+    throw new Error('role must be a AV.Role or a String');
   };
 
 };

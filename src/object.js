@@ -159,7 +159,7 @@ module.exports = function(AV) {
     fetchWhenSave: function(enable){
       console.warn('AV.Object#fetchWhenSave is deprecated, use AV.Object#save with options.fetchWhenSave instead.');
       if (!_.isBoolean(enable)) {
-        throw "Expect boolean value for fetchWhenSave";
+        throw new Error('Expect boolean value for fetchWhenSave');
       }
       this._fetchWhenSave = enable;
     },
@@ -1288,7 +1288,7 @@ module.exports = function(AV) {
    */
   AV.Object._getSubclass = function(className) {
     if (!_.isString(className)) {
-      throw "AV.Object._getSubclass requires a string argument.";
+      throw new Error('AV.Object._getSubclass requires a string argument.');
     }
     var ObjectClass = AV.Object._classMap[className];
     if (!ObjectClass) {

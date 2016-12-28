@@ -90,7 +90,7 @@ module.exports = function(AV) {
       }
 
       if (className !== q.className) {
-        throw "All queries must be for the same class";
+        throw new Error('All queries must be for the same class');
       }
     });
     var query = new AV.Query(className);
@@ -117,7 +117,7 @@ module.exports = function(AV) {
       }
 
       if (className !== q.className) {
-        throw "All queries must be for the same class";
+        throw new Error('All queries must be for the same class');
       }
     });
     var query = new AV.Query(className);
