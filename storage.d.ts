@@ -52,8 +52,6 @@ declare namespace AV {
      */
     export class ACL extends BaseObject {
 
-        permissionsById: any;
-
         constructor(arg1?: any);
 
         setPublicReadAccess(allowed: boolean): void;
@@ -226,23 +224,17 @@ declare namespace AV {
         createdAt: any;
         updatedAt: any;
         attributes: any;
-        cid: string;
         changed: boolean;
         className: string;
 
         constructor(className?: string, options?: any);
         constructor(attributes?: string[], options?: any);
-        /**
-        Create a local AV.Object by class name and objectId.
-        @param {string} className class name.
-        @param {string} objectId of the target AV.Object.
-        @static*/
         static createWithoutData(className: string, objectId: string): Object;
         static extend(className: string, protoProps?: any, classProps?: any): any;
         static fetchAll<T>(list: Object[], options?: AuthOptions): Promise<T>;
-        static fetchAllIfNeeded<T>(list: Object[], options: AuthOptions): Promise<T>;
         static destroyAll<T>(list: Object[], options?: Object.DestroyAllOptions): Promise<T>;
         static saveAll<T>(list: Object[], options?: Object.SaveAllOptions): Promise<T>;
+        static register(klass: Function, name?: string): void;
 
         initialize(): void;
         add(attributeName: string, item: any): Object;
@@ -253,7 +245,6 @@ declare namespace AV {
         clone(): Object;
         destroy<T>(options?: Object.DestroyOptions): Promise<T>;
         dirty(attr: String): boolean;
-        dirtyKeys(): string[];
         escape(attr: string): string;
         fetch<T>(fetchOptions?: any, options?: Object.FetchOptions): Promise<T>;
         fetchWhenSave(enable: boolean): any;
@@ -407,7 +398,6 @@ declare namespace AV {
      */
     export class Query extends BaseObject {
 
-        objectClass: any;
         className: string;
 
         constructor(objectClass: any);
@@ -505,7 +495,6 @@ declare namespace AV {
         static signUp<T>(username: string, password: string, attrs: any, options?: AuthOptions): Promise<T>;
         static logIn<T>(username: string, password: string, options?: AuthOptions): Promise<T>;
         static logOut<T>(): Promise<T>;
-        static allowCustomUserClass(isAllowed: boolean): void;
         static become<T>(sessionToken: string, options?: AuthOptions): Promise<T>;
 
         static loginWithWeapp<T>(): Promise<T>;

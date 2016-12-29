@@ -1,6 +1,6 @@
 {
   "name": "leancloud-storage",
-  "version": "2.0.0-beta.6",
+  "version": "2.0.0-rc.0",
   "main": "./dist/node/index.js",
   "description": "LeanCloud JavaScript SDK.",
   "repository": {
@@ -69,6 +69,7 @@
     "./dist/node/index.js": "./dist/av-rn.js"
   },
   "typings": "./storage.d.ts",
+  "types": "./storage.d.ts",
   "nyc": {
     "require": [
       "babel-register"
