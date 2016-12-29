@@ -34,7 +34,7 @@ module.exports = function() {
     },
     plugins: [
       new webpack.EnvironmentPlugin([
-        "PLATFORM"
+        "CLIENT_PLATFORM"
       ])
     ]
   }

@@ -8,7 +8,9 @@ const initialize = (appId, appKey, masterKey, hookKey) => {
   AV.applicationId = appId;
   AV.applicationKey = appKey;
   AV.masterKey = masterKey;
-  AV.hookKey = hookKey || (AV._config.isNode && process.env.LEANCLOUD_APP_HOOK_KEY);
+  if (!process.env.CLIENT_PLATFORM) {
+    AV.hookKey = hookKey || process.env.LEANCLOUD_APP_HOOK_KEY;
+  }
   AV._useMasterKey = false;
 };
 
@@ -31,7 +33,7 @@ AV.init = (...args) => {
     case 1:
       const options = args[0];
       if (typeof options === 'object') {
-        if (!AV._config.isNode && options.masterKey) {
+        if (process.env.CLIENT_PLATFORM && options.masterKey) {
           masterKeyWarn();
         }
         initialize(options.appId, options.appKey, options.masterKey, options.hookKey);
@@ -47,7 +49,7 @@ AV.init = (...args) => {
       console.warn('Please use AV.init() to replace AV.initialize(), ' +
        'AV.init() need an Object param, like { appId: \'YOUR_APP_ID\', appKey: \'YOUR_APP_KEY\' } . ' +
        'Docs: https://leancloud.cn/docs/sdk_setup-js.html');
-      if (!AV._config.isNode && args.length === 3) {
+      if (process.env.CLIENT_PLATFORM && args.length === 3) {
         masterKeyWarn();
       }
       initialize(...args);
@@ -57,7 +59,7 @@ AV.init = (...args) => {
 };
 
 // If we're running in node.js, allow using the master key.
-if (AV._config.isNode) {
+if (!process.env.CLIENT_PLATFORM) {
   AV.Cloud = AV.Cloud || {};
   /**
    * Switches the LeanCloud SDK to using the Master key.  The Master key grants
