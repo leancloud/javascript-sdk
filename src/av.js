@@ -266,7 +266,7 @@ AV._encode = function(value, seenObjects, disallowObjects) {
  * @private
  */
 AV._decode = function(value, key) {
-  if (!_.isObject(value)) {
+  if (!_.isObject(value) || _.isDate(value)) {
     return value;
   }
   if (_.isArray(value)) {
