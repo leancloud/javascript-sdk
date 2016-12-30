@@ -44,6 +44,19 @@ describe('Queries', function () {
 
   });
 
+  it('#File Query', () => {
+    const fileId = '52f9dd5ae4b019816c865985';
+    query = new AV.Query(AV.File);
+    query.equalTo('objectId', fileId);
+    return query.find().then(([file]) => {
+        expect(file).to.be.a(AV.File);
+        expect(file.id).to.be(fileId);
+        expect(file.name()).to.be('myfile.txt');
+        expect(file.get('mime_type')).to.be('text/plain');
+        expect(typeof file.url()).to.be('string');
+    });
+  });
+
   describe('#cloudQuery', function () {
     it('should return results.', function () {
       return AV.Query.doCloudQuery('select * from GameScore').then(function (result) {
