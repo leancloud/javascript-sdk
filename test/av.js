@@ -33,5 +33,17 @@ describe('AV utils', () => {
       AV._decode(false).should.be.exactly(false);
       AV._decode('false').should.be.exactly('false');
     });
+
+    it('should decode File', () => {
+      const fileId = '1111111';
+      const json = { "mime_type": "image/png", "updatedAt": "2016-12-30T06:55:43.561Z", "key": "d7aaab5c477b289980fc.png", "name": "lc.png", "objectId": fileId, "createdAt": "2016-12-30T06:55:43.561Z", "__type": "File", "url": "", "bucket": "rYAutyUJ" };
+      const file = AV._decode(json);
+      expect(file).to.be.a(AV.File);
+      expect(file.id).to.be(fileId);
+      expect(file.name()).to.be('lc.png');
+      expect(file.get('mime_type')).to.be('image/png');
+      expect(typeof file.url()).to.be('string');
+      expect(file.createdAt).to.be.a(Date);
+    });
   });
 });

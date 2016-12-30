@@ -331,9 +331,9 @@ AV._decode = function(value, key) {
   }
   if (value.__type === 'File') {
     var file = new AV.File(value.name);
-    file.attributes.metaData = value.metaData || {};
-    file.attributes.url = value.url;
-    file.id = value.objectId;
+    const v = _.clone(value);
+    delete v.__type;
+    file._finishFetch(v);
     return file;
   }
   return _.mapObject(value, function(v, k) {

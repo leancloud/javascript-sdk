@@ -478,23 +478,25 @@ module.exports = function(AV) {
         var options = null;
 
         var request = AVRequest('files', null, this.id, 'GET', options);
-        return request.then((response) => {
-          var value = AV.Object.prototype.parse(response);
-          value.attributes = {
-            name: value.name,
-            url: value.url,
-            mime_type: value.mime_type,
-          };
-          value.attributes.metaData = value.metaData || {};
-          // clean
-          delete value.objectId;
-          delete value.metaData;
-          delete value.url;
-          delete value.name;
-          delete value.mime_type;
-          _.extend(this, value);
-          return this;
-        });
+        return request.then(this._finishFetch.bind(this));
+    },
+    _finishFetch: function(response) {
+      var value = AV.Object.prototype.parse(response);
+      value.attributes = {
+        name: value.name,
+        url: value.url,
+        mime_type: value.mime_type,
+      };
+      value.attributes.metaData = value.metaData || {};
+      value.id = value.objectId;
+      // clean
+      delete value.objectId;
+      delete value.metaData;
+      delete value.url;
+      delete value.name;
+      delete value.mime_type;
+      _.extend(this, value);
+      return this;
     }
   };
 };
