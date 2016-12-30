@@ -1,3 +1,33 @@
+# 2.0.0-rc.0 (2016-12-30)
+### Breaking Changes
+* 移除了 Node.js 0.12 的支持，请考虑 [升级 Node.js 版本](https://www.joyent.com/blog/upgrading-nodejs)。
+* 上传文件时不再额外地向文件的 metaData 中写入 mime_type，之前通过 metaData 获取 mime_type 的用法需要更新：
+  <details>
+  
+  ```javascript
+  // 之前的用法
+  file.metaData('mime_type');
+
+  // 现在的用法
+  file.get('mime_type');
+  ```
+* (internal) `AV._decode(key, value)` 现在变更为 `AV._decode(value[, key])`
+
+### Features
+* 上传文件的 mime_type 现在由服务端进行判断从而支持更多的文件类型
+* 去掉了 `Object.destroyAll` 方法要求所有删除的对象属于同一个 Class 的限制
+* `Object.register()` 方法增加了第二个参数允许指定所注册的 Class 的名字，详情参见 [Object.register - API 文档](https://leancloud.github.io/javascript-sdk/docs/AV.Object.html#.register)。
+
+### Bug Fixes
+* 修复了在进行以下操作时可能出现 `URI too long` 异常的问题
+  * 使用 `Query#containsAll`、`Qeruy#containedIn` 或 `Query#notContainedIn` 方法时传入了一个大数组
+  * 使用 `Object.destroyAll` 方法批量删除大量对象
+* 修复了在 React Native 及小程序中使用 `AV.setProduction` 方法会导致后续操作引起 crash 的问题
+* 修复了 `Object.set(key, value)` 方法可能会改变（mutate）`value` 的问题
+* 修复了查询结果中 File 没有被正确解析的问题
+* 修复了 `AV.Insight.startJob` 方法中 saveAs 参数未生效的问题
+* 修复了抛出 code == -1 的异常时 error.message 可能缺失的问题
+
 ## 2.0.0-beta.6 (2016-11-30)
 ### Bug Fixes
 * 修复了 Android 微信小程序上初始化失败的问题
@@ -35,7 +65,8 @@
 # 2.0.0-beta.0 (2016-9-29)
 ### Breaking Changes
 * 移除了所有 Backbone callbacks 回调风格的参数，请使用 Promise 处理异步操作的结果：
-
+  <details>
+  
   ```javascript
   // Backbone callback 回调风格的参数的用法
   object.save(null, {
@@ -53,6 +84,7 @@
 * `AV.Promise` 现在是一个满足 Promises/A+ 标准的实现，所有非标准的方法已被移除，所有非标准的行为已被修正。关于标准 Promise 的更多信息推荐阅读 [《JavaScript Promise 迷你书》](http://liubin.org/promises-book/)
 
 * 如果你 extend 的 `AV.Object` 子类重写了 `validate` 方法，当属性无效时现在需要 throw 一个 Error（之前是 return 一个 Error）。相应的，`AV.Object#set` 方法如果 set 的值无效，需要通过 try catch 捕获异常（之前通过检查返回值是 false）
+  <details>
 
   ```javascript
   // 之前的用法
@@ -92,7 +124,8 @@
 
 * `AV.Query#get` 方法现在尊重 Class 的 get 权限设置（之前检查的是 find 权限）
 
-* `AV.User#_linkWith` 的第二个参数中的 `options.authData` 字段提升为第二个参数
+* (intarnal) `AV.User#_linkWith` 的第二个参数中的 `options.authData` 字段提升为第二个参数
+  <details>
 
   ```javascript
   // 之前的用法

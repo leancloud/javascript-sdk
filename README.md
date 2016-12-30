@@ -13,8 +13,8 @@ JavaScript SDK for [LeanCloud](http://leancloud.cn/).
 ```
 // npm 安装
 npm install leancloud-storage --save
-// npm 安装 pre-release 版本
-npm install leancloud-storage@next --save
+// npm 安装 1.x 版本
+npm install leancloud-storage@1 --save
 
 // bower 安装
 bower install leancloud-storage --save
@@ -48,14 +48,15 @@ bower install leancloud-storage --save
 
 ```
 ├── dist                               // 编译之后生成的文件将会在此目录下
-│   ├── av-es6.js                      // 合并后的完整源码（ES6 版本）
-│   ├── av.js                          // 合并并编译后的完整源码（ES5 版本）
-│   ├── av-min.js                      // 合并、压缩并编译后的源码（ES5 版本）
+│   ├── av.js                          // 浏览器版本
+│   ├── av-min.js                      
+│   ├── av-rn.js                       // React Native 版本
+│   ├── av-weapp.js                    // 小程序版本
+│   ├── av-weapp-min.js
 │   ├── node                           // 目录中为生成的 nodejs 版本代码
 │   └── ...
 ├── src
 │   ├── index.js                          // node.js 环境入口文件
-│   ├── browserify-wrapper             // 目录中为针对 node.js 与浏览器环境之间差异的不同实现
 │   └── ...
 └── test                               // 单元测试
 ```
