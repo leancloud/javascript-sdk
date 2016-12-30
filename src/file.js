@@ -118,7 +118,7 @@ module.exports = function(AV) {
       owner: (owner ? owner.id : 'unknown')
     };
 
-    this.mimeType = mimeType;
+    this.set('mime_type', mimeType);
 
     if (_.isArray(data)) {
       this.attributes.metaData.size = data.length;
@@ -246,6 +246,7 @@ module.exports = function(AV) {
           return this.id;
         case 'url':
         case 'name':
+        case 'mime_type':
         case 'metaData':
         case 'createdAt':
         case 'updatedAt':
@@ -267,6 +268,7 @@ module.exports = function(AV) {
         switch (attrName) {
           case 'name':
           case 'url':
+          case 'mime_type':
           case 'base64':
           case 'metaData':
             this.attributes[attrName] = value;
@@ -396,7 +398,12 @@ module.exports = function(AV) {
         this.attributes.metaData.mime_type = type;
       }
       this._qiniu_key = key;
-      return AVRequest(route, null, null, 'POST', data);
+      return AVRequest(route, null, null, 'POST', data).then(response => {
+        if (response.mime_type) {
+          this.set('mime_type', response.mime_type);
+        }
+        return response;
+      });
     },
 
     /**
@@ -475,7 +482,8 @@ module.exports = function(AV) {
           var value = AV.Object.prototype.parse(response);
           value.attributes = {
             name: value.name,
-            url: value.url
+            url: value.url,
+            mime_type: value.mime_type,
           };
           value.attributes.metaData = value.metaData || {};
           // clean
@@ -483,6 +491,7 @@ module.exports = function(AV) {
           delete value.metaData;
           delete value.url;
           delete value.name;
+          delete value.mime_type;
           _.extend(this, value);
           return this;
         });

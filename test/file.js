@@ -18,6 +18,7 @@ describe('File', function() {
         expect(file.ownerId()).to.be.ok();
         expect(file.id).to.be.ok();
         expect(file.metaData('format')).to.be('txt file');
+        expect(file.get('mime_type')).to.be('text/plain');
         return file.destroy({ useMasterKey: true });
       });
     });
@@ -41,6 +42,7 @@ describe('File', function() {
           } else {
             done(err);
           }
+          file.destroy({ useMasterKey: true });
         });
       });
     });
@@ -140,6 +142,7 @@ describe('File', function() {
         expect(file).to.be.a(AV.File);
         expect(file.id).to.be(fileId);
         expect(file.name()).to.be('myfile.txt');
+        expect(file.get('mime_type')).to.be('text/plain');
         expect(typeof file.url()).to.be('string');
       });
     });
