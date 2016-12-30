@@ -25,5 +25,13 @@ describe('AV utils', () => {
       array[0].should.be.a.String();
       array[0].should.be.exactly(value);
     });
+
+    it('should bypass with non-plain object', () => {
+      const now = new Date();
+      AV._decode(now).should.be.exactly(now);
+      AV._decode(3.14).should.be.exactly(3.14);
+      AV._decode(false).should.be.exactly(false);
+      AV._decode('false').should.be.exactly('false');
+    });
   });
 });
