@@ -1,6 +1,6 @@
 {
   "name": "leancloud-storage",
-  "version": "2.0.0-rc.0",
+  "version": "2.0.0",
   "main": "./dist/node/index.js",
   "description": "LeanCloud JavaScript SDK.",
   "repository": {
@@ -50,7 +50,7 @@
     "should": "^11.1.0",
     "uglify-js": "git+https://github.com/Swaagie/UglifyJS2.git#fcb4f2f21584dc5b21af4c10e17733e1686135e4",
     "weapp-polyfill": "github:leancloud/weapp-polyfill#b3fb53b",
-    "webpack": "^2.1.0-beta.27"
+    "webpack": "^2.2.0-rc.3"
   },
   "license": "MIT",
   "author": {

@@ -1,3 +1,122 @@
+# 2.0.0 (2017-01-09)
+### Highlight
+* **全面支持微信小程序**：包括文件存储在内的所有功能均已支持微信小程序，用户系统还增加了小程序内一键登录的 API。详见 [在微信小程序中使用 LeanCloud](https://leancloud.cn/docs/weapp.html)。
+* **Promise first**：Promise 风格的异步 API 已被社区广泛接受，此前回调参数优先于其他参数的设计已过时，因此我们去掉了对 Backbone 回调风格参数的支持。
+* **支持对单次操作指定是否使用 masterKey**：此前使用 masterKey 是全局生效的，会导致无法充分利用 ACL 等内建的权限控制机制。此项改进将其生效范围细化到了单次操作。
+* **移除 Node.js 0.12 支持**：Node.js 0.12 LTS 已停止维护，请考虑 [升级 Node.js 版本](https://www.joyent.com/blog/upgrading-nodejs)。
+  
+### Breaking Changes
+* 移除了 Node.js 0.12 的支持，请考虑 [升级 Node.js 版本](https://www.joyent.com/blog/upgrading-nodejs)。
+* 移除了所有 Backbone 回调风格的参数，请使用 Promise 处理异步操作的结果与异常：
+  <details>
+  
+  ```javascript
+  // Backbone callback 回调风格的参数的用法
+  object.save(null, {
+    success: function(object) {},
+    error: function(error, object) {},
+  });
+
+  // 需要替换为
+  object.save().then(
+    function(object) {},
+    function(error) {}
+  );
+  ```
+
+* `AV.Promise` 现在是一个满足 Promises/A+ 标准的实现，所有非标准的方法已被移除，所有非标准的行为已被修正。关于标准 Promise 的更多信息推荐阅读 [《JavaScript Promise 迷你书》](http://liubin.org/promises-book/)
+* `AV.Query` 中的大部分 API 启用了更加严格的参数检查。特别的，对于以下 API，当指定 value 的值为 `undefined` 时会抛出异常（之前会直接忽略这个条件或限制）
+
+  - 参数形如 `(key, value)` 类型的条件限制 API，如 `AV.Query#equalTo(key, value)`
+  - `AV.Query#limit(value)`
+  - `AV.Query#select(value)`
+
+* `AV.Query#get` 方法现在尊重 Class 的 get 权限设置（之前检查的是 find 权限）
+
+* `objectId`、`createdAt`、`updatedAt` 现在是只读字段，尝试 set 这些字段时 SDK 会抛出异常
+* `object.get('id')` 与 `object.set('id', '')` 现在将会正确的读、写数据表中的 `id` 字段（之前映射的是 `objectId`）。你现在依然可以使用 `object.id` 来访问数据的 `objectId`。
+
+* 如果你 extend 的 `AV.Object` 子类重写了 `validate` 方法，当属性无效时现在需要 throw 一个 Error（之前是 return 一个 Error）。相应的，`AV.Object#set` 方法如果 set 的值无效，需要通过 try catch 捕获异常（之前通过检查返回值是 false）
+  <details>
+
+  ```javascript
+  // 之前的用法
+  var Student = AV.Object.extend('Student', {
+    validate: function(attibutes) {
+      if (attributes.age < 0) return new Error('negative age set');
+    }
+  });
+  var tom = new Student();
+  if (tom.set('age', -1) === false) {
+    console.error('something wrong');
+  } else {
+    tom.save();
+  }
+
+  // 现在的用法
+  var Student = AV.Object.extend('Student', {
+    validate: function(attibutes) {
+      if (attributes.age < 0) throw new Error('negative age set');
+    }
+  });
+  var tom = new Student();
+  try {
+    tom.set('age', -1);
+  } catch (error) {
+    console.error(error.message);
+  }
+  tom.save();
+  ```
+
+* 上传文件时不再额外地向文件的 metaData 中写入 mime_type，之前通过 metaData 获取 mime_type 的用法需要更新：
+  <details>
+  
+  ```javascript
+  // 之前的用法
+  file.metaData('mime_type');
+
+  // 现在的用法
+  file.get('mime_type');
+  ```
+
+* 移除了 deprecated 的 API，包括：
+  - `AV.Object#existed`
+  - `AV.User.requestEmailVerfiy` (typo)
+  - `AV.useAVCloudCN`
+  - `AV.useAVCloudUS`
+  - `AV._ajax`
+  - `AV._request`
+
+### Features
+* 支持微信小程序
+* 增加了 `AV.User.loginWithWeapp()` 与 `AV.User#linkWithWeapp()` ，支持在微信小程序中登录
+* 增加了 `AV.User#isAuthenticated()`，该方法会校验 sessionToken 的有效性, 废弃 `AV.User#authenticated()`
+* 绝大部分会发起网络请求的 API（如保存一个对象）支持通过 `option.useMasterKey` 参数指定该次操作是否要使用 masterKey，设置了该选项的操作会忽略全局的 useMasterKey 设置
+* 去掉了 `Object.destroyAll` 方法要求所有删除的对象属于同一个 Class 的限制
+* `Object.register()` 方法增加了第二个参数允许指定所注册的 Class 的名字，详情参见 [Object.register - API 文档](https://leancloud.github.io/javascript-sdk/docs/AV.Object.html#.register)。
+* 上传文件的 mime_type 现在由服务端进行判断从而支持更多的文件类型
+* 增加了 sourcemaps
+
+### Bug Fixes
+* 修复了在进行以下操作时可能出现 `URI too long` 异常的问题
+  * 使用 `Query#containsAll`、`Qeruy#containedIn` 或 `Query#notContainedIn` 方法时传入了一个大数组
+  * 使用 `Object.destroyAll` 方法批量删除大量对象
+* 修复了 `Object.set(key, value)` 方法可能会改变（mutate）`value` 的问题
+* 修复了查询结果中 File 没有被正确解析的问题
+* 修复了在 React Native 中使用 `AV.setProduction` 方法会导致后续操作引起 crash 的问题
+* 修复了在 React Native 上传大文件可能出现 `invalid multipart format: multipart: message too large` 异常的问题
+* 修复了 `AV.Insight.startJob` 方法中 saveAs 参数未生效的问题
+* 修复了抛出 code == -1 的异常时 error.message 可能缺失的问题
+* 修复了应用内社交模块的方法在未登录状态下传入了 sessionToken 仍然抛未登录异常的问题
+
+测试版本的更新日志：
+<details>
+
+## 2.0.0 (2017-01-09)
+### Bug Fixes
+* 修复了在 React Native 及小程序中上传大文件可能出现 `invalid multipart format: multipart: message too large` 异常的问题
+* 修复了某些情况下上传的文件 mime_type 不正确的问题
+
 # 2.0.0-rc.0 (2016-12-30)
 ### Breaking Changes
 * 移除了 Node.js 0.12 的支持，请考虑 [升级 Node.js 版本](https://www.joyent.com/blog/upgrading-nodejs)。
@@ -52,7 +171,7 @@
 ## 2.0.0-beta.3 (2016-11-8)
 ### Bug Fixes
 * 修复了在微信小程序真机上运行时抛 `ReferenceError: Can't find variable: FormData` 异常的问题
-* 修复了 2.0.0 中引入的 `AV.Query#select`、`AV.Query#include` 不支持多个参数的问题
+* 修复了 2.0.0-beta.0 中引入的 `AV.Query#select`、`AV.Query#include` 不支持多个参数的问题
 
 ## 2.0.0-beta.2 (2016-10-20)
 ### Features
@@ -64,7 +183,7 @@
 
 # 2.0.0-beta.0 (2016-9-29)
 ### Breaking Changes
-* 移除了所有 Backbone callbacks 回调风格的参数，请使用 Promise 处理异步操作的结果：
+* 移除了所有 Backbone 回调风格的参数，请使用 Promise 处理异步操作的结果与异常：
   <details>
   
   ```javascript
@@ -121,7 +240,6 @@
   - `AV.Query#limit(value)`
   - `AV.Query#select(value)`
 
-
 * `AV.Query#get` 方法现在尊重 Class 的 get 权限设置（之前检查的是 find 权限）
 
 * (intarnal) `AV.User#_linkWith` 的第二个参数中的 `options.authData` 字段提升为第二个参数
@@ -155,6 +273,8 @@
 ### Features
 * 对象存储功能支持微信小程序
 * 绝大部分会发起网络请求的 API（如保存一个对象）支持通过 `option.useMasterKey` 参数指定该次操作是否要使用 masterKey，设置了该选项的操作会忽略全局的 useMasterKey 设置
+
+</details>
 
 ## 1.4.0 (2016-9-1)
 相比于 v1.4.0-beta.0:
