@@ -129,8 +129,11 @@ module.exports = function(AV) {
       var dataBase64 = parseBase64(data.base64, mimeType);
       this._source = Promise.resolve({ data: dataBase64, type: mimeType });
     } else if (data && data.blob) {
-      if (!data.blob.type) {
+      if (!data.blob.type && mimeType) {
         data.blob.type = mimeType;
+      }
+      if (!data.blob.name) {
+        data.blob.name = name;
       }
       if (process.env.CLIENT_PLATFORM === 'ReactNative' || process.env.CLIENT_PLATFORM === 'Weapp') {
         this._extName = extname(data.blob.uri);
