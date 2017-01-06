@@ -11,6 +11,8 @@ module.exports = function(AV) {
   // 挂载一些配置
   let avConfig = AV._config;
 
+  const hexOctet = () => Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
+
   // port from browserify path module
   // since react-native packager won't shim node modules.
   const extname = (path) => {
@@ -388,7 +390,6 @@ module.exports = function(AV) {
 
       // Create 16-bits uuid as qiniu key.
       const extName = extname(name) || this._extName;
-      const hexOctet = () => Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
       const key = hexOctet() + hexOctet() + hexOctet() + hexOctet() + hexOctet() + extName;
       const data = {
         key,
@@ -397,9 +398,6 @@ module.exports = function(AV) {
         mime_type: type,
         metaData: this.attributes.metaData,
       };
-      if (type && !this.attributes.metaData.mime_type) {
-        this.attributes.metaData.mime_type = type;
-      }
       this._qiniu_key = key;
       return AVRequest(route, null, null, 'POST', data).then(response => {
         if (response.mime_type) {
