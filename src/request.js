@@ -28,47 +28,6 @@ const sign = (key, isMasterKey) => {
   return `${signature},${now}`;
 };
 
-const checkRouter = (router) => {
-  const routerList = [
-    'batch',
-    'classes',
-    'files',
-    'date',
-    'functions',
-    'call',
-    'login',
-    'push',
-    'search/select',
-    'requestPasswordReset',
-    'requestEmailVerify',
-    'requestPasswordResetBySmsCode',
-    'resetPasswordBySmsCode',
-    'requestMobilePhoneVerify',
-    'requestLoginSmsCode',
-    'verifyMobilePhone',
-    'requestSmsCode',
-    'verifySmsCode',
-    'users',
-    'usersByMobilePhone',
-    'cloudQuery',
-    'qiniu',
-    'fileTokens',
-    'statuses',
-    'bigquery',
-    'search/select',
-    'subscribe/statuses/count',
-    'subscribe/statuses',
-    'installations',
-  ];
-
-  if (routerList.indexOf(router) === -1 &&
-    !(/users\/[^\/]+\/updatePassword/.test(router)) &&
-    !(/users\/[^\/]+\/friendship\/[^\/]+/.test(router))
-  ) {
-    throw new Error(`Bad router: ${router}.`);
-  }
-};
-
 let requestsCount = 0;
 
 const ajax = (method, resourceUrl, data, headers = {}, onprogress) => {
@@ -313,8 +272,6 @@ const AVRequest = (route, className, objectId, method, dataObject = {}, authOpti
   if (!AV.applicationKey && !AV.masterKey) {
     throw new Error('You must specify a AppKey using AV.init()');
   }
-
-  checkRouter(route);
 
   if (!getServerURLPromise) {
     return Promise.reject(new Error('Not initialized'));

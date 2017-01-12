@@ -579,8 +579,22 @@ module.exports = function(AV) {
      * Get sessionToken of current user.
      * @return {String} sessionToken
      */
-    getSessionToken: function() {
+    getSessionToken() {
       return this._sessionToken;
+    },
+
+    /**
+     * Refresh sessionToken of current user.
+     * @since 2.1.0
+     * @param {AuthOptions} [options]
+     * @return {Promise.<AV.User>} user with refreshed sessionToken
+     */
+    refreshSessionToken(options) {
+      return AVRequest(`users/${this.id}/refreshSessionToken`, null, null, 'PUT', null, options)
+        .then(response => {
+          this._finishFetch(response);
+          return this;
+        });
     },
 
     /**
