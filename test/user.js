@@ -233,6 +233,17 @@ describe("User", function() {
     });
   });
 
+  describe('refreshSessionToken', () => {
+    it('User#refreshSessionToken', () => {
+      const user = AV.User.current();
+      const prevSessionToken = user.getSessionToken();
+      return user.refreshSessionToken().then(user => {
+        user.getSessionToken().should.be.a.String();
+        user.getSessionToken().should.not.be.eql(prevSessionToken);
+      })
+    });
+  })
+
   describe('currentUser disabled', function() {
     var user, originalUser;
 
