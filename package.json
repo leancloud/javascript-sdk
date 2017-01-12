@@ -49,7 +49,7 @@
     "nyc": "^8.1.0",
     "should": "^11.1.0",
     "uglify-js": "git+https://github.com/Swaagie/UglifyJS2.git#fcb4f2f21584dc5b21af4c10e17733e1686135e4",
-    "weapp-polyfill": "github:leancloud/weapp-polyfill#b3fb53b",
+    "weapp-polyfill": "^1.1.0",
     "webpack": "^2.2.0-rc.3"
   },
   "license": "MIT",
