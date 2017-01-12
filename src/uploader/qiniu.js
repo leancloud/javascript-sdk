@@ -10,7 +10,7 @@ module.exports = function upload(uploadInfo, data, file) {
   const uptoken = uploadInfo.token;
   return new Promise((resolve, reject) => {
     const extra = new qiniu.io.PutExtra();
-    if (file.has('mime_type')) {
+    if (file.get('mime_type')) {
       extra.mimeType = file.get('mime_type');
     }
     const body = new Buffer(data, 'base64');
