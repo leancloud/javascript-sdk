@@ -199,8 +199,20 @@ module.exports = function(AV) {
   AV.File.prototype = {
     className: '_File',
 
-    toJSON: function() {
-      return AV._encode(this);
+    _toFullJSON() {
+      const json = AV.Object.prototype._toFullJSON.apply(this);
+      json.__type = 'File';
+      delete json.className;
+      return json;
+    },
+
+    toJSON() {
+      const json = this._toFullJSON();
+      // add id and keep __type for backward compatible
+      if (_.has(this, 'id')) {
+        json.id = this.id;
+      }
+      return json;
     },
 
     /**
@@ -487,6 +499,7 @@ module.exports = function(AV) {
         name: value.name,
         url: value.url,
         mime_type: value.mime_type,
+        bucket: value.bucket,
       };
       value.attributes.metaData = value.metaData || {};
       value.id = value.objectId;
@@ -496,6 +509,7 @@ module.exports = function(AV) {
       delete value.url;
       delete value.name;
       delete value.mime_type;
+      delete value.bucket;
       _.extend(this, value);
       return this;
     }
