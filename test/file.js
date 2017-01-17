@@ -124,7 +124,7 @@ describe('files', function() {
     });
   });
 
-  describe('Fetch', function() {
+  describe('#fetch', function() {
     var fileId = '52f9dd5ae4b019816c865985';
     it('createWithoutData() should return a File', function() {
       var file = AV.File.createWithoutData(fileId);
@@ -137,19 +137,34 @@ describe('files', function() {
         file.save();
       }).to.throwError(/File already saved\./);
     });
-    it('fetch() should retrieve all data', function(done) {
-      var file = AV.File.createWithoutData(fileId);
-      file.fetch().then(function(file) {
+    describe('fetch', () => {
+      before(function() {
+        return AV.File.createWithoutData(fileId)
+          .fetch()
+          .then(file => this.file = file);
+      })
+      it('should retrieve all data', function() {
+        var file = this.file;
+        return file.fetch().then(function(file) {
+          expect(file).to.be.a(AV.File);
+          expect(file.id).to.be(fileId);
+          expect(file.name()).to.be('myfile.txt');
+          expect(typeof file.url()).to.be('string');
+        });
+      });
+      it('decode and encode', function () {
+        const json = this.file.toJSON();
+        // backward compatible check
+        expect(json).to.have.keys(['__type', 'id', 'name', 'url']);
+        const file = AV._decode('', json);
         expect(file).to.be.a(AV.File);
         expect(file.id).to.be(fileId);
         expect(file.name()).to.be('myfile.txt');
         expect(typeof file.url()).to.be('string');
-        done();
-      }).catch(function(err) {
-        console.log(err);
       });
     });
   });
+
 
   describe('File get and set', function() {
     it('should be equal', function(done) {
