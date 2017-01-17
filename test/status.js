@@ -30,6 +30,7 @@ describe("AV.Status",function(){
   });
 
   describe("Query statuses.", function(){
+    const user = AV.Object.createWithoutData('_User', '5627906060b22ef9c464cc99');
     it("should return unread count.", function(){
       return AV.Status.countUnreadStatuses().then(function(response){
         expect(response.total).to.be.a('number');
@@ -38,18 +39,25 @@ describe("AV.Status",function(){
     });
 
     it("should return unread count that is greater than zero.", function(){
-      return AV.Status.countUnreadStatuses(AV.Object.createWithoutData('_User', '5627906060b22ef9c464cc99'),'private').then(function(response){
+      return AV.Status.countUnreadStatuses(user,'private').then(function(response){
         expect(response.total).to.be.a('number');
         expect(response.unread).to.be.a('number');
       });
     });
     it("should return private statuses.", function(){
-      var query = AV.Status.inboxQuery(AV.Object.createWithoutData('_User', '5627906060b22ef9c464cc99'), 'private');
+      var query = AV.Status.inboxQuery(user);
       return query.find();
     });
     it("should return published statuses.", function(){
       var query = AV.Status.statusQuery(AV.User.current());
       return query.find();
+    });
+    it("should reset unread statuses.", function(){
+      return AV.Status.resetUnreadCount(user)
+        .then(() => AV.Status.countUnreadStatuses(user))
+        .then(function(response){
+          expect(response.unread).to.be.eql(0);
+        });
     });
   });
 
