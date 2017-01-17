@@ -199,10 +199,25 @@ module.exports = function(AV) {
   AV.File.prototype = {
     className: '_File',
 
-    _toFullJSON() {
-      const json = AV.Object.prototype._toFullJSON.apply(this);
-      json.__type = 'File';
-      delete json.className;
+    _toFullJSON(seenObjects) {
+      var json = _.clone(this.attributes);
+      AV._objectEach(json, function(val, key) {
+        json[key] = AV._encode(val, seenObjects);
+      });
+      AV._objectEach(this._operations, function(val, key) {
+        json[key] = val;
+      });
+
+      if (_.has(this, "id")) {
+        json.objectId = this.id;
+      }
+      _(['createdAt', 'updatedAt']).each((key) => {
+        if (_.has(this, key)) {
+          const val = this[key];
+          json[key] = _.isDate(val) ? val.toJSON() : val;
+        }
+      });
+      json.__type = "File";
       return json;
     },
 

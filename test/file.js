@@ -144,13 +144,11 @@ describe('File', function() {
       })
       it('should retrieve all data', function() {
         var file = this.file;
-        return file.fetch().then(function(file) {
-          expect(file).to.be.a(AV.File);
-          expect(file.id).to.be(fileId);
-          expect(file.name()).to.be('myfile.txt');
-          expect(file.get('mime_type')).to.be('text/plain');
-          expect(typeof file.url()).to.be('string');
-        });
+        expect(file).to.be.a(AV.File);
+        expect(file.id).to.be(fileId);
+        expect(file.name()).to.be('myfile.txt');
+        expect(file.get('mime_type')).to.be('text/plain');
+        expect(typeof file.url()).to.be('string');
       });
       it('decode and encode', function () {
         const json = this.file.toJSON();
