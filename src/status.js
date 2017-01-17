@@ -223,8 +223,8 @@ module.exports = function(AV) {
   /**
    * Count unread statuses in someone's inbox.
    * @since 0.3.0
-   * @param {Object} source The status source.
-   * @param {String} inboxType The inbox type,'default' by default.
+   * @param {Object} owner The status owner.
+   * @param {String} inboxType The inbox type, 'default' by default.
    * @param {AuthOptions} options
    * @return {Promise} A promise that is fulfilled when the count
    *     completes.
@@ -234,17 +234,43 @@ module.exports = function(AV) {
    *    console.log(response.total);  //total statuses number.
    *  });
    */
-  AV.Status.countUnreadStatuses = function(owner){
-    var options = (!_.isString(arguments[1]) ? arguments[1] : arguments[2]) || {};
-    var inboxType =  !_.isString(arguments[1]) ? 'default' : arguments[1];
-    if(!options.sessionToken && owner == null && !AV.User.current()){
+  AV.Status.countUnreadStatuses = function(owner, inboxType = 'default', options = {}){
+    if (!_.isString(inboxType)) options = inboxType;
+    if(!options.sessionToken && owner == null && !AV.User.current()) {
       throw new Error('Please signin an user or pass the owner objectId.');
     }
     return getUser(options).then(owner => {
       var params = {};
       params.inboxType = AV._encode(inboxType);
       params.owner = AV._encode(owner);
-      return AVRequest('subscribe/statuses/count', null, null, 'GET', params, options.sessionToken);
+      return AVRequest('subscribe/statuses/count', null, null, 'GET', params, options);
+    });
+  };
+
+  /**
+   * reset unread statuses count in someone's inbox.
+   * @since 2.1.0
+   * @param {Object} owner The status owner.
+   * @param {String} inboxType The inbox type, 'default' by default.
+   * @param {AuthOptions} options
+   * @return {Promise} A promise that is fulfilled when the reset
+   *     completes.
+   * @example
+   *  AV.Status.resetUnreadCount(AV.User.current()).then(function(response){
+   *    console.log(response.unread); //unread statuses number.
+   *    console.log(response.total);  //total statuses number.
+   *  });
+   */
+  AV.Status.resetUnreadCount = function(owner, inboxType = 'default', options = {}){
+    if (!_.isString(inboxType)) options = inboxType;
+    if(!options.sessionToken && owner == null && !AV.User.current()) {
+      throw new Error('Please signin an user or pass the owner objectId.');
+    }
+    return getUser(options).then(owner => {
+      var params = {};
+      params.inboxType = AV._encode(inboxType);
+      params.owner = AV._encode(owner);
+      return AVRequest('subscribe/statuses/resetUnreadCount', null, null, 'POST', params, options);
     });
   };
 
