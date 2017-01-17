@@ -55,7 +55,7 @@ module.exports = function(AV) {
     destroy: function(options){
       if(!this.id)
         return AV.Promise.reject(new Error('The status id is not exists.'));
-      var request = AVRequest('statuses', null, this.id, 'DELETE', options && options.sessionToken);
+      var request = AVRequest('statuses', null, this.id, 'DELETE', options);
       return request;
     },
     /**
@@ -107,7 +107,7 @@ module.exports = function(AV) {
         data.data = this._getDataJSON();
         data.inboxType = this.inboxType || 'default';
 
-        return AVRequest('statuses', null, null, 'POST', data, options.sessionToken);
+        return AVRequest('statuses', null, null, 'POST', data, options);
       })
       .then((response) => {
         this.id = response.objectId;
@@ -161,7 +161,7 @@ module.exports = function(AV) {
       data.data = status._getDataJSON();
       data.inboxType = status.inboxType || 'default';
 
-      var request = AVRequest('statuses', null, null, 'POST', data, options.sessionToken);
+      var request = AVRequest('statuses', null, null, 'POST', data, options);
       return request.then(function(response){
         status.id = response.objectId;
         status.createdAt = AV._parseDate(response.createdAt);
@@ -211,7 +211,7 @@ module.exports = function(AV) {
       data.inboxType = 'private';
       status.inboxType = 'private';
 
-      var request = AVRequest('statuses', null, null, 'POST', data, options.sessionToken);
+      var request = AVRequest('statuses', null, null, 'POST', data, options);
       return request.then(function(response){
         status.id = response.objectId;
         status.createdAt = AV._parseDate(response.createdAt);
@@ -283,7 +283,7 @@ module.exports = function(AV) {
     },
     _createRequest: function(params, options){
       return AVRequest('subscribe/statuses', null, null, 'GET',
-                                   params || this.toJSON(), options && options.sessionToken);
+                                   params || this.toJSON(), options);
     },
 
 
