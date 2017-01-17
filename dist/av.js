@@ -315,157 +315,317 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         module.exports = crypt;
       })();
     }, {}], 5: [function (require, module, exports) {
+      /**
+       * Helpers.
+       */
+
+      var s = 1000;
+      var m = s * 60;
+      var h = m * 60;
+      var d = h * 24;
+      var y = d * 365.25;
 
       /**
-       * This is the web browser implementation of `debug()`.
+       * Parse or format the given `val`.
        *
-       * Expose `debug()` as the module.
-       */
-
-      exports = module.exports = require('./debug');
-      exports.log = log;
-      exports.formatArgs = formatArgs;
-      exports.save = save;
-      exports.load = load;
-      exports.useColors = useColors;
-      exports.storage = 'undefined' != typeof chrome && 'undefined' != typeof chrome.storage ? chrome.storage.local : localstorage();
-
-      /**
-       * Colors.
-       */
-
-      exports.colors = ['lightseagreen', 'forestgreen', 'goldenrod', 'dodgerblue', 'darkorchid', 'crimson'];
-
-      /**
-       * Currently only WebKit-based Web Inspectors, Firefox >= v31,
-       * and the Firebug extension (any Firefox version) are known
-       * to support "%c" CSS customizations.
+       * Options:
        *
-       * TODO: add a `localStorage` variable to explicitly enable/disable colors
+       *  - `long` verbose formatting [false]
+       *
+       * @param {String|Number} val
+       * @param {Object} options
+       * @throws {Error} throw an error if val is not a non-empty string or a number
+       * @return {String|Number}
+       * @api public
        */
 
-      function useColors() {
-        // is webkit? http://stackoverflow.com/a/16459606/376773
-        return 'WebkitAppearance' in document.documentElement.style ||
-        // is firebug? http://stackoverflow.com/a/398120/376773
-        window.console && (console.firebug || console.exception && console.table) ||
-        // is firefox >= v31?
-        // https://developer.mozilla.org/en-US/docs/Tools/Web_Console#Styling_messages
-        navigator.userAgent.toLowerCase().match(/firefox\/(\d+)/) && parseInt(RegExp.$1, 10) >= 31;
-      }
-
-      /**
-       * Map %j to `JSON.stringify()`, since no Web Inspectors do that by default.
-       */
-
-      exports.formatters.j = function (v) {
-        return JSON.stringify(v);
+      module.exports = function (val, options) {
+        options = options || {};
+        var type = typeof val === "undefined" ? "undefined" : _typeof(val);
+        if (type === 'string' && val.length > 0) {
+          return parse(val);
+        } else if (type === 'number' && isNaN(val) === false) {
+          return options.long ? fmtLong(val) : fmtShort(val);
+        }
+        throw new Error('val is not a non-empty string or a valid number. val=' + JSON.stringify(val));
       };
 
       /**
-       * Colorize log arguments if enabled.
+       * Parse the given `str` and return milliseconds.
        *
-       * @api public
+       * @param {String} str
+       * @return {Number}
+       * @api private
        */
 
-      function formatArgs() {
-        var args = arguments;
-        var useColors = this.useColors;
+      function parse(str) {
+        str = String(str);
+        if (str.length > 10000) {
+          return;
+        }
+        var match = /^((?:\d+)?\.?\d+) *(milliseconds?|msecs?|ms|seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|days?|d|years?|yrs?|y)?$/i.exec(str);
+        if (!match) {
+          return;
+        }
+        var n = parseFloat(match[1]);
+        var type = (match[2] || 'ms').toLowerCase();
+        switch (type) {
+          case 'years':
+          case 'year':
+          case 'yrs':
+          case 'yr':
+          case 'y':
+            return n * y;
+          case 'days':
+          case 'day':
+          case 'd':
+            return n * d;
+          case 'hours':
+          case 'hour':
+          case 'hrs':
+          case 'hr':
+          case 'h':
+            return n * h;
+          case 'minutes':
+          case 'minute':
+          case 'mins':
+          case 'min':
+          case 'm':
+            return n * m;
+          case 'seconds':
+          case 'second':
+          case 'secs':
+          case 'sec':
+          case 's':
+            return n * s;
+          case 'milliseconds':
+          case 'millisecond':
+          case 'msecs':
+          case 'msec':
+          case 'ms':
+            return n;
+          default:
+            return undefined;
+        }
+      }
 
-        args[0] = (useColors ? '%c' : '') + this.namespace + (useColors ? ' %c' : ' ') + args[0] + (useColors ? '%c ' : ' ') + '+' + exports.humanize(this.diff);
+      /**
+       * Short format for `ms`.
+       *
+       * @param {Number} ms
+       * @return {String}
+       * @api private
+       */
 
-        if (!useColors) return args;
+      function fmtShort(ms) {
+        if (ms >= d) {
+          return Math.round(ms / d) + 'd';
+        }
+        if (ms >= h) {
+          return Math.round(ms / h) + 'h';
+        }
+        if (ms >= m) {
+          return Math.round(ms / m) + 'm';
+        }
+        if (ms >= s) {
+          return Math.round(ms / s) + 's';
+        }
+        return ms + 'ms';
+      }
 
-        var c = 'color: ' + this.color;
-        args = [args[0], c, 'color: inherit'].concat(Array.prototype.slice.call(args, 1));
+      /**
+       * Long format for `ms`.
+       *
+       * @param {Number} ms
+       * @return {String}
+       * @api private
+       */
 
-        // the final "%c" is somewhat tricky, because there could be other
-        // arguments passed either before or after the %c, so we need to
-        // figure out the correct index to insert the CSS into
-        var index = 0;
-        var lastC = 0;
-        args[0].replace(/%[a-z%]/g, function (match) {
-          if ('%%' === match) return;
-          index++;
-          if ('%c' === match) {
-            // we only are interested in the *last* %c
-            // (the user may have provided their own)
-            lastC = index;
+      function fmtLong(ms) {
+        return plural(ms, d, 'day') || plural(ms, h, 'hour') || plural(ms, m, 'minute') || plural(ms, s, 'second') || ms + ' ms';
+      }
+
+      /**
+       * Pluralization helper.
+       */
+
+      function plural(ms, n, name) {
+        if (ms < n) {
+          return;
+        }
+        if (ms < n * 1.5) {
+          return Math.floor(ms / n) + ' ' + name;
+        }
+        return Math.ceil(ms / n) + ' ' + name + 's';
+      }
+    }, {}], 6: [function (require, module, exports) {
+      (function (process) {
+        /**
+         * This is the web browser implementation of `debug()`.
+         *
+         * Expose `debug()` as the module.
+         */
+
+        exports = module.exports = require('./debug');
+        exports.log = log;
+        exports.formatArgs = formatArgs;
+        exports.save = save;
+        exports.load = load;
+        exports.useColors = useColors;
+        exports.storage = 'undefined' != typeof chrome && 'undefined' != typeof chrome.storage ? chrome.storage.local : localstorage();
+
+        /**
+         * Colors.
+         */
+
+        exports.colors = ['lightseagreen', 'forestgreen', 'goldenrod', 'dodgerblue', 'darkorchid', 'crimson'];
+
+        /**
+         * Currently only WebKit-based Web Inspectors, Firefox >= v31,
+         * and the Firebug extension (any Firefox version) are known
+         * to support "%c" CSS customizations.
+         *
+         * TODO: add a `localStorage` variable to explicitly enable/disable colors
+         */
+
+        function useColors() {
+          // NB: In an Electron preload script, document will be defined but not fully
+          // initialized. Since we know we're in Chrome, we'll just detect this case
+          // explicitly
+          if (typeof window !== 'undefined' && window && typeof window.process !== 'undefined' && window.process.type === 'renderer') {
+            return true;
           }
-        });
 
-        args.splice(lastC, 0, c);
-        return args;
-      }
+          // is webkit? http://stackoverflow.com/a/16459606/376773
+          // document is undefined in react-native: https://github.com/facebook/react-native/pull/1632
+          return typeof document !== 'undefined' && document && 'WebkitAppearance' in document.documentElement.style ||
+          // is firebug? http://stackoverflow.com/a/398120/376773
+          typeof window !== 'undefined' && window && window.console && (console.firebug || console.exception && console.table) ||
+          // is firefox >= v31?
+          // https://developer.mozilla.org/en-US/docs/Tools/Web_Console#Styling_messages
+          typeof navigator !== 'undefined' && navigator && navigator.userAgent && navigator.userAgent.toLowerCase().match(/firefox\/(\d+)/) && parseInt(RegExp.$1, 10) >= 31 ||
+          // double check webkit in userAgent just in case we are in a worker
+          typeof navigator !== 'undefined' && navigator && navigator.userAgent && navigator.userAgent.toLowerCase().match(/applewebkit\/(\d+)/);
+        }
 
-      /**
-       * Invokes `console.log()` when available.
-       * No-op when `console.log` is not a "function".
-       *
-       * @api public
-       */
+        /**
+         * Map %j to `JSON.stringify()`, since no Web Inspectors do that by default.
+         */
 
-      function log() {
-        // this hackery is required for IE8/9, where
-        // the `console.log` function doesn't have 'apply'
-        return 'object' === (typeof console === "undefined" ? "undefined" : _typeof(console)) && console.log && Function.prototype.apply.call(console.log, console, arguments);
-      }
-
-      /**
-       * Save `namespaces`.
-       *
-       * @param {String} namespaces
-       * @api private
-       */
-
-      function save(namespaces) {
-        try {
-          if (null == namespaces) {
-            exports.storage.removeItem('debug');
-          } else {
-            exports.storage.debug = namespaces;
+        exports.formatters.j = function (v) {
+          try {
+            return JSON.stringify(v);
+          } catch (err) {
+            return '[UnexpectedJSONParseError]: ' + err.message;
           }
-        } catch (e) {}
-      }
+        };
 
-      /**
-       * Load `namespaces`.
-       *
-       * @return {String} returns the previously persisted debug modes
-       * @api private
-       */
+        /**
+         * Colorize log arguments if enabled.
+         *
+         * @api public
+         */
 
-      function load() {
-        var r;
-        try {
-          r = exports.storage.debug;
-        } catch (e) {}
-        return r;
-      }
+        function formatArgs(args) {
+          var useColors = this.useColors;
 
-      /**
-       * Enable namespaces listed in `localStorage.debug` initially.
-       */
+          args[0] = (useColors ? '%c' : '') + this.namespace + (useColors ? ' %c' : ' ') + args[0] + (useColors ? '%c ' : ' ') + '+' + exports.humanize(this.diff);
 
-      exports.enable(load());
+          if (!useColors) return;
 
-      /**
-       * Localstorage attempts to return the localstorage.
-       *
-       * This is necessary because safari throws
-       * when a user disables cookies/localstorage
-       * and you attempt to access it.
-       *
-       * @return {LocalStorage}
-       * @api private
-       */
+          var c = 'color: ' + this.color;
+          args.splice(1, 0, c, 'color: inherit');
 
-      function localstorage() {
-        try {
-          return window.localStorage;
-        } catch (e) {}
-      }
-    }, { "./debug": 6 }], 6: [function (require, module, exports) {
+          // the final "%c" is somewhat tricky, because there could be other
+          // arguments passed either before or after the %c, so we need to
+          // figure out the correct index to insert the CSS into
+          var index = 0;
+          var lastC = 0;
+          args[0].replace(/%[a-zA-Z%]/g, function (match) {
+            if ('%%' === match) return;
+            index++;
+            if ('%c' === match) {
+              // we only are interested in the *last* %c
+              // (the user may have provided their own)
+              lastC = index;
+            }
+          });
+
+          args.splice(lastC, 0, c);
+        }
+
+        /**
+         * Invokes `console.log()` when available.
+         * No-op when `console.log` is not a "function".
+         *
+         * @api public
+         */
+
+        function log() {
+          // this hackery is required for IE8/9, where
+          // the `console.log` function doesn't have 'apply'
+          return 'object' === (typeof console === "undefined" ? "undefined" : _typeof(console)) && console.log && Function.prototype.apply.call(console.log, console, arguments);
+        }
+
+        /**
+         * Save `namespaces`.
+         *
+         * @param {String} namespaces
+         * @api private
+         */
+
+        function save(namespaces) {
+          try {
+            if (null == namespaces) {
+              exports.storage.removeItem('debug');
+            } else {
+              exports.storage.debug = namespaces;
+            }
+          } catch (e) {}
+        }
+
+        /**
+         * Load `namespaces`.
+         *
+         * @return {String} returns the previously persisted debug modes
+         * @api private
+         */
+
+        function load() {
+          try {
+            return exports.storage.debug;
+          } catch (e) {}
+
+          // If debug isn't set in LS, and we're in Electron, try to load $DEBUG
+          if (typeof process !== 'undefined' && 'env' in process) {
+            return process.env.DEBUG;
+          }
+        }
+
+        /**
+         * Enable namespaces listed in `localStorage.debug` initially.
+         */
+
+        exports.enable(load());
+
+        /**
+         * Localstorage attempts to return the localstorage.
+         *
+         * This is necessary because safari throws
+         * when a user disables cookies/localstorage
+         * and you attempt to access it.
+         *
+         * @return {LocalStorage}
+         * @api private
+         */
+
+        function localstorage() {
+          try {
+            return window.localStorage;
+          } catch (e) {}
+        }
+      }).call(this, require('_process'));
+    }, { "./debug": 7, "_process": 11 }], 7: [function (require, module, exports) {
 
       /**
        * This is the common logic for both the Node.js and web browser
@@ -474,7 +634,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
        * Expose `debug()` as the module.
        */
 
-      exports = module.exports = debug;
+      exports = module.exports = createDebug.debug = createDebug.default = createDebug;
       exports.coerce = coerce;
       exports.disable = disable;
       exports.enable = enable;
@@ -491,16 +651,10 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       /**
        * Map of special "%n" handling functions, for the debug "format" argument.
        *
-       * Valid key names are a single, lowercased letter, i.e. "n".
+       * Valid key names are a single, lower or upper-case letter, i.e. "n" and "N".
        */
 
       exports.formatters = {};
-
-      /**
-       * Previously assigned color.
-       */
-
-      var prevColor = 0;
 
       /**
        * Previous log timestamp.
@@ -510,13 +664,21 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
       /**
        * Select a color.
-       *
+       * @param {String} namespace
        * @return {Number}
        * @api private
        */
 
-      function selectColor() {
-        return exports.colors[prevColor++ % exports.colors.length];
+      function selectColor(namespace) {
+        var hash = 0,
+            i;
+
+        for (i in namespace) {
+          hash = (hash << 5) - hash + namespace.charCodeAt(i);
+          hash |= 0; // Convert to 32bit integer
+        }
+
+        return exports.colors[Math.abs(hash) % exports.colors.length];
       }
 
       /**
@@ -527,16 +689,13 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
        * @api public
        */
 
-      function debug(namespace) {
+      function createDebug(namespace) {
 
-        // define the `disabled` version
-        function disabled() {}
-        disabled.enabled = false;
+        function debug() {
+          // disabled?
+          if (!debug.enabled) return;
 
-        // define the `enabled` version
-        function enabled() {
-
-          var self = enabled;
+          var self = debug;
 
           // set `diff` timestamp
           var curr = +new Date();
@@ -546,22 +705,22 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           self.curr = curr;
           prevTime = curr;
 
-          // add the `color` if not set
-          if (null == self.useColors) self.useColors = exports.useColors();
-          if (null == self.color && self.useColors) self.color = selectColor();
-
-          var args = Array.prototype.slice.call(arguments);
+          // turn the `arguments` into a proper Array
+          var args = new Array(arguments.length);
+          for (var i = 0; i < args.length; i++) {
+            args[i] = arguments[i];
+          }
 
           args[0] = exports.coerce(args[0]);
 
           if ('string' !== typeof args[0]) {
-            // anything else let's inspect with %o
-            args = ['%o'].concat(args);
+            // anything else let's inspect with %O
+            args.unshift('%O');
           }
 
           // apply any `formatters` transformations
           var index = 0;
-          args[0] = args[0].replace(/%([a-z%])/g, function (match, format) {
+          args[0] = args[0].replace(/%([a-zA-Z%])/g, function (match, format) {
             // if we encounter an escaped % then don't increase the array index
             if (match === '%%') return match;
             index++;
@@ -577,19 +736,24 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             return match;
           });
 
-          if ('function' === typeof exports.formatArgs) {
-            args = exports.formatArgs.apply(self, args);
-          }
-          var logFn = enabled.log || exports.log || console.log.bind(console);
+          // apply env-specific formatting (colors, etc.)
+          exports.formatArgs.call(self, args);
+
+          var logFn = debug.log || exports.log || console.log.bind(console);
           logFn.apply(self, args);
         }
-        enabled.enabled = true;
 
-        var fn = exports.enabled(namespace) ? enabled : disabled;
+        debug.namespace = namespace;
+        debug.enabled = exports.enabled(namespace);
+        debug.useColors = exports.useColors();
+        debug.color = selectColor(namespace);
 
-        fn.namespace = namespace;
+        // env-specific initialization logic for debug instances
+        if ('function' === typeof exports.init) {
+          exports.init(debug);
+        }
 
-        return fn;
+        return debug;
       }
 
       /**
@@ -662,7 +826,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         if (val instanceof Error) return val.stack || val.message;
         return val;
       }
-    }, { "ms": 10 }], 7: [function (require, module, exports) {
+    }, { "ms": 5 }], 8: [function (require, module, exports) {
       /*!
        * Determine if an object is a Buffer
        *
@@ -684,7 +848,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       function isSlowBuffer(obj) {
         return typeof obj.readFloatLE === 'function' && typeof obj.slice === 'function' && isBuffer(obj.slice(0, 0));
       }
-    }, {}], 8: [function (require, module, exports) {
+    }, {}], 9: [function (require, module, exports) {
       (function (root) {
         var localStorageMemory = {};
         var cache = {};
@@ -767,7 +931,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           root.localStorageMemory = localStorageMemory;
         }
       })(this);
-    }, {}], 9: [function (require, module, exports) {
+    }, {}], 10: [function (require, module, exports) {
       (function () {
         var crypt = require('crypt'),
             utf8 = require('charenc').utf8,
@@ -918,127 +1082,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           return options && options.asBytes ? digestbytes : options && options.asString ? bin.bytesToString(digestbytes) : crypt.bytesToHex(digestbytes);
         };
       })();
-    }, { "charenc": 2, "crypt": 4, "is-buffer": 7 }], 10: [function (require, module, exports) {
-      /**
-       * Helpers.
-       */
-
-      var s = 1000;
-      var m = s * 60;
-      var h = m * 60;
-      var d = h * 24;
-      var y = d * 365.25;
-
-      /**
-       * Parse or format the given `val`.
-       *
-       * Options:
-       *
-       *  - `long` verbose formatting [false]
-       *
-       * @param {String|Number} val
-       * @param {Object} options
-       * @return {String|Number}
-       * @api public
-       */
-
-      module.exports = function (val, options) {
-        options = options || {};
-        if ('string' == typeof val) return parse(val);
-        return options.long ? long(val) : short(val);
-      };
-
-      /**
-       * Parse the given `str` and return milliseconds.
-       *
-       * @param {String} str
-       * @return {Number}
-       * @api private
-       */
-
-      function parse(str) {
-        str = '' + str;
-        if (str.length > 10000) return;
-        var match = /^((?:\d+)?\.?\d+) *(milliseconds?|msecs?|ms|seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|days?|d|years?|yrs?|y)?$/i.exec(str);
-        if (!match) return;
-        var n = parseFloat(match[1]);
-        var type = (match[2] || 'ms').toLowerCase();
-        switch (type) {
-          case 'years':
-          case 'year':
-          case 'yrs':
-          case 'yr':
-          case 'y':
-            return n * y;
-          case 'days':
-          case 'day':
-          case 'd':
-            return n * d;
-          case 'hours':
-          case 'hour':
-          case 'hrs':
-          case 'hr':
-          case 'h':
-            return n * h;
-          case 'minutes':
-          case 'minute':
-          case 'mins':
-          case 'min':
-          case 'm':
-            return n * m;
-          case 'seconds':
-          case 'second':
-          case 'secs':
-          case 'sec':
-          case 's':
-            return n * s;
-          case 'milliseconds':
-          case 'millisecond':
-          case 'msecs':
-          case 'msec':
-          case 'ms':
-            return n;
-        }
-      }
-
-      /**
-       * Short format for `ms`.
-       *
-       * @param {Number} ms
-       * @return {String}
-       * @api private
-       */
-
-      function short(ms) {
-        if (ms >= d) return Math.round(ms / d) + 'd';
-        if (ms >= h) return Math.round(ms / h) + 'h';
-        if (ms >= m) return Math.round(ms / m) + 'm';
-        if (ms >= s) return Math.round(ms / s) + 's';
-        return ms + 'ms';
-      }
-
-      /**
-       * Long format for `ms`.
-       *
-       * @param {Number} ms
-       * @return {String}
-       * @api private
-       */
-
-      function long(ms) {
-        return plural(ms, d, 'day') || plural(ms, h, 'hour') || plural(ms, m, 'minute') || plural(ms, s, 'second') || ms + ' ms';
-      }
-
-      /**
-       * Pluralization helper.
-       */
-
-      function plural(ms, n, name) {
-        if (ms < n) return;
-        if (ms < n * 1.5) return Math.floor(ms / n) + ' ' + name;
-        return Math.ceil(ms / n) + ' ' + name + 's';
-      }
-    }, {}], 11: [function (require, module, exports) {
+    }, { "charenc": 2, "crypt": 4, "is-buffer": 8 }], 11: [function (require, module, exports) {
       // shim for using process in browser
       var process = module.exports = {};
 
@@ -1237,8 +1281,10 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       }
 
       var Emitter = require('emitter');
-      var requestBase = require('./request-base');
+      var RequestBase = require('./request-base');
       var isObject = require('./is-object');
+      var isFunction = require('./is-function');
+      var ResponseBase = require('./response-base');
 
       /**
        * Noop.
@@ -1250,7 +1296,21 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
        * Expose `request`.
        */
 
-      var request = module.exports = require('./request').bind(null, Request);
+      var request = exports = module.exports = function (method, url) {
+        // callback
+        if ('function' == typeof url) {
+          return new exports.Request('GET', method).end(url);
+        }
+
+        // url first
+        if (1 == arguments.length) {
+          return new exports.Request('GET', method);
+        }
+
+        return new exports.Request(method, url);
+      };
+
+      exports.Request = Request;
 
       /**
        * Determine XHR.
@@ -1461,37 +1521,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       }
 
       /**
-       * Return the mime type for the given `str`.
-       *
-       * @param {String} str
-       * @return {String}
-       * @api private
-       */
-
-      function type(str) {
-        return str.split(/ *; */).shift();
-      };
-
-      /**
-       * Return header field parameters.
-       *
-       * @param {String} str
-       * @return {Object}
-       * @api private
-       */
-
-      function params(str) {
-        return str.split(/ *; */).reduce(function (obj, str) {
-          var parts = str.split(/ *= */),
-              key = parts.shift(),
-              val = parts.shift();
-
-          if (key && val) obj[key] = val;
-          return obj;
-        }, {});
-      };
-
-      /**
        * Initialize a new `Response` with the given `xhr`.
        *
        *  - set flags (.ok, .error, etc)
@@ -1544,51 +1573,27 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         // responseText is accessible only if responseType is '' or 'text' and on older browsers
         this.text = this.req.method != 'HEAD' && (this.xhr.responseType === '' || this.xhr.responseType === 'text') || typeof this.xhr.responseType === 'undefined' ? this.xhr.responseText : null;
         this.statusText = this.req.xhr.statusText;
-        this._setStatusProperties(this.xhr.status);
+        var status = this.xhr.status;
+        // handle IE9 bug: http://stackoverflow.com/questions/10046972/msie-returns-status-code-of-1223-for-ajax-request
+        if (status === 1223) {
+          status = 204;
+        }
+        this._setStatusProperties(status);
         this.header = this.headers = parseHeader(this.xhr.getAllResponseHeaders());
         // getAllResponseHeaders sometimes falsely returns "" for CORS requests, but
         // getResponseHeader still works. so we get content-type even if getting
         // other headers fails.
         this.header['content-type'] = this.xhr.getResponseHeader('content-type');
         this._setHeaderProperties(this.header);
-        this.body = this.req.method != 'HEAD' ? this._parseBody(this.text ? this.text : this.xhr.response) : null;
+
+        if (null === this.text && req._responseType) {
+          this.body = this.xhr.response;
+        } else {
+          this.body = this.req.method != 'HEAD' ? this._parseBody(this.text ? this.text : this.xhr.response) : null;
+        }
       }
 
-      /**
-       * Get case-insensitive `field` value.
-       *
-       * @param {String} field
-       * @return {String}
-       * @api public
-       */
-
-      Response.prototype.get = function (field) {
-        return this.header[field.toLowerCase()];
-      };
-
-      /**
-       * Set header related properties:
-       *
-       *   - `.type` the content type without params
-       *
-       * A response of "Content-Type: text/plain; charset=utf-8"
-       * will provide you with a `.type` of "text/plain".
-       *
-       * @param {Object} header
-       * @api private
-       */
-
-      Response.prototype._setHeaderProperties = function (header) {
-        // content-type
-        var ct = this.header['content-type'] || '';
-        this.type = type(ct);
-
-        // params
-        var obj = params(ct);
-        for (var key in obj) {
-          this[key] = obj[key];
-        }
-      };
+      ResponseBase(Response.prototype);
 
       /**
        * Parse the given body `str`.
@@ -1603,60 +1608,13 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
       Response.prototype._parseBody = function (str) {
         var parse = request.parse[this.type];
+        if (this.req._parser) {
+          return this.req._parser(this, str);
+        }
         if (!parse && isJSON(this.type)) {
           parse = request.parse['application/json'];
         }
         return parse && str && (str.length || str instanceof Object) ? parse(str) : null;
-      };
-
-      /**
-       * Set flags such as `.ok` based on `status`.
-       *
-       * For example a 2xx response will give you a `.ok` of __true__
-       * whereas 5xx will be __false__ and `.error` will be __true__. The
-       * `.clientError` and `.serverError` are also available to be more
-       * specific, and `.statusType` is the class of error ranging from 1..5
-       * sometimes useful for mapping respond colors etc.
-       *
-       * "sugar" properties are also defined for common cases. Currently providing:
-       *
-       *   - .noContent
-       *   - .badRequest
-       *   - .unauthorized
-       *   - .notAcceptable
-       *   - .notFound
-       *
-       * @param {Number} status
-       * @api private
-       */
-
-      Response.prototype._setStatusProperties = function (status) {
-        // handle IE9 bug: http://stackoverflow.com/questions/10046972/msie-returns-status-code-of-1223-for-ajax-request
-        if (status === 1223) {
-          status = 204;
-        }
-
-        var type = status / 100 | 0;
-
-        // status / class
-        this.status = this.statusCode = status;
-        this.statusType = type;
-
-        // basics
-        this.info = 1 == type;
-        this.ok = 2 == type;
-        this.clientError = 4 == type;
-        this.serverError = 5 == type;
-        this.error = 4 == type || 5 == type ? this.toError() : false;
-
-        // sugar
-        this.accepted = 202 == status;
-        this.noContent = 204 == status;
-        this.badRequest = 400 == status;
-        this.unauthorized = 401 == status;
-        this.notAcceptable = 406 == status;
-        this.notFound = 404 == status;
-        this.forbidden = 403 == status;
       };
 
       /**
@@ -1712,9 +1670,17 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             err.parse = true;
             err.original = e;
             // issue #675: return the raw response if the response parsing fails
-            err.rawResponse = self.xhr && self.xhr.responseText ? self.xhr.responseText : null;
-            // issue #876: return the http status code if the response parsing fails
-            err.statusCode = self.xhr && self.xhr.status ? self.xhr.status : null;
+            if (self.xhr) {
+              // ie9 doesn't have 'response' property
+              err.rawResponse = typeof self.xhr.responseType == 'undefined' ? self.xhr.responseText : self.xhr.response;
+              // issue #876: return the http status code if the response parsing fails
+              err.status = self.xhr.status ? self.xhr.status : null;
+              err.statusCode = err.status; // backwards-compat only
+            } else {
+              err.rawResponse = null;
+              err.status = null;
+            }
+
             return self.callback(err);
           }
 
@@ -1722,7 +1688,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
           var new_err;
           try {
-            if (res.status < 200 || res.status >= 300) {
+            if (!self._isResponseOK(res)) {
               new_err = new Error(res.statusText || 'Unsuccessful HTTP response');
               new_err.original = err;
               new_err.response = res;
@@ -1742,13 +1708,11 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       }
 
       /**
-       * Mixin `Emitter` and `requestBase`.
+       * Mixin `Emitter` and `RequestBase`.
        */
 
       Emitter(Request.prototype);
-      for (var key in requestBase) {
-        Request.prototype[key] = requestBase[key];
-      }
+      RequestBase(Request.prototype);
 
       /**
        * Set Content-Type to `type`, mapping values from `request.types`.
@@ -1774,26 +1738,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
       Request.prototype.type = function (type) {
         this.set('Content-Type', request.types[type] || type);
-        return this;
-      };
-
-      /**
-       * Set responseType to `val`. Presently valid responseTypes are 'blob' and
-       * 'arraybuffer'.
-       *
-       * Examples:
-       *
-       *      req.get('/')
-       *        .responseType('blob')
-       *        .end(callback);
-       *
-       * @param {String} val
-       * @return {Request} for chaining
-       * @api public
-       */
-
-      Request.prototype.responseType = function (val) {
-        this._responseType = val;
         return this;
       };
 
@@ -1835,14 +1779,13 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       Request.prototype.auth = function (user, pass, options) {
         if (!options) {
           options = {
-            type: 'basic'
+            type: 'function' === typeof btoa ? 'basic' : 'auto'
           };
         }
 
         switch (options.type) {
           case 'basic':
-            var str = btoa(user + ':' + pass);
-            this.set('Authorization', 'Basic ' + str);
+            this.set('Authorization', 'Basic ' + btoa(user + ':' + pass));
             break;
 
           case 'auto':
@@ -1875,7 +1818,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
       /**
        * Queue the given `file` as an attachment to the specified `field`,
-       * with optional `filename`.
+       * with optional `options` (or filename).
        *
        * ``` js
        * request.post('/upload')
@@ -1885,13 +1828,17 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
        *
        * @param {String} field
        * @param {Blob|File} file
-       * @param {String} filename
+       * @param {String|Object} options
        * @return {Request} for chaining
        * @api public
        */
 
-      Request.prototype.attach = function (field, file, filename) {
-        this._getFormData().append(field, file, filename || file.name);
+      Request.prototype.attach = function (field, file, options) {
+        if (this._data) {
+          throw Error("superagent can't mix .send() and .attach()");
+        }
+
+        this._getFormData().append(field, file, options || file.name);
         return this;
       };
 
@@ -1914,6 +1861,11 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       Request.prototype.callback = function (err, res) {
         var fn = this._callback;
         this.clearTimeout();
+
+        if (err) {
+          this.emit('error', err);
+        }
+
         fn(err, res);
       };
 
@@ -1934,17 +1886,15 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         this.callback(err);
       };
 
-      /**
-       * Invoke callback with timeout error.
-       *
-       * @api private
-       */
+      // This only warns, because the request is still likely to work
+      Request.prototype.buffer = Request.prototype.ca = Request.prototype.agent = function () {
+        console.warn("This is not supported in browser version of superagent");
+        return this;
+      };
 
-      Request.prototype._timeoutError = function () {
-        var timeout = this._timeout;
-        var err = new Error('timeout of ' + timeout + 'ms exceeded');
-        err.timeout = timeout;
-        this.callback(err);
+      // This throws, because it can't send/receive data as expected
+      Request.prototype.pipe = Request.prototype.write = function () {
+        throw Error("Streaming is not supported in browser version of superagent");
       };
 
       /**
@@ -1956,8 +1906,34 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       Request.prototype._appendQueryString = function () {
         var query = this._query.join('&');
         if (query) {
-          this.url += ~this.url.indexOf('?') ? '&' + query : '?' + query;
+          this.url += (this.url.indexOf('?') >= 0 ? '&' : '?') + query;
         }
+
+        if (this._sort) {
+          var index = this.url.indexOf('?');
+          if (index >= 0) {
+            var queryArr = this.url.substring(index + 1).split('&');
+            if (isFunction(this._sort)) {
+              queryArr.sort(this._sort);
+            } else {
+              queryArr.sort();
+            }
+            this.url = this.url.substring(0, index) + '?' + queryArr.join('&');
+          }
+        }
+      };
+
+      /**
+       * Check if `obj` is a host object,
+       * we don't want to serialize these :)
+       *
+       * @param {Object} obj
+       * @return {Boolean}
+       * @api private
+       */
+      Request.prototype._isHost = function _isHost(obj) {
+        // Native objects stringify to [object File], [object Blob], [object FormData], etc.
+        return obj && 'object' === (typeof obj === "undefined" ? "undefined" : _typeof(obj)) && !Array.isArray(obj) && Object.prototype.toString.call(obj) !== '[object Object]';
       };
 
       /**
@@ -1972,15 +1948,25 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       Request.prototype.end = function (fn) {
         var self = this;
         var xhr = this.xhr = request.getXHR();
-        var timeout = this._timeout;
         var data = this._formData || this._data;
+
+        if (this._endCalled) {
+          console.warn("Warning: .end() was called twice. This is not supported in superagent");
+        }
+        this._endCalled = true;
 
         // store callback
         this._callback = fn || noop;
 
         // state change
         xhr.onreadystatechange = function () {
-          if (4 != xhr.readyState) return;
+          var readyState = xhr.readyState;
+          if (readyState >= 2 && self._responseTimeoutTimer) {
+            clearTimeout(self._responseTimeoutTimer);
+          }
+          if (4 != readyState) {
+            return;
+          }
 
           // In IE9, reads to any property (e.g. status) off of an aborted XHR will
           // result in the error "Could not complete the operation due to error c00c023f"
@@ -1991,62 +1977,62 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             status = 0;
           }
 
-          if (0 == status) {
-            if (self.timedout) return self._timeoutError();
-            if (self._aborted) return;
+          if (!status) {
+            if (self.timedout || self._aborted) return;
             return self.crossDomainError();
           }
           self.emit('end');
         };
 
         // progress
-        var handleProgress = function handleProgress(e) {
+        var handleProgress = function handleProgress(direction, e) {
           if (e.total > 0) {
             e.percent = e.loaded / e.total * 100;
           }
-          e.direction = 'download';
+          e.direction = direction;
           self.emit('progress', e);
         };
         if (this.hasListeners('progress')) {
-          xhr.onprogress = handleProgress;
-        }
-        try {
-          if (xhr.upload && this.hasListeners('progress')) {
-            xhr.upload.onprogress = handleProgress;
+          try {
+            xhr.onprogress = handleProgress.bind(null, 'download');
+            if (xhr.upload) {
+              xhr.upload.onprogress = handleProgress.bind(null, 'upload');
+            }
+          } catch (e) {
+            // Accessing xhr.upload fails in IE from a web worker, so just pretend it doesn't exist.
+            // Reported here:
+            // https://connect.microsoft.com/IE/feedback/details/837245/xmlhttprequest-upload-throws-invalid-argument-when-used-from-web-worker-context
           }
-        } catch (e) {}
-        // Accessing xhr.upload fails in IE from a web worker, so just pretend it doesn't exist.
-        // Reported here:
-        // https://connect.microsoft.com/IE/feedback/details/837245/xmlhttprequest-upload-throws-invalid-argument-when-used-from-web-worker-context
-
-
-        // timeout
-        if (timeout && !this._timer) {
-          this._timer = setTimeout(function () {
-            self.timedout = true;
-            self.abort();
-          }, timeout);
         }
 
         // querystring
         this._appendQueryString();
 
+        this._setTimeouts();
+
         // initiate request
-        if (this.username && this.password) {
-          xhr.open(this.method, this.url, true, this.username, this.password);
-        } else {
-          xhr.open(this.method, this.url, true);
+        try {
+          if (this.username && this.password) {
+            xhr.open(this.method, this.url, true, this.username, this.password);
+          } else {
+            xhr.open(this.method, this.url, true);
+          }
+        } catch (err) {
+          // see #1149
+          return this.callback(err);
         }
 
         // CORS
         if (this._withCredentials) xhr.withCredentials = true;
 
         // body
-        if ('GET' != this.method && 'HEAD' != this.method && 'string' != typeof data && !this._isHost(data)) {
+        if (!this._formData && 'GET' != this.method && 'HEAD' != this.method && 'string' != typeof data && !this._isHost(data)) {
           // serialize stuff
           var contentType = this._header['content-type'];
           var serialize = this._serializer || request.serialize[contentType ? contentType.split(';')[0] : ''];
-          if (!serialize && isJSON(contentType)) serialize = request.serialize['application/json'];
+          if (!serialize && isJSON(contentType)) {
+            serialize = request.serialize['application/json'];
+          }
           if (serialize) data = serialize(data);
         }
 
@@ -2068,12 +2054,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         xhr.send(typeof data !== 'undefined' ? data : null);
         return this;
       };
-
-      /**
-       * Expose `Request`.
-       */
-
-      request.Request = Request;
 
       /**
        * GET `url` with optional callback `fn(res)`.
@@ -2200,7 +2180,23 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         if (fn) req.end(fn);
         return req;
       };
-    }, { "./is-object": 13, "./request": 15, "./request-base": 14, "emitter": 3 }], 13: [function (require, module, exports) {
+    }, { "./is-function": 13, "./is-object": 14, "./request-base": 15, "./response-base": 16, "emitter": 3 }], 13: [function (require, module, exports) {
+      /**
+       * Check if `fn` is a function.
+       *
+       * @param {Function} fn
+       * @return {Boolean}
+       * @api private
+       */
+      var isObject = require('./is-object');
+
+      function isFunction(fn) {
+        var tag = isObject(fn) ? Object.prototype.toString.call(fn) : '';
+        return tag === '[object Function]';
+      }
+
+      module.exports = isFunction;
+    }, { "./is-object": 14 }], 14: [function (require, module, exports) {
       /**
        * Check if `obj` is an object.
        *
@@ -2214,11 +2210,42 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       }
 
       module.exports = isObject;
-    }, {}], 14: [function (require, module, exports) {
+    }, {}], 15: [function (require, module, exports) {
       /**
        * Module of mixed-in functions shared between node and client code
        */
       var isObject = require('./is-object');
+
+      /**
+       * Expose `RequestBase`.
+       */
+
+      module.exports = RequestBase;
+
+      /**
+       * Initialize a new `RequestBase`.
+       *
+       * @api public
+       */
+
+      function RequestBase(obj) {
+        if (obj) return mixin(obj);
+      }
+
+      /**
+       * Mixin the prototype properties.
+       *
+       * @param {Object} obj
+       * @return {Object}
+       * @api private
+       */
+
+      function mixin(obj) {
+        for (var key in RequestBase.prototype) {
+          obj[key] = RequestBase.prototype[key];
+        }
+        return obj;
+      }
 
       /**
        * Clear previous timeout.
@@ -2227,9 +2254,11 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
        * @api public
        */
 
-      exports.clearTimeout = function _clearTimeout() {
+      RequestBase.prototype.clearTimeout = function _clearTimeout() {
         this._timeout = 0;
+        this._responseTimeout = 0;
         clearTimeout(this._timer);
+        clearTimeout(this._responseTimeoutTimer);
         return this;
       };
 
@@ -2242,8 +2271,31 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
        * @api public
        */
 
-      exports.parse = function parse(fn) {
+      RequestBase.prototype.parse = function parse(fn) {
         this._parser = fn;
+        return this;
+      };
+
+      /**
+       * Set format of binary response body.
+       * In browser valid formats are 'blob' and 'arraybuffer',
+       * which return Blob and ArrayBuffer, respectively.
+       *
+       * In Node all values result in Buffer.
+       *
+       * Examples:
+       *
+       *      req.get('/')
+       *        .responseType('blob')
+       *        .end(callback);
+       *
+       * @param {String} val
+       * @return {Request} for chaining
+       * @api public
+       */
+
+      RequestBase.prototype.responseType = function (val) {
+        this._responseType = val;
         return this;
       };
 
@@ -2256,21 +2308,37 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
        * @api public
        */
 
-      exports.serialize = function serialize(fn) {
+      RequestBase.prototype.serialize = function serialize(fn) {
         this._serializer = fn;
         return this;
       };
 
       /**
-       * Set timeout to `ms`.
+       * Set timeouts.
        *
-       * @param {Number} ms
+       * - response timeout is time between sending request and receiving the first byte of the response. Includes DNS and connection time.
+       * - deadline is the time from start of the request to receiving response body in full. If the deadline is too short large files may not load at all on slow connections.
+       *
+       * Value of 0 or false means no timeout.
+       *
+       * @param {Number|Object} ms or {response, read, deadline}
        * @return {Request} for chaining
        * @api public
        */
 
-      exports.timeout = function timeout(ms) {
-        this._timeout = ms;
+      RequestBase.prototype.timeout = function timeout(options) {
+        if (!options || 'object' !== (typeof options === "undefined" ? "undefined" : _typeof(options))) {
+          this._timeout = options;
+          this._responseTimeout = 0;
+          return this;
+        }
+
+        if ('undefined' !== typeof options.deadline) {
+          this._timeout = options.deadline;
+        }
+        if ('undefined' !== typeof options.response) {
+          this._responseTimeout = options.response;
+        }
         return this;
       };
 
@@ -2278,13 +2346,16 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
        * Promise support
        *
        * @param {Function} resolve
-       * @param {Function} reject
+       * @param {Function} [reject]
        * @return {Request}
        */
 
-      exports.then = function then(resolve, reject) {
+      RequestBase.prototype.then = function then(resolve, reject) {
         if (!this._fullfilledPromise) {
           var self = this;
+          if (this._endCalled) {
+            console.warn("Warning: superagent request was sent twice, because both .end() and .then() were called. Never call .end() if you use promises");
+          }
           this._fullfilledPromise = new Promise(function (innerResolve, innerReject) {
             self.end(function (err, res) {
               if (err) innerReject(err);else innerResolve(res);
@@ -2294,13 +2365,35 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         return this._fullfilledPromise.then(resolve, reject);
       };
 
+      RequestBase.prototype.catch = function (cb) {
+        return this.then(undefined, cb);
+      };
+
       /**
        * Allow for extension
        */
 
-      exports.use = function use(fn) {
+      RequestBase.prototype.use = function use(fn) {
         fn(this);
         return this;
+      };
+
+      RequestBase.prototype.ok = function (cb) {
+        if ('function' !== typeof cb) throw Error("Callback required");
+        this._okCallback = cb;
+        return this;
+      };
+
+      RequestBase.prototype._isResponseOK = function (res) {
+        if (!res) {
+          return false;
+        }
+
+        if (this._okCallback) {
+          return this._okCallback(res);
+        }
+
+        return res.status >= 200 && res.status < 300;
       };
 
       /**
@@ -2312,7 +2405,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
        * @api public
        */
 
-      exports.get = function (field) {
+      RequestBase.prototype.get = function (field) {
         return this._header[field.toLowerCase()];
       };
 
@@ -2328,7 +2421,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
        * @deprecated
        */
 
-      exports.getHeader = exports.get;
+      RequestBase.prototype.getHeader = RequestBase.prototype.get;
 
       /**
        * Set header `field` to `val`, or multiple fields with one object.
@@ -2351,7 +2444,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
        * @api public
        */
 
-      exports.set = function (field, val) {
+      RequestBase.prototype.set = function (field, val) {
         if (isObject(field)) {
           for (var key in field) {
             this.set(key, field[key]);
@@ -2375,28 +2468,63 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
        *
        * @param {String} field
        */
-      exports.unset = function (field) {
+      RequestBase.prototype.unset = function (field) {
         delete this._header[field.toLowerCase()];
         delete this.header[field];
         return this;
       };
 
       /**
-       * Write the field `name` and `val` for "multipart/form-data"
-       * request bodies.
+       * Write the field `name` and `val`, or multiple fields with one object
+       * for "multipart/form-data" request bodies.
        *
        * ``` js
        * request.post('/upload')
        *   .field('foo', 'bar')
        *   .end(callback);
+       *
+       * request.post('/upload')
+       *   .field({ foo: 'bar', baz: 'qux' })
+       *   .end(callback);
        * ```
        *
-       * @param {String} name
+       * @param {String|Object} name
        * @param {String|Blob|File|Buffer|fs.ReadStream} val
        * @return {Request} for chaining
        * @api public
        */
-      exports.field = function (name, val) {
+      RequestBase.prototype.field = function (name, val) {
+
+        // name should be either a string or an object.
+        if (null === name || undefined === name) {
+          throw new Error('.field(name, val) name can not be empty');
+        }
+
+        if (this._data) {
+          console.error(".field() can't be used if .send() is used. Please use only .send() or only .field() & .attach()");
+        }
+
+        if (isObject(name)) {
+          for (var key in name) {
+            this.field(key, name[key]);
+          }
+          return this;
+        }
+
+        if (Array.isArray(val)) {
+          for (var i in val) {
+            this.field(name, val[i]);
+          }
+          return this;
+        }
+
+        // val should be defined now
+        if (null === val || undefined === val) {
+          throw new Error('.field(name, val) val can not be empty');
+        }
+        if ('boolean' === typeof val) {
+          val = '' + val;
+        }
         this._getFormData().append(name, val);
         return this;
       };
@@ -2407,7 +2535,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
        * @return {Request}
        * @api public
        */
-      exports.abort = function () {
+      RequestBase.prototype.abort = function () {
         if (this._aborted) {
           return this;
         }
@@ -2430,7 +2558,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
        * @api public
        */
 
-      exports.withCredentials = function () {
+      RequestBase.prototype.withCredentials = function () {
         // This is browser-only functionality. Node side is no-op.
         this._withCredentials = true;
         return this;
@@ -2444,7 +2572,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
        * @api public
        */
 
-      exports.redirects = function (n) {
+      RequestBase.prototype.redirects = function (n) {
         this._maxRedirects = n;
         return this;
       };
@@ -2458,37 +2586,13 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
        * @api public
        */
 
-      exports.toJSON = function () {
+      RequestBase.prototype.toJSON = function () {
         return {
           method: this.method,
           url: this.url,
           data: this._data,
           headers: this._header
         };
-      };
-
-      /**
-       * Check if `obj` is a host object,
-       * we don't want to serialize these :)
-       *
-       * TODO: future proof, move to compoent land
-       *
-       * @param {Object} obj
-       * @return {Boolean}
-       * @api private
-       */
-
-      exports._isHost = function _isHost(obj) {
-        var str = {}.toString.call(obj);
-
-        switch (str) {
-          case '[object File]':
-          case '[object Blob]':
-          case '[object FormData]':
-            return true;
-          default:
-            return false;
-        }
       };
 
       /**
@@ -2531,12 +2635,26 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
        * @api public
        */
 
-      exports.send = function (data) {
-        var obj = isObject(data);
+      RequestBase.prototype.send = function (data) {
+        var isObj = isObject(data);
         var type = this._header['content-type'];
 
+        if (this._formData) {
+          console.error(".send() can't be used if .attach() or .field() is used. Please use only .send() or only .field() & .attach()");
+        }
+
+        if (isObj && !this._data) {
+          if (Array.isArray(data)) {
+            this._data = [];
+          } else if (!this._isHost(data)) {
+            this._data = {};
+          }
+        } else if (data && this._data && this._isHost(this._data)) {
+          throw Error("Can't merge these send calls");
+        }
+
         // merge
-        if (obj && isObject(this._data)) {
+        if (isObj && isObject(this._data)) {
           for (var key in data) {
             this._data[key] = data[key];
           }
@@ -2553,46 +2671,285 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           this._data = data;
         }
 
-        if (!obj || this._isHost(data)) return this;
+        if (!isObj || this._isHost(data)) {
+          return this;
+        }
 
         // default to json
         if (!type) this.type('json');
         return this;
       };
-    }, { "./is-object": 13 }], 15: [function (require, module, exports) {
-      // The node and browser modules expose versions of this with the
-      // appropriate constructor function bound as first argument
+
       /**
-       * Issue a request:
+       * Sort `querystring` by the sort function
+       *
        *
        * Examples:
        *
-       *    request('GET', '/users').end(callback)
-       *    request('/users').end(callback)
-       *    request('/users', callback)
+       *       // default order
+       *       request.get('/user')
+       *         .query('name=Nick')
+       *         .query('search=Manny')
+       *         .sortQuery()
+       *         .end(callback)
        *
-       * @param {String} method
-       * @param {String|Function} url or callback
-       * @return {Request}
+       *       // customized sort function
+       *       request.get('/user')
+       *         .query('name=Nick')
+       *         .query('search=Manny')
+       *         .sortQuery(function(a, b){
+       *           return a.length - b.length;
+       *         })
+       *         .end(callback)
+       *
+       *
+       * @param {Function} sort
+       * @return {Request} for chaining
        * @api public
        */
 
-      function request(RequestConstructor, method, url) {
-        // callback
-        if ('function' == typeof url) {
-          return new RequestConstructor('GET', method).end(url);
-        }
+      RequestBase.prototype.sortQuery = function (sort) {
+        // _sort default to true but otherwise can be a function or boolean
+        this._sort = typeof sort === 'undefined' ? true : sort;
+        return this;
+      };
 
-        // url first
-        if (2 == arguments.length) {
-          return new RequestConstructor('GET', method);
-        }
+      /**
+       * Invoke callback with timeout error.
+       *
+       * @api private
+       */
 
-        return new RequestConstructor(method, url);
+      RequestBase.prototype._timeoutError = function (reason, timeout) {
+        if (this._aborted) {
+          return;
+        }
+        var err = new Error(reason + timeout + 'ms exceeded');
+        err.timeout = timeout;
+        err.code = 'ECONNABORTED';
+        this.timedout = true;
+        this.abort();
+        this.callback(err);
+      };
+
+      RequestBase.prototype._setTimeouts = function () {
+        var self = this;
+
+        // deadline
+        if (this._timeout && !this._timer) {
+          this._timer = setTimeout(function () {
+            self._timeoutError('Timeout of ', self._timeout);
+          }, this._timeout);
+        }
+        // response timeout
+        if (this._responseTimeout && !this._responseTimeoutTimer) {
+          this._responseTimeoutTimer = setTimeout(function () {
+            self._timeoutError('Response timeout of ', self._responseTimeout);
+          }, this._responseTimeout);
+        }
+      };
+    }, { "./is-object": 14 }], 16: [function (require, module, exports) {
+
+      /**
+       * Module dependencies.
+       */
+
+      var utils = require('./utils');
+
+      /**
+       * Expose `ResponseBase`.
+       */
+
+      module.exports = ResponseBase;
+
+      /**
+       * Initialize a new `ResponseBase`.
+       *
+       * @api public
+       */
+
+      function ResponseBase(obj) {
+        if (obj) return mixin(obj);
       }
 
-      module.exports = request;
-    }, {}], 16: [function (require, module, exports) {
+      /**
+       * Mixin the prototype properties.
+       *
+       * @param {Object} obj
+       * @return {Object}
+       * @api private
+       */
+
+      function mixin(obj) {
+        for (var key in ResponseBase.prototype) {
+          obj[key] = ResponseBase.prototype[key];
+        }
+        return obj;
+      }
+
+      /**
+       * Get case-insensitive `field` value.
+       *
+       * @param {String} field
+       * @return {String}
+       * @api public
+       */
+
+      ResponseBase.prototype.get = function (field) {
+        return this.header[field.toLowerCase()];
+      };
+
+      /**
+       * Set header related properties:
+       *
+       *   - `.type` the content type without params
+       *
+       * A response of "Content-Type: text/plain; charset=utf-8"
+       * will provide you with a `.type` of "text/plain".
+       *
+       * @param {Object} header
+       * @api private
+       */
+
+      ResponseBase.prototype._setHeaderProperties = function (header) {
+        // TODO: moar!
+        // TODO: make this a util
+
+        // content-type
+        var ct = header['content-type'] || '';
+        this.type = utils.type(ct);
+
+        // params
+        var params = utils.params(ct);
+        for (var key in params) {
+          this[key] = params[key];
+        }this.links = {};
+
+        // links
+        try {
+          if (header.link) {
+            this.links = utils.parseLinks(header.link);
+          }
+        } catch (err) {
+          // ignore
+        }
+      };
+
+      /**
+       * Set flags such as `.ok` based on `status`.
+       *
+       * For example a 2xx response will give you a `.ok` of __true__
+       * whereas 5xx will be __false__ and `.error` will be __true__. The
+       * `.clientError` and `.serverError` are also available to be more
+       * specific, and `.statusType` is the class of error ranging from 1..5
+       * sometimes useful for mapping respond colors etc.
+       *
+       * "sugar" properties are also defined for common cases. Currently providing:
+       *
+       *   - .noContent
+       *   - .badRequest
+       *   - .unauthorized
+       *   - .notAcceptable
+       *   - .notFound
+       *
+       * @param {Number} status
+       * @api private
+       */
+
+      ResponseBase.prototype._setStatusProperties = function (status) {
+        var type = status / 100 | 0;
+
+        // status / class
+        this.status = this.statusCode = status;
+        this.statusType = type;
+
+        // basics
+        this.info = 1 == type;
+        this.ok = 2 == type;
+        this.redirect = 3 == type;
+        this.clientError = 4 == type;
+        this.serverError = 5 == type;
+        this.error = 4 == type || 5 == type ? this.toError() : false;
+
+        // sugar
+        this.accepted = 202 == status;
+        this.noContent = 204 == status;
+        this.badRequest = 400 == status;
+        this.unauthorized = 401 == status;
+        this.notAcceptable = 406 == status;
+        this.forbidden = 403 == status;
+        this.notFound = 404 == status;
+      };
+    }, { "./utils": 17 }], 17: [function (require, module, exports) {
+
+      /**
+       * Return the mime type for the given `str`.
+       *
+       * @param {String} str
+       * @return {String}
+       * @api private
+       */
+
+      exports.type = function (str) {
+        return str.split(/ *; */).shift();
+      };
+
+      /**
+       * Return header field parameters.
+       *
+       * @param {String} str
+       * @return {Object}
+       * @api private
+       */
+
+      exports.params = function (str) {
+        return str.split(/ *; */).reduce(function (obj, str) {
+          var parts = str.split(/ *= */);
+          var key = parts.shift();
+          var val = parts.shift();
+
+          if (key && val) obj[key] = val;
+          return obj;
+        }, {});
+      };
+
+      /**
+       * Parse Link header fields.
+       *
+       * @param {String} str
+       * @return {Object}
+       * @api private
+       */
+
+      exports.parseLinks = function (str) {
+        return str.split(/ *, */).reduce(function (obj, str) {
+          var parts = str.split(/ *; */);
+          var url = parts[0].slice(1, -1);
+          var rel = parts[1].split(/ *= */)[1].slice(1, -1);
+          obj[rel] = url;
+          return obj;
+        }, {});
+      };
+
+      /**
+       * Strip content related fields from `header`.
+       *
+       * @param {Object} header
+       * @return {Object} header
+       * @api private
+       */
+
+      exports.cleanHeader = function (header, shouldStripCookie) {
+        delete header['content-type'];
+        delete header['content-length'];
+        delete header['transfer-encoding'];
+        delete header['host'];
+        if (shouldStripCookie) {
+          delete header['cookie'];
+        }
+        return header;
+      };
+    }, {}], 18: [function (require, module, exports) {
       //     Underscore.js 1.8.3
       //     http://underscorejs.org
       //     (c) 2009-2015 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
@@ -4161,7 +4518,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           });
         }
       }).call(this);
-    }, {}], 17: [function (require, module, exports) {
+    }, {}], 19: [function (require, module, exports) {
       /**
        * 每位工程师都有保持代码优雅的义务
        * Each engineer has a duty to keep the code elegant
@@ -4427,11 +4784,11 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           throw "role must be a AV.Role or a String";
         };
       };
-    }, { "underscore": 16 }], 18: [function (require, module, exports) {
+    }, { "underscore": 18 }], 20: [function (require, module, exports) {
       (function (global) {
         module.exports = global.AV || {};
       }).call(this, typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {});
-    }, {}], 19: [function (require, module, exports) {
+    }, {}], 21: [function (require, module, exports) {
       (function (global) {
         /**
          * 每位工程师都有保持代码优雅的义务
@@ -4491,7 +4848,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
         module.exports = Storage;
       }).call(this, typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {});
-    }, { "../promise": 32, "localstorage-memory": 8, "react-native": 1, "underscore": 16 }], 20: [function (require, module, exports) {
+    }, { "../promise": 34, "localstorage-memory": 9, "react-native": 1, "underscore": 18 }], 22: [function (require, module, exports) {
       /**
        * 每位工程师都有保持代码优雅的义务
        * Each engineer has a duty to keep the code elegant
@@ -4520,7 +4877,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       };
 
       module.exports = dataURItoBlob;
-    }, {}], 21: [function (require, module, exports) {
+    }, {}], 23: [function (require, module, exports) {
       /**
        * 每位工程师都有保持代码优雅的义务
        * Each engineer has a duty to keep the code elegant
@@ -4563,7 +4920,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         }
         return storage.setItemAsync(AV.applicationId + "/" + key, JSON.stringify(cache));
       };
-    }, { "./av": 18, "./localstorage": 29 }], 22: [function (require, module, exports) {
+    }, { "./av": 20, "./localstorage": 31 }], 24: [function (require, module, exports) {
       /**
        * 每位工程师都有保持代码优雅的义务
        * Each engineer has a duty to keep the code elegant
@@ -4682,7 +5039,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           }
         });
       };
-    }, { "./request": 36, "underscore": 16 }], 23: [function (require, module, exports) {
+    }, { "./request": 38, "underscore": 18 }], 25: [function (require, module, exports) {
       /**
        * 每位工程师都有保持代码优雅的义务
        * Each engineer has a duty to keep the code elegant
@@ -5024,7 +5381,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       });
 
       module.exports = AVError;
-    }, { "underscore": 16 }], 24: [function (require, module, exports) {
+    }, { "underscore": 18 }], 26: [function (require, module, exports) {
       /**
        * 每位工程师都有保持代码优雅的义务
        * Each engineer has a duty to keep the code elegant
@@ -5183,7 +5540,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
          */
         AV.Events.unbind = AV.Events.off;
       };
-    }, {}], 25: [function (require, module, exports) {
+    }, {}], 27: [function (require, module, exports) {
       (function (global) {
         /**
          * 每位工程师都有保持代码优雅的义务
@@ -5952,7 +6309,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           };
         };
       }).call(this, typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {});
-    }, { "./browserify-wrapper/parse-base64": 20, "./error": 23, "./request": 36, "./uploader/cos": 40, "./uploader/qiniu": 41, "./uploader/s3": 42, "underscore": 16 }], 26: [function (require, module, exports) {
+    }, { "./browserify-wrapper/parse-base64": 22, "./error": 25, "./request": 38, "./uploader/cos": 42, "./uploader/qiniu": 43, "./uploader/s3": 44, "underscore": 18 }], 28: [function (require, module, exports) {
       /**
        * 每位工程师都有保持代码优雅的义务
        * Each engineer has a duty to keep the code elegant
@@ -6127,7 +6484,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           }
         };
       };
-    }, { "underscore": 16 }], 27: [function (require, module, exports) {
+    }, { "underscore": 18 }], 29: [function (require, module, exports) {
       /*!
        * LeanCloud JavaScript SDK
        * https://leancloud.cn
@@ -6183,7 +6540,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         console.warn('AV.Error() is deprecated, and will be removed in next release.');
         return new (Function.prototype.bind.apply(AVError, [null].concat(args)))();
       };
-    }, { "./acl": 17, "./av": 18, "./cache": 21, "./cloudfunction": 22, "./error": 23, "./event": 24, "./file": 25, "./geopoint": 26, "./insight": 28, "./localstorage": 29, "./object": 30, "./op": 31, "./promise": 32, "./push": 33, "./query": 34, "./relation": 35, "./role": 37, "./search": 38, "./status": 39, "./user": 43, "./utils": 44, "./version": 45, "underscore": 16 }], 28: [function (require, module, exports) {
+    }, { "./acl": 19, "./av": 20, "./cache": 23, "./cloudfunction": 24, "./error": 25, "./event": 26, "./file": 27, "./geopoint": 28, "./insight": 30, "./localstorage": 31, "./object": 32, "./op": 33, "./promise": 34, "./push": 35, "./query": 36, "./relation": 37, "./role": 39, "./search": 40, "./status": 41, "./user": 45, "./utils": 46, "./version": 47, "underscore": 18 }], 30: [function (require, module, exports) {
       /**
        * 每位工程师都有保持代码优雅的义务
        * Each engineer has a duty to keep the code elegant
@@ -6326,7 +6683,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
         };
       };
-    }, { "./error": 23, "./request": 36, "underscore": 16 }], 29: [function (require, module, exports) {
+    }, { "./error": 25, "./request": 38, "underscore": 18 }], 31: [function (require, module, exports) {
       /**
        * 每位工程师都有保持代码优雅的义务
        * Each engineer has a duty to keep the code elegant
@@ -6362,7 +6719,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       }
 
       module.exports = localStorage;
-    }, { "./browserify-wrapper/localStorage": 19, "./promise": 32, "underscore": 16 }], 30: [function (require, module, exports) {
+    }, { "./browserify-wrapper/localStorage": 21, "./promise": 34, "underscore": 18 }], 32: [function (require, module, exports) {
       /**
        * 每位工程师都有保持代码优雅的义务
        * Each engineer has a duty to keep the code elegant
@@ -7967,7 +8324,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           });
         };
       };
-    }, { "./error": 23, "./request": 36, "./utils": 44, "underscore": 16 }], 31: [function (require, module, exports) {
+    }, { "./error": 25, "./request": 38, "./utils": 46, "underscore": 18 }], 33: [function (require, module, exports) {
       /**
        * 每位工程师都有保持代码优雅的义务
        * Each engineer has a duty to keep the code elegant
@@ -8495,7 +8852,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           return new AV.Op.Relation([], AV._decode(undefined, json.objects));
         });
       };
-    }, { "underscore": 16 }], 32: [function (require, module, exports) {
+    }, { "underscore": 18 }], 34: [function (require, module, exports) {
       (function (process) {
         /**
          * 每位工程师都有保持代码优雅的义务
@@ -9099,7 +9456,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
          */
         Promise.prototype.try = Promise.prototype.done;
       }).call(this, require('_process'));
-    }, { "_process": 11, "underscore": 16 }], 33: [function (require, module, exports) {
+    }, { "_process": 11, "underscore": 18 }], 35: [function (require, module, exports) {
       /**
        * 每位工程师都有保持代码优雅的义务
        * Each engineer has a duty to keep the code elegant
@@ -9163,7 +9520,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           return request._thenRunCallbacks(options);
         };
       };
-    }, { "./request": 36 }], 34: [function (require, module, exports) {
+    }, { "./request": 38 }], 36: [function (require, module, exports) {
       /**
        * 每位工程师都有保持代码优雅的义务
        * Each engineer has a duty to keep the code elegant
@@ -10101,7 +10458,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           }
         });
       };
-    }, { "./error": 23, "./request": 36, "underscore": 16 }], 35: [function (require, module, exports) {
+    }, { "./error": 25, "./request": 38, "underscore": 18 }], 37: [function (require, module, exports) {
       /**
        * 每位工程师都有保持代码优雅的义务
        * Each engineer has a duty to keep the code elegant
@@ -10223,7 +10580,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           }
         };
       };
-    }, { "underscore": 16 }], 36: [function (require, module, exports) {
+    }, { "underscore": 18 }], 38: [function (require, module, exports) {
       (function (process) {
         /**
          * 每位工程师都有保持代码优雅的义务
@@ -10530,7 +10887,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           setServerUrlByRegion: setServerUrlByRegion
         };
       }).call(this, require('_process'));
-    }, { "./av": 18, "./cache": 21, "./error": 23, "./promise": 32, "_process": 11, "debug": 5, "md5": 9, "superagent": 12, "underscore": 16 }], 37: [function (require, module, exports) {
+    }, { "./av": 20, "./cache": 23, "./error": 25, "./promise": 34, "_process": 11, "debug": 6, "md5": 10, "superagent": 12, "underscore": 18 }], 39: [function (require, module, exports) {
       /**
        * 每位工程师都有保持代码优雅的义务
        * Each engineer has a duty to keep the code elegant
@@ -10668,7 +11025,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           }
         });
       };
-    }, { "./error": 23, "underscore": 16 }], 38: [function (require, module, exports) {
+    }, { "./error": 25, "underscore": 18 }], 40: [function (require, module, exports) {
       /**
        * 每位工程师都有保持代码优雅的义务
        * Each engineer has a duty to keep the code elegant
@@ -10954,7 +11311,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           }
         });
       };
-    }, { "./request": 36, "underscore": 16 }], 39: [function (require, module, exports) {
+    }, { "./request": 38, "underscore": 18 }], 41: [function (require, module, exports) {
       /**
        * 每位工程师都有保持代码优雅的义务
        * Each engineer has a duty to keep the code elegant
@@ -11329,7 +11686,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           return query;
         };
       };
-    }, { "./request": 36, "underscore": 16 }], 40: [function (require, module, exports) {
+    }, { "./request": 38, "underscore": 18 }], 42: [function (require, module, exports) {
       /**
        * 每位工程师都有保持代码优雅的义务
        * Each engineer has a duty to keep the code elegant
@@ -11372,7 +11729,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
         return promise;
       };
-    }, { "../promise": 32, "debug": 5, "superagent": 12 }], 41: [function (require, module, exports) {
+    }, { "../promise": 34, "debug": 6, "superagent": 12 }], 43: [function (require, module, exports) {
       /**
        * 每位工程师都有保持代码优雅的义务
        * Each engineer has a duty to keep the code elegant
@@ -11416,7 +11773,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
         return promise;
       };
-    }, { "../promise": 32, "debug": 5, "superagent": 12 }], 42: [function (require, module, exports) {
+    }, { "../promise": 34, "debug": 6, "superagent": 12 }], 44: [function (require, module, exports) {
       /**
        * 每位工程师都有保持代码优雅的义务
        * Each engineer has a duty to keep the code elegant
@@ -11451,7 +11808,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
         return promise;
       };
-    }, { "../promise": 32, "superagent": 12 }], 43: [function (require, module, exports) {
+    }, { "../promise": 34, "superagent": 12 }], 45: [function (require, module, exports) {
       /**
        * 每位工程师都有保持代码优雅的义务
        * Each engineer has a duty to keep the code elegant
@@ -12541,7 +12898,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         delete newOptions.error;
         return newOptions;
       }
-    }, { "./error": 23, "./request": 36, "underscore": 16 }], 44: [function (require, module, exports) {
+    }, { "./error": 25, "./request": 38, "underscore": 18 }], 46: [function (require, module, exports) {
       (function (process) {
         /**
          * 每位工程师都有保持代码优雅的义务
@@ -12913,12 +13270,18 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
               if (!value.url() && !value.id) {
                 throw "Tried to save an object containing an unsaved file.";
               }
-              return {
+              var json = {
                 __type: "File",
                 id: value.id,
+                objectId: value.id,
                 name: value.name(),
                 url: value.url()
               };
+              var createdAt = value.get('createdAt');
+              if (createdAt) json.createdAt = createdAt.toJSON();
+              var updatedAt = value.get('updatedAt');
+              if (updatedAt) json.updatedAt = updatedAt.toJSON();
+              return json;
             }
             if (_.isObject(value)) {
               var output = {};
@@ -13100,12 +13463,12 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           ensureArray: ensureArray
         };
       }).call(this, require('_process'));
-    }, { "./request": 36, "_process": 11, "underscore": 16 }], 45: [function (require, module, exports) {
+    }, { "./request": 38, "_process": 11, "underscore": 18 }], 47: [function (require, module, exports) {
       /**
        * 每位工程师都有保持代码优雅的义务
        * Each engineer has a duty to keep the code elegant
       **/
 
-      module.exports = 'js1.5.3';
-    }, {}] }, {}, [27])(27);
+      module.exports = 'js1.5.4';
+    }, {}] }, {}, [29])(29);
 });

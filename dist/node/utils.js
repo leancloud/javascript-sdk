@@ -372,12 +372,18 @@ var init = function init(AV) {
       if (!value.url() && !value.id) {
         throw "Tried to save an object containing an unsaved file.";
       }
-      return {
+      var json = {
         __type: "File",
         id: value.id,
+        objectId: value.id,
         name: value.name(),
         url: value.url()
       };
+      var createdAt = value.get('createdAt');
+      if (createdAt) json.createdAt = createdAt.toJSON();
+      var updatedAt = value.get('updatedAt');
+      if (updatedAt) json.updatedAt = updatedAt.toJSON();
+      return json;
     }
     if (_.isObject(value)) {
       var output = {};
