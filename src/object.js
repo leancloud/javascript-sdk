@@ -211,21 +211,12 @@ module.exports = function(AV) {
       if (_.has(this, "id")) {
         json.objectId = this.id;
       }
-      if (_.has(this, "createdAt")) {
-        if (_.isDate(this.createdAt)) {
-          json.createdAt = this.createdAt.toJSON();
-        } else {
-          json.createdAt = this.createdAt;
+      _(['createdAt', 'updatedAt']).each((key) => {
+        if (_.has(this, key)) {
+          const val = this[key];
+          json[key] = _.isDate(val) ? val.toJSON() : val;
         }
-      }
-
-      if (_.has(this, "updatedAt")) {
-        if (_.isDate(this.updatedAt)) {
-          json.updatedAt = this.updatedAt.toJSON();
-        } else {
-          json.updatedAt = this.updatedAt;
-        }
-      }
+      });
       json.__type = "Object";
       json.className = this.className;
       return json;

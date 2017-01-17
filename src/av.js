@@ -248,12 +248,7 @@ AV._encode = function(value, seenObjects, disallowObjects) {
     if (!value.url() && !value.id) {
       throw new Error("Tried to save an object containing an unsaved file.");
     }
-    return {
-      __type: "File",
-      id:  value.id,
-      name: value.name(),
-      url: value.url()
-    };
+    return value._toFullJSON();
   }
   if (_.isObject(value)) {
     return _.mapObject(value, (v, k) => AV._encode(v, seenObjects, disallowObjects));
