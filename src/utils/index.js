@@ -24,8 +24,11 @@ const getSessionToken = (authOptions) => {
   }
 };
 
+const tap = interceptor => value => ((interceptor(value), value));
+
 module.exports = {
   isNullOrUndefined,
   ensureArray,
   getSessionToken,
+  tap,
 };
