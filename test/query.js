@@ -210,8 +210,11 @@ describe('Queries', function () {
 
     it('containsAll with an large array should not cause URI too long', () => {
       return new AV.Query(GameScore)
-        .containsAll('test', new Array(1000).fill('5821abe62e958a00540046d5'))
-        .find();
+        .containsAll('arr', new Array(200).fill('contains-all-test'))
+        .find()
+        .then(gameScores => {
+          gameScores.should.have.length(1);
+        });
     });
   });
 

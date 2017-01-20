@@ -240,9 +240,27 @@ module.exports = function(AV) {
       }
       return obj;
     },
-    _createRequest: function(params, options){
-      return AVRequest('classes', this.className, null, "GET",
-                                   params || this.toJSON(), options);
+    _createRequest(params = this.toJSON(), options) {
+      if (JSON.stringify(params).length > 2000) {
+        const body = {
+          requests: [{
+            method: 'GET',
+            path: `/1.1/classes/${this.className}`,
+            params,
+          }],
+        };
+        return AVRequest('batch', null, null, 'POST', body, options)
+          .then(response => {
+            const result = response[0];
+            if (result.success) {
+              return result.success;
+            }
+            const error = new Error(result.error.error || 'Unknown batch error');
+            error.code = result.error.code;
+            throw error;
+          });
+      }
+      return AVRequest('classes', this.className, null, "GET", params, options);
     },
 
     /**
@@ -255,7 +273,7 @@ module.exports = function(AV) {
     find: function(options) {
       var self = this;
 
-      var request = this._createRequest(null, options);
+      var request = this._createRequest(undefined, options);
 
       return request.then(function(response) {
         return _.map(response.results, function(json) {
