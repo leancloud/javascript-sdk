@@ -187,7 +187,7 @@ describe('Queries', function () {
           expect(gameScore.get('playerName')).to.be(undefined);
         });
     });
-    
+
     it('include with multi params', function() {
       return new AV.Query(GameScore)
         .include('score', 'test')
@@ -381,4 +381,42 @@ describe('Queries', function () {
     });
   });
 
+  describe('scan', () => {
+    const now = Date.now();
+    before(function () {
+      this.savePromise = AV.Object.saveAll(
+        (new Array(4).fill(now)).map(ts => new TestClass().set('timestamp', ts))
+      );
+      return this.savePromise;
+    });
+
+    after(function () {
+      return this.savePromise.then(AV.Object.destroyAll);
+    });
+
+    it('should works', () => {
+      const scan = new AV.Query(TestClass).equalTo('timestamp', now).scan({
+        orderedBy: 'objectId',
+        batchSize: 2,
+      }, {
+        useMasterKey: true,
+      });
+      return scan.next().then(({ value, done }) => {
+        value.should.be.instanceof(TestClass);
+        done.should.be.false();
+      }).then(() => scan.next()).then(({ value, done }) => {
+        value.should.be.instanceof(TestClass);
+        done.should.be.false();
+      }).then(() => scan.next()).then(({ value, done }) => {
+        value.should.be.instanceof(TestClass);
+        done.should.be.false();
+      }).then(() => scan.next()).then(({ value, done }) => {
+        value.should.be.instanceof(TestClass);
+        done.should.be.true();
+      }).then(() => scan.next()).then(({ value, done }) => {
+        expect(value).to.eql(undefined);
+        done.should.be.true();
+      });
+    });
+  });
 });
