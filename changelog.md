@@ -1,3 +1,14 @@
+## 2.0.1 (2017-01-20)
+### Bug Fixes
+* 修复了 `File#toJSON` 序列化结果中缺失 objectId 等字段的问题
+* 修复了使用 `Query#containsAll`、`Query#containedIn` 或 `Query#notContainedIn` 方法传入大数组时查询结果可能为空的问题
+* 修复了文件上传失败后 _File 表中仍有可能残留无效文件记录的问题
+
+### Features
+* 增加了 `User#refreshSessionToken` 方法用于刷新用户的 sessionToken
+* 增加了 `Query#scan` 方法用于遍历 Class
+* 应用内社交模块增加了 `Status.resetUnreadCount` 方法用于重置未读消息数
+
 ## 2.0.1 (2017-01-12)
 ### Bug Fixes
 * 修复了在 Node.js 中向国内节点上传文件抛异常的问题
@@ -104,7 +115,7 @@
 
 ### Bug Fixes
 * 修复了在进行以下操作时可能出现 `URI too long` 异常的问题
-  * 使用 `Query#containsAll`、`Qeruy#containedIn` 或 `Query#notContainedIn` 方法时传入了一个大数组
+  * 使用 `Query#containsAll`、`Query#containedIn` 或 `Query#notContainedIn` 方法时传入了一个大数组
   * 使用 `Object.destroyAll` 方法批量删除大量对象
 * 修复了 `Object.set(key, value)` 方法可能会改变（mutate）`value` 的问题
 * 修复了查询结果中 File 没有被正确解析的问题
@@ -144,7 +155,7 @@
 
 ### Bug Fixes
 * 修复了在进行以下操作时可能出现 `URI too long` 异常的问题
-  * 使用 `Query#containsAll`、`Qeruy#containedIn` 或 `Query#notContainedIn` 方法时传入了一个大数组
+  * 使用 `Query#containsAll`、`Query#containedIn` 或 `Query#notContainedIn` 方法时传入了一个大数组
   * 使用 `Object.destroyAll` 方法批量删除大量对象
 * 修复了在 React Native 及小程序中使用 `AV.setProduction` 方法会导致后续操作引起 crash 的问题
 * 修复了 `Object.set(key, value)` 方法可能会改变（mutate）`value` 的问题

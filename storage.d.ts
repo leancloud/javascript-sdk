@@ -1,3 +1,7 @@
+interface AsyncIterator<T> {
+  next(): Promise<IteratorResult<T>>
+}
+
 declare namespace AV {
 
     export var applicationId: string;
@@ -448,6 +452,7 @@ declare namespace AV {
         withinKilometers(key: string, point: GeoPoint, maxDistance: number): Query;
         withinMiles(key: string, point: GeoPoint, maxDistance: number): Query;
         withinRadians(key: string, point: GeoPoint, maxDistance: number): Query;
+        scan<T>(options?:{ orderedBy?: string, batchSize?: number }, authOptions?: AuthOptions): AsyncIterator<T>
     }
 
     export namespace Query {
@@ -529,6 +534,7 @@ declare namespace AV {
 
         setPassword(password: string, options?: AuthOptions): boolean;
         getSessionToken(): string;
+        refreshSessionToken(options?: AuthOptions): Promise<User>;
 
         getRoles(options?: AuthOptions): Promise<Role>;
     }
