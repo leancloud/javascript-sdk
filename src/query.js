@@ -291,8 +291,10 @@ module.exports = function(AV) {
      * scan a Query. masterKey required.
      *
      * @since 2.1.0
-     * @param {String} orderedBy
-     * @param {Number} batchSize
+     * @param {object} [options]
+     * @param {string} [options.orderedBy] specify the key to sort
+     * @param {number} [options.batchSize] specify the batch size for each request
+     * @param {AuthOptions} [authOptions]
      * @return {AsyncIterator.<AV.Object>}
      * @example const scan = new AV.Query(TestClass).scan({
      *   orderedBy: 'objectId',
