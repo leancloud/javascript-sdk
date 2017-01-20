@@ -290,6 +290,7 @@ module.exports = function(AV) {
     /**
      * scan a Query. masterKey required.
      *
+     * @since 2.1.0
      * @param {String} orderedBy
      * @param {Number} batchSize
      * @return {AsyncIterator.<AV.Object>}
