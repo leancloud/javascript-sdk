@@ -1,4 +1,6 @@
 const _ = require('underscore');
+const debug = require('debug')('leancloud:query');
+const Promise = require('./promise');
 const AVError = require('./error');
 const AVRequest = require('./request').request;
 const { ensureArray } = require('./utils');
@@ -263,6 +265,16 @@ module.exports = function(AV) {
       return AVRequest('classes', this.className, null, "GET", params, options);
     },
 
+    _parseResponse(response) {
+      return _.map(response.results, (json) => {
+        var obj = this._newObject(response);
+        if (obj._finishFetch) {
+          obj._finishFetch(this._processResult(json), true);
+        }
+        return obj;
+      });
+    },
+
     /**
      * Retrieves a list of AVObjects that satisfy this query.
      *
@@ -270,20 +282,90 @@ module.exports = function(AV) {
      * @return {Promise} A promise that is resolved with the results when
      * the query completes.
      */
-    find: function(options) {
-      var self = this;
+    find(options) {
+      const request = this._createRequest(undefined, options);
+      return request.then(this._parseResponse.bind(this));
+    },
 
-      var request = this._createRequest(undefined, options);
-
-      return request.then(function(response) {
-        return _.map(response.results, function(json) {
-          var obj = self._newObject(response);
-          if (obj._finishFetch) {
-            obj._finishFetch(self._processResult(json), true);
-          }
-          return obj;
-        });
-      });
+    /**
+     * scan a Query. masterKey required.
+     *
+     * @param {String} orderedBy
+     * @param {Number} batchSize
+     * @return {AsyncIterator.<AV.Object>}
+     * @example const scan = new AV.Query(TestClass).scan({
+     *   orderedBy: 'objectId',
+     *   batchSize: 10,
+     * }, {
+     *   useMasterKey: true,
+     * });
+     * const getTen = () => Promise.all(new Array(10).fill(0).map(() => scan.next()));
+     * getTen().then(results => {
+     *   // results are fisrt 10 instances of TestClass
+     *   return getTen();
+     * }).then(results => {
+     *   // 11 - 20
+     * });
+     */
+    scan({
+      orderedBy,
+      batchSize,
+    } = {}, authOptions) {
+      const condition = this.toJSON();
+      debug('scan %O', condition);
+      if (condition.order) {
+        console.warn('The order of the query is ignored for Query#scan. Checkout the orderedBy option of Query#scan.');
+        delete condition.order;
+      }
+      if (condition.skip) {
+        console.warn('The skip option of the query is ignored for Query#scan.');
+        delete condition.skip;
+      }
+      if (condition.limit) {
+        console.warn('The limit option of the query is ignored for Query#scan.');
+        delete condition.limit;
+      }
+      if (orderedBy) condition.scan_key = orderedBy;
+      if (batchSize) condition.limit = batchSize;
+      let promise = Promise.resolve([]);
+      let cursor;
+      let done = false;
+      return {
+        next: () => {
+          promise = promise.then((remainResults) => {
+            if (done) return [];
+            if (remainResults.length > 1) return remainResults;
+            // no cursor means we have reached the end
+            // except for the first time
+            if (!cursor && remainResults.length !== 0) {
+              done = true;
+              return remainResults;
+            }
+            // when only 1 item left in queue
+            // start the next request to see if it is the last one
+            return AVRequest(
+              'scan/classes',
+              this.className,
+              null,
+              'GET',
+              cursor ? _.extend({}, condition, { cursor }) : condition,
+              authOptions
+            ).then(response => {
+              cursor = response.cursor;
+              return this._parseResponse(response);
+            }).then(results => {
+              if (!results.length) done = true;
+              return remainResults.concat(results);
+            });
+          });
+          return promise
+            .then(remainResults => remainResults.shift())
+            .then(result => ({
+              value: result,
+              done,
+            }));
+        },
+      };
     },
 
    /**
