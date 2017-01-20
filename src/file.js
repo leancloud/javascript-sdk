@@ -5,6 +5,8 @@ const s3 = require('./uploader/s3');
 const AVError = require('./error');
 const AVRequest = require('./request').request;
 const Promise = require('./promise');
+const { tap } = require('./utils');
+const debug = require('debug')('leancloud:file');
 
 module.exports = function(AV) {
 
@@ -426,12 +428,7 @@ module.exports = function(AV) {
         metaData: this.attributes.metaData,
       };
       this._qiniu_key = key;
-      return AVRequest(route, null, null, 'POST', data).then(response => {
-        if (response.mime_type) {
-          this.set('mime_type', response.mime_type);
-        }
-        return response;
-      });
+      return AVRequest(route, null, null, 'POST', data);
     },
 
     /**
@@ -453,6 +450,11 @@ module.exports = function(AV) {
           this._previousSave = this._source.then(({ data, type }) =>
             this._fileToken(type)
               .then(uploadInfo => {
+                if (uploadInfo.mime_type) {
+                  this.set('mime_type', uploadInfo.mime_type);
+                }
+                this._token = uploadInfo.token;
+
                 let uploadPromise;
                 switch (uploadInfo.provider) {
                   case 's3':
@@ -466,11 +468,13 @@ module.exports = function(AV) {
                     uploadPromise = qiniu(uploadInfo, data, this, options);
                     break;
                 }
-                return uploadPromise.catch(err => {
-                  // destroy this file object when upload fails.
-                  this.destroy();
-                  throw err;
-                });
+                return uploadPromise.then(
+                  tap(() => this._callback(true)),
+                  (error) => {
+                    this._callback(false);
+                    throw error;
+                  }
+                );
               })
           );
         } else if (this.attributes.url && this.attributes.metaData.__source === 'external') {
@@ -495,6 +499,15 @@ module.exports = function(AV) {
       }
       return this._previousSave;
     },
+
+    _callback(success) {
+      AVRequest('fileCallback', null, null, 'post', {
+        token: this._token,
+        result: success,
+      }).catch(debug);
+      delete this._token;
+    },
+
     /**
     * fetch the file from server. If the server's representation of the
     * model differs from its current attributes, they will be overriden,
