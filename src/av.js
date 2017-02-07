@@ -282,6 +282,9 @@ AV._decode = function(value, key) {
   if (value instanceof AV.ACL) {
     return value;
   }
+  if (key === 'ACL') {
+    return new AV.ACL(value);
+  }
   if (value.__op) {
     return AV.Op._decode(value);
   }
@@ -331,12 +334,7 @@ AV._decode = function(value, key) {
     file._finishFetch(v);
     return file;
   }
-  return _.mapObject(value, function(v, k) {
-    if (k === "ACL") {
-      return new AV.ACL(v);
-    }
-    return AV._decode(v, k);
-  });
+  return _.mapObject(value, AV._decode);
 };
 
 AV._encodeObjectOrArray = function(value) {

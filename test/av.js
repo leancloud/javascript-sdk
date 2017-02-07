@@ -34,6 +34,12 @@ describe('AV utils', () => {
       AV._decode('false').should.be.exactly('false');
     });
 
+    it('should decode ACL', () => {
+      AV._decode(new AV.ACL(), 'ACL').should.be.instanceof(AV.ACL);
+      AV._decode({ '*': { read: true, write: true } }, 'ACL').should.be.instanceof(AV.ACL);
+      AV._decode({ '*': { read: true, write: true } }).should.not.be.instanceof(AV.ACL);
+    });
+
     it('should decode File', () => {
       const fileId = '1111111';
       const json = { "mime_type": "image/png", "updatedAt": "2016-12-30T06:55:43.561Z", "key": "d7aaab5c477b289980fc.png", "name": "lc.png", "objectId": fileId, "createdAt": "2016-12-30T06:55:43.561Z", "__type": "File", "url": "", "bucket": "rYAutyUJ" };
