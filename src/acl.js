@@ -83,7 +83,7 @@ module.exports = function(AV) {
     } else {
       delete permissions[accessType];
       if (_.isEmpty(permissions)) {
-        delete permissions[userId];
+        delete this.permissionsById[userId];
       }
     }
   };
