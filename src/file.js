@@ -415,10 +415,14 @@ module.exports = function(AV) {
      * @private
      */
     _fileToken(type, route = 'fileTokens') {
-      const name = this.attributes.name;
+      let name = this.attributes.name;
 
+      let extName = extname(name);
+      if (!extName && this._extName) {
+        name += this._extName;
+        extName = this._extName;
+      }
       // Create 16-bits uuid as qiniu key.
-      const extName = extname(name) || this._extName;
       const key = hexOctet() + hexOctet() + hexOctet() + hexOctet() + hexOctet() + extName;
       const data = {
         key,
