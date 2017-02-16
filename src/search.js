@@ -17,7 +17,7 @@ module.exports = function(AV) {
     this._sortFields = [];
   };
 
-  AV.SearchSortBuilder.prototype = {
+  _.extend(AV.SearchSortBuilder.prototype, /** @lends AV.SearchSortBuilder.prototype */ {
     _addField: function(key, order, mode, missing) {
       var field = {};
       field[key] = {
@@ -92,7 +92,7 @@ module.exports = function(AV) {
     build: function() {
       return JSON.stringify(AV._encode(this._sortFields));
     }
-  };
+  });
 
   /**
    * App searching query.Use just like AV.Query:

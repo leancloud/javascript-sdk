@@ -77,7 +77,7 @@ module.exports = function(AV) {
     this._limit = 100;
   };
 
-  AV.Insight.JobQuery.prototype = {
+  _.extend(AV.Insight.JobQuery.prototype, /** @lends AV.Insight.JobQuery.prototype */ {
 
     /**
      * Sets the number of results to skip before returning any results.
@@ -129,6 +129,6 @@ module.exports = function(AV) {
       });
     }
 
-  };
+  });
 
 };

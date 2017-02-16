@@ -205,7 +205,7 @@ AV._getValue = function(object, prop) {
  * is set, then none of the AV Objects that are serialized can be dirty.
  * @private
  */
-AV._encode = function(value, seenObjects, disallowObjects) {
+AV._encode = function(value, seenObjects, disallowObjects, full) {
   if (value instanceof AV.Object) {
     if (disallowObjects) {
       throw new Error("AV.Objects not allowed here");
@@ -213,26 +213,20 @@ AV._encode = function(value, seenObjects, disallowObjects) {
     if (!seenObjects || _.include(seenObjects, value) || !value._hasData) {
       return value._toPointer();
     }
-    if (!value.dirty()) {
-      seenObjects = seenObjects.concat(value);
-      return AV._encode(value._toFullJSON(seenObjects),
-                           seenObjects,
-                           disallowObjects);
-    }
-    throw new Error("Tried to save an object with a pointer to a new, unsaved object.");
+    return value._toFullJSON(seenObjects.concat(value), full);
   }
   if (value instanceof AV.ACL) {
     return value.toJSON();
   }
   if (_.isDate(value)) {
-    return { "__type": "Date", "iso": value.toJSON() };
+    return full ? { "__type": "Date", "iso": value.toJSON() } : value.toJSON();
   }
   if (value instanceof AV.GeoPoint) {
     return value.toJSON();
   }
   if (_.isArray(value)) {
     return _.map(value, function(x) {
-      return AV._encode(x, seenObjects, disallowObjects);
+      return AV._encode(x, seenObjects, disallowObjects, full);
     });
   }
   if (_.isRegExp(value)) {
@@ -248,10 +242,10 @@ AV._encode = function(value, seenObjects, disallowObjects) {
     if (!value.url() && !value.id) {
       throw new Error("Tried to save an object containing an unsaved file.");
     }
-    return value._toFullJSON();
+    return value._toFullJSON(seenObjects, full);
   }
   if (_.isObject(value)) {
-    return _.mapObject(value, (v, k) => AV._encode(v, seenObjects, disallowObjects));
+    return _.mapObject(value, (v, k) => AV._encode(v, seenObjects, disallowObjects, full));
   }
   return value;
 };
@@ -336,6 +330,14 @@ AV._decode = function(value, key) {
   }
   return _.mapObject(value, AV._decode);
 };
+
+/**
+ * The inverse function of {@link AV.Object#toFullJSON}.
+ * @since 2.0.0
+ * @param {Object}
+ * return {AV.Object|AV.File|any}
+ */
+AV.parseJSON = AV._decode;
 
 AV._encodeObjectOrArray = function(value) {
   var encodeAVObject = function(object) {

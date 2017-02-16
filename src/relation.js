@@ -38,7 +38,7 @@ module.exports = function(AV) {
     return query;
   };
 
-  AV.Relation.prototype = {
+  _.extend(AV.Relation.prototype, /** @lends AV.Relation.prototype */ {
     /**
      * Makes sure that this relation has the right parent and key.
      * @private
@@ -111,5 +111,5 @@ module.exports = function(AV) {
 
       return query;
     }
-  };
+  });
 };

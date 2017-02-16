@@ -107,6 +107,158 @@ describe('Objects', function(){
       parsedGameScore.get('score').should.eql(gameScore.get('score'));
     });
 
+    it('toJSON for nested objects', () => {
+      const id = 'fakeObjectId';
+      const a = AV.Object.createWithoutData('A', id, true);
+      const b = AV.Object.createWithoutData('B', id, true);
+      const c = AV.Object.createWithoutData('C', id, true);
+      c.set('foo', 'bar');
+      c.set('a', a);
+      c.set('b', b);
+      b.set('c', c);
+      a.set('array', [b, c]);
+
+      a.toJSON().should.eql({
+        objectId: id,
+        array: [
+          {
+            objectId: id,
+            c: {
+              objectId: id,
+              foo: 'bar',
+              a: { __type: 'Pointer', className: 'A', objectId: id },
+              b: { __type: 'Pointer', className: 'B', objectId: id },
+            },
+          },
+          {
+            objectId: id,
+            foo: 'bar',
+            a: { __type: 'Pointer', className: 'A', objectId: id },
+            b: {
+              objectId: id,
+              c: { __type: 'Pointer', className: 'C', objectId: id },
+            },
+          },
+        ],
+      });
+
+      a.toFullJSON().should.eql({
+        __type: 'Object',
+        className: 'A',
+        objectId: id,
+        array: [
+          {
+            __type: 'Pointer',
+            className: 'B',
+            objectId: id,
+            c: {
+              __type: 'Pointer',
+              className: 'C',
+              objectId: id,
+              foo: 'bar',
+              a: { __type: 'Pointer', className: 'A', objectId: id },
+              b: { __type: 'Pointer', className: 'B', objectId: id },
+            },
+          },
+          {
+            __type: 'Pointer',
+            className: 'C',
+            objectId: id,
+            foo: 'bar',
+            a: { __type: 'Pointer', className: 'A', objectId: id },
+            b: {
+              __type: 'Pointer',
+              className: 'B',
+              objectId: id,
+              c: { __type: 'Pointer', className: 'C', objectId: id },
+            },
+          },
+        ],
+      });
+
+      const response = {
+        "__type":'Object',
+        "className":'A',
+        "foo": "bar",
+        "createdAt": "2017-02-15T14:08:39.892Z",
+        "updatedAt": "2017-02-20T07:31:57.808Z",
+        "b": {
+          "a": {
+            "foo": "bar",
+            "createdAt": "2017-02-15T14:08:39.892Z",
+            "updatedAt": "2017-02-20T07:31:57.808Z",
+            "b": {
+              "__type": "Pointer",
+              "className": "B",
+              "objectId": "58a461118d6d8100580a0c54"
+            },
+            "time": {
+              "__type": "Date",
+              "iso": "2011-11-11T03:11:11.000Z"
+            },
+            "file": {
+              "__type": "Pointer",
+              "className": "_File",
+              "objectId": "58a42299570c35006cdfdd5c"
+            },
+            "objectId": "58a460e78d6d810057e9f616",
+            "__type": "Pointer",
+            "className": "A"
+          },
+          "createdAt": "2017-02-15T14:09:21.965Z",
+          "updatedAt": "2017-02-15T14:09:21.965Z",
+          "objectId": "58a461118d6d8100580a0c54",
+          "__type": "Pointer",
+          "className": "B"
+        },
+        "time": {
+          "__type": "Date",
+          "iso": "2011-11-11T03:11:11.000Z"
+        },
+        "file": {
+          "mime_type": "image/jpeg",
+          "updatedAt": "2017-02-15T09:42:49.960Z",
+          "name": "file-name.jpg",
+          "objectId": "58a42299570c35006cdfdd5c",
+          "createdAt": "2017-02-15T09:42:49.960Z",
+          "__type": "File",
+          "url": "http://ac-rYAutyUJ.clouddn.com/9a403255e8e55d309d81.jpg",
+          "metaData": {
+            "owner": "589aeac3128fe10058fde344"
+          },
+          "bucket": "rYAutyUJ"
+        },
+        "inlineFile": {
+          "name": "README.md",
+          "url": "http://ac-rYAutyUJ.clouddn.com/c5e38dfc54ab3db0c051.md",
+          "mime_type": "application/octet-stream",
+          "bucket": "rYAutyUJ",
+          "metaData": {
+            "owner": "unknown",
+            "size": 3296
+          },
+          "objectId": "58aaac378d6d810058b790dd",
+          "createdAt": "2017-02-20T08:43:35.719Z",
+          "updatedAt": "2017-02-20T08:43:35.719Z",
+          "__type": "File"
+        },
+        "objectId": "58a460e78d6d810057e9f616"
+      };
+      
+      AV.parseJSON(response).toFullJSON().should.eql(response);
+      
+      // should be shallow for backward compatiblity
+      a._toFullJSON().should.eql({
+        __type: 'Object',
+        className: 'A',
+        objectId: id,
+        array: [
+          { __type: 'Pointer', className: 'B', objectId: id },
+          { __type: 'Pointer', className: 'C', objectId: id },
+        ],
+      });
+    });
+
     it('should create a User',function(){
       var User = AV.Object.extend("User");
       var u = new User();

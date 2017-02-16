@@ -152,9 +152,8 @@ describe('File', function() {
       });
       it('decode and encode', function () {
         const json = this.file.toJSON();
-        // backward compatible check
-        json.should.have.properties(['__type', 'id', 'name', 'url']);
-        const file = AV._decode(json);
+        json.should.have.properties(['objectId', 'name', 'url']);
+        const file = AV._decode(this.file._toFullJSON());
         expect(file).to.be.a(AV.File);
         expect(file.id).to.be(fileId);
         expect(file.name()).to.be('myfile.txt');

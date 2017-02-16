@@ -198,13 +198,13 @@ module.exports = function(AV) {
     return file;
   };
 
-  AV.File.prototype = {
+  _.extend(AV.File.prototype, /** @lends AV.File.prototype */ {
     className: '_File',
 
-    _toFullJSON(seenObjects) {
+    _toFullJSON(seenObjects, full = true) {
       var json = _.clone(this.attributes);
       AV._objectEach(json, function(val, key) {
-        json[key] = AV._encode(val, seenObjects);
+        json[key] = AV._encode(val, seenObjects, undefined, full);
       });
       AV._objectEach(this._operations, function(val, key) {
         json[key] = val;
@@ -219,17 +219,28 @@ module.exports = function(AV) {
           json[key] = _.isDate(val) ? val.toJSON() : val;
         }
       });
-      json.__type = "File";
+      if (full) {
+        json.__type = "File";
+      }
       return json;
     },
 
-    toJSON() {
-      const json = this._toFullJSON();
-      // add id and keep __type for backward compatible
-      if (_.has(this, 'id')) {
-        json.id = this.id;
-      }
-      return json;
+    /**
+     * Returns a JSON version of the file with meta data.
+     * Inverse to {@link AV.parseJSON}
+     * @since 2.0.0
+     * @return {Object}
+     */
+    toFullJSON(seenObjects = []) {
+      return this._toFullJSON(seenObjects);
+    },
+
+    /**
+     * Returns a JSON version of the object.
+     * @return {Object}
+     */
+    toJSON: function(key, holder, seenObjects = [this]) {
+      return this._toFullJSON(seenObjects, false);
     },
 
     /**
@@ -545,5 +556,5 @@ module.exports = function(AV) {
       _.extend(this, value);
       return this;
     }
-  };
+  });
 };
