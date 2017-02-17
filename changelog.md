@@ -1,3 +1,8 @@
+## 2.1.2 (2017-02-17)
+### Bug Fixes
+* 修复了文件上传时，如果 `fileName` 没有指定扩展名会导致上传文件 `mime-type` 不符合预期的问题
+* 修复了清空 ACL 部分对象的权限后没有正常删除对象的问题（by [AntSworD](https://github.com/AntSworD)）
+
 ## 2.1.1 (2017-02-07)
 ### Bug Fixes
 * 修复了使用 masterKey 获取一个 object 后再次 save 可能会报 ACL 格式不正确的问题。
