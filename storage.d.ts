@@ -116,7 +116,7 @@ declare namespace AV {
      *     this is omitted, the content type will be inferred from the name's
      *     extension.
      */
-    export class File {
+    export class File extends BaseObject {
 
         constructor(name: string, data: any, type?: string);
         static withURL(name: string, url: string): File;
@@ -134,6 +134,7 @@ declare namespace AV {
         setACL(acl?: ACL): any;
         size(): any;
         thumbnailURL(width: number, height: number): string;
+        toFullJSON(): any;
     }
 
     /**
@@ -268,7 +269,7 @@ declare namespace AV {
         setACL(acl: ACL, options?: Object.SetOptions): boolean;
         unset(attr: string, options?: Object.SetOptions): any;
         validate(attrs: any): any;
-
+        toFullJSON(): any;
     }
 
     export namespace Object {
@@ -689,6 +690,8 @@ declare namespace AV {
     /**
     *options : {appId:'',appKey:'',masterKey:''}
     */
-    export function init(options: any): void;
+    export function init(options: { appId: string, appKey: string, masterKey?: string}): void;
+
+    export function parseJSON(json: any): Object|File|any;
 }
 export = AV;

@@ -1,3 +1,48 @@
+# 3.0.0-beta.0 (2017-02-22)
+### Breaking Changes
+重新设计了 `AV.Object` 序列化相关的方法：
+- 如果需要将 `AV.Object` 中的有效信息转换成 JSON Object，请使用 `AV.Object#toJSON` 方法。请注意通过此方法得到的 JSON 不包含对象的元信息，因此是不可逆的（无法转换回 `AV.Object`）。
+- 如果需要「存储」或「传输」`AV.Object`，请使用新增的 `AV.Object#toFullJSON`（序列化）与 `AV.parseJSON`（反序列化）方法。
+
+新版中的 `AV.Object#toJSON` 相比于 v2 有以下区别：
+- 如果对象某个字段类型是 Pointer，并且有内容（included），新版中会递归地输出这个字段的有效信息（旧版中会输出一个 Pointer 结构）
+  <details>
+  
+  ```javascript
+  new AV.Query('Child').include('father').first()
+    .then(child => child.toJSON().father)
+    .then(console.log);
+  /*
+  v3: {
+    objectId: "58a461118d6d8100580a0c54",
+    name: "John Doe",
+    createdAt: "2017-02-15T14:08:39.892Z",
+    updatedAt: "2017-02-16T10:49:00.176Z"
+  }
+  v2: {
+    objectId: "58a461118d6d8100580a0c54",
+    __type: "Pointer",
+    className: "Parent",
+  }
+  ```
+
+- 如果字段的类型是 `Date`，新版中会输出该时间的 UTC 格式字符串（旧版中会输出一个 Date 结构）
+  <details>
+  
+  ```javascript
+  const child = new Child().set('birthday', new Data());
+  console.log(child.toJSON().birthday);
+  /*
+  v3: "2011-11-11T03:11:11.000Z"
+  v2: {
+    __type: "Date",
+    iso: "2011-11-11T03:11:11.000Z"
+  }
+  ```
+
+更多背景与技术细节请参考 [#453](https://github.com/leancloud/javascript-sdk/pull/453#issue-208346693).
+
+
 ## 2.1.2 (2017-02-17)
 ### Bug Fixes
 * 修复了文件上传时，如果 `fileName` 没有指定扩展名会导致上传文件 `mime-type` 不符合预期的问题
