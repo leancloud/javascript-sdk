@@ -29,7 +29,7 @@ module.exports = function(AV) {
     return this;
   };
 
-  AV.Status.prototype = {
+  _.extend(AV.Status.prototype, /** @lends AV.Status.prototype */ {
     /**
      * Gets the value of an attribute in status data.
      * @param {String} attr The string name of an attribute.
@@ -127,7 +127,7 @@ module.exports = function(AV) {
         delete serverData.updatedAt;
         this.data = AV._decode(serverData);
     }
-  };
+  });
 
   /**
    * Send a status to current signined user's followers.

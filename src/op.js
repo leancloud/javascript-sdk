@@ -19,9 +19,9 @@ module.exports = function(AV) {
     this._initialize.apply(this, arguments);
   };
 
-  AV.Op.prototype = {
+  _.extend(AV.Op.prototype, /** @lends AV.Op.prototype */ {
     _initialize: function() {}
-  };
+  });
 
   _.extend(AV.Op, {
     /**

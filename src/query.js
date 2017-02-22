@@ -166,7 +166,7 @@ module.exports = function(AV) {
 
   AV.Query._extend = AV._extend;
 
-  AV.Query.prototype = {
+  _.extend(AV.Query.prototype, /** @lends AV.Query.prototype */ {
      //hook to iterate result. Added by dennis<xzhuang@avoscloud.com>.
      _processResult: function(obj){
         return obj;
@@ -791,21 +791,21 @@ module.exports = function(AV) {
       return this;
     },
 
-  /**
-   * Also sorts the results in ascending order by the given key. The previous sort keys have
-   * precedence over this key.
-   *
-   * @param {String} key The key to order by
-   * @return {AV.Query} Returns the query so you can chain this call.
-   */
-   addAscending: function(key){
-     requires(key, 'undefined is not a valid key');
-     if(this._order)
-       this._order +=  ','  + key;
-    else
-       this._order = key;
-    return this;
-   },
+    /**
+     * Also sorts the results in ascending order by the given key. The previous sort keys have
+     * precedence over this key.
+     *
+     * @param {String} key The key to order by
+     * @return {AV.Query} Returns the query so you can chain this call.
+     */
+    addAscending: function(key){
+      requires(key, 'undefined is not a valid key');
+      if(this._order)
+        this._order +=  ','  + key;
+      else
+        this._order = key;
+      return this;
+    },
 
     /**
      * Sorts the results in descending order by the given key.
@@ -819,21 +819,21 @@ module.exports = function(AV) {
       return this;
     },
 
-     /**
-   * Also sorts the results in descending order by the given key. The previous sort keys have
-   * precedence over this key.
-   *
-   * @param {String} key The key to order by
-   * @return {AV.Query} Returns the query so you can chain this call.
-   */
-   addDescending: function(key){
-     requires(key, 'undefined is not a valid key');
-     if(this._order)
-       this._order += ',-' + key;
-     else
-       this._order = '-' + key;
-     return this;
-   },
+    /**
+     * Also sorts the results in descending order by the given key. The previous sort keys have
+     * precedence over this key.
+     *
+     * @param {String} key The key to order by
+     * @return {AV.Query} Returns the query so you can chain this call.
+     */
+    addDescending: function(key){
+      requires(key, 'undefined is not a valid key');
+      if(this._order)
+        this._order += ',-' + key;
+      else
+        this._order = '-' + key;
+      return this;
+    },
 
     /**
      * Add a proximity based constraint for finding objects with key point
@@ -996,7 +996,7 @@ module.exports = function(AV) {
         });
       });
     }
-  };
+  });
 
    AV.FriendShipQuery = AV.Query._extend({
      _objectClass: AV.User,

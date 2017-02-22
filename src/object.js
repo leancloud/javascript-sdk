@@ -189,20 +189,30 @@ module.exports = function(AV) {
     },
 
     /**
-     * Returns a JSON version of the object suitable for saving to AV.
+     * Returns a JSON version of the object.
      * @return {Object}
      */
-    toJSON: function() {
-      var json = this._toFullJSON();
-      AV._arrayEach(["__type", "className"],
-                       function(key) { delete json[key]; });
-      return json;
+    toJSON: function(key, holder, seenObjects = []) {
+      return this._toFullJSON(seenObjects, false);
     },
 
-    _toFullJSON: function(seenObjects) {
+    /**
+     * Returns a JSON version of the object with meta data.
+     * Inverse to {@link AV.parseJSON}
+     * @since 2.0.0
+     * @return {Object}
+     */
+    toFullJSON(seenObjects = []) {
+      return this._toFullJSON(seenObjects);
+    },
+
+    _toFullJSON: function(seenObjects, full = true) {
       var json = _.clone(this.attributes);
+      if (_.isArray(seenObjects)) {
+        var newSeenObjects = seenObjects.concat(this);
+      }
       AV._objectEach(json, function(val, key) {
-        json[key] = AV._encode(val, seenObjects);
+        json[key] = AV._encode(val, newSeenObjects, undefined, full);
       });
       AV._objectEach(this._operations, function(val, key) {
         json[key] = val;
@@ -217,8 +227,11 @@ module.exports = function(AV) {
           json[key] = _.isDate(val) ? val.toJSON() : val;
         }
       });
-      json.__type = "Object";
-      json.className = this.className;
+      if (full) {
+        json.__type = "Object";
+        if (_.isArray(seenObjects) && seenObjects.length) json.__type = "Pointer";
+        json.className = this.className;
+      }
       return json;
     },
 

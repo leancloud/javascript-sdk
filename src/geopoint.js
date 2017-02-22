@@ -107,7 +107,7 @@ module.exports = function(AV) {
     }, reject);
   });
 
-  AV.GeoPoint.prototype = {
+  _.extend(AV.GeoPoint.prototype, /** @lends AV.GeoPoint.prototype */ {
     /**
      * Returns a JSON representation of the GeoPoint, suitable for AV.
      * @return {Object}
@@ -161,5 +161,5 @@ module.exports = function(AV) {
     milesTo: function(point) {
       return this.radiansTo(point) * 3958.8;
     }
-  };
+  });
 };
