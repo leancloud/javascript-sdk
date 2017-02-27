@@ -205,7 +205,7 @@ AV._getValue = function(object, prop) {
  * is set, then none of the AV Objects that are serialized can be dirty.
  * @private
  */
-AV._encode = function(value, seenObjects, disallowObjects, full) {
+AV._encode = function(value, seenObjects, disallowObjects, full = true) {
   if (value instanceof AV.Object) {
     if (disallowObjects) {
       throw new Error("AV.Objects not allowed here");
