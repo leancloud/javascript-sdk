@@ -1,3 +1,7 @@
+# 3.0.0-beta.1 (2017-02-28)
+### Bug Fixes
+- 修复了 Query 时使用 Date 类型的条件会导致查询结果异常的问题
+
 # 3.0.0-beta.0 (2017-02-22)
 ### Breaking Changes
 重新设计了 `AV.Object` 序列化相关的方法：
