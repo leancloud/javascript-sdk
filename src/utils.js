@@ -566,8 +566,17 @@ const init = (AV) => {
   };
 };
 
+function filterOutCallbacks(options) {
+  var newOptions = _.clone(options) || {};
+  delete newOptions.success;
+  delete newOptions.error;
+  return newOptions;
+}
+
+
 module.exports = {
   init,
   isNullOrUndefined,
   ensureArray,
+  filterOutCallbacks,
 };

@@ -6,6 +6,7 @@
 const _ = require('underscore');
 const AVError = require('./error');
 const AVRequest = require('./request').request;
+const filterOutCallbacks = require('./utils').filterOutCallbacks;
 
 // AV.Query is a way to create a list of AV.Objects.
 module.exports = function(AV) {
@@ -200,7 +201,7 @@ module.exports = function(AV) {
       var self = this;
       self.equalTo('objectId', objectId);
 
-      return self.first().then(function(response) {
+      return self.first(filterOutCallbacks(options)).then(function(response) {
         if (!_.isEmpty(response)) {
           return response;
         }
