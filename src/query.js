@@ -380,7 +380,7 @@ module.exports = function(AV) {
      destroyAll: function(options){
        var self = this;
        return self.find(options).then(function(objects){
-           return AV.Object.destroyAll(objects);
+           return AV.Object.destroyAll(objects, options);
        });
      },
 
