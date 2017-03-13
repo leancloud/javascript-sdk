@@ -292,9 +292,9 @@ module.exports = function(AV) {
     *     completes.
     */
      destroyAll: function(options){
-       var self = this;
-       return self.find().then(function(objects){
-           return AV.Object.destroyAll(objects);
+       const filteredOptions = filterOutCallbacks(options);
+       return this.find(filteredOptions).then(function(objects){
+           return AV.Object.destroyAll(objects, filteredOptions);
        })._thenRunCallbacks(options);
      },
 
