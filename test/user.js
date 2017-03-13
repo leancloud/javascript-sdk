@@ -240,6 +240,10 @@ describe("User", function() {
       return user.refreshSessionToken().then(user => {
         user.getSessionToken().should.be.a.String();
         user.getSessionToken().should.not.be.eql(prevSessionToken);
+        // cache refreshed
+        delete AV.User._currentUser;
+        AV.User._currentUserMatchesDisk = false;
+        user.getSessionToken().should.be.eql(AV.User.current().getSessionToken());
       })
     });
   })
