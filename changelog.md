@@ -1,3 +1,7 @@
+## 1.5.5 (2017-3-13)
+* 修复了初始化可能会造成 disableCurrentUser 配置失效的问题，现在 leanengine 中 `AV.User.current()` 能正确的始终返回 null 了。
+* 修复了 `Query#get` 与 `Query#destroyAll` 方法 `options.sessionToken` 参数无效的问题
+
 ## 1.5.4 (2017-1-17)
 * 修复了序列化 AV.File 时丢失部分字段的问题
 

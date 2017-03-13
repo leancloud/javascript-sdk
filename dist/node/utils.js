@@ -133,6 +133,10 @@ var init = function init(AV) {
     AV._useMasterKey = false;
   };
 
+  var masterKeyWarn = function masterKeyWarn() {
+    console.warn('MasterKey is not supposed to be used in browser.');
+  };
+
   /**
     * Call this method first to set up your authentication tokens for AV.
     * You can get your app keys from the LeanCloud dashboard on http://leancloud.cn .
@@ -144,10 +148,6 @@ var init = function init(AV) {
   */
 
   AV.init = function () {
-    var masterKeyWarn = function masterKeyWarn() {
-      console.warn('MasterKey should not be used in the browser. ' + 'The permissions of MasterKey can be across all the server permissions,' + ' including the setting of ACL .');
-    };
-
     switch (arguments.length) {
       case 1:
         var options = arguments.length <= 0 ? undefined : arguments[0];
@@ -157,7 +157,6 @@ var init = function init(AV) {
           }
           initialize(options.appId, options.appKey, options.masterKey);
           request.setServerUrlByRegion(options.region);
-          AVConfig.disableCurrentUser = options.disableCurrentUser;
         } else {
           throw new Error('AV.init(): Parameter is not correct.');
         }
@@ -165,7 +164,6 @@ var init = function init(AV) {
       // 兼容旧版本的初始化方法
       case 2:
       case 3:
-        console.warn('Please use AV.init() to replace AV.initialize(), ' + 'AV.init() need an Object param, like { appId: \'YOUR_APP_ID\', appKey: \'YOUR_APP_KEY\' } . ' + 'Docs: https://leancloud.cn/docs/sdk_setup-js.html');
         if (!AVConfig.isNode && arguments.length === 3) {
           masterKeyWarn();
         }
@@ -559,8 +557,16 @@ var init = function init(AV) {
   };
 };
 
+function filterOutCallbacks(options) {
+  var newOptions = _.clone(options) || {};
+  delete newOptions.success;
+  delete newOptions.error;
+  return newOptions;
+}
+
 module.exports = {
   init: init,
   isNullOrUndefined: isNullOrUndefined,
-  ensureArray: ensureArray
+  ensureArray: ensureArray,
+  filterOutCallbacks: filterOutCallbacks
 };

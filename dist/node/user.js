@@ -8,6 +8,7 @@
 var _ = require('underscore');
 var AVError = require('./error');
 var AVRequest = require('./request').request;
+var filterOutCallbacks = require('./utils').filterOutCallbacks;
 
 module.exports = function (AV) {
   /**
@@ -1082,10 +1083,3 @@ module.exports = function (AV) {
 
   });
 };
-
-function filterOutCallbacks(options) {
-  var newOptions = _.clone(options) || {};
-  delete newOptions.success;
-  delete newOptions.error;
-  return newOptions;
-}
