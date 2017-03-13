@@ -1,3 +1,8 @@
+## 2.1.3 (2017-3-13)
+* 修复了调用 `User#refreshSessionToken` 刷新用户的 sessionToken 后本地存储中的用户没有更新的问题
+* 修复了初始化可能会造成 disableCurrentUser 配置失效的问题
+* 修复了 `Query#destroyAll` 方法 `options` 参数无效的问题
+
 ## 2.1.2 (2017-02-17)
 ### Bug Fixes
 * 修复了文件上传时，如果 `fileName` 没有指定扩展名会导致上传文件 `mime-type` 不符合预期的问题
