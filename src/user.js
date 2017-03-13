@@ -593,7 +593,7 @@ module.exports = function(AV) {
       return AVRequest(`users/${this.id}/refreshSessionToken`, null, null, 'PUT', null, options)
         .then(response => {
           this._finishFetch(response);
-          return this;
+          return this._handleSaveResult(true).then(() => this);
         });
     },
 
