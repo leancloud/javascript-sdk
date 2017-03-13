@@ -29,32 +29,24 @@ const masterKeyWarn = () => {
 */
 
 AV.init = (...args) => {
-  switch (args.length) {
-    case 1:
-      const options = args[0];
-      if (typeof options === 'object') {
-        if (process.env.CLIENT_PLATFORM && options.masterKey) {
-          masterKeyWarn();
-        }
-        initialize(options.appId, options.appKey, options.masterKey, options.hookKey);
-        request.setServerUrlByRegion(options.region);
-        AV._config.disableCurrentUser = options.disableCurrentUser;
-      } else {
-        throw new Error('AV.init(): Parameter is not correct.');
-      }
-    break;
-    // 兼容旧版本的初始化方法
-    case 2:
-    case 3:
-      console.warn('Please use AV.init() to replace AV.initialize(), ' +
-       'AV.init() need an Object param, like { appId: \'YOUR_APP_ID\', appKey: \'YOUR_APP_KEY\' } . ' +
-       'Docs: https://leancloud.cn/docs/sdk_setup-js.html');
-      if (process.env.CLIENT_PLATFORM && args.length === 3) {
+  if (args.length === 1) {
+    const options = args[0];
+    if (typeof options === 'object') {
+      if (process.env.CLIENT_PLATFORM && options.masterKey) {
         masterKeyWarn();
       }
-      initialize(...args);
-      request.setServerUrlByRegion('cn');
-    break;
+      initialize(options.appId, options.appKey, options.masterKey, options.hookKey);
+      request.setServerUrlByRegion(options.region);
+    } else {
+      throw new Error('AV.init(): Parameter is not correct.');
+    }
+  } else {
+    // 兼容旧版本的初始化方法
+    if (process.env.CLIENT_PLATFORM && args[3]) {
+      masterKeyWarn();
+    }
+    initialize(...args);
+    request.setServerUrlByRegion('cn');
   }
 };
 
