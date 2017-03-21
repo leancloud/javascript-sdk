@@ -7,6 +7,7 @@ const AVRequest = require('./request').request;
 const Promise = require('./promise');
 const { tap } = require('./utils');
 const debug = require('debug')('leancloud:file');
+const parseBase64 = require('./utils/parse-base64');
 
 module.exports = function(AV) {
 
@@ -101,7 +102,16 @@ module.exports = function(AV) {
       base64: '',
     };
 
+    if (_.isString(data)) {
+      throw new TypeError("Creating an AV.File from a String is not yet supported.");
+    }
+    if (_.isArray(data)) {
+      this.attributes.metaData.size = data.length;
+      data = { base64: encodeBase64(data) };
+    }
+
     this._extName = '';
+    this._data = data;
 
     let owner;
     if (data && data.owner) {
@@ -117,46 +127,10 @@ module.exports = function(AV) {
         }
       }
     }
-
-    this.attributes.metaData = {
-      owner: (owner ? owner.id : 'unknown')
-    };
+    
+    this.attributes.metaData.owner = owner ? owner.id : 'unknown';
 
     this.set('mime_type', mimeType);
-
-    if (_.isArray(data)) {
-      this.attributes.metaData.size = data.length;
-      data = { base64: encodeBase64(data) };
-    }
-    if (data && data.base64) {
-      var parseBase64 = require('./utils/parse-base64');
-      var dataBase64 = parseBase64(data.base64, mimeType);
-      this._source = Promise.resolve({ data: dataBase64, type: mimeType });
-    } else if (data && data.blob) {
-      if (!data.blob.type && mimeType) {
-        data.blob.type = mimeType;
-      }
-      if (!data.blob.name) {
-        data.blob.name = name;
-      }
-      if (process.env.CLIENT_PLATFORM === 'ReactNative' || process.env.CLIENT_PLATFORM === 'Weapp') {
-        this._extName = extname(data.blob.uri);
-      }
-      this._source = Promise.resolve({ data: data.blob, type: mimeType });
-    } else if (typeof File !== "undefined" && data instanceof File) {
-      if (data.size) {
-        this.attributes.metaData.size = data.size;
-      }
-      if (data.name) {
-        this._extName = extname(data.name);
-      }
-      this._source = Promise.resolve({ data, type: mimeType });
-    } else if (typeof Buffer !== "undefined" && Buffer.isBuffer(data)) {
-      this.attributes.metaData.size = data.length;
-      this._source = Promise.resolve({ data, type: mimeType });
-    } else if (_.isString(data)) {
-      throw new Error("Creating a AV.File from a String is not yet supported.");
-    }
   };
 
   /**
@@ -461,37 +435,68 @@ module.exports = function(AV) {
         throw new Error('File already saved. If you want to manipulate a file, use AV.Query to get it.');
       }
       if (!this._previousSave) {
-        if (this._source) {
-          this._previousSave = this._source.then(({ data, type }) =>
-            this._fileToken(type)
-              .then(uploadInfo => {
-                if (uploadInfo.mime_type) {
-                  this.set('mime_type', uploadInfo.mime_type);
+        if (this._data) {
+          let mimeType = this.get('mime_type');
+          this._previousSave = this._fileToken(mimeType).then(uploadInfo => {
+            if (uploadInfo.mime_type) {
+              mimeType = uploadInfo.mime_type;
+              this.set('mime_type', mimeType);
+            }
+            this._token = uploadInfo.token;
+            return Promise.resolve().then(() => {
+              const data = this._data;
+              if (data && data.base64) {
+                return parseBase64(data.base64, mimeType);
+              }
+              if (data && data.blob) {
+                if (!data.blob.type && mimeType) {
+                  data.blob.type = mimeType;
                 }
-                this._token = uploadInfo.token;
-
-                let uploadPromise;
-                switch (uploadInfo.provider) {
-                  case 's3':
-                    uploadPromise = s3(uploadInfo, data, this, options);
-                    break;
-                  case 'qcloud':
-                    uploadPromise = cos(uploadInfo, data, this, options);
-                    break;
-                  case 'qiniu':
-                  default:
-                    uploadPromise = qiniu(uploadInfo, data, this, options);
-                    break;
+                if (!data.blob.name) {
+                  data.blob.name = this.get('name');
                 }
-                return uploadPromise.then(
-                  tap(() => this._callback(true)),
-                  (error) => {
-                    this._callback(false);
-                    throw error;
-                  }
-                );
-              })
-          );
+                if (process.env.CLIENT_PLATFORM === 'ReactNative' || process.env.CLIENT_PLATFORM === 'Weapp') {
+                  this._extName = extname(data.blob.uri);
+                }
+                return data.blob;
+              }
+              if (typeof File !== "undefined" && data instanceof File) {
+                if (data.size) {
+                  this.attributes.metaData.size = data.size;
+                }
+                if (data.name) {
+                  this._extName = extname(data.name);
+                }
+                return data;
+              }
+              if (typeof Buffer !== "undefined" && Buffer.isBuffer(data)) {
+                this.attributes.metaData.size = data.length;
+                return data;
+              }
+              throw new TypeError('malformed file data');
+            }).then(data => {
+              let uploadPromise;
+              switch (uploadInfo.provider) {
+                case 's3':
+                  uploadPromise = s3(uploadInfo, data, this, options);
+                  break;
+                case 'qcloud':
+                  uploadPromise = cos(uploadInfo, data, this, options);
+                  break;
+                case 'qiniu':
+                default:
+                  uploadPromise = qiniu(uploadInfo, data, this, options);
+                  break;
+              }
+              return uploadPromise.then(
+                tap(() => this._callback(true)),
+                (error) => {
+                  this._callback(false);
+                  throw error;
+                }
+              );
+            });
+          });
         } else if (this.attributes.url && this.attributes.metaData.__source === 'external') {
           // external link file.
           const data = {
@@ -521,6 +526,7 @@ module.exports = function(AV) {
         result: success,
       }).catch(debug);
       delete this._token;
+      delete this._data;
     },
 
     /**
