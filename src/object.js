@@ -1239,7 +1239,7 @@ module.exports = function(AV) {
     * @return {AV.Object} A new subclass instance of AV.Object.
     */
    AV.Object.createWithoutData = function(className, id, hasData){
-     var result = new AV.Object(className);
+     var result = AV.Object._create(className, undefined, undefined, /* noDefaultACL*/ true);
      result.id = id;
      result._hasData = hasData;
      return result;
@@ -1293,9 +1293,9 @@ module.exports = function(AV) {
    * Creates an instance of a subclass of AV.Object for the given classname.
    * @private
    */
-  AV.Object._create = function(className, attributes, options) {
+  AV.Object._create = function(className, attributes, options, noDefaultACL) {
     var ObjectClass = AV.Object._getSubclass(className);
-    return new ObjectClass(attributes, options);
+    return new ObjectClass(attributes, options, noDefaultACL);
   };
 
   // Set up a map of className to class so that we can create new instances of

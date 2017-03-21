@@ -21,7 +21,7 @@ module.exports = function(AV) {
      * @param {AV.ACL} [acl] The ACL for this role. if absent, the default ACL
      *    `{'*': { read: true }}` will be used.
      */
-    constructor: function(name, acl) {
+    constructor: function(name, acl, noDefaultACL) {
       if (_.isString(name)) {
         AV.Object.prototype.constructor.call(this, null, null);
         this.setName(name);
@@ -29,10 +29,13 @@ module.exports = function(AV) {
         AV.Object.prototype.constructor.call(this, name, acl);
       }
       if (acl === undefined) {
-        var defaultAcl = new AV.ACL();
-        defaultAcl.setPublicReadAccess(true);
-        if(!this.getACL()) {
-          this.setACL(defaultAcl);
+        if (!noDefaultACL) {
+          if(!this.getACL()) {
+            console.warn('DEPRECATED: To create a Role without ACL(a default ACL will be used) is deprecated. Please specify an ACL.');
+            var defaultAcl = new AV.ACL();
+            defaultAcl.setPublicReadAccess(true);            
+            this.setACL(defaultAcl);
+          }
         }
       } else if (!(acl instanceof AV.ACL)) {
         throw new TypeError('acl must be an instance of AV.ACL');

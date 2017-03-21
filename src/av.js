@@ -291,7 +291,7 @@ AV._decode = function(value, key) {
   var className;
   if (value.__type === "Pointer") {
     className = value.className;
-    var pointer = AV.Object._create(className);
+    var pointer = AV.Object._create(className, undefined, undefined, /* noDefaultACL*/ true);
     if(Object.keys(value).length > 3) {
         const v = _.clone(value);
         delete v.__type;
@@ -308,7 +308,7 @@ AV._decode = function(value, key) {
     const v = _.clone(value);
     delete v.__type;
     delete v.className;
-    var object = AV.Object._create(className);
+    var object = AV.Object._create(className, undefined, undefined, /* noDefaultACL*/ true);
     object._finishFetch(v, true);
     return object;
   }
