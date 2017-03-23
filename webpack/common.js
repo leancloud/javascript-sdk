@@ -8,7 +8,7 @@ module.exports = function() {
       filename: 'av.js',
       libraryTarget: "umd2",
       library: "AV",
-      path: './dist'
+      path: path.resolve(__dirname, '../dist')
     },
     resolve: {},
     devtool: 'source-map',
