@@ -1,22 +1,14 @@
-const request = require('superagent');
-const debug = require('debug')('leancloud:request');
 const md5 = require('md5');
+const {
+  extend,
+} = require('underscore');
 const Promise = require('./promise');
-const Cache = require('./cache');
 const AVError = require('./error');
 const AV = require('./av');
-const _ = require('underscore');
 const {
   getSessionToken,
+  ajax,
 } = require('./utils');
-
-let getServerURLPromise;
-
-// 服务器请求的节点 host
-const API_HOST = {
-  cn: 'https://api.leancloud.cn',
-  us: 'https://us-api.leancloud.cn',
-};
 
 // 计算 X-LC-Sign 的签名方法
 const sign = (key, isMasterKey) => {
@@ -26,37 +18,6 @@ const sign = (key, isMasterKey) => {
     return `${signature},${now},master`;
   }
   return `${signature},${now}`;
-};
-
-let requestsCount = 0;
-
-const ajax = (method, resourceUrl, data, headers = {}, onprogress) => {
-  const count = requestsCount++;
-
-  debug(`request(${count})`, method, resourceUrl, data, headers);
-
-  return new Promise((resolve, reject) => {
-    const req = request(method, resourceUrl)
-      .set(headers)
-      .send(data);
-    if (onprogress) {
-      req.on('progress', onprogress);
-    }
-    req.end((err, res) => {
-      if (res) {
-        debug(`response(${count})`, res.status, res.body || res.text, res.header);
-      }
-      if (err) {
-        if (res) {
-          err.statusCode = res.status;
-          err.responseText = res.text;
-          err.response = res.body;
-        }
-        return reject(err);
-      }
-      return resolve(res.body);
-    });
-  });
 };
 
 const setAppId = (headers, signKey) => {
@@ -75,8 +36,8 @@ const setHeaders = (authOptions = {}, signKey) => {
   let useMasterKey = false;
   if (typeof authOptions.useMasterKey === 'boolean') {
     useMasterKey = authOptions.useMasterKey;
-  } else if (typeof AV._useMasterKey === 'boolean') {
-    useMasterKey = AV._useMasterKey;
+  } else if (typeof AV._config.useMasterKey === 'boolean') {
+    useMasterKey = AV._config.useMasterKey;
   }
   if (useMasterKey) {
     if (AV.masterKey) {
@@ -95,8 +56,8 @@ const setHeaders = (authOptions = {}, signKey) => {
   if (AV.hookKey) {
     headers['X-LC-Hook-Key'] = AV.hookKey;
   }
-  if (AV._config.applicationProduction !== null) {
-    headers['X-LC-Prod'] = String(AV._config.applicationProduction);
+  if (AV._config.production !== null) {
+    headers['X-LC-Prod'] = String(AV._config.production);
   }
   headers[!process.env.CLIENT_PLATFORM ? 'User-Agent' : 'X-LC-UA'] = AV._config.userAgent;
 
@@ -117,180 +78,88 @@ const setHeaders = (authOptions = {}, signKey) => {
   });
 };
 
-const createApiUrl = (route, className, objectId, method, dataObject) => {
-  // TODO: 兼容 AV.serverURL 旧方式设置 API Host，后续去掉
-  if (AV.serverURL) {
-    AV._config.APIServerURL = AV.serverURL;
-    console.warn('Please use AV._config.APIServerURL to replace AV.serverURL, and it is an internal interface.');
-  }
+const createApiUrl = ({
+    service = 'api',
+    version = '1.1',
+    path,
+    // query, // don't care
+    // method, // don't care
+    // data, // don't care
+  }) => {
+  let apiURL = AV._config.serverURLs[service];
 
-  let apiURL = AV._config.APIServerURL || API_HOST.cn;
+  if (!apiURL) throw new Error(`undefined server URL for ${service}`);
 
   if (apiURL.charAt(apiURL.length - 1) !== '/') {
     apiURL += '/';
   }
-  apiURL += `1.1/${route}`;
-  if (className) {
-    apiURL += `/${className}`;
-  }
-  if (objectId) {
-    apiURL += `/${objectId}`;
-  }
-  if ((route === 'users' || route === 'classes') && dataObject) {
-    apiURL += '?';
-    if (dataObject._fetchWhenSave) {
-      delete dataObject._fetchWhenSave;
-      apiURL += '&new=true';
-    }
-    if (dataObject._where) {
-      apiURL += `&where=${encodeURIComponent(JSON.stringify(dataObject._where))}`;
-      delete dataObject._where;
-    }
-  }
-
-  if (method.toLowerCase() === 'get') {
-    if (apiURL.indexOf('?') === -1) {
-      apiURL += '?';
-    }
-    for (const k in dataObject) {
-      if (typeof dataObject[k] === 'object') {
-        dataObject[k] = JSON.stringify(dataObject[k]);
-      }
-      apiURL += `&${k}=${encodeURIComponent(dataObject[k])}`;
-    }
+  apiURL += version;
+  if (path) {
+    apiURL += path;
   }
 
   return apiURL;
 };
 
-const cacheServerURL = (serverURL, ttl) => {
-  if (typeof ttl !== 'number') {
-    ttl = 3600;
-  }
-  return Cache.setAsync('APIServerURL', serverURL, ttl * 1000);
-};
-
 // handle AV._request Error
-const handleError = (error) => {
-  return new Promise((resolve, reject) => {
-    /**
-      When API request need to redirect to the right location,
-      can't use browser redirect by http status 307, as the reason of CORS,
-      so API server response http status 410 and the param "location" for this case.
-    */
-    if (error.statusCode === 410) {
-      cacheServerURL(error.response.api_server, error.response.ttl).then(() => {
-        resolve(error.response.location);
-      }).catch(reject);
-    } else {
-      let errorJSON = {
-        code: error.code || -1,
-        error: error.message || error.responseText
-      };
-      if (error.response && error.response.code) {
-        errorJSON = error.response;
-      } else if (error.responseText) {
-        try {
-          errorJSON = JSON.parse(error.responseText);
-        } catch (e) {
-          // If we fail to parse the error text, that's okay.
-        }
+const handleError = (error) =>
+  new Promise((resolve, reject) => {
+    let errorJSON = {
+      code: error.code || -1,
+      error: error.message || error.responseText,
+    };
+    if (error.response && error.response.code) {
+      errorJSON = error.response;
+    } else if (error.responseText) {
+      try {
+        errorJSON = JSON.parse(error.responseText);
+      } catch (e) {
+        // If we fail to parse the error text, that's okay.
       }
-
-      // Transform the error into an instance of AVError by trying to parse
-      // the error string as JSON.
-      reject(new AVError(errorJSON.code, errorJSON.error));
     }
+
+    // Transform the error into an instance of AVError by trying to parse
+    // the error string as JSON.
+    reject(new AVError(errorJSON.code, errorJSON.error));
+  });
+
+const request = ({ service, version, method, path, query, data = {}, authOptions }) => {
+  if (!(AV.applicationId && (AV.applicationKey || AV.masterKey))) {
+    throw new Error('Not initialized');
+  }
+  AV._appRouter.refresh();
+  const url = createApiUrl({ service, path, version });
+  return setHeaders(authOptions).then(
+    headers => ajax({ method, url, query, data, headers })
+      .catch(handleError)
+  );
+};
+
+// lagecy request
+const _request = (route, className, objectId, method, data = {}, authOptions, query) => {
+  let path = '';
+  if (route) path += `/${route}`;
+  if (className) path += `/${className}`;
+  if (objectId) path += `/${objectId}`;
+  // for migeration
+  if (data && data._fetchWhenSave) throw new Error('_fetchWhenSave should be in the query');
+  if (data && data._where) throw new Error('_where should be in the query');
+  if (method && (method.toLowerCase() === 'get')) {
+    query = extend({}, query, data);
+    data = null;
+  }
+  return request({
+    method,
+    path,
+    query,
+    data,
+    authOptions,
   });
 };
 
-const setServerUrl = (serverURL) => {
-  AV._config.APIServerURL = `https://${serverURL}`;
-
-  // 根据新 URL 重新设置区域
-  const newRegion = _.findKey(API_HOST, item => item === AV._config.APIServerURL);
-  if (newRegion) {
-    AV._config.region = newRegion;
-  }
-};
-
-const refreshServerUrlByRouter = () => {
-  const url = `https://app-router.leancloud.cn/1/route?appId=${AV.applicationId}`;
-  return ajax('get', url).then(servers => {
-    if (servers.api_server) {
-      setServerUrl(servers.api_server);
-      return cacheServerURL(servers.api_server, servers.ttl);
-    }
-  }, error => {
-    // bypass all non-4XX errors
-    if (error.statusCode >= 400 && error.statusCode < 500) {
-      throw error;
-    }
-  });
-};
-
-const setServerUrlByRegion = (region = 'cn') => {
-  getServerURLPromise = new Promise((resolve, reject) => {
-    // 如果用户在 init 之前设置了 APIServerURL，则跳过请求 router
-    if (AV._config.APIServerURL) {
-      resolve();
-      return;
-    }
-    // if not china server region, do not use router
-    if (region === 'cn') {
-      return Cache.getAsync('APIServerURL').then((serverURL) => {
-        if (serverURL) {
-          setServerUrl(serverURL);
-        } else {
-          return refreshServerUrlByRouter();
-        }
-      }).then(() => {
-        resolve();
-      }).catch((error) => {
-        reject(error);
-      });
-    } else {
-      AV._config.region = region;
-      AV._config.APIServerURL = API_HOST[region];
-      resolve();
-    }
-  });
-};
-
-/**
- * route is classes, users, login, etc.
- * objectId is null if there is no associated objectId.
- * method is the http method for the REST API.
- * dataObject is the payload as an object, or null if there is none.
- * @ignore
- */
-const AVRequest = (route, className, objectId, method, dataObject = {}, authOptions) => {
-  if (!AV.applicationId) {
-    throw new Error('You must specify your applicationId using AV.init()');
-  }
-
-  if (!AV.applicationKey && !AV.masterKey) {
-    throw new Error('You must specify a AppKey using AV.init()');
-  }
-
-  if (!getServerURLPromise) {
-    return Promise.reject(new Error('Not initialized'));
-  }
-  return getServerURLPromise.then(() => {
-    const apiURL = createApiUrl(route, className, objectId, method, dataObject);
-    return setHeaders(authOptions).then(
-      headers => ajax(method, apiURL, dataObject, headers)
-        .then(
-          null,
-          res => handleError(res)
-            .then(location => ajax(method, location, dataObject, headers))
-        )
-    );
-  });
-};
+AV.request = request;
 
 module.exports = {
-  ajax,
-  request: AVRequest,
-  setServerUrlByRegion,
+  _request,
+  request,
 };

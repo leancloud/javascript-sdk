@@ -1,22 +1,40 @@
 const AV = require('./av');
-const request = require('./request');
+const AppRouter = require('./app-router');
+const {
+  isNullOrUndefined,
+} = require('./utils');
+const {
+  extend,
+  isObject,
+} = require('underscore');
 
-const initialize = (appId, appKey, masterKey, hookKey) => {
-  if (AV.applicationId && appId !== AV.applicationId && appKey !== AV.applicationKey && masterKey !== AV.masterKey) {
-    console.warn('LeanCloud SDK is already initialized, please do not reinitialize it.');
-  }
-  AV.applicationId = appId;
-  AV.applicationKey = appKey;
-  AV.masterKey = masterKey;
-  if (!process.env.CLIENT_PLATFORM) {
-    AV.hookKey = hookKey || process.env.LEANCLOUD_APP_HOOK_KEY;
-  }
-  AV._useMasterKey = false;
-};
+const fillServerURLs = url => ({
+  push: url,
+  stats: url,
+  engine: url,
+  api: url,
+});
 
-const masterKeyWarn = () => {
-  console.warn('MasterKey is not supposed to be used in browser.');
-};
+function getDefaultServerURLs(appId, region) {
+  if (region === 'us') return fillServerURLs('https://us-api.leancloud.cn');
+  switch (appId.slice(-9)) {
+    case '-9Nh9j0Va':
+      return fillServerURLs('https://e1-api.leancloud.cn');
+    case '-MdYXbMMI':
+      return fillServerURLs('https://us-api.leancloud.cn');
+    default:
+      return fillServerURLs('https://api.leancloud.cn');
+  }
+}
+
+/**
+ * URLs for services
+ * @typedef {Object} ServerURLs
+ * @property {String} [api] serverURL for api service
+ * @property {String} [engine] serverURL for engine service
+ * @property {String} [stats] serverURL for stats service
+ * @property {String} [push] serverURL for push service
+ */
 
 /**
   * Call this method first to set up your authentication tokens for AV.
@@ -25,29 +43,47 @@ const masterKeyWarn = () => {
   * @param {Object} options
   * @param {String} options.appId application id
   * @param {String} options.appKey application key
-  * @param {String} options.masterKey application master key
-*/
-
-AV.init = (...args) => {
-  if (args.length === 1) {
-    const options = args[0];
-    if (typeof options === 'object') {
-      if (process.env.CLIENT_PLATFORM && options.masterKey) {
-        masterKeyWarn();
-      }
-      initialize(options.appId, options.appKey, options.masterKey, options.hookKey);
-      request.setServerUrlByRegion(options.region);
-    } else {
-      throw new Error('AV.init(): Parameter is not correct.');
-    }
-  } else {
-    // 兼容旧版本的初始化方法
-    if (process.env.CLIENT_PLATFORM && args[3]) {
-      masterKeyWarn();
-    }
-    initialize(...args);
-    request.setServerUrlByRegion('cn');
+  * @param {String} [options.masterKey] application master key
+  * @param {String} [options.region = 'cn'] region
+  * @param {Boolean} [options.production]
+  * @param {String|ServerURLs} [options.serverURLs] URLs for services. if a string was given, it will be applied for all serives.
+  * @param {Boolean} [options.disableCurrentUser=false]
+  */
+AV.init = (options) => {
+  if (!isObject(options)) {
+    return AV.init({
+      appId: arguments[0],
+      appKey: arguments[1],
+      masterKey: arguments[2],
+      region: arguments[3],
+    });
   }
+  const {
+    appId,
+    appKey,
+    masterKey,
+    hookKey,
+    region = 'cn',
+    serverURLs,
+    disableCurrentUser = false,
+    production,
+  } = options;
+  if (AV.applicationId) throw new Error('SDK is already initialized.');
+  if (process.env.CLIENT_PLATFORM && masterKey) console.warn('MasterKey is not supposed to be used in browser.');
+  AV._config.applicationId = appId;
+  AV._config.applicationKey = appKey;
+  AV._config.masterKey = masterKey;
+  if (!process.env.CLIENT_PLATFORM) AV._config.hookKey = hookKey || process.env.LEANCLOUD_APP_HOOK_KEY;
+  if (typeof production !== 'undefined') AV._config.production = production;
+  if (typeof disableCurrentUser !== 'undefined') AV._config.disableCurrentUser = disableCurrentUser;
+  const disableAppRouter = typeof serverURLs !== 'undefined' || region !== 'cn';
+  AV._setServerURLs(extend(
+    {},
+    getDefaultServerURLs(appId, region),
+    AV._config.serverURLs,
+    serverURLs
+  ), disableAppRouter);
+  AV._appRouter = new AppRouter(AV);
 };
 
 // If we're running in node.js, allow using the master key.
@@ -60,10 +96,46 @@ if (!process.env.CLIENT_PLATFORM) {
    * <p><strong><em>Available in Cloud Code and Node.js only.</em></strong>
    * </p>
    */
-  AV.Cloud.useMasterKey = function() {
-    AV._useMasterKey = true;
+  AV.Cloud.useMasterKey = () => {
+    AV._config.useMasterKey = true;
   };
 }
 
-// 兼容老版本的初始化方法
+/**
+ * Call this method to set production environment variable.
+ * @function AV.setProduction
+ * @param {Boolean} production True is production environment,and
+ *  it's true by default.
+ */
+AV.setProduction = (production) => {
+  if (!isNullOrUndefined(production)) {
+    AV._config.production = production ? 1 : 0;
+  } else {
+    // change to default value
+    AV._config.production = null;
+  }
+};
+
+AV._setServerURLs = (urls, disableAppRouter = true) => {
+  if (typeof urls !== 'string') {
+    extend(AV._config.serverURLs, urls);
+  } else {
+    AV._config.serverURLs = fillServerURLs(urls);
+  }
+  AV._config.disableAppRouter = disableAppRouter;
+};
+AV.setServerURLs = urls => AV._setServerURLs(urls);
+
+// backword compatible
 AV.initialize = AV.init;
+
+const defineConfig = property => Object.defineProperty(AV, property, {
+  get() {
+    return AV._config[property];
+  },
+  set(value) {
+    AV._config[property] = value;
+  },
+});
+
+['applicationId', 'applicationKey', 'masterKey', 'hookKey'].forEach(defineConfig);

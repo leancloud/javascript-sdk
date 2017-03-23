@@ -1,6 +1,7 @@
 require('should');
 require('./test.js');
 require('./av.js');
+require('./cache');
 require('./file.js');
 require('./error.js');
 require('./object.js');
@@ -12,4 +13,5 @@ require('./role.js');
 require('./status.js');
 require('./sms.js');
 require('./search.js');
+require('./cloud.js');
 require('./hooks.js');

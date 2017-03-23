@@ -1,18 +1,18 @@
 'use strict';
 
 describe("AV.Cloud", function() {
-  var originalServerURL, originalAppId, originalAppKey, originalUseMasterKey;
+  var originalServerURLs, originalAppId, originalAppKey, originalUseMasterKey;
 
   before(function() {
-    originalServerURL = AV._config.APIServerURL;
+    originalServerURLs = AV._config.serverURLs;
     originalAppId = AV.applicationId;
     originalAppKey = AV.applicationKey;
-    originalUseMasterKey = AV._useMasterKey;
+    originalUseMasterKey = AV._config.useMasterKey;
 
-    AV._config.APIServerURL = 'https://leancloud.cn'
+    AV.setServerURLs('https://api.leancloud.cn');
     AV.applicationId = '4h2h4okwiyn8b6cle0oig00vitayum8ephrlsvg7xo8o19ne';
     AV.applicationKey = '3xjj1qw91cr3ygjq9lt0g8c3qpet38rrxtwmmp0yffyoy2t4';
-    AV._useMasterKey = false;
+    AV._config.useMasterKey = false;
 
     AV.User._currentUser = null;
   });
@@ -113,9 +113,9 @@ describe("AV.Cloud", function() {
   });
 
   after(function() {
-    AV._config.APIServerURL = originalServerURL;
+    AV.setServerURLs(originalServerURLs);
     AV.applicationId = originalAppId;
     AV.applicationKey = originalAppKey;
-    AV._useMasterKey = originalUseMasterKey;
+    AV._config.useMasterKey = originalUseMasterKey;
   });
 });

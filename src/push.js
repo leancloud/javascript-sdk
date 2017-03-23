@@ -1,4 +1,4 @@
-const AVRequest = require('./request').request;
+const AVRequest = require('./request')._request;
 
 module.exports = function(AV) {
   AV.Installation = AV.Object.extend("_Installation");
