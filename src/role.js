@@ -18,8 +18,7 @@ module.exports = function(AV) {
     * cloud.
      * @class AV.Role
      * @param {String} name The name of the Role to create.
-     * @param {AV.ACL} [acl] The ACL for this role. if absent, the default ACL
-     *    `{'*': { read: true }}` will be used.
+     * @param {AV.ACL} acl The ACL for this role.
      */
     constructor: function(name, acl) {
       if (_.isString(name)) {
@@ -28,16 +27,12 @@ module.exports = function(AV) {
       } else {
         AV.Object.prototype.constructor.call(this, name, acl);
       }
-      if (acl === undefined) {
-        var defaultAcl = new AV.ACL();
-        defaultAcl.setPublicReadAccess(true);
-        if(!this.getACL()) {
-          this.setACL(defaultAcl);
+      if (acl) {
+        if (!(acl instanceof AV.ACL)) {
+          throw new TypeError('acl must be an instance of AV.ACL');
+        } else {
+          this.setACL(acl);
         }
-      } else if (!(acl instanceof AV.ACL)) {
-        throw new TypeError('acl must be an instance of AV.ACL');
-      } else {
-        this.setACL(acl);
       }
     },
 
