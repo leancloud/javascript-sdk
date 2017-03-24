@@ -27,6 +27,8 @@ function getDefaultServerURLs(appId, region) {
   }
 }
 
+let _disableAppRouter = false;
+
 /**
  * URLs for services
  * @typedef {Object} ServerURLs
@@ -49,13 +51,13 @@ function getDefaultServerURLs(appId, region) {
   * @param {String|ServerURLs} [options.serverURLs] URLs for services. if a string was given, it will be applied for all services.
   * @param {Boolean} [options.disableCurrentUser=false]
   */
-AV.init = (options) => {
+AV.init = function init(options, ...params) {
   if (!isObject(options)) {
     return AV.init({
-      appId: arguments[0],
-      appKey: arguments[1],
-      masterKey: arguments[2],
-      region: arguments[3],
+      appId: options,
+      appKey: params[0],
+      masterKey: params[1],
+      region: params[2],
     });
   }
   const {
@@ -76,14 +78,14 @@ AV.init = (options) => {
   if (!process.env.CLIENT_PLATFORM) AV._config.hookKey = hookKey || process.env.LEANCLOUD_APP_HOOK_KEY;
   if (typeof production !== 'undefined') AV._config.production = production;
   if (typeof disableCurrentUser !== 'undefined') AV._config.disableCurrentUser = disableCurrentUser;
-  const disableAppRouter = typeof serverURLs !== 'undefined' || region !== 'cn';
+  AV._appRouter = new AppRouter(AV);
+  const disableAppRouter = _disableAppRouter || typeof serverURLs !== 'undefined' || region !== 'cn';
   AV._setServerURLs(extend(
     {},
     getDefaultServerURLs(appId, region),
     AV._config.serverURLs,
     serverURLs
   ), disableAppRouter);
-  AV._appRouter = new AppRouter(AV);
 };
 
 // If we're running in node.js, allow using the master key.
@@ -122,7 +124,13 @@ AV._setServerURLs = (urls, disableAppRouter = true) => {
   } else {
     AV._config.serverURLs = fillServerURLs(urls);
   }
-  AV._config.disableAppRouter = disableAppRouter;
+  if (disableAppRouter) {
+    if (AV._appRouter) {
+      AV._appRouter.disable();
+    } else {
+      _disableAppRouter = true;
+    }
+  }
 };
 /**
  * set server URLs for services.

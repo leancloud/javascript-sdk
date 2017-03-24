@@ -6,7 +6,6 @@ const Cache = require('./cache');
 function AppRouter(AV) {
   this.AV = AV;
   this.lockedUntil = 0;
-  this.lock(600);
   Cache.getAsync('serverURLs').then(data => {
     if (!data) return this.lock(0);
     const {
@@ -18,11 +17,16 @@ function AppRouter(AV) {
   }).catch(() => this.lock(0));
 }
 
+AppRouter.prototype.disable = function disable() {
+  this.disabled = true;
+};
 AppRouter.prototype.lock = function lock(ttl) {
   this.lockedUntil = Date.now() + ttl;
 };
 AppRouter.prototype.refresh = function refresh() {
+  if (this.disabled) return;
   if (Date.now() < this.lockedUntil) return;
+  this.lock(10);
   const url = 'https://app-router.leancloud.cn/2/route';
   return ajax({
     method: 'get',
@@ -31,6 +35,7 @@ AppRouter.prototype.refresh = function refresh() {
       appId: this.AV.applicationId,
     },
   }).then(servers => {
+    if (this.disabled) return;
     let ttl = servers.ttl;
     if (!ttl) throw new Error('missing ttl');
     ttl = ttl * 1000;
