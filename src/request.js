@@ -123,6 +123,18 @@ const handleError = (error) =>
     reject(new AVError(errorJSON.code, errorJSON.error));
   });
 
+/**
+ * Low level REST API client. Call REST endpoints with authorization headers.
+ * @function AV.request
+ * @param {Object} options
+ * @param {String} options.method HTTP method
+ * @param {String} options.path endpoint path, e.g. `/classes/Test/55759577e4b029ae6015ac20`
+ * @param {Object} [options.query] query string dict
+ * @param {Object} [options.data] HTTP body
+ * @param {AuthOptions} [options.authOptions]
+ * @param {String} [options.service = 'api']
+ * @param {String} [options.version = '1.1']
+ */
 const request = ({ service, version, method, path, query, data = {}, authOptions, signKey = true }) => {
   if (!(AV.applicationId && (AV.applicationKey || AV.masterKey))) {
     throw new Error('Not initialized');

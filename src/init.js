@@ -44,9 +44,9 @@ function getDefaultServerURLs(appId, region) {
   * @param {String} options.appId application id
   * @param {String} options.appKey application key
   * @param {String} [options.masterKey] application master key
-  * @param {String} [options.region = 'cn'] region
+  * @param {String} [options.region='cn'] region
   * @param {Boolean} [options.production]
-  * @param {String|ServerURLs} [options.serverURLs] URLs for services. if a string was given, it will be applied for all serives.
+  * @param {String|ServerURLs} [options.serverURLs] URLs for services. if a string was given, it will be applied for all services.
   * @param {Boolean} [options.disableCurrentUser=false]
   */
 AV.init = (options) => {
@@ -124,6 +124,12 @@ AV._setServerURLs = (urls, disableAppRouter = true) => {
   }
   AV._config.disableAppRouter = disableAppRouter;
 };
+/**
+ * set server URLs for services.
+ * @function AV.setServerURLs
+ * @param {String|ServerURLs} urls URLs for services. if a string was given, it will be applied for all services.
+ * You can also set them when initializing SDK with `options.serverURLs`
+ */
 AV.setServerURLs = urls => AV._setServerURLs(urls);
 
 // backword compatible

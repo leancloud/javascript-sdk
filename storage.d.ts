@@ -679,19 +679,33 @@ declare namespace AV {
         function verifySmsCode<T>(code: string, phone: string, options?: AuthOptions): Promise<T>;
     }
 
-    /**
-     * Call this method first to set up your authentication tokens for AV.
-     * @param {String} applicationId Your Application ID.
-     * @param {String} applicationKey Your Application Key.
-     * @param {String} masterKey (optional) Your Application Master Key. (Node.js only!)
-     */
-    export function initialize(applicationId: string, applicationKey: string, masterKey?: string): void;
+    interface ServerURLs {
+      api?: string,
+      engine?: string,
+      stats?: string,
+      push?: string,
+    }
 
-    /**
-    *options : {appId:'',appKey:'',masterKey:''}
-    */
-    export function init(options: { appId: string, appKey: string, masterKey?: string}): void;
-
+    export function init(options: {
+      appId: string,
+      appKey: string,
+      masterKey?: string,
+      region?: string,
+      production?: boolean,
+      serverURLs?: string|ServerURLs,
+      disableCurrentUser?: boolean,
+    }): void;
+    export function setServerURLs(urls: string|ServerURLs): void;
+    export function setProduction(production: boolean): void;
     export function parseJSON(json: any): Object|File|any;
+    export function request(options: {
+      method: string,
+      path: string,
+      query?: object,
+      data?: object,
+      authOption?: AuthOptions,
+      service?: string,
+      version?: string,
+    });
 }
 export = AV;
