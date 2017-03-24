@@ -127,7 +127,7 @@ const request = ({ service, version, method, path, query, data = {}, authOptions
   if (!(AV.applicationId && (AV.applicationKey || AV.masterKey))) {
     throw new Error('Not initialized');
   }
-  AV._appRouter.refresh();
+  if (!AV._config.disableAppRouter) AV._appRouter.refresh();
   const url = createApiUrl({ service, path, version });
   return setHeaders(authOptions, signKey).then(
     headers => ajax({ method, url, query, data, headers })
