@@ -59,7 +59,7 @@ const ajax = (method, resourceUrl, data, headers = {}, onprogress) => {
   });
 };
 
-const setAppId = (headers, signKey) => {
+const setAppKey = (headers, signKey) => {
   if (signKey) {
     headers['X-LC-Sign'] = sign(AV.applicationKey);
   } else {
@@ -87,10 +87,10 @@ const setHeaders = (authOptions = {}, signKey) => {
       }
     } else {
       console.warn('masterKey is not set, fall back to use appKey');
-      setAppId(headers, signKey);
+      setAppKey(headers, signKey);
     }
   } else {
-    setAppId(headers, signKey);
+    setAppKey(headers, signKey);
   }
   if (AV.hookKey) {
     headers['X-LC-Hook-Key'] = AV.hookKey;
@@ -278,7 +278,7 @@ const AVRequest = (route, className, objectId, method, dataObject = {}, authOpti
   }
   return getServerURLPromise.then(() => {
     const apiURL = createApiUrl(route, className, objectId, method, dataObject);
-    return setHeaders(authOptions).then(
+    return setHeaders(authOptions, route !== 'bigquery').then(
       headers => ajax(method, apiURL, dataObject, headers)
         .then(
           null,
