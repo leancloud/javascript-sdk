@@ -20,7 +20,7 @@ const sign = (key, isMasterKey) => {
   return `${signature},${now}`;
 };
 
-const setAppId = (headers, signKey) => {
+const setAppKey = (headers, signKey) => {
   if (signKey) {
     headers['X-LC-Sign'] = sign(AV.applicationKey);
   } else {
@@ -48,10 +48,10 @@ const setHeaders = (authOptions = {}, signKey) => {
       }
     } else {
       console.warn('masterKey is not set, fall back to use appKey');
-      setAppId(headers, signKey);
+      setAppKey(headers, signKey);
     }
   } else {
-    setAppId(headers, signKey);
+    setAppKey(headers, signKey);
   }
   if (AV.hookKey) {
     headers['X-LC-Hook-Key'] = AV.hookKey;
@@ -123,13 +123,13 @@ const handleError = (error) =>
     reject(new AVError(errorJSON.code, errorJSON.error));
   });
 
-const request = ({ service, version, method, path, query, data = {}, authOptions }) => {
+const request = ({ service, version, method, path, query, data = {}, authOptions, signKey = true }) => {
   if (!(AV.applicationId && (AV.applicationKey || AV.masterKey))) {
     throw new Error('Not initialized');
   }
   AV._appRouter.refresh();
   const url = createApiUrl({ service, path, version });
-  return setHeaders(authOptions).then(
+  return setHeaders(authOptions, signKey).then(
     headers => ajax({ method, url, query, data, headers })
       .catch(handleError)
   );
