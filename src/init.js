@@ -17,13 +17,22 @@ const fillServerURLs = url => ({
 
 function getDefaultServerURLs(appId, region) {
   if (region === 'us') return fillServerURLs('https://us-api.leancloud.cn');
+  let id;
   switch (appId.slice(-9)) {
     case '-9Nh9j0Va':
+      // TAB
       return fillServerURLs('https://e1-api.leancloud.cn');
     case '-MdYXbMMI':
+      // US
       return fillServerURLs('https://us-api.leancloud.cn');
     default:
-      return fillServerURLs('https://api.leancloud.cn');
+      id = appId.slice(0, 7);
+      return {
+        push: `https://${id}.push.lncld.net`,
+        stats: `https://${id}.stats.lncld.net`,
+        engine: `https://${id}.engine.lncld.net`,
+        api: `https://${id}.api.lncld.net`,
+      };
   }
 }
 
