@@ -1,4 +1,10 @@
-## 2.1.3 (2017-3-13)
+## 2.1.4 (2017-03-27)
+### Bug Fixes
+* 如果在创建 `Role` 时不指定 `acl` 参数，SDK 会自动为其设置一个「默认 acl」，这导致了通过 Query 得到或使用 `Object.createWithoutData` 方法得到 `Role` 也会被意外的设置 acl。这个版本修复了这个问题。
+* 修复了在 React Native for Android 中使用 blob 方式上传文件失败的问题
+
+## 2.1.3 (2017-03-13)
+### Bug Fixes
 * 修复了调用 `User#refreshSessionToken` 刷新用户的 sessionToken 后本地存储中的用户没有更新的问题
 * 修复了初始化可能会造成 disableCurrentUser 配置失效的问题
 * 修复了 `Query#destroyAll` 方法 `options` 参数无效的问题
