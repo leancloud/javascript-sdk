@@ -1,5 +1,5 @@
 const _ = require('underscore');
-const AVRequest = require('./request')._request;
+const { _request, request } = require('./request');
 
 module.exports = function(AV) {
   /**
@@ -21,11 +21,14 @@ module.exports = function(AV) {
      * @return {Promise} A promise that will be resolved with the result
      * of the function.
      */
-    run: function(name, data, options) {
-      var request = AVRequest('functions', name, null, 'POST',
-                                   AV._encode(data, null, true), options);
-
-      return request.then(function(resp) {
+    run(name, data, options) {
+      return request({
+        service: 'engine',
+        method: 'POST',
+        path: `/functions/${name}`,
+        data: AV._encode(data, null, true),
+        authOptions: options,
+      }).then((resp) => {
         return AV._decode(resp).result;
       });
     },
@@ -38,12 +41,18 @@ module.exports = function(AV) {
      * @param {AuthOptions} options
      * @return {Promise} A promise that will be resolved with the result of the function.
      */
-    rpc: function(name, data, options) {
+    rpc(name, data, options) {
       if (_.isArray(data)) {
         return Promise.reject(new Error('Can\'t pass Array as the param of rpc function in JavaScript SDK.'));
       }
 
-      return AVRequest('call', name, null, 'POST', AV._encodeObjectOrArray(data), options).then(function(resp) {
+      return request({
+        service: 'engine',
+        method: 'POST',
+        path: `/call/${name}`,
+        data: AV._encodeObjectOrArray(data),
+        authOptions: options,
+      }).then((resp) => {
         return AV._decode(resp).result;
       });
     },
@@ -54,10 +63,8 @@ module.exports = function(AV) {
      * of the function.
      * @since 0.5.9
      */
-    getServerDate: function() {
-      var request = AVRequest("date", null, null, 'GET');
-
-      return request.then(function(resp) {
+    getServerDate() {
+      return _request("date", null, null, 'GET').then(function(resp) {
         return AV._decode(resp);
       });
     },
@@ -69,16 +76,15 @@ module.exports = function(AV) {
      * @return {Promise} A promise that will be resolved with the result
      * of the function.
      */
-    requestSmsCode: function(data){
+    requestSmsCode(data) {
       if(_.isString(data)) {
         data = { mobilePhoneNumber: data };
       }
       if(!data.mobilePhoneNumber) {
         throw new Error('Missing mobilePhoneNumber.');
       }
-      var request = AVRequest("requestSmsCode", null, null, 'POST',
+      return _request("requestSmsCode", null, null, 'POST',
                                     data);
-      return request;
     },
 
     /**
@@ -88,7 +94,7 @@ module.exports = function(AV) {
      * @return {Promise} A promise that will be resolved with the result
      * of the function.
      */
-    verifySmsCode: function(code, phone){
+    verifySmsCode(code, phone) {
       if(!code)
         throw new Error('Missing sms code.');
       var params = {};
@@ -96,9 +102,8 @@ module.exports = function(AV) {
          params['mobilePhoneNumber'] = phone;
       }
 
-      var request = AVRequest("verifySmsCode", code, null, 'POST',
+      return _request("verifySmsCode", code, null, 'POST',
                                    params);
-      return request;
     }
   });
 };

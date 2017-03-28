@@ -26,7 +26,7 @@ function getDefaultServerURLs(appId, region) {
       // US
       return fillServerURLs('https://us-api.leancloud.cn');
     default:
-      id = appId.slice(0, 7);
+      id = appId.slice(0, 8);
       return {
         push: `https://${id}.push.lncld.net`,
         stats: `https://${id}.stats.lncld.net`,
