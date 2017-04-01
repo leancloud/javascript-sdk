@@ -20,7 +20,8 @@ module.exports = function(AV) {
    *         a set of installations to push to.
    * @param {String} [data.cql] A CQL statement over AV.Installation that is used to match
    *         a set of installations to push to.
-   * @param {Date} data.data The data to send as part of the push
+   * @param {Object} data.data The data to send as part of the push.
+             More details:  https://url.leanapp.cn/pushData
    * @param {AuthOptions} [options]
    * @return {Promise}
    */
