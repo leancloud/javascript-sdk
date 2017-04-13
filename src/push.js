@@ -1,4 +1,4 @@
-const AVRequest = require('./request').request;
+const request = require('./request').request;
 
 module.exports = function(AV) {
   AV.Installation = AV.Object.extend("_Installation");
@@ -45,7 +45,12 @@ module.exports = function(AV) {
       throw new Error("Both expiration_time and expiration_time_interval can't be set");
     }
 
-    var request = AVRequest('push', null, null, 'POST', data, options);
-    return request;
+    return request({
+      service: 'push',
+      method: 'POST',
+      path: '/push',
+      data,
+      authOptions: options,
+    });
   };
 };

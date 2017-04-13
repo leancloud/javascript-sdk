@@ -2,7 +2,7 @@ const _ = require('underscore');
 const debug = require('debug')('leancloud:query');
 const Promise = require('./promise');
 const AVError = require('./error');
-const AVRequest = require('./request').request;
+const AVRequest = require('./request')._request;
 const { ensureArray } = require('./utils');
 
 const requires = (value, message) => {

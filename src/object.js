@@ -1,7 +1,12 @@
 const _ = require('underscore');
 const AVError = require('./error');
-const AVRequest = require('./request').request;
-const utils = require('./utils');
+const {
+  _request,
+ } = require('./request');
+const {
+  isNullOrUndefined,
+  ensureArray,
+} = require('./utils');
 
 const RESERVED_KEYS = ['objectId', 'createdAt', 'updatedAt'];
 const checkReservedKey = key => {
@@ -9,6 +14,15 @@ const checkReservedKey = key => {
     throw new Error(`key[${key}] is reserved`);
   }
 };
+
+// Helper function to get a value from a Backbone object as a property
+// or as a function.
+function getValue(object, prop) {
+  if (!(object && object[prop])) {
+    return null;
+  }
+  return _.isFunction(object[prop]) ? object[prop]() : object[prop];
+}
 
 // AV.Object is analogous to the Java AVObject.
 // It also implements the same interface as a Backbone model.
@@ -52,7 +66,7 @@ module.exports = function(AV) {
       attributes = this.parse(attributes);
       attributes = this._mergeMagicFields(attributes);
     }
-    var defaults = AV._getValue(this, 'defaults');
+    var defaults = getValue(this, 'defaults');
     if (defaults) {
       attributes = _.extend({}, defaults, attributes);
     }
@@ -112,7 +126,7 @@ module.exports = function(AV) {
 
   AV.Object.fetchAll = (objects, options) =>
     AV.Promise.resolve().then(() =>
-      AVRequest('batch', null, null, 'POST', {
+      _request('batch', null, null, 'POST', {
         requests: _.map(objects, object => {
           if (!object.className) throw new Error('object must have className to fetch');
           if (!object.id) throw new Error('object must have id to fetch');
@@ -339,7 +353,7 @@ module.exports = function(AV) {
       }
       var val = this.attributes[attr];
       var escaped;
-      if (utils.isNullOrUndefined(val)) {
+      if (isNullOrUndefined(val)) {
         escaped = '';
       } else {
         escaped = _.escape(val.toString());
@@ -355,7 +369,7 @@ module.exports = function(AV) {
      * @return {Boolean}
      */
     has: function(attr) {
-      return !utils.isNullOrUndefined(this.attributes[attr]);
+      return !isNullOrUndefined(this.attributes[attr]);
     },
 
     /**
@@ -614,7 +628,7 @@ module.exports = function(AV) {
      */
     set: function(key, value, options) {
       var attrs;
-      if (_.isObject(key) || utils.isNullOrUndefined(key)) {
+      if (_.isObject(key) || isNullOrUndefined(key)) {
         attrs = _.mapObject(key, function(v, k) {
           checkReservedKey(k);
           return AV._decode(v, k);
@@ -746,7 +760,7 @@ module.exports = function(AV) {
      * @param item {} The item to add.
      */
     add: function(attr, item) {
-      return this.set(attr, new AV.Op.Add(utils.ensureArray(item)));
+      return this.set(attr, new AV.Op.Add(ensureArray(item)));
     },
 
     /**
@@ -758,7 +772,7 @@ module.exports = function(AV) {
      * @param item {} The object to add.
      */
     addUnique: function(attr, item) {
-      return this.set(attr, new AV.Op.AddUnique(utils.ensureArray(item)));
+      return this.set(attr, new AV.Op.AddUnique(ensureArray(item)));
     },
 
     /**
@@ -769,7 +783,7 @@ module.exports = function(AV) {
      * @param item {} The object to remove.
      */
     remove: function(attr, item) {
-      return this.set(attr, new AV.Op.Remove(utils.ensureArray(item)));
+      return this.set(attr, new AV.Op.Remove(ensureArray(item)));
     },
 
     /**
@@ -836,7 +850,7 @@ module.exports = function(AV) {
       }
 
       var self = this;
-      var request = AVRequest('classes', this.className, this.id, 'GET',
+      var request = _request('classes', this.className, this.id, 'GET',
                                 fetchOptions, options);
       return request.then(function(response) {
         self._finishFetch(self.parse(response), true);
@@ -874,7 +888,7 @@ module.exports = function(AV) {
      */
     save: function(arg1, arg2, arg3) {
       var i, attrs, current, options, saved;
-      if (_.isObject(arg1) || utils.isNullOrUndefined(arg1)) {
+      if (_.isObject(arg1) || isNullOrUndefined(arg1)) {
         attrs = arg1;
         options = arg2;
       } else {
@@ -920,24 +934,21 @@ module.exports = function(AV) {
         var method = model.id ? 'PUT' : 'POST';
 
         var json = model._getSaveJSON();
+        var query = {};
 
-        if(model._fetchWhenSave){
-          //Sepcial-case fetchWhenSave when updating object.
-          json._fetchWhenSave = true;
+        if(model._fetchWhenSave || options.fetchWhenSave){
+          query['new'] = 'true';
         }
 
-        if (options.fetchWhenSave) {
-          json._fetchWhenSave = true;
-        }
         if (options.query) {
           var queryJSON;
           if (typeof options.query.toJSON === 'function') {
             queryJSON = options.query.toJSON();
             if (queryJSON) {
-              json._where = queryJSON.where;
+              query.where = queryJSON.where;
             }
           }
-          if (!json._where) {
+          if (!query.where) {
             var error = new Error('options.query is not an AV.Query');
             throw error;
           }
@@ -953,10 +964,10 @@ module.exports = function(AV) {
           className = null;
         }
         //hook makeRequest in options.
-        var makeRequest = options._makeRequest || AVRequest;
-        var request = makeRequest(route, className, model.id, method, json, options);
+        var makeRequest = options._makeRequest || _request;
+        var requestPromise = makeRequest(route, className, model.id, method, json, options, query);
 
-        request = request.then(function(resp) {
+        requestPromise = requestPromise.then(function(resp) {
           var serverAttrs = model.parse(resp);
           if (options.wait) {
             serverAttrs = _.extend(attrs || {}, serverAttrs);
@@ -972,7 +983,7 @@ module.exports = function(AV) {
           throw error;
         });
 
-        return request;
+        return requestPromise;
       });
       return this._allPreviousSaves;
     },
@@ -1004,7 +1015,7 @@ module.exports = function(AV) {
       }
 
       var request =
-          AVRequest('classes', this.className, this.id, 'DELETE', this._flags, options);
+          _request('classes', this.className, this.id, 'DELETE', this._flags, options);
       return request.then(function() {
         if (options.wait) {
           triggerDestroy();
@@ -1282,7 +1293,7 @@ module.exports = function(AV) {
           }
         })
       };
-      return AVRequest('batch', null, null, 'POST', body, options);
+      return _request('batch', null, null, 'POST', body, options);
    };
 
   /**
@@ -1547,7 +1558,7 @@ module.exports = function(AV) {
 
         // Save a single batch, whether previous saves succeeded or failed.
         const bathSavePromise = readyToStart.then(() =>
-          AVRequest("batch", null, null, "POST", {
+          _request("batch", null, null, "POST", {
             requests: _.map(batch, function(object) {
               var json = object._getSaveJSON();
               _.extend(json, object._flags);

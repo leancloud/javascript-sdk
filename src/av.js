@@ -1,104 +1,24 @@
 const _ = require('underscore');
 const userAgent = require('./ua');
 const {
-  isNullOrUndefined,
+  inherits,
+  parseDate,
 } = require('./utils');
 
 const AV = global.AV || {};
 
 // All internal configuration items
-AV._config = AV._config || {};
-const AVConfig = AV._config;
-
-_.extend(AVConfig, {
-
-  // 服务器节点地区，默认中国大陆
-  region: 'cn',
-
-  // 服务器的 URL，默认初始化时被设置为大陆节点地址
-  APIServerURL: AVConfig.APIServerURL || '',
-
-  // 禁用 currentUser，通常用于多用户环境
-  disableCurrentUser: false,
-
-  // Internal config can modifie the UserAgent
+AV._config = {
   userAgent,
-
-  // set production environment or test environment
-  // 1: production environment, 0: test environment, null: default environment
-  applicationProduction: null,
-});
+  serverURLs: {},
+  useMasterKey: false,
+  production: null,
+};
 
 /**
  * Contains all AV API classes and functions.
  * @namespace AV
  */
-
-// Helpers
-// -------
-
-// Shared empty constructor function to aid in prototype-chain creation.
-var EmptyConstructor = function() {};
-
-// Helper function to correctly set up the prototype chain, for subclasses.
-// Similar to `goog.inherits`, but uses a hash of prototype properties and
-// class properties to be extended.
-var inherits = function(parent, protoProps, staticProps) {
-  var child;
-
-  // The constructor function for the new subclass is either defined by you
-  // (the "constructor" property in your `extend` definition), or defaulted
-  // by us to simply call the parent's constructor.
-  if (protoProps && protoProps.hasOwnProperty('constructor')) {
-    child = protoProps.constructor;
-  } else {
-    /** @ignore */
-    child = function(){ parent.apply(this, arguments); };
-  }
-
-  // Inherit class (static) properties from parent.
-  _.extend(child, parent);
-
-  // Set the prototype chain to inherit from `parent`, without calling
-  // `parent`'s constructor function.
-  EmptyConstructor.prototype = parent.prototype;
-  child.prototype = new EmptyConstructor();
-
-  // Add prototype properties (instance properties) to the subclass,
-  // if supplied.
-  if (protoProps) {
-    _.extend(child.prototype, protoProps);
-  }
-
-  // Add static properties to the constructor function, if supplied.
-  if (staticProps) {
-    _.extend(child, staticProps);
-  }
-
-  // Correctly set child's `prototype.constructor`.
-  child.prototype.constructor = child;
-
-  // Set a convenience property in case the parent's prototype is
-  // needed later.
-  child.__super__ = parent.prototype;
-
-  return child;
-};
-
-/**
- * Call this method to set production environment variable.
- * @function AV.setProduction
- * @param {Boolean} production True is production environment,and
- *  it's true by default.
- */
-AV.setProduction = (production) => {
-  if (!isNullOrUndefined(production)) {
-    AVConfig.applicationProduction = production ? 1 : 0;
-  } else {
-    // change to default value
-    AVConfig.applicationProduction = null;
-  }
-};
 
 /**
  * Returns prefix for localStorage keys used by this instance of AV.
@@ -158,41 +78,13 @@ AV._getInstallationId = function() {
   });
 };
 
-AV._parseDate = function(iso8601) {
-  var regexp = new RegExp(
-    "^([0-9]{1,4})-([0-9]{1,2})-([0-9]{1,2})" + "T" +
-    "([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})" +
-    "(.([0-9]+))?" + "Z$");
-  var match = regexp.exec(iso8601);
-  if (!match) {
-    return null;
-  }
-
-  var year = match[1] || 0;
-  var month = (match[2] || 1) - 1;
-  var day = match[3] || 0;
-  var hour = match[4] || 0;
-  var minute = match[5] || 0;
-  var second = match[6] || 0;
-  var milli = match[8] || 0;
-
-  return new Date(Date.UTC(year, month, day, hour, minute, second, milli));
-};
+AV._parseDate = parseDate;
 
 // A self-propagating extend function.
 AV._extend = function(protoProps, classProps) {
   var child = inherits(this, protoProps, classProps);
   child.extend = this.extend;
   return child;
-};
-
-// Helper function to get a value from a Backbone object as a property
-// or as a function.
-AV._getValue = function(object, prop) {
-  if (!(object && object[prop])) {
-    return null;
-  }
-  return _.isFunction(object[prop]) ? object[prop]() : object[prop];
 };
 
 /**

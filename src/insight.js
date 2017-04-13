@@ -1,6 +1,6 @@
 const _ = require('underscore');
 const AVError = require('./error');
-const AVRequest = require('./request').request;
+const { request } = require('./request');
 
 module.exports = function(AV) {
   /**
@@ -39,12 +39,13 @@ module.exports = function(AV) {
         jobConfig: jobConfig,
         appId: AV.applicationId
       };
-      var request = AVRequest("bigquery", 'jobs', null, 'POST',
-                                   AV._encode(data, null, true), options);
-
-      return request.then(function(resp) {
-        return AV._decode(resp).id;
-      });
+      return request({
+        path: '/bigquery/jobs',
+        method: 'POST',
+        data: AV._encode(data, null, true),
+        authOptions: options,
+        signKey: false,
+      }).then((resp) => AV._decode(resp).id);
     },
 
     /**
@@ -118,10 +119,13 @@ module.exports = function(AV) {
         limit: this._limit
       };
 
-      var request = AVRequest("bigquery", 'jobs', this.id, "GET",
-                                   params, options);
-      var self = this;
-      return request.then(function(response) {
+      return request({
+        path: `/bigquery/jobs/${this.id}`,
+        method: 'GET',
+        query: params,
+        authOptions: options,
+        signKey: false,
+      }).then(function(response) {
         if(response.error) {
           return AV.Promise.reject(new AVError(response.code, response.error));
         }

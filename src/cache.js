@@ -20,7 +20,7 @@ const getCacheData = (cacheData, key) => {
 };
 
 exports.getAsync = (key) => {
-  key = `${AV.applicationId}/${key}`;
+  key = `AV/${AV.applicationId}/${key}`;
   return storage.getItemAsync(key)
     .then(cache => getCacheData(cache, key));
 };
@@ -31,7 +31,7 @@ exports.setAsync = (key, value, ttl) => {
     cache.expiredAt = Date.now() + ttl;
   }
   return storage.setItemAsync(
-    `${AV.applicationId}/${key}`,
+    `AV/${AV.applicationId}/${key}`,
      JSON.stringify(cache)
    );
 };
