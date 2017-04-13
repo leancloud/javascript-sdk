@@ -8,14 +8,9 @@ describe("Role", function() {
       expect(role.getName()).to.be('foo');
       expect(role.getACL()).to.be(acl);
     });
-    it("acl is optional", function() {
+    it("acl is required", function() {
       var role = new AV.Role('foo');
-      expect(role.getName()).to.be('foo');
-      expect(role.getACL().toJSON()).to.eql({
-        '*': {
-          read: true
-        }
-      });
+      return role.save().should.be.rejected();
     });
     it("type check", function() {
       expect(function() {

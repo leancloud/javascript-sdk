@@ -478,7 +478,7 @@ declare namespace AV {
      */
     export class Role extends Object {
 
-        constructor(name: string, acl?: ACL);
+        constructor(name: string, acl: ACL);
 
         getRoles(): Relation;
         getUsers(): Relation;

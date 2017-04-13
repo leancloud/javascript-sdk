@@ -135,7 +135,9 @@ describe("User", function() {
       }).catch(function() {
         // already destroyed
       }).then(function() {
-        var role = new AV.Role("testRole");
+        const acl = new AV.ACL();
+        acl.setPublicReadAccess(true);
+        var role = new AV.Role("testRole", acl);
         role.getUsers().add(user);
         return role.save()
       }).then(function() {
