@@ -36,7 +36,7 @@ try {
 // in browser, `localStorage.async = false` will excute `localStorage.setItem('async', false)`
 _(apiNames).each(function(apiName) {
   Storage[apiName] = function() {
-    return global.localStorage[apiName].apply(global.localStorage, arguments);
+    return localStorage[apiName].apply(localStorage, arguments);
   };
 });
 Storage.async = false;
