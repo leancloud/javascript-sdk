@@ -899,14 +899,21 @@ module.exports = function(AV) {
      * number associated with the user account. This sms code allows the user to
      * verify their mobile phone number by calling AV.User.verifyMobilePhone
      *
-     * @param {String} mobilePhone The mobile phone number  associated with the
+     * @param {String} mobilePhoneNumber The mobile phone number associated with the
      *                  user that doesn't verify their mobile phone number.
+     * @param {AuthOptions} [options] AuthOptions plus:
+     * @param {String} [options.validateToken] a validate token returned by {@link AV.Cloud.verifyCaptcha}
      * @return {Promise}
      */
-    requestMobilePhoneVerify: function(mobilePhone){
-      var json = { mobilePhoneNumber: mobilePhone };
+    requestMobilePhoneVerify: function(mobilePhoneNumber, options = {}){
+      const data = {
+        mobilePhoneNumber,
+      }
+      if (options.validataToken) {
+        data.validate_token = options.validataToken
+      }
       var request = AVRequest("requestMobilePhoneVerify", null, null, "POST",
-                                   json);
+                                   data, options);
       return request;
     },
 
@@ -916,14 +923,21 @@ module.exports = function(AV) {
      * number associated with the user account. This sms code allows the user to
      * reset their account's password by calling AV.User.resetPasswordBySmsCode
      *
-     * @param {String} mobilePhone The mobile phone number  associated with the
+     * @param {String} mobilePhoneNumber The mobile phone number  associated with the
      *                  user that doesn't verify their mobile phone number.
+     * @param {AuthOptions} [options] AuthOptions plus:
+     * @param {String} [options.validateToken] a validate token returned by {@link AV.Cloud.verifyCaptcha}
      * @return {Promise}
      */
-    requestPasswordResetBySmsCode: function(mobilePhone){
-      var json = { mobilePhoneNumber: mobilePhone };
+    requestPasswordResetBySmsCode: function(mobilePhoneNumber, options = {}){
+      const data = {
+        mobilePhoneNumber,
+      }
+      if (options.validataToken) {
+        data.validate_token = options.validataToken
+      }
       var request = AVRequest("requestPasswordResetBySmsCode", null, null, "POST",
-                                   json);
+                                   data, options);
       return request;
     },
 
@@ -960,14 +974,21 @@ module.exports = function(AV) {
      * number associated with the user account. This sms code allows the user to
      * login by AV.User.logInWithMobilePhoneSmsCode function.
      *
-     * @param {String} mobilePhone The mobile phone number  associated with the
+     * @param {String} mobilePhoneNumber The mobile phone number  associated with the
      *           user that want to login by AV.User.logInWithMobilePhoneSmsCode
+     * @param {AuthOptions} [options] AuthOptions plus:
+     * @param {String} [options.validateToken] a validate token returned by {@link AV.Cloud.verifyCaptcha}
      * @return {Promise}
      */
-    requestLoginSmsCode: function(mobilePhone){
-      var json = { mobilePhoneNumber: mobilePhone };
+    requestLoginSmsCode: function(mobilePhoneNumber, options = {}){
+      const data = {
+        mobilePhoneNumber,
+      }
+      if (options.validataToken) {
+        data.validate_token = options.validataToken
+      }
       var request = AVRequest("requestLoginSmsCode", null, null, "POST",
-                                   json);
+                                   data, options);
       return request;
     },
 

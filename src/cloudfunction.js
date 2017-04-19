@@ -64,20 +64,29 @@ module.exports = function(AV) {
 
     /**
      * Makes a call to request a sms code for operation verification.
-     * @param {Object} data The mobile phone number string or a JSON
-     *    object that contains mobilePhoneNumber,template,op,ttl,name etc.
-     * @return {Promise} A promise that will be resolved with the result
-     * of the function.
+     * @param {String|Object} data The mobile phone number string or a JSON
+     *    object that contains mobilePhoneNumber,template,sign,op,ttl,name etc.
+     * @param {String} data.mobilePhoneNumber
+     * @param {String} [data.template] sms template name
+     * @param {String} [data.sign] sms signature name
+     * @param {AuthOptions} [options] AuthOptions plus:
+     * @param {String} [options.validateToken] a validate token returned by {@link AV.Cloud.verifyCaptcha}
+     * @return {Promise} A promise that will be resolved if the request succeed
      */
-    requestSmsCode: function(data){
+    requestSmsCode: function(data, options = {}) {
       if(_.isString(data)) {
         data = { mobilePhoneNumber: data };
       }
       if(!data.mobilePhoneNumber) {
         throw new Error('Missing mobilePhoneNumber.');
       }
+      if (options.validateToken) {
+        data = _.extend({}, data, {
+          validate_token: options.validateToken,
+        });
+      }
       var request = AVRequest("requestSmsCode", null, null, 'POST',
-                                    data);
+                                    data, options);
       return request;
     },
 
@@ -99,6 +108,38 @@ module.exports = function(AV) {
       var request = AVRequest("verifySmsCode", code, null, 'POST',
                                    params);
       return request;
-    }
+    },
+
+    /**
+     * request a captcha
+     * @param {Object} [options]
+     * @param {Number} [options.size=4] length of the captcha, ranged 3-6
+     * @param {Number} [options.width] width(px) of the captcha, ranged 60-200
+     * @param {Number} [options.height] height(px) of the captcha, ranged 30-100
+     * @param {Number} [options.ttl=60] time to live(s), ranged 10-180
+     * @return {Promise} { captchaToken, url }
+     */
+    requestCaptcha(options) {
+      return AVRequest('requestCaptcha', null, null, 'GET', options).then(({
+        captcha_url: url,
+        captcha_token: captchaToken,
+      }) => ({
+        captchaToken,
+        url,
+      }));
+    },
+
+    /**
+     * verify captcha code
+     * @param {String} code the code from user input
+     * @param {String} captchaToken captchaToken returned by {@link AV.Cloud.requestCaptcha}
+     * @return {Promise.<String>} validateToken if the code is valid
+     */
+    verifyCaptcha(code, captchaToken) {
+      return AVRequest('verifyCaptcha', null, null, 'POST', {
+        captcha_code: code,
+        captcha_token: captchaToken,
+      }).then(({ validate_token: validateToken }) => validateToken);
+    },
   });
 };
