@@ -5,7 +5,7 @@ const s3 = require('./uploader/s3');
 const AVError = require('./error');
 const AVRequest = require('./request').request;
 const Promise = require('./promise');
-const { tap } = require('./utils');
+const { tap, transformFetchOptions } = require('./utils');
 const debug = require('debug')('leancloud:file');
 const parseBase64 = require('./utils/parse-base64');
 
@@ -521,14 +521,14 @@ module.exports = function(AV) {
     /**
     * fetch the file from server. If the server's representation of the
     * model differs from its current attributes, they will be overriden,
-    * @param {AuthOptions} options AuthOptions plus 'keys' and 'include' option.
+    * @param {Object} fetchOptions Optional options to set 'keys',
+    *      'include' and 'includeACL' option.
+    * @param {AuthOptions} options
     * @return {Promise} A promise that is fulfilled when the fetch
     *     completes.
     */
-    fetch: function(options) {
-        var options = null;
-
-        var request = AVRequest('files', null, this.id, 'GET', options);
+    fetch: function(fetchOptions, options) {
+        var request = AVRequest('files', null, this.id, 'GET', transformFetchOptions(fetchOptions), options);
         return request.then(this._finishFetch.bind(this));
     },
     _finishFetch: function(response) {

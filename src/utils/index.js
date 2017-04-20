@@ -13,6 +13,20 @@ const ensureArray = target => {
   return [target];
 };
 
+const transformFetchOptions = ({ keys, include, includeACL } = {}) => {
+  const fetchOptions = {};
+  if (_.isArray(keys)) {
+    fetchOptions.keys = keys.join(',');
+  }
+  if (_.isArray(include)) {
+    fetchOptions.include = include.join(',');
+  }
+  if (includeACL) {
+    fetchOptions.returnACL = includeACL;
+  }
+  return fetchOptions;
+};
+
 const getSessionToken = (authOptions) => {
   if (authOptions.sessionToken) {
     return authOptions.sessionToken;
@@ -29,6 +43,7 @@ const tap = interceptor => value => ((interceptor(value), value));
 module.exports = {
   isNullOrUndefined,
   ensureArray,
+  transformFetchOptions,
   getSessionToken,
   tap,
 };

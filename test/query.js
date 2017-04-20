@@ -208,6 +208,16 @@ describe('Queries', function () {
         });
     });
 
+    it('includeACL', function () {
+      return new AV.Query(GameScore)
+        .includeACL()
+        .equalTo('objectId', this.gameScore.id)
+        .find()
+        .then(([gameScore]) => {
+          gameScore.getACL().should.be.instanceOf(AV.ACL);
+        });
+    });
+
     it('containsAll with an large array should not cause URI too long', () => {
       return new AV.Query(GameScore)
         .containsAll('arr', new Array(200).fill('contains-all-test'))
