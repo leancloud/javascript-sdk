@@ -8,6 +8,12 @@ declare namespace AV {
     export var applicationKey: string;
     export var masterKey: string;
 
+    interface FetchOptions {
+      keys?: string | string[];
+      include?: string | string[];
+      includeACL?: boolean;
+    }
+
     export interface AuthOptions {
         /**
          * In Cloud Code and Node only, causes the Master Key to be used for this request.
@@ -126,15 +132,15 @@ declare namespace AV {
         static withURL(name: string, url: string): File;
         static createWithoutData(objectId: string): File;
 
-        destroy<T>(): Promise<T>;
-        fetch<T>(options?: AuthOptions): Promise<T>;
+        destroy(): Promise<void>;
+        fetch(fetchOptions?: FetchOptions, options?: AuthOptions): Promise<File>;
         metaData(): any;
         metaData(metaKey: string): any;
         metaData(metaKey: string, metaValue: any): any;
         name(): string;
         ownerId(): string;
         url(): string;
-        save<T>(options?: AuthOptions): Promise<T>;
+        save(options?: AuthOptions): Promise<File>;
         setACL(acl?: ACL): any;
         size(): any;
         thumbnailURL(width: number, height: number): string;
@@ -254,7 +260,7 @@ declare namespace AV {
         destroy<T>(options?: Object.DestroyOptions): Promise<T>;
         dirty(attr: String): boolean;
         escape(attr: string): string;
-        fetch<T>(fetchOptions?: any, options?: Object.FetchOptions): Promise<T>;
+        fetch<T>(fetchOptions?: FetchOptions, options?: AuthOptions): Promise<T>;
         fetchWhenSave(enable: boolean): any;
         get(attr: string): any;
         getACL(): ACL;
@@ -279,8 +285,6 @@ declare namespace AV {
         interface DestroyOptions extends AuthOptions, WaitOption { }
 
         interface DestroyAllOptions extends AuthOptions { }
-
-        interface FetchOptions extends AuthOptions { }
 
         interface SaveOptions extends AuthOptions, SilentOption, WaitOption { }
 
@@ -440,6 +444,7 @@ declare namespace AV {
         greaterThanOrEqualTo(key: string, value: any): Query;
         include(key: string): Query;
         include(keys: string[]): Query;
+        includeACL(value?: boolean): Query;
         lessThan(key: string, value: any): Query;
         lessThanOrEqualTo(key: string, value: any): Query;
         limit(n: number): Query;

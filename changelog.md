@@ -1,3 +1,15 @@
+# 2.2.0 (2017-04-25)
+### Bug Fixes
+* 修复了 Safari 隐身模式下用户无法登录的问题
+
+### Features
+* 短信支持图形验证码（需要在控制台应用选项「启用短信图形验证码」）
+  * 新增 `Cloud.requestCaptcha` 与 `Cloud.verifyCaptcha` 方法请求、校验图形验证码。
+  * `Cloud.requestSmsCode`，`User.requestLoginSmsCode`，`User.requestMobilePhoneVerify` 与 `User.requestPasswordResetBySmsCode` 方法增加了 `authOptions.validateToken` 参数。没有提供有效的 validateToken 的请求会被拒绝。
+* 支持客户端查询 ACL（需要在控制台应用选项启用「查询时返回值包括 ACL」）
+  * 增加 `Query#includeACL` 方法。
+  * `Object#fetch` 与 `File#fetch` 方法增加了 `fetchOptions.includeACL` 参数。
+
 ## 2.1.4 (2017-03-27)
 ### Bug Fixes
 * 如果在创建 `Role` 时不指定 `acl` 参数，SDK 会自动为其设置一个「默认 acl」，这导致了通过 Query 得到或使用 `Object.createWithoutData` 方法得到 `Role` 也会被意外的设置 acl。这个版本修复了这个问题。
@@ -18,7 +30,7 @@
 ### Bug Fixes
 * 修复了使用 masterKey 获取一个 object 后再次 save 可能会报 ACL 格式不正确的问题。
 
-## 2.1.0 (2017-01-20)
+# 2.1.0 (2017-01-20)
 ### Bug Fixes
 * 修复了 `File#toJSON` 序列化结果中缺失 objectId 等字段的问题
 * 修复了使用 `Query#containsAll`、`Query#containedIn` 或 `Query#notContainedIn` 方法传入大数组时查询结果可能为空的问题
