@@ -1,3 +1,7 @@
+## 2.2.1 (2017-04-26)
+### Bug Fixes
+* 修复了 `User.requestLoginSmsCode`，`User.requestMobilePhoneVerify` 与 `User.requestPasswordResetBySmsCode` 方法 `authOptions.validateToken` 参数的拼写错误。
+
 # 2.2.0 (2017-04-25)
 ### Bug Fixes
 * 修复了 Safari 隐身模式下用户无法登录的问题
