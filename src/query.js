@@ -197,6 +197,7 @@ module.exports = function(AV) {
 
       if (queryJSON.keys) fetchOptions.keys = queryJSON.keys;
       if (queryJSON.include) fetchOptions.include = queryJSON.include;
+      if (queryJSON.includeACL) fetchOptions.includeACL = queryJSON.includeACL;
 
       return obj.fetch(fetchOptions, options);
     },
@@ -215,6 +216,9 @@ module.exports = function(AV) {
       }
       if (this._select.length > 0) {
         params.keys = this._select.join(",");
+      }
+      if (this._includeACL !== undefined) {
+        params.returnACL = this._includeACL;
       }
       if (this._limit >= 0) {
         params.limit = this._limit;
@@ -926,6 +930,16 @@ module.exports = function(AV) {
       _(arguments).forEach(keys => {
         this._include = this._include.concat(ensureArray(keys))
       });
+      return this;
+    },
+
+    /**
+     * Include the ACL.
+     * @param {Boolean} [value=true] Whether to include the ACL
+     * @return {AV.Query} Returns the query, so you can chain this call.
+     */
+    includeACL: function(value = true) {
+      this._includeACL = value;
       return this;
     },
 

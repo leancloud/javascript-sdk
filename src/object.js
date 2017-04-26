@@ -6,6 +6,7 @@ const {
 const {
   isNullOrUndefined,
   ensureArray,
+  transformFetchOptions,
 } = require('./utils');
 
 const RESERVED_KEYS = ['objectId', 'createdAt', 'updatedAt'];
@@ -835,23 +836,17 @@ module.exports = function(AV) {
      * Fetch the model from the server. If the server's representation of the
      * model differs from its current attributes, they will be overriden,
      * triggering a <code>"change"</code> event.
-     * @param {Object} fetchOptions Optional options to set 'keys' and
-     *      'include' option.
+     * @param {Object} fetchOptions Optional options to set 'keys',
+     *      'include' and 'includeACL' option.
      * @param {AuthOptions} options
      * @return {Promise} A promise that is fulfilled when the fetch
      *     completes.
      */
-    fetch: function(fetchOptions = {}, options) {
-      if (_.isArray(fetchOptions.keys)) {
-        fetchOptions.keys = fetchOptions.keys.join(',');
-      }
-      if (_.isArray(fetchOptions.include)) {
-        fetchOptions.include = fetchOptions.include.join(',');
-      }
+    fetch: function(fetchOptions, options) {
 
       var self = this;
       var request = _request('classes', this.className, this.id, 'GET',
-                                fetchOptions, options);
+                                transformFetchOptions(fetchOptions), options);
       return request.then(function(response) {
         self._finishFetch(self.parse(response), true);
         return self;
