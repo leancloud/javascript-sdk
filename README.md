@@ -39,8 +39,6 @@ bower install leancloud-storage --save
 * `fork` 这个项目
 * `npm install` 安装相关依赖
 * 开发和调试
-  * 浏览器环境执行 `gulp dev`，会自动启动 `demo` 目录，可在 `test-es6.js` 中修改和测试，`test-es5.js` 为自动生成的代码
-  * Nodejs 环境同样在 `demo` 目录中，通过执行 `node test-es6.js` 开发与调试。推荐安装 `node inspector` 来调试，安装后执行 `node-debug test-es6.js`。每次修改代码后，如果开发代码引用的是 dist 目录中的代码，需要执行 `gulp release`
 * 确保测试全部通过 `npm run test`，浏览器环境打开 `test/test.html`
 * 提交并发起 `Pull Request`
 

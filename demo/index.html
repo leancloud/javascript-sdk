@@ -10,8 +10,11 @@
     <h2><a href="https://leancloud.cn">为开发加速</a></h2>
     <div class="tips">
       <p>欢迎调试 JavaScript SDK，请打开浏览器控制台</p>
+      <img id='captcha' onclick="refreshCaptcha()"/>
+      <input type="text" id='code'/>
+      <button onclick="verify()">verify</button>
     </div>
     <script src="../dist/av.js"></script>
-    <script src="./test-es5.js"></script>
+    <script src="./test.js"></script>
   </body>
 </html>

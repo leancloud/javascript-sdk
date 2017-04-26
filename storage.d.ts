@@ -17,6 +17,10 @@ declare namespace AV {
         user?: User;
     }
 
+    interface SMSAuthOptions extends AuthOptions {
+      validateToken?: string;
+    }
+
     export interface WaitOption {
         /**
          * Set to true to wait for the server to confirm success
@@ -509,10 +513,10 @@ declare namespace AV {
         static signUpOrlogInWithAuthData<T>(data: any, platform: string, options?: AuthOptions): Promise<T>;
         static signUpOrlogInWithMobilePhone<T>(mobilePhoneNumber: string, smsCode: string, attributes?: any, options?: AuthOptions): Promise<T>;
         static requestEmailVerify<T>(email: string, options?: AuthOptions): Promise<T>;
-        static requestLoginSmsCode<T>(mobilePhone: string, options?: AuthOptions): Promise<T>;
-        static requestMobilePhoneVerify<T>(mobilePhone: string, options?: AuthOptions): Promise<T>;
+        static requestLoginSmsCode(mobilePhoneNumber: string, options?: SMSAuthOptions): Promise<void>;
+        static requestMobilePhoneVerify(mobilePhoneNumber: string, options?: SMSAuthOptions): Promise<void>;
         static requestPasswordReset<T>(email: string, options?: AuthOptions): Promise<T>;
-        static requestPasswordResetBySmsCode<T>(mobilePhone: string, options?: AuthOptions): Promise<T>;
+        static requestPasswordResetBySmsCode(mobilePhoneNumber: string, options?: SMSAuthOptions): Promise<void>;
         static resetPasswordBySmsCode<T>(code: string, password: string, options?: AuthOptions): Promise<T>;
         static verifyMobilePhone<T>(code: string, options?: AuthOptions): Promise<T>;
         signUp<T>(attrs?: any, options?: AuthOptions): Promise<T>;
@@ -674,9 +678,11 @@ declare namespace AV {
     }
 
     export namespace Cloud {
-        function run<T>(name: string, data?: any, options?: AuthOptions): Promise<T>;
-        function requestSmsCode<T>(data: any, options?: AuthOptions): Promise<T>;
-        function verifySmsCode<T>(code: string, phone: string, options?: AuthOptions): Promise<T>;
+        function run(name: string, data?: any, options?: AuthOptions): Promise<any>;
+        function requestSmsCode(data: string|{ mobilePhoneNumber: string, template?: string, sign?: string }, options?: SMSAuthOptions): Promise<void>;
+        function verifySmsCode(code: string, phone: string): Promise<void>;
+        function requestCaptcha(options?: { size?: number, width?: number, height?: number, ttl?: number}): Promise<{ captchaToken: string, dataURI: string }>;
+        function verifyCaptcha(code: string, captchaToken: string): Promise<void>;
     }
 
     interface ServerURLs {
