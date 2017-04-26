@@ -45,7 +45,7 @@ describe('Queries', function () {
   });
 
   it('#File Query', () => {
-    const fileId = '52f9dd5ae4b019816c865985';
+    const fileId = process.env.FILE_ID || '52f9dd5ae4b019816c865985';
     query = new AV.Query(AV.File);
     query.equalTo('objectId', fileId);
     return query.find().then(([file]) => {
