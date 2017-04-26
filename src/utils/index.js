@@ -61,11 +61,11 @@ const ensureArray = target => {
 
 const transformFetchOptions = ({ keys, include, includeACL } = {}) => {
   const fetchOptions = {};
-  if (_.isArray(keys)) {
-    fetchOptions.keys = keys.join(',');
+  if (keys) {
+    fetchOptions.keys = ensureArray(keys).join(',');
   }
-  if (_.isArray(include)) {
-    fetchOptions.include = include.join(',');
+  if (include) {
+    fetchOptions.include = ensureArray(include).join(',');
   }
   if (includeACL) {
     fetchOptions.returnACL = includeACL;

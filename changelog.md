@@ -56,7 +56,7 @@
 ### Bug Fixes
 * 修复了使用 masterKey 获取一个 object 后再次 save 可能会报 ACL 格式不正确的问题。
 
-## 2.1.0 (2017-01-20)
+# 2.1.0 (2017-01-20)
 ### Bug Fixes
 * 修复了 `File#toJSON` 序列化结果中缺失 objectId 等字段的问题
 * 修复了使用 `Query#containsAll`、`Query#containedIn` 或 `Query#notContainedIn` 方法传入大数组时查询结果可能为空的问题
