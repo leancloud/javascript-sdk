@@ -909,8 +909,8 @@ module.exports = function(AV) {
       const data = {
         mobilePhoneNumber,
       }
-      if (options.validataToken) {
-        data.validate_token = options.validataToken
+      if (options.validateToken) {
+        data.validate_token = options.validateToken
       }
       var request = AVRequest("requestMobilePhoneVerify", null, null, "POST",
                                    data, options);
@@ -933,8 +933,8 @@ module.exports = function(AV) {
       const data = {
         mobilePhoneNumber,
       }
-      if (options.validataToken) {
-        data.validate_token = options.validataToken
+      if (options.validateToken) {
+        data.validate_token = options.validateToken
       }
       var request = AVRequest("requestPasswordResetBySmsCode", null, null, "POST",
                                    data, options);
@@ -984,8 +984,8 @@ module.exports = function(AV) {
       const data = {
         mobilePhoneNumber,
       }
-      if (options.validataToken) {
-        data.validate_token = options.validataToken
+      if (options.validateToken) {
+        data.validate_token = options.validateToken
       }
       var request = AVRequest("requestLoginSmsCode", null, null, "POST",
                                    data, options);
