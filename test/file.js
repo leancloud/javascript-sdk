@@ -124,7 +124,7 @@ describe('File', function() {
   });
 
   describe('#fetch', function() {
-    var fileId = '52f9dd5ae4b019816c865985';
+    const fileId = process.env.FILE_ID || '52f9dd5ae4b019816c865985';
     it('createWithoutData() should return a File', function() {
       var file = AV.File.createWithoutData(fileId);
       expect(file).to.be.a(AV.File);

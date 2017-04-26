@@ -1,6 +1,7 @@
 'use strict';
 
 describe("AV.Status",function(){
+  var targetUser = process.env.STATUS_TARGET_USER_ID || '5627906060b22ef9c464cc99';
   before(function() {
     var userName = this.userName = 'StatusTest' + Date.now();
     return AV.User.signUp(userName, userName).then(user => {
@@ -18,7 +19,7 @@ describe("AV.Status",function(){
 
     it("should send private status to an user.",function(){
       var status = new AV.Status('image url', 'message');
-      return AV.Status.sendPrivateStatus(status, '5627906060b22ef9c464cc99');
+      return AV.Status.sendPrivateStatus(status, targetUser);
     });
 
     it("should send  status to a female user.",function(){
@@ -30,7 +31,7 @@ describe("AV.Status",function(){
   });
 
   describe("Query statuses.", function(){
-    const user = AV.Object.createWithoutData('_User', '5627906060b22ef9c464cc99');
+    const user = AV.Object.createWithoutData('_User', targetUser);
     it("should return unread count.", function(){
       return AV.Status.countUnreadStatuses().then(function(response){
         expect(response.total).to.be.a('number');
@@ -62,9 +63,6 @@ describe("AV.Status",function(){
   });
 
   describe("Status guide test.", function(){
-    //follow 5627906060b22ef9c464cc99
-    //unfolow 5627906060b22ef9c464cc99
-    var targetUser = '5627906060b22ef9c464cc99';
     it("should follow/unfollow successfully.", function(){
       return AV.User.current().follow(targetUser).then(function(){
         var query = AV.User.current().followeeQuery();
@@ -73,7 +71,7 @@ describe("AV.Status",function(){
       }).then(function(followees){
         debug(followees);
         expect(followees.length).to.be(1);
-        expect(followees[0].id).to.be('5627906060b22ef9c464cc99');
+        expect(followees[0].id).to.be(targetUser);
         expect(followees[0].get('username')).to.be('leeyeh');
         return AV.User.current().unfollow(targetUser);
       }).then(function(){

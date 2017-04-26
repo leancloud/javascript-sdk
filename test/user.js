@@ -122,7 +122,7 @@ describe("User", function() {
     it("should return conditoinal users", function() {
       var query = new AV.Query(AV.User);
       query.equalTo("gender", "female"); // find all the women
-      return query.find();
+      return query.find({useMasterKey: true});
     });
   });
 
@@ -168,35 +168,6 @@ describe("User", function() {
     });
   });
 
-  describe("Follow/unfollow users", function() {
-    it("should follow/unfollow", function() {
-      var user = AV.User.current();
-      return user.follow('53fb0fd6e4b074a0f883f08a').then(function() {
-        var query = user.followeeQuery();
-        return query.find();
-      }).then(function(results) {
-        expect(results.length).to.be(1);
-        debug(results);
-        expect(results[0].id).to.be('53fb0fd6e4b074a0f883f08a');
-        var followerQuery = AV.User.followerQuery('53fb0fd6e4b074a0f883f08a');
-        return followerQuery.find();
-      }).then(function(results) {
-        expect(results.filter(function(result) {
-          return result.id === user.id;
-        })).not.to.be(0);
-        debug(results);
-        //unfollow
-        return user.unfollow('53fb0fd6e4b074a0f883f08a');
-      }).then(function() {
-        //query should be emtpy
-        var query = user.followeeQuery();
-        return query.find();
-      }).then(function(results) {
-        expect(results.length).to.be(0);
-      });
-    });
-  });
-
   describe("User logInAnonymously", function() {
     it("should create anonymous user, and login with AV.User.signUpOrlogInWithAuthData()", function() {
       var getFixedId = function () {
@@ -225,7 +196,7 @@ describe("User", function() {
         return AV.User.logIn(username, password);
       }).then(function (loginedUser) {
         return AV.User.associateWithAuthData(loginedUser, 'weixin', {
-          openid: 'aaabbbccc123123',
+          openid: 'aaabbbccc123123'+username,
           access_token: 'a123123aaabbbbcccc',
           expires_in: 1382686496,
         });

@@ -310,7 +310,6 @@ describe('Objects', function(){
 
     var Person=AV.Object.extend("Person");
     var p;
-    var posts=[];
 
     it("should create a Person",function(){
       var Person = AV.Object.extend("Person");
@@ -320,13 +319,12 @@ describe('Objects', function(){
     });
 
     it("should create many to many relations",function(){
-      var query = new AV.Query(Person);
-      return query.first().then(function(result){
-        var p=result;
+      return Promise.all([
+        new AV.Query(Post).first(),
+        new AV.Query(Person).first(),
+      ]).then(function([post, p]){
         var relation = p.relation("likes");
-        for(var i=0;i<posts.length;i++){
-          relation.add(posts[i]);
-        }
+        relation.add(post);
         p.set("pname","plike1");
         return p.save();
       }).then(function() {
@@ -375,6 +373,7 @@ describe('Objects', function(){
       });
     });
 
+    // 需要在控制台配置 Person company 默认值为 'leancloud'
     it("should fetch when save when creating new object.", function(){
       var p= new Person();
       p.set('pname', 'dennis');
