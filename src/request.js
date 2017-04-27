@@ -126,6 +126,7 @@ const handleError = (error) =>
 /**
  * Low level REST API client. Call REST endpoints with authorization headers.
  * @function AV.request
+ * @since 3.0.0
  * @param {Object} options
  * @param {String} options.method HTTP method
  * @param {String} options.path endpoint path, e.g. `/classes/Test/55759577e4b029ae6015ac20`

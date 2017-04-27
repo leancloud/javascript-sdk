@@ -1,4 +1,34 @@
-# 3.0.0-beta.1 (2017-02-28)
+# 3.0.0-beta.2 (2017-04-27)
+### Breaking Changes
+- 为了更好的隔离服务，我们为每个应用提供了独立的域名。对于小程序用户，请前往 [《小程序域名白名单配置》](https://leancloud.cn/docs/weapp-domains.html) 更新域名白名单。
+- 创建 `Role` 时 `acl` 参数不再是可选的。在 v2 中，如果不指定，SDK 会自动为其设置一个 public read-only 的默认 acl，在新版中必须显式的指定。
+  <details>
+
+  ```javascript
+  // 之前的用法
+  new AV.Role('admin');
+
+  // 新版中等价于
+  var acl = new AV.ACL();
+  acl.setPublicReadAccess(true);
+  new AC.Role('admin', acl);
+  ```
+
+### Features
+- 开放了低抽象级别的 `AV.request` 方法
+- 增加了 `AV.setServerURLs` 方法，允许单独配置云函数的域名
+  <details>
+
+  ```javascript
+  AV.setServerURLs({
+    engine: 'http://localhost:3000',
+  });
+  ```
+
+### Miscellanies
+- 包含了 v2.1.3-v2.2.1 的新特性与修复。
+
+## 3.0.0-beta.1 (2017-02-28)
 ### Bug Fixes
 - 修复了 Query 时使用 Date 类型的条件会导致查询结果异常的问题
 
@@ -46,6 +76,32 @@
 
 更多背景与技术细节请参考 [#453](https://github.com/leancloud/javascript-sdk/pull/453#issue-208346693).
 
+## 2.2.1 (2017-04-26)
+### Bug Fixes
+* 修复了 `User.requestLoginSmsCode`，`User.requestMobilePhoneVerify` 与 `User.requestPasswordResetBySmsCode` 方法 `authOptions.validateToken` 参数的拼写错误。
+
+# 2.2.0 (2017-04-25)
+### Bug Fixes
+* 修复了 Safari 隐身模式下用户无法登录的问题
+
+### Features
+* 短信支持图形验证码（需要在控制台应用选项「启用短信图形验证码」）
+  * 新增 `Cloud.requestCaptcha` 与 `Cloud.verifyCaptcha` 方法请求、校验图形验证码。
+  * `Cloud.requestSmsCode`，`User.requestLoginSmsCode`，`User.requestMobilePhoneVerify` 与 `User.requestPasswordResetBySmsCode` 方法增加了 `authOptions.validateToken` 参数。没有提供有效的 validateToken 的请求会被拒绝。
+* 支持客户端查询 ACL（需要在控制台应用选项启用「查询时返回值包括 ACL」）
+  * 增加 `Query#includeACL` 方法。
+  * `Object#fetch` 与 `File#fetch` 方法增加了 `fetchOptions.includeACL` 参数。
+
+## 2.1.4 (2017-03-27)
+### Bug Fixes
+* 如果在创建 `Role` 时不指定 `acl` 参数，SDK 会自动为其设置一个「默认 acl」，这导致了通过 Query 得到或使用 `Object.createWithoutData` 方法得到 `Role` 也会被意外的设置 acl。这个版本修复了这个问题。
+* 修复了在 React Native for Android 中使用 blob 方式上传文件失败的问题
+
+## 2.1.3 (2017-03-13)
+### Bug Fixes
+* 修复了调用 `User#refreshSessionToken` 刷新用户的 sessionToken 后本地存储中的用户没有更新的问题
+* 修复了初始化可能会造成 disableCurrentUser 配置失效的问题
+* 修复了 `Query#destroyAll` 方法 `options` 参数无效的问题
 
 ## 2.1.2 (2017-02-17)
 ### Bug Fixes

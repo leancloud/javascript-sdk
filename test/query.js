@@ -384,7 +384,7 @@ describe('Queries', function () {
   describe('All User', function () {
     it('should return AV.User Object list', function () {
       query = new AV.Query(AV.User);
-      return query.find().then(function(results) {
+      return query.find({ useMasterKey: true }).then(function(results) {
         expect(results.length > 0).to.be.ok();
         expect(results[0].get('username')).to.be.ok();
       });

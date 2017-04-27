@@ -144,6 +144,7 @@ AV._setServerURLs = (urls, disableAppRouter = true) => {
 /**
  * set server URLs for services.
  * @function AV.setServerURLs
+ * @since 3.0.0
  * @param {String|ServerURLs} urls URLs for services. if a string was given, it will be applied for all services.
  * You can also set them when initializing SDK with `options.serverURLs`
  */
