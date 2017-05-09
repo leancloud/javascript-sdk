@@ -15,3 +15,4 @@ require('./sms.js');
 require('./search.js');
 require('./cloud.js');
 require('./hooks.js');
+require('./conversation.js');
