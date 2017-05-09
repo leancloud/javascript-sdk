@@ -32,6 +32,8 @@ require('./status')(AV);
 require('./search')(AV);
 require('./insight')(AV);
 
+AV.Conversation = require('./conversation');
+
 module.exports = AV;
 
 /**
