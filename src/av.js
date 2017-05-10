@@ -9,10 +9,16 @@ const AV = global.AV || {};
 
 // All internal configuration items
 AV._config = {
-  userAgent,
   serverURLs: {},
   useMasterKey: false,
   production: null,
+  realtime: null,
+};
+
+// configs shared by all AV instances
+AV._sharedConfig = {
+  userAgent,
+  liveQueryRealtime: null,
 };
 
 /**
@@ -43,38 +49,54 @@ AV._getAVPath = function(path) {
   return "AV/" + AV.applicationId + "/" + path;
 };
 
+const hexOctet = () => Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
+const uuid = () => `${hexOctet()}${hexOctet()}-${hexOctet()}-${hexOctet()}-${hexOctet()}-${hexOctet()}${hexOctet()}${hexOctet()}`;
+
 /**
  * Returns the unique string for this app on this machine.
  * Gets reset when localStorage is cleared.
  * @private
  */
 AV._installationId = null;
-AV._getInstallationId = function() {
+AV._getInstallationId = () => {
   // See if it's cached in RAM.
   if (AV._installationId) {
     return AV.Promise.resolve(AV._installationId);
   }
 
   // Try to get it from localStorage.
-  var path = AV._getAVPath("installationId");
-  return AV.localStorage.getItemAsync(path).then(function(_installationId){
+  const path = AV._getAVPath('installationId');
+  return AV.localStorage.getItemAsync(path).then((_installationId) => {
     AV._installationId = _installationId;
     if (!AV._installationId) {
       // It wasn't in localStorage, so create a new one.
-      var hexOctet = function() {
-        return Math.floor((1+Math.random())*0x10000).toString(16).substring(1);
-      };
-      AV._installationId = (
-        hexOctet() + hexOctet() + "-" +
-        hexOctet() + "-" +
-        hexOctet() + "-" +
-        hexOctet() + "-" +
-        hexOctet() + hexOctet() + hexOctet());
-      return AV.localStorage.setItemAsync(path, AV._installationId);
+      AV._installationId = _installationId = uuid();
+      return AV.localStorage.setItemAsync(path, _installationId).then(() => _installationId);
     }
-    else {
-      return _installationId;
+    return _installationId;
+  });
+};
+
+AV._subscriptionId = null;
+AV._refreshSubscriptionId = (path = AV._getAVPath('subscriptionId')) => {
+  const subscriptionId = AV._subscriptionId = uuid();
+  return AV.localStorage.setItemAsync(path, subscriptionId).then(() => subscriptionId);
+};
+AV._getSubscriptionId = () => {
+  // See if it's cached in RAM.
+  if (AV._subscriptionId) {
+    return AV.Promise.resolve(AV._subscriptionId);
+  }
+
+  // Try to get it from localStorage.
+  const path = AV._getAVPath('subscriptionId');
+  return AV.localStorage.getItemAsync(path).then((_subscriptionId) => {
+    AV._subscriptionId = _subscriptionId;
+    if (!AV._subscriptionId) {
+      // It wasn't in localStorage, so create a new one.
+      _subscriptionId = AV._refreshSubscriptionId(path);
     }
+    return _subscriptionId;
   });
 };
 

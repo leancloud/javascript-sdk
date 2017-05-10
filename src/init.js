@@ -78,6 +78,7 @@ AV.init = function init(options, ...params) {
     serverURLs,
     disableCurrentUser = false,
     production,
+    realtime,
   } = options;
   if (AV.applicationId) throw new Error('SDK is already initialized.');
   if (process.env.CLIENT_PLATFORM && masterKey) console.warn('MasterKey is not supposed to be used in browser.');
@@ -95,6 +96,14 @@ AV.init = function init(options, ...params) {
     AV._config.serverURLs,
     serverURLs
   ), disableAppRouter);
+  if (realtime) {
+    AV._config.realtime = realtime;
+  } else if (AV._sharedConfig.liveQueryRealtime) {
+    AV._config.realtime = new AV._sharedConfig.liveQueryRealtime({
+      appId,
+      region,
+    });
+  }
 };
 
 // If we're running in node.js, allow using the master key.

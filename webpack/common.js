@@ -1,41 +1,48 @@
-var path = require('path');
-var webpack = require('webpack');
+const path = require('path');
+const webpack = require('webpack');
 
-module.exports = function() {
-  return {
-    entry: './src/index.js',
-    output: {
-      filename: 'av.js',
-      libraryTarget: "umd2",
-      library: "AV",
-      path: path.resolve(__dirname, '../dist')
-    },
-    resolve: {},
-    devtool: 'source-map',
-    node: {
-      // do not polyfill Buffer
-      Buffer: false,
-      process: false,
-    },
-    module: {
-      loaders: [
-        {
-          test: /\.js$/,
-          include: [
-            path.resolve(__dirname, '../src'),
-            path.resolve(__dirname, '../node_modules/weapp-polyfill'),
-          ],
-          loader: 'babel-loader',
-          query: {
-            presets: ['es2015']
-          }
-        }
-      ]
-    },
-    plugins: [
-      new webpack.EnvironmentPlugin([
-        "CLIENT_PLATFORM"
-      ])
-    ]
-  }
-};
+const entry = exports.entry = process.env.LIVE_QUERY ? './src/index-live-query.js' : './src/index.js';
+exports.name = process.env.LIVE_QUERY ? 'av-live-query' : 'av';
+
+exports.create = () => ({
+  entry: {
+    av: entry,
+  },
+  output: {
+    filename: '[name].js',
+    libraryTarget: 'umd2',
+    library: 'AV',
+    path: path.resolve(__dirname, '../dist'),
+  },
+  resolve: {},
+  devtool: 'source-map',
+  node: {
+    // do not polyfill Buffer
+    Buffer: false,
+    process: false,
+  },
+  module: {
+    loaders: [
+      {
+        test: /\.js$/,
+        include: [
+          path.resolve(__dirname, '../src'),
+          path.resolve(__dirname, '../node_modules/weapp-polyfill'),
+        ],
+        loader: 'babel-loader',
+        query: {
+          presets: ['es2015'],
+        },
+      },
+    ],
+  },
+  plugins: [
+    new webpack.EnvironmentPlugin([
+      'CLIENT_PLATFORM',
+    ]),
+    new webpack.optimize.UglifyJsPlugin({
+      include: /-min\.js$/,
+      sourceMap: true,
+    }),
+  ],
+});

@@ -14,14 +14,16 @@
     "build:browser": "CLIENT_PLATFORM=Browser webpack --config webpack/browser.js",
     "build:rn": "CLIENT_PLATFORM=ReactNative webpack --config webpack/rn.js",
     "build:weapp": "CLIENT_PLATFORM=Weapp webpack --config webpack/weapp.js",
-    "uglify:browser": "cd dist; uglifyjs av.js -m -c -o av-min.js --in-source-map av.js.map --source-map av-min.js.map; cd ..;",
-    "uglify:weapp": "cd dist; uglifyjs av-weapp.js -m -c -o av-weapp-min.js --in-source-map av-weapp.js.map --source-map av-weapp-min.js.map; cd ..;",
-    "build": "gulp build",
+    "build": "gulp build && npm run build:live-query",
+    "build:live-query": "export LIVE_QUERY=1 && npm run build:browser && npm run build:rn && npm run build:weapp",
     "prepublishOnly": "./script/check-version.js"
   },
   "dependencies": {
     "debug": "^2.2.0",
     "es6-promise": "^4.0.5",
+    "eventemitter3": "^2.0.3",
+    "leancloud-realtime": "^3.5.0-beta.0",
+    "leancloud-realtime-plugin-live-query": "^1.0.0-beta.1",
     "localstorage-memory": "^1.0.1",
     "md5": "^2.0.0",
     "qiniu": "^6.1.11",
@@ -30,7 +32,7 @@
   },
   "devDependencies": {
     "babel-core": "^6.4.0",
-    "babel-loader": "^6.2.8",
+    "babel-loader": "^7.0.0",
     "babel-plugin-istanbul": "^2.0.0",
     "babel-preset-es2015": "^6.3.13",
     "babel-register": "^6.14.0",
@@ -49,7 +51,6 @@
     "mocha": "^3.0.0",
     "nyc": "^8.1.0",
     "should": "^11.1.0",
-    "uglify-js": "git+https://github.com/Swaagie/UglifyJS2.git#fcb4f2f21584dc5b21af4c10e17733e1686135e4",
     "weapp-polyfill": "^1.1.0",
     "webpack": "^2.2.0-rc.3"
   },
@@ -63,11 +64,18 @@
     "./src/utils/localstorage.js": "./src/utils/localstorage-browser.js",
     "./src/utils/parse-base64.js": "./src/utils/parse-base64-browser.js",
     "./src/ua/comments.js": "./src/ua/comments-browser.js",
-    "./dist/node/index.js": "./dist/av.js"
+    "./dist/node/index.js": "./dist/av.js",
+    "./dist/node/index-live-query.js": "./dist/av-live-query.js"
   },
   "react-native": {
     "./src/utils/localstorage.js": "./src/utils/localstorage-rn.js",
-    "./dist/node/index.js": "./dist/av-rn.js"
+    "./dist/node/index.js": "./dist/av-rn.js",
+    "./dist/node/index-live-query.js": "./dist/av-live-query-rn.js"
+  },
+  "weapp": {
+    "./src/polyfills/index.js": "./src/polyfills/index-weapp.js",
+    "./dist/node/index.js": "./dist/av-weapp.js",
+    "./dist/node/index-live-query.js": "./dist/av-live-query-weapp.js"
   },
   "typings": "./storage.d.ts",
   "types": "./storage.d.ts",
