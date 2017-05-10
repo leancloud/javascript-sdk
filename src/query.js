@@ -2,7 +2,7 @@ const _ = require('underscore');
 const debug = require('debug')('leancloud:query');
 const Promise = require('./promise');
 const AVError = require('./error');
-const AVRequest = require('./request')._request;
+const { _request } = require('./request');
 const { ensureArray, transformFetchOptions } = require('./utils');
 
 const requires = (value, message) => {
@@ -145,7 +145,7 @@ module.exports = function(AV) {
       options = pvalues;
     }
 
-    var request = AVRequest('cloudQuery', null, null, 'GET', params, options);
+    var request = _request('cloudQuery', null, null, 'GET', params, options);
     return request.then(function(response) {
       //query to process results.
       var query = new AV.Query(response.className);
@@ -197,7 +197,7 @@ module.exports = function(AV) {
       if (queryJSON.include) fetchOptions.include = queryJSON.include;
       if (queryJSON.includeACL) fetchOptions.includeACL = queryJSON.includeACL;
 
-      return AVRequest('classes', this.className, objectId, 'GET', transformFetchOptions(fetchOptions), options)
+      return _request('classes', this.className, objectId, 'GET', transformFetchOptions(fetchOptions), options)
         .then((response) => {
           if (_.isEmpty(response)) throw new AVError(AVError.OBJECT_NOT_FOUND, 'Object not found.');
           obj._finishFetch(obj.parse(response), true);
@@ -258,7 +258,7 @@ module.exports = function(AV) {
             params,
           }],
         };
-        return AVRequest('batch', null, null, 'POST', body, options)
+        return _request('batch', null, null, 'POST', body, options)
           .then(response => {
             const result = response[0];
             if (result.success) {
@@ -269,7 +269,7 @@ module.exports = function(AV) {
             throw error;
           });
       }
-      return AVRequest('classes', this.className, null, "GET", params, options);
+      return _request('classes', this.className, null, "GET", params, options);
     },
 
     _parseResponse(response) {
@@ -353,7 +353,7 @@ module.exports = function(AV) {
             }
             // when only 1 item left in queue
             // start the next request to see if it is the last one
-            return AVRequest(
+            return _request(
               'scan/classes',
               this.className,
               null,
@@ -1012,7 +1012,11 @@ module.exports = function(AV) {
           });
         });
       });
-    }
+    },
+    
+    subscribe(options) {
+      return AV.LiveQuery.init(this, options);
+    },
   });
 
    AV.FriendShipQuery = AV.Query._extend({

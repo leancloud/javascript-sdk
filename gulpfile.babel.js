@@ -35,50 +35,24 @@ const uploadCDN = (file) => {
   return file;
 };
 
-gulp.task('clean-dist', () => {
+gulp.task('clean-dist', () =>
   gulp.src([
-    'dist/*.js',
-    'dist/*.map'
+    'dist/**/*.*',
   ]).pipe(clean({
-    force: true}
-  ));
-});
+    force: true
+  }))
+);
 
 // 编译浏览器版本
-gulp.task('bundle-browser', shell.task('npm run build:browser'));
-gulp.task('bundle-rn', shell.task('npm run build:rn'));
-gulp.task('bundle-weapp', shell.task('npm run build:weapp'));
-
-gulp.task('uglify', ['bundle-browser', 'bundle-weapp'], shell.task([
-  'npm run uglify:browser',
-  'npm run uglify:weapp',
-]));
-
-gulp.task('clean-node', () => {
-  return gulp.src(['dist/node/**/*.*'])
-    .pipe(clean({force: true}));
-});
+gulp.task('bundle-browser', ['clean-dist'], shell.task('npm run build:browser'));
+gulp.task('bundle-rn', ['clean-dist'], shell.task('npm run build:rn'));
+gulp.task('bundle-weapp', ['clean-dist'], shell.task('npm run build:weapp'));
 
 // 编译出 Node 版本
-gulp.task('babel-node', ['clean-node'], () => {
+gulp.task('babel-node', ['clean-dist'], () => {
   return gulp.src('src/**/*.js')
     .pipe(babel())
     .pipe(gulp.dest('dist/node/'));
-});
-
-gulp.task('clean-demo', () => {
-  return gulp.src(['demo/test-es5.js'])
-    .pipe(clean());
-});
-
-// 编译 Demo 中的代码
-gulp.task('babel-demo', ['clean-demo'], () => {
-  return gulp.src('demo/*.js')
-    // .pipe(sourcemaps.init())
-    .pipe(babel())
-    .pipe(concat('test-es5.js'))
-    // .pipe(sourcemaps.write("."))
-    .pipe(gulp.dest('demo/'));
 });
 
 // 上传到 CDN
@@ -88,6 +62,10 @@ gulp.task('upload', () => {
     './dist/av-weapp-min.js',
     './dist/av.js',
     './dist/av-weapp.js',
+    './dist/av-live-query-min.js',
+    './dist/av-live-query-weapp-min.js',
+    './dist/av-live-query.js',
+    './dist/av-live-query-weapp.js',
   ].map(uploadCDN).map(file => `${file}.map`).map(uploadCDN);
 });
 
@@ -97,7 +75,5 @@ gulp.task('build', [
   'bundle-browser',
   'bundle-rn',
   'bundle-weapp',
-  'uglify',
-  'clean-node',
   'babel-node'
 ]);

@@ -1,9 +1,13 @@
-var config = require('./common')();
+const { create, entry, name } = require('./common');
 
-config.output.filename = 'av-rn.js';
+const config = create();
+
+config.entry = {
+  [`${name}-rn`]: entry,
+};
 config.resolve.aliasFields = ['react-native', 'browser'];
 config.externals = {
-  'react-native': 'react-native'
+  'react-native': 'react-native',
 };
 
 module.exports = config;

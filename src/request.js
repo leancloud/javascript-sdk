@@ -59,7 +59,7 @@ const setHeaders = (authOptions = {}, signKey) => {
   if (AV._config.production !== null) {
     headers['X-LC-Prod'] = String(AV._config.production);
   }
-  headers[!process.env.CLIENT_PLATFORM ? 'User-Agent' : 'X-LC-UA'] = AV._config.userAgent;
+  headers[!process.env.CLIENT_PLATFORM ? 'User-Agent' : 'X-LC-UA'] = AV._sharedConfig.userAgent;
 
   return Promise.resolve().then(() => {
     // Pass the session token

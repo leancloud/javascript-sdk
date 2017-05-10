@@ -5,6 +5,7 @@
  * Copyright 2016 LeanCloud.cn, Inc.
  * The LeanCloud JavaScript SDK is freely distributable under the MIT license.
  */
+require('./polyfills');
 
 const AV = require('./av');
 
@@ -26,6 +27,7 @@ require('./object')(AV);
 require('./role')(AV);
 require('./user')(AV);
 require('./query')(AV);
+require('./live-query')(AV);
 require('./captcha')(AV);
 require('./cloudfunction')(AV);
 require('./push')(AV);

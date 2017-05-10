@@ -1,7 +1,11 @@
-var config = require('./common')();
+const { create, entry, name } = require('./common');
 
-config.entry = './src/index-weapp.js';
-config.output.filename = 'av-weapp.js';
+const config = create();
+
+config.entry = {
+  [`${name}-weapp`]: entry,
+  [`${name}-weapp-min`]: entry,
+};
 config.resolve.aliasFields = ['weapp', 'browser'];
 
 module.exports = config;

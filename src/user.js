@@ -827,7 +827,8 @@ module.exports = function(AV) {
       AV.User._currentUserMatchesDisk = true;
       AV.User._currentUser = null;
       return AV.localStorage.removeItemAsync(
-          AV._getAVPath(AV.User._CURRENT_USER_KEY));
+        AV._getAVPath(AV.User._CURRENT_USER_KEY)
+      ).then(AV._refreshSubscriptionId);
     },
 
     /**
@@ -1111,6 +1112,7 @@ module.exports = function(AV) {
           JSON.stringify(json)
         ).then(function() {
           AV.User._currentUserMatchesDisk = true;
+          return AV._refreshSubscriptionId();
         });
       });
     },
