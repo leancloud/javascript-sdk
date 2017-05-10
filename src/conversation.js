@@ -1,22 +1,31 @@
 'use strict';
 
+const request = require('./request').request;
 const AV = require('./av');
 
-/**
- * @class
- *
- * <p>An AV.Conversation is a local representation of a LeanCloud realtime's
- * conversation. Tshi class is a subclass of an AV.Object, and retains the
- * same functionality of an AV.Object, but also extends it with various
- * conversation specific methods, like get members, creators of this conversation.
- * </p>
- */
 module.exports = AV.Object.extend('_Conversation', {
-  constructor: function(name, isSystem, isTransient) {
+
+  /**
+   * @class AV.Conversation
+   * <p>An AV.Conversation is a local representation of a LeanCloud realtime's
+   * conversation. This class is a subclass of AV.Object, and retains the
+   * same functionality of an AV.Object, but also extends it with various
+   * conversation specific methods, like get members, creators of this conversation.
+   * </p>
+   *
+   * @param {String} name The name of the Role to create.
+   * @param {Boolean} [options.isSystem] Set this conversation as system conversation.
+   * @param {Boolean} [options.isTransient] Set this conversation as transient conversation.
+   */
+  constructor: function(name, options = {}) {
     AV.Object.prototype.constructor.call(this, null, null);
     this.set('name', name);
-    this.set('sys', isSystem ? true : false);
-    this.set('tr', isTransient ? true : false);
+    if (options.isSystem !== undefined) {
+      this.set('sys', options.isSystem ? true: false);
+    }
+    if (options.isTransient !== undefined) {
+      this.set('tr', options.isTransient ? true : false);
+    }
   },
   /**
    * Get current conversation's creator.
@@ -39,7 +48,7 @@ module.exports = AV.Object.extend('_Conversation', {
   /**
    * Get this conversation's members
    *
-   * @return {Array}
+   * @return {String[]}
    */
   getMembers: function() {
     return this.get('m');
@@ -51,13 +60,13 @@ module.exports = AV.Object.extend('_Conversation', {
    * @param {String} member
    */
   addMember: function(member) {
-    this.add('m', member);
+    return this.add('m', member);
   },
 
   /**
    * Get this conversation's members who set this conversation as muted.
    *
-   * @return {Boolean}
+   * @return {String[]}
    */
   getMutedMembers: function() {
     return this.get('mu');
@@ -90,7 +99,37 @@ module.exports = AV.Object.extend('_Conversation', {
     return this.get('sys');
   },
 
-  send: function() {
-
+  /**
+   * Send realtime message to this conversation, using HTTP request.
+   *
+   * @param {String} clientId Sender's client id.
+   * @param {(String|Object)} message The message which will send to conversation.
+   *     It could be a raw string, or an object with a `toJSON` method, like a
+   *     realtime SDK's Message object. See more: {@link https://leancloud.cn/docs/realtime_guide-js.html#消息}
+   * @param {Boolean} [options.transient] Whether send this message as transient message or not.
+   * @param {Object} [options.pushData] Push data to this message. See more: {@link https://url.leanapp.cn/pushData 推送消息内容}
+   * @param {AuthOptions} [authOptions]
+   * @return {Promise}
+   */
+  send: function(clientId, message, options, authOptions) {
+    if (typeof message.toJSON === 'function') {
+      message = message.toJSON();
+    }
+    if (typeof message !== 'string') {
+      message = JSON.stringify(message);
+    }
+    const data = {
+      from_peer: clientId,
+      conv_id: this.id,
+      transient: false,
+      message: message,
+    };
+    if (options.transient !== undefined) {
+      data.transient = options.transient ? true : false;
+    }
+    if (options.pushData !== undefined) {
+      data.push_data = options.pushData;
+    }
+    return request('rtm', 'messages', null, 'POST', data, authOptions);
   },
 });
