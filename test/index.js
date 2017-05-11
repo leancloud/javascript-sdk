@@ -3,6 +3,7 @@ require('./test.js');
 require('./av.js');
 require('./file.js');
 require('./error.js');
+// require('./captcha.js');
 require('./object.js');
 require('./user.js');
 require('./query.js');

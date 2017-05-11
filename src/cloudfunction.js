@@ -9,6 +9,7 @@ module.exports = function(AV) {
    * </em></strong></p>
    *
    * @namespace
+   * @borrows AV.Captcha.request as requestCaptcha
    */
   AV.Cloud = AV.Cloud || {};
 
@@ -110,17 +111,8 @@ module.exports = function(AV) {
       return request;
     },
 
-    /**
-     * request a captcha
-     * @param {Object} [options]
-     * @param {Number} [options.size=4] length of the captcha, ranged 3-6
-     * @param {Number} [options.width] width(px) of the captcha, ranged 60-200
-     * @param {Number} [options.height] height(px) of the captcha, ranged 30-100
-     * @param {Number} [options.ttl=60] time to live(s), ranged 10-180
-     * @return {Promise} { captchaToken, url }
-     */
-    requestCaptcha(options) {
-      return AVRequest('requestCaptcha', null, null, 'GET', options).then(({
+    _requestCaptcha(options, authOptions) {
+      return AVRequest('requestCaptcha', null, null, 'GET', options, authOptions).then(({
         captcha_url: url,
         captcha_token: captchaToken,
       }) => ({
@@ -130,7 +122,13 @@ module.exports = function(AV) {
     },
 
     /**
-     * verify captcha code
+     * Request a captcha.
+     */
+    requestCaptcha: AV.Captcha.request,
+
+    /**
+     * Verify captcha code. This is the low-level API for captcha.
+     * Checkout {@link AV.Captcha} for high abstract APIs.
      * @param {String} code the code from user input
      * @param {String} captchaToken captchaToken returned by {@link AV.Cloud.requestCaptcha}
      * @return {Promise.<String>} validateToken if the code is valid
