@@ -1,3 +1,8 @@
+# 2.3.0 (2017-05-11)
+### Features
+* 增加了 `AV.Conversation` 类。现在可以直接使用 SDK 来创建、管理会话，发送消息。
+* 改进了验证码 API。增加了 `AV.Captcha`，可以通过 `AV.Captcha.request` 方法获取一个 Captcha 实例。特别的，在浏览器中，可以直接使用 `Captcha#bind` 方法将 Captcha 与 DOM 元素进行绑定。
+
 ## 2.2.1 (2017-04-26)
 ### Bug Fixes
 * 修复了 `User.requestLoginSmsCode`，`User.requestMobilePhoneVerify` 与 `User.requestPasswordResetBySmsCode` 方法 `authOptions.validateToken` 参数的拼写错误。
