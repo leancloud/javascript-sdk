@@ -102,16 +102,17 @@ module.exports = AV.Object.extend('_Conversation', {
   /**
    * Send realtime message to this conversation, using HTTP request.
    *
-   * @param {String} clientId Sender's client id.
+   * @param {String} fromClient Sender's client id.
    * @param {(String|Object)} message The message which will send to conversation.
    *     It could be a raw string, or an object with a `toJSON` method, like a
    *     realtime SDK's Message object. See more: {@link https://leancloud.cn/docs/realtime_guide-js.html#消息}
    * @param {Boolean} [options.transient] Whether send this message as transient message or not.
+   * @param {String[]} [options.toClients] Ids of clients to send to. This option can be used only in system conversation.
    * @param {Object} [options.pushData] Push data to this message. See more: {@link https://url.leanapp.cn/pushData 推送消息内容}
    * @param {AuthOptions} [authOptions]
    * @return {Promise}
    */
-  send: function(clientId, message, options, authOptions) {
+  send: function(fromClient, message, options={}, authOptions={}) {
     if (typeof message.toJSON === 'function') {
       message = message.toJSON();
     }
@@ -119,11 +120,14 @@ module.exports = AV.Object.extend('_Conversation', {
       message = JSON.stringify(message);
     }
     const data = {
-      from_peer: clientId,
+      from_peer: fromClient,
       conv_id: this.id,
       transient: false,
       message: message,
     };
+    if (options.toClientIds !== undefined) {
+      data.to_peers = toClients;
+    }
     if (options.transient !== undefined) {
       data.transient = options.transient ? true : false;
     }
