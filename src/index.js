@@ -27,6 +27,7 @@ require('./role')(AV);
 require('./user')(AV);
 require('./query')(AV);
 require('./cloudfunction')(AV);
+require('./captcha')(AV);
 require('./push')(AV);
 require('./status')(AV);
 require('./search')(AV);

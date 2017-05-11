@@ -27,6 +27,13 @@ declare namespace AV {
       validateToken?: string;
     }
 
+    interface CaptchaOptions {
+      size?: number;
+      width?: number;
+      height?: number;
+      ttl?: number;
+    }
+
     export interface WaitOption {
         /**
          * Set to true to wait for the server to confirm success
@@ -546,6 +553,26 @@ declare namespace AV {
         refreshSessionToken(options?: AuthOptions): Promise<User>;
 
         getRoles(options?: AuthOptions): Promise<Role>;
+    
+  }
+
+    export class Captcha {
+      url: string;
+      validateToken: string;
+
+      static request(options?: CaptchaOptions, authOptions?: AuthOptions): Promise<Captcha>;
+
+      refresh(): Promise<string>;
+      verify(code: string): Promise<string>;
+      bind(elements?: {
+        textInput?: string|HTMLInputElement,
+        image?: string|HTMLImageElement,
+        verifyButton?: string|HTMLElement,
+      }, callbacks?: {
+        success?: (validateToken: string) => any,
+        error?: (error: Error) => any,
+      }): void;
+      unbind(): void;
     }
 
     export class Error {
@@ -685,7 +712,7 @@ declare namespace AV {
         function run(name: string, data?: any, options?: AuthOptions): Promise<any>;
         function requestSmsCode(data: string|{ mobilePhoneNumber: string, template?: string, sign?: string }, options?: SMSAuthOptions): Promise<void>;
         function verifySmsCode(code: string, phone: string): Promise<void>;
-        function requestCaptcha(options?: { size?: number, width?: number, height?: number, ttl?: number}): Promise<{ captchaToken: string, dataURI: string }>;
+        function requestCaptcha(options?: CaptchaOptions, authOptions?: AuthOptions): Promise<{ captchaToken: string, dataURI: string }>;
         function verifyCaptcha(code: string, captchaToken: string): Promise<void>;
     }
 

@@ -18,23 +18,15 @@ var region = 'cn';
 
 av.init({ appId: appId, appKey: appKey, region: region });
 
-let captchaToken;
-const captchaImage = document.getElementById('captcha');
-const captchaInput = document.getElementById('code');
-
-function refreshCaptcha(){
-  AV.Cloud.requestCaptcha({
-    size: 6,
-    ttl: 30,
-  }).then(function(data) {
-    captchaToken = data.captchaToken;
-    captchaImage.src = data.url;
-  }).catch(console.error);
-}
-refreshCaptcha();
-
-function verify() {
-  AV.Cloud.verifyCaptcha(captchaInput.value, captchaToken).then(function(validateCode) {
-    console.log('validateCode: ' + validateCode);
-  }, console.error);
-}
+av.Captcha.request({
+  size: 6,
+}).then(captcha => {
+  captcha.bind({
+    textInput: 'code',
+    image: 'captcha',
+    verifyButton: 'verify',
+  }, {
+    success: validateCode => console.log('validateCode: ' + validateCode),
+    error: console.error,
+  });
+});
