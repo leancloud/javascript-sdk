@@ -125,8 +125,8 @@ module.exports = AV.Object.extend('_Conversation', {
       transient: false,
       message: message,
     };
-    if (options.toClientIds !== undefined) {
-      data.to_peers = toClients;
+    if (options.toClients !== undefined) {
+      data.to_peers = options.toClients;
     }
     if (options.transient !== undefined) {
       data.transient = options.transient ? true : false;
