@@ -548,6 +548,31 @@ declare namespace AV {
         getRoles(options?: AuthOptions): Promise<Role>;
     }
 
+    /**
+     * @class AV.Conversation
+     * <p>An AV.Conversation is a local representation of a LeanCloud realtime's
+     * conversation. This class is a subclass of AV.Object, and retains the
+     * same functionality of an AV.Object, but also extends it with various
+     * conversation specific methods, like get members, creators of this conversation.
+     * </p>
+     *
+     * @param {String} name The name of the Role to create.
+     * @param {Boolean} [options.isSystem] Set this conversation as system conversation.
+     * @param {Boolean} [options.isTransient] Set this conversation as transient conversation.
+     */
+    export class Conversation extends Object {
+      constructor(name: string, options?: { isSytem?: boolean, isTransient?: boolean });
+      getCreator(): string;
+      getLastMessageAt(): Date;
+      getMembers(): string[];
+      addMember(member: string): Conversation;
+      getMutedMembers(): string[];
+      getName(): string;
+      isTransient(): boolean;
+      isSystem(): boolean;
+      send(clintId: string, message: string|object, options?: { transient?: boolean, pushData?: object }, authOptions?: AuthOptions): Promise<void>;
+    }
+
     export class Error {
 
         code: ErrorCode;
