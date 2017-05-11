@@ -24,5 +24,16 @@ describe('Conversation', () => {
         return conv.send('admin', 'test test test!', {}, { useMasterKey: true });
       });
     });
+
+    it('should send a realtime message to the system conversation', () => {
+      const conv = new AV.Conversation('system', { isSystem: true });
+      return conv.save().then(() => {
+        return conv.send('admin', 'test system conversation !', {
+          toClients: ['user1', 'user2']
+        }, {
+          useMasterKey: true,
+        });
+      });
+    });
   })
 });
