@@ -9,6 +9,7 @@ module.exports = function(AV) {
    * </em></strong></p>
    *
    * @namespace
+   * @borrows AV.Captcha.request as requestCaptcha
    */
   AV.Cloud = AV.Cloud || {};
 
@@ -110,14 +111,7 @@ module.exports = function(AV) {
       return request;
     },
 
-    /**
-     * Request a captcha. This is the low-level API for captcha.
-     * Checkout {@link AV.Captcha} for high abstract APIs.
-     * @param {Object} [options] see {@link AV.Captcha.request}
-     * @param {AuthOptions} authOptions
-     * @return {Promise} { captchaToken, url }
-     */
-    requestCaptcha(options, authOptions) {
+    _requestCaptcha(options, authOptions) {
       return AVRequest('requestCaptcha', null, null, 'GET', options, authOptions).then(({
         captcha_url: url,
         captcha_token: captchaToken,
@@ -126,6 +120,11 @@ module.exports = function(AV) {
         url,
       }));
     },
+
+    /**
+     * Request a captcha.
+     */
+    requestCaptcha: AV.Captcha.request,
 
     /**
      * Verify captcha code. This is the low-level API for captcha.

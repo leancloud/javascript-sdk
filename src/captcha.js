@@ -24,6 +24,11 @@ module.exports = (AV) => {
      */
     this.url = undefined;
     /**
+     * The captchaToken of the captcha.
+     * @type string
+     */
+    this.captchaToken = undefined;
+    /**
      * The validateToken of the captcha.
      * @type string
      */

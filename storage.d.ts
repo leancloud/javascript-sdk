@@ -558,6 +558,7 @@ declare namespace AV {
 
     export class Captcha {
       url: string;
+      captchaToken: string;
       validateToken: string;
 
       static request(options?: CaptchaOptions, authOptions?: AuthOptions): Promise<Captcha>;
@@ -712,7 +713,7 @@ declare namespace AV {
         function run(name: string, data?: any, options?: AuthOptions): Promise<any>;
         function requestSmsCode(data: string|{ mobilePhoneNumber: string, template?: string, sign?: string }, options?: SMSAuthOptions): Promise<void>;
         function verifySmsCode(code: string, phone: string): Promise<void>;
-        function requestCaptcha(options?: CaptchaOptions, authOptions?: AuthOptions): Promise<{ captchaToken: string, dataURI: string }>;
+        function requestCaptcha(options?: CaptchaOptions, authOptions?: AuthOptions): Promise<AV.Captcha>;
         function verifyCaptcha(code: string, captchaToken: string): Promise<void>;
     }
 
