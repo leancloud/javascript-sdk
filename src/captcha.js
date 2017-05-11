@@ -4,10 +4,7 @@ module.exports = (AV) => {
   /**
    * @class
    * @example
-   * AV.Captcha.request({
-   *   size: 6,
-   *   ttl: 30,
-   * }).then(captcha => {
+   * AV.Captcha.request().then(captcha => {
    *   captcha.bind({
    *     textInput: 'code', // the id for textInput
    *     image: 'captcha',
@@ -18,8 +15,9 @@ module.exports = (AV) => {
    *   });
    * });
    */
-  AV.Captcha = function Captcha(options) {
+  AV.Captcha = function Captcha(options, authOptions) {
     this._options = options;
+    this._authOptions = authOptions;
     /**
      * The image url of the captcha
      * @type string
@@ -37,7 +35,7 @@ module.exports = (AV) => {
    * @return {Promise.<string>} a new capcha url
    */
   AV.Captcha.prototype.refresh = function refresh() {
-    return AV.Cloud.requestCaptcha(this._options).then(({
+    return AV.Cloud.requestCaptcha(this._options, this._authOptions).then(({
       captchaToken, url,
     }) => {
       Object.assign(this, { captchaToken, url });
@@ -126,14 +124,14 @@ module.exports = (AV) => {
   /**
    * Request a captcha
    * @param [options]
-   * @param {Number} [options.size=4] length of the captcha, ranged 3-6
    * @param {Number} [options.width] width(px) of the captcha, ranged 60-200
    * @param {Number} [options.height] height(px) of the captcha, ranged 30-100
-   * @param {Number} [options.ttl=60] time to live(s), ranged 10-180
+   * @param {Number} [options.size=4] length of the captcha, ranged 3-6. MasterKey required.
+   * @param {Number} [options.ttl=60] time to live(s), ranged 10-180. MasterKey required.
    * @return {Promise.<AV.Captcha>}
    */
-  AV.Captcha.request = (options) => {
-    const captcha = new AV.Captcha(options);
+  AV.Captcha.request = (options, authOptions) => {
+    const captcha = new AV.Captcha(options, authOptions);
     return captcha.refresh().then(() => captcha);
   };
 };

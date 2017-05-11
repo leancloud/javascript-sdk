@@ -114,10 +114,11 @@ module.exports = function(AV) {
      * Request a captcha. This is the low-level API for captcha.
      * Checkout {@link AV.Captcha} for high abstract APIs.
      * @param {Object} [options] see {@link AV.Captcha.request}
+     * @param {AuthOptions} authOptions
      * @return {Promise} { captchaToken, url }
      */
-    requestCaptcha(options) {
-      return AVRequest('requestCaptcha', null, null, 'GET', options).then(({
+    requestCaptcha(options, authOptions) {
+      return AVRequest('requestCaptcha', null, null, 'GET', options, authOptions).then(({
         captcha_url: url,
         captcha_token: captchaToken,
       }) => ({

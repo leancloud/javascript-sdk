@@ -18,9 +18,7 @@ var region = 'cn';
 
 av.init({ appId: appId, appKey: appKey, region: region });
 
-av.Captcha.request({
-  size: 6,
-}).then(captcha => {
+av.Captcha.request().then(captcha => {
   captcha.bind({
     textInput: 'code',
     image: 'captcha',
