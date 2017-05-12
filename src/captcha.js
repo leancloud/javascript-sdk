@@ -40,7 +40,7 @@ module.exports = (AV) => {
    * @return {Promise.<string>} a new capcha url
    */
   AV.Captcha.prototype.refresh = function refresh() {
-    return AV.Cloud.requestCaptcha(this._options, this._authOptions).then(({
+    return AV.Cloud._requestCaptcha(this._options, this._authOptions).then(({
       captchaToken, url,
     }) => {
       Object.assign(this, { captchaToken, url });
