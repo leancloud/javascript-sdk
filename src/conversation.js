@@ -3,20 +3,19 @@
 const request = require('./request').request;
 const AV = require('./av');
 
-module.exports = AV.Object.extend('_Conversation', {
-
-  /**
-   * @class AV.Conversation
-   * <p>An AV.Conversation is a local representation of a LeanCloud realtime's
-   * conversation. This class is a subclass of AV.Object, and retains the
-   * same functionality of an AV.Object, but also extends it with various
-   * conversation specific methods, like get members, creators of this conversation.
-   * </p>
-   *
-   * @param {String} name The name of the Role to create.
-   * @param {Boolean} [options.isSystem] Set this conversation as system conversation.
-   * @param {Boolean} [options.isTransient] Set this conversation as transient conversation.
-   */
+/**
+ * @class AV.Conversation
+ * <p>An AV.Conversation is a local representation of a LeanCloud realtime's
+ * conversation. This class is a subclass of AV.Object, and retains the
+ * same functionality of an AV.Object, but also extends it with various
+ * conversation specific methods, like get members, creators of this conversation.
+ * </p>
+ *
+ * @param {String} name The name of the Role to create.
+ * @param {Boolean} [options.isSystem] Set this conversation as system conversation.
+ * @param {Boolean} [options.isTransient] Set this conversation as transient conversation.
+ */
+module.exports = AV.Object.extend('_Conversation', /** @lends AV.Conversation.prototype */ {
   constructor: function(name, options = {}) {
     AV.Object.prototype.constructor.call(this, null, null);
     this.set('name', name);
