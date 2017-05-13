@@ -1,5 +1,6 @@
 'use strict';
 
+const _ = require('underscore');
 const request = require('./request').request;
 const AV = require('./av');
 
@@ -135,4 +136,41 @@ module.exports = AV.Object.extend('_Conversation', /** @lends AV.Conversation.pr
     }
     return request('rtm', 'messages', null, 'POST', data, authOptions);
   },
+
+  /**
+   * Send realtime broadcast message to all clients, with this conversation, using HTTP request.
+   *
+   * @param {String} fromClient Sender's client id.
+   * @param {(String|Object)} message The message which will send to conversation.
+   *     It could be a raw string, or an object with a `toJSON` method, like a
+   *     realtime SDK's Message object. See more: {@link https://leancloud.cn/docs/realtime_guide-js.html#消息}.
+   * @param {Object} [options.pushData] Push data to this message. See more: {@link https://url.leanapp.cn/pushData 推送消息内容}.
+   * @param {Object} [options.validTill] The message will valid till this time.
+   * @param {AuthOptions} [authOptions]
+   * @return {Promise}
+   */
+  broadcast: function(fromClient, message, options={}, authOptions={}) {
+    if (typeof message.toJSON === 'function') {
+      message = message.toJSON();
+    }
+    if (typeof message !== 'string') {
+      message = JSON.stringify(message);
+    }
+    const data = {
+      from_peer: fromClient,
+      conv_id: this.id,
+      message: message,
+    };
+    if (options.pushData !== undefined) {
+      data.push = options.pushData;
+    }
+    if (options.validTill !== undefined) {
+      let ts = options.validTill;
+      if (_.isDate(ts)) {
+        ts = ts.getTime();
+      }
+      options.valid_till = ts;
+    }
+    return request('rtm', 'broadcast', null, 'POST', data, authOptions);
+  }
 });

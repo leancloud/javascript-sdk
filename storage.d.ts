@@ -599,6 +599,7 @@ declare namespace AV {
       isTransient(): boolean;
       isSystem(): boolean;
       send(fromClient: string, message: string|object, options?: { transient?: boolean, pushData?: object, toClients?: string[] }, authOptions?: AuthOptions): Promise<void>;
+      broadcast(fromClient: string, message: string|object, options?: { pushData?: object, validTill?: number|Date }, authOptions?: AuthOptions): Promise<void>;
     }
 
     export class Error {
