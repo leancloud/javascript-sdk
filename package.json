@@ -17,7 +17,7 @@
     "uglify:browser": "cd dist; uglifyjs av.js -m -c -o av-min.js --in-source-map av.js.map --source-map av-min.js.map; cd ..;",
     "uglify:weapp": "cd dist; uglifyjs av-weapp.js -m -c -o av-weapp-min.js --in-source-map av-weapp.js.map --source-map av-weapp-min.js.map; cd ..;",
     "build": "gulp build",
-    "prepublish": "./script/check-version.js"
+    "prepublishOnly": "./script/check-version.js"
   },
   "dependencies": {
     "debug": "^2.2.0",
