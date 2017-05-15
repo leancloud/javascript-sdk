@@ -41,6 +41,10 @@ describe('Queries', function () {
       }).to.throwError();
 
     });
+    it('should throw when object not exists', function () {
+      query = new AV.Query(GameScore);
+      return query.get('123').should.be.rejectedWith(/Object not found/);
+    });
 
   });
 
@@ -287,12 +291,11 @@ describe('Queries', function () {
 
       var userQ = new AV.Query('Person');
 
-      return userQ.get('52f9bea1e4b035debf88b730').then(function (p) {
-        p.relation('likes').query();
+      return userQ.first().then(function (p) {
+        return p.relation('likes').query().count();
         // p.relation('likes').query().count().then(function(c){
         // 	debug(c)
         // })
-        debug(p);
       });
 
       // userQ.first().then(function(p){
