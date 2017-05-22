@@ -2,6 +2,13 @@ interface AsyncIterator<T> {
   next(): Promise<IteratorResult<T>>
 }
 
+declare class EventEmitter {
+  on(evt: string, listener: Function): EventEmitter;
+  once(evt: string, listener: Function): EventEmitter;
+  off(evt: string, listener: Function): EventEmitter;
+  emit(evt: string, ...args: any[]): Boolean;
+}
+
 declare namespace AV {
 
     export var applicationId: string;
@@ -469,7 +476,12 @@ declare namespace AV {
         withinKilometers(key: string, point: GeoPoint, maxDistance: number): Query;
         withinMiles(key: string, point: GeoPoint, maxDistance: number): Query;
         withinRadians(key: string, point: GeoPoint, maxDistance: number): Query;
-        scan<T>(options?:{ orderedBy?: string, batchSize?: number }, authOptions?: AuthOptions): AsyncIterator<T>
+        scan<T>(options?:{ orderedBy?: string, batchSize?: number }, authOptions?: AuthOptions): AsyncIterator<T>;
+        subscribe(options?:{ subscriptionId?: string }): Promise<LiveQuery>;
+    }
+
+    class LiveQuery extends EventEmitter {
+      unsubscribe(): Promise<void>;
     }
 
     export namespace Query {
