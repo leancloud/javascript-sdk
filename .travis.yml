@@ -1,7 +1,7 @@
 language: node_js
 
 node_js:
-- "4"
+- "6"
 
 sudo: false
 env:
@@ -13,8 +13,6 @@ env:
     - HOOKKEY=Y7RVPi20qOKQg4Lp8CyY35Lq
     - STATUS_TARGET_USER_ID=57d7b3c28a51a2004eb9b31d
     - FILE_ID=577258d732070000567dea7e
-before_install:
-  - if [[ `npm -v` != 3* ]]; then npm i -g npm; fi
 install:
   - npm install -g codecov
   - npm install
