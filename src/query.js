@@ -3,7 +3,7 @@ const debug = require('debug')('leancloud:query');
 const Promise = require('./promise');
 const AVError = require('./error');
 const AVRequest = require('./request')._request;
-const { ensureArray } = require('./utils');
+const { ensureArray, transformFetchOptions } = require('./utils');
 
 const requires = (value, message) => {
   if (value === undefined) {
@@ -187,19 +187,22 @@ module.exports = function(AV) {
         throw errorObject;
       }
 
-      var self = this;
-
-      var obj = self._newObject();
+      var obj = this._newObject();
       obj.id = objectId;
 
-      var queryJSON = self.toJSON();
+      var queryJSON = this.toJSON();
       var fetchOptions = {};
 
       if (queryJSON.keys) fetchOptions.keys = queryJSON.keys;
       if (queryJSON.include) fetchOptions.include = queryJSON.include;
       if (queryJSON.includeACL) fetchOptions.includeACL = queryJSON.includeACL;
 
-      return obj.fetch(fetchOptions, options);
+      return AVRequest('classes', this.className, objectId, 'GET', transformFetchOptions(fetchOptions), options)
+        .then((response) => {
+          if (_.isEmpty(response)) throw new AVError(AVError.OBJECT_NOT_FOUND, 'Object not found.');
+          obj._finishFetch(obj.parse(response), true);
+          return obj;
+        });
     },
 
     /**
