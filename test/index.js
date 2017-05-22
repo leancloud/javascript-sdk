@@ -4,6 +4,7 @@ require('./av.js');
 require('./cache');
 require('./file.js');
 require('./error.js');
+// require('./captcha.js');
 require('./object.js');
 require('./user.js');
 require('./query.js');
