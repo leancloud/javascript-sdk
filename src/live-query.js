@@ -83,7 +83,7 @@ module.exports = (AV) => {
     } = {}) => {
       if (!AV._config.realtime) throw new Error('LiveQuery not supported. Please use the LiveQuery bundle. https://url.leanapp.cn/enable-live-query');
       if (!(query instanceof AV.Query)) throw new TypeError('LiveQuery must be inited with a Query');
-      const { where, keys } = query.toJSON();
+      const { where, keys, returnACL } = query.toJSON();
       return Promise.resolve(userDefinedSubscriptionId)
         .then(subscriptionId =>
           request({
@@ -93,6 +93,7 @@ module.exports = (AV) => {
               query: {
                 where,
                 keys,
+                returnACL,
                 className: query.className,
               },
               id: subscriptionId,
