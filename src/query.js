@@ -1014,6 +1014,14 @@ module.exports = function(AV) {
       });
     },
     
+    /**
+     * Subscribe the changes of this query.
+     * 
+     * LiveQuery is not included in the default bundle: {@link https://url.leanapp.cn/enable-live-query}.
+     * 
+     * @since 3.0.0
+     * @return {AV.LiveQuery} An eventemitter which can be used to get LiveQuery updates;
+     */
     subscribe(options) {
       return AV.LiveQuery.init(this, options);
     },
