@@ -35,6 +35,18 @@ module.exports = (AV) => {
            * @param {AV.Object|AV.File} target updated object
            * @param {String[]} updatedKeys updated keys
            */
+          /**
+           * An existing AV.Object which doesn't fulfill the Query is updated and now it fulfills the Query.
+           * @event AV.LiveQuery#enter
+           * @param {AV.Object|AV.File} target updated object
+           * @param {String[]} updatedKeys updated keys
+           */
+          /**
+           * An existing AV.Object which fulfills the Query is updated and now it doesn't fulfill the Query.
+           * @event AV.LiveQuery#leave
+           * @param {AV.Object|AV.File} target updated object
+           * @param {String[]} updatedKeys updated keys
+           */
           this.emit(op, target, updatedKeys);
         } else {
           /**
@@ -45,16 +57,6 @@ module.exports = (AV) => {
           /**
            * An existing AV.Object which fulfills the Query you subscribe is deleted.
            * @event AV.LiveQuery#delete
-           * @param {AV.Object|AV.File} target updated object
-           */
-          /**
-           * An existing AV.Object which doesn't fulfill the Query is updated and now it fulfills the Query.
-           * @event AV.LiveQuery#enter
-           * @param {AV.Object|AV.File} target updated object
-           */
-          /**
-           * An existing AV.Object which fulfills the Query is updated and now it doesn't fulfill the Query.
-           * @event AV.LiveQuery#leave
            * @param {AV.Object|AV.File} target updated object
            */
           this.emit(op, target);
