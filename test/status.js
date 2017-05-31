@@ -64,8 +64,15 @@ describe("AV.Status",function(){
 
   describe("Status guide test.", function(){
     it("should follow/unfollow successfully.", function(){
-      return AV.User.current().follow(targetUser).then(function(){
+      return AV.User.current().follow({
+        user: targetUser,
+        attributes: {
+          group: 1,
+          position: new AV.GeoPoint(0,0),
+        },
+      }).then(function(){
         var query = AV.User.current().followeeQuery();
+        query.equalTo('group', 1);
         query.include('followee');
         return query.find();
       }).then(function(followees){
@@ -73,6 +80,11 @@ describe("AV.Status",function(){
         expect(followees.length).to.be(1);
         expect(followees[0].id).to.be(targetUser);
         expect(followees[0].get('username')).to.be('leeyeh');
+        var query = AV.User.current().followeeQuery();
+        query.equalTo('group', 0);
+        return query.find();
+      }).then(function(followees){
+        expect(followees.length).to.be(0);
         return AV.User.current().unfollow(targetUser);
       }).then(function(){
         var query = AV.User.current().followeeQuery();
