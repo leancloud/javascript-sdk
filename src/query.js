@@ -241,13 +241,13 @@ module.exports = function(AV) {
     },
 
     _newObject: function(response){
-      var obj;
       if (response && response.className) {
-        obj = new AV.Object(response.className);
-      } else {
-        obj = new this.objectClass();
+        return new AV.Object(response.className);
       }
-      return obj;
+      if (this.objectClass === AV.Role) {
+        return new AV.Role(undefined, undefined, /* noDefaultACL */ true);
+      }
+      return new this.objectClass();
     },
     _createRequest(params = this.toJSON(), options) {
       if (JSON.stringify(params).length > 2000) {
