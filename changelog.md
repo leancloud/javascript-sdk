@@ -1,3 +1,10 @@
+# 3.0.0-beta.2 (2017-06-01)
+### Features
+- LiveQuery
+
+### Miscellanies
+- 包含了 v2.3.0-v2.4.0 的新特性与修复。
+
 # 3.0.0-beta.2 (2017-04-27)
 ### Breaking Changes
 - 为了更好的隔离服务，我们为每个应用提供了独立的域名。对于小程序用户，请前往 [《小程序域名白名单配置》](https://leancloud.cn/docs/weapp-domains.html) 更新域名白名单。
