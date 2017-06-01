@@ -376,44 +376,56 @@ module.exports = function(AV) {
     /**
      * Follow a user
      * @since 0.3.0
-     * @param {AV.User | String} target The target user or user's objectId to follow.
-     * @param {AuthOptions} options
+     * @param {Object | AV.User | String} options if an AV.User or string is given, it will be used as the target user.
+     * @param {AV.User | String} options.user The target user or user's objectId to follow.
+     * @param {Object} [options.attributes] key-value attributes dictionary to be used as
+     *  conditions of followerQuery/followeeQuery.
+     * @param {AuthOptions} [authOptions]
      */
-    follow: function(target, options){
+    follow: function(options, authOptions){
       if(!this.id){
           throw new Error('Please signin.');
       }
-      if(!target){
-          throw new Error('Invalid target user.');
+      let user;
+      let attributes;
+      if (options.user) {
+        user = options.user;
+        attributes = options.attributes;
+      } else {
+        user = options;
       }
-      var userObjectId = _.isString(target) ? target: target.id;
+      var userObjectId = _.isString(user) ? user: user.id;
       if(!userObjectId){
           throw new Error('Invalid target user.');
       }
       var route = 'users/' + this.id + '/friendship/' + userObjectId;
-      var request = AVRequest(route, null, null, 'POST', null, options);
+      var request = AVRequest(route, null, null, 'POST', AV._encode(attributes), authOptions);
       return request;
     },
 
     /**
      * Unfollow a user.
      * @since 0.3.0
-     * @param {AV.User | String} target The target user or user's objectId to unfollow.
-     * @param {AuthOptions} options
+     * @param {Object | AV.User | String} options if an AV.User or string is given, it will be used as the target user.
+     * @param {AV.User | String} options.user The target user or user's objectId to unfollow.
+     * @param {AuthOptions} [authOptions]
      */
-    unfollow: function(target, options){
+    unfollow: function(options, authOptions){
       if(!this.id){
           throw new Error('Please signin.');
       }
-      if(!target){
-          throw new Error('Invalid target user.');
+      let user;
+      if (options.user) {
+        user = options.user;
+      } else {
+        user = options;
       }
-      var userObjectId = _.isString(target) ? target: target.id;
+      var userObjectId = _.isString(user) ? user : user.id;
       if(!userObjectId){
           throw new Error('Invalid target user.');
       }
       var route = 'users/' + this.id + '/friendship/' + userObjectId;
-      var request = AVRequest(route, null, null, 'DELETE', null, options);
+      var request = AVRequest(route, null, null, 'DELETE', null, authOptions);
       return request;
     },
 
