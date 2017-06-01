@@ -478,6 +478,8 @@ declare namespace AV {
         interface GetOptions extends AuthOptions { }
     }
 
+    class FriendShipQuery extends Query {}
+
     /**
      * Represents a Role on the AV server. Roles represent groupings of
      * Users for the purposes of granting permissions (e.g. specifying an ACL
@@ -513,28 +515,32 @@ declare namespace AV {
     export class User extends Object {
 
         static current(): User;
-        static signUp<T>(username: string, password: string, attrs: any, options?: AuthOptions): Promise<T>;
-        static logIn<T>(username: string, password: string, options?: AuthOptions): Promise<T>;
-        static logOut<T>(): Promise<T>;
-        static become<T>(sessionToken: string, options?: AuthOptions): Promise<T>;
+        static signUp(username: string, password: string, attrs: any, options?: AuthOptions): Promise<User>;
+        static logIn(username: string, password: string, options?: AuthOptions): Promise<User>;
+        static logOut(): Promise<User>;
+        static become(sessionToken: string, options?: AuthOptions): Promise<User>;
 
-        static loginWithWeapp<T>(): Promise<T>;
-        static logInWithMobilePhone<T>(mobilePhone: string, password: string, options?: AuthOptions): Promise<T>;
-        static logInWithMobilePhoneSmsCode<T>(mobilePhone: string, smsCode: string, options?: AuthOptions): Promise<T>;
-        static signUpOrlogInWithAuthData<T>(data: any, platform: string, options?: AuthOptions): Promise<T>;
-        static signUpOrlogInWithMobilePhone<T>(mobilePhoneNumber: string, smsCode: string, attributes?: any, options?: AuthOptions): Promise<T>;
-        static requestEmailVerify<T>(email: string, options?: AuthOptions): Promise<T>;
+        static loginWithWeapp(): Promise<User>;
+        static logInWithMobilePhone(mobilePhone: string, password: string, options?: AuthOptions): Promise<User>;
+        static logInWithMobilePhoneSmsCode(mobilePhone: string, smsCode: string, options?: AuthOptions): Promise<User>;
+        static signUpOrlogInWithAuthData(data: any, platform: string, options?: AuthOptions): Promise<User>;
+        static signUpOrlogInWithMobilePhone(mobilePhoneNumber: string, smsCode: string, attributes?: any, options?: AuthOptions): Promise<User>;
+        static requestEmailVerify(email: string, options?: AuthOptions): Promise<User>;
         static requestLoginSmsCode(mobilePhoneNumber: string, options?: SMSAuthOptions): Promise<void>;
         static requestMobilePhoneVerify(mobilePhoneNumber: string, options?: SMSAuthOptions): Promise<void>;
-        static requestPasswordReset<T>(email: string, options?: AuthOptions): Promise<T>;
+        static requestPasswordReset(email: string, options?: AuthOptions): Promise<User>;
         static requestPasswordResetBySmsCode(mobilePhoneNumber: string, options?: SMSAuthOptions): Promise<void>;
-        static resetPasswordBySmsCode<T>(code: string, password: string, options?: AuthOptions): Promise<T>;
-        static verifyMobilePhone<T>(code: string, options?: AuthOptions): Promise<T>;
-        signUp<T>(attrs?: any, options?: AuthOptions): Promise<T>;
-        logIn<T>(options?: AuthOptions): Promise<T>;
-        linkWithWeapp<T>(): Promise<T>;
-        fetch<T>(options?: AuthOptions): Promise<T>;
-        save<T>(arg1?: any, arg2?: any, arg3?: any): Promise<T>;
+        static resetPasswordBySmsCode(code: string, password: string, options?: AuthOptions): Promise<User>;
+        static verifyMobilePhone(code: string, options?: AuthOptions): Promise<User>;
+
+        static followerQuery(userObjectId: string): FriendShipQuery;
+        static followeeQuery(userObjectId: string): FriendShipQuery;
+
+        signUp(attrs?: any, options?: AuthOptions): Promise<User>;
+        logIn(options?: AuthOptions): Promise<User>;
+        linkWithWeapp(): Promise<User>;
+        fetch(options?: AuthOptions): Promise<User>;
+        save(arg1?: any, arg2?: any, arg3?: any): Promise<User>;
         isAuthenticated(): Promise<boolean>;
         isCurrent(): boolean;
 
@@ -553,7 +559,13 @@ declare namespace AV {
         refreshSessionToken(options?: AuthOptions): Promise<User>;
 
         getRoles(options?: AuthOptions): Promise<Role>;
-    
+        
+        follow(user: User|string, authOptions?: AuthOptions): Promise<void>;
+        follow(options: { user: User|string, attributes?: Object}, authOptions?: AuthOptions): Promise<void>;
+        unfollow(user: User|string, authOptions?: AuthOptions): Promise<void>;
+        unfollow(options: { user: User|string }, authOptions?: AuthOptions): Promise<void>;
+        followerQuery(): FriendShipQuery;
+        followeeQuery(): FriendShipQuery;
   }
 
     export class Captcha {
