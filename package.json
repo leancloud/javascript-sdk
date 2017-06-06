@@ -26,7 +26,6 @@
     "leancloud-realtime-plugin-live-query": "^1.0.0-beta.2",
     "localstorage-memory": "^1.0.1",
     "md5": "^2.0.0",
-    "qiniu": "^6.1.11",
     "superagent": "^3.3.1",
     "underscore": "^1.8.3"
   },
@@ -50,6 +49,7 @@
     "jsdoc": "~3.4.0",
     "mocha": "^3.0.0",
     "nyc": "^8.1.0",
+    "qiniu": "^6.1.11",
     "should": "^11.1.0",
     "weapp-polyfill": "^1.1.0",
     "webpack": "^2.2.0-rc.3"
@@ -60,7 +60,6 @@
     "email": "support@leancloud.rocks"
   },
   "browser": {
-    "./src/uploader/qiniu.js": "./src/uploader/qiniu-browser.js",
     "./src/utils/localstorage.js": "./src/utils/localstorage-browser.js",
     "./src/utils/parse-base64.js": "./src/utils/parse-base64-browser.js",
     "./src/ua/comments.js": "./src/ua/comments-browser.js",
