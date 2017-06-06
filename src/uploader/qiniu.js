@@ -1,26 +1,35 @@
-// Use qiniu sdk to upload files to qiniu.
-const qiniu = require('qiniu');
+const request = require('superagent');
 const Promise = require('../promise');
+const debug = require('debug')('qiniu');
 
-module.exports = function upload(uploadInfo, data, file) {
+module.exports = function upload(uploadInfo, data, file, saveOptions = {}) {
   file.attributes.url = uploadInfo.url;
   file._bucket = uploadInfo.bucket;
   file.id = uploadInfo.objectId;
   // Get the uptoken to upload files to qiniu.
   const uptoken = uploadInfo.token;
   return new Promise((resolve, reject) => {
-    const extra = new qiniu.io.PutExtra();
-    if (file.get('mime_type')) {
-      extra.mimeType = file.get('mime_type');
+    const req = request('POST', 'https://up.qbox.me')
+      .field('file', data)
+      .field('name', file.attributes.name)
+      .field('key', file._qiniu_key)
+      .field('token', uptoken);
+    if (saveOptions.onprogress) {
+      req.on('progress', saveOptions.onprogress);
     }
-    const body = new Buffer(data, 'base64');
-    qiniu.io.put(uptoken, file._qiniu_key, body, extra, (err) => {
-      delete file._qiniu_key;
-      if (!err) {
-        resolve(file);
-      } else {
-        reject(err);
+    req.end((err, res) => {
+      if (res) {
+        debug(res.status, res.body, res.text);
       }
+      if (err) {
+        if (res) {
+          err.statusCode = res.status;
+          err.responseText = res.text;
+          err.response = res.body;
+        }
+        return reject(err);
+      }
+      resolve(file);
     });
   });
 };
