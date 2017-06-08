@@ -19,6 +19,7 @@ exports.create = () => ({
   node: {
     // do not polyfill Buffer
     Buffer: false,
+    Stream: false,
     process: false,
   },
   module: {

@@ -11,9 +11,6 @@ const parseBase64 = require('./utils/parse-base64');
 
 module.exports = function(AV) {
 
-  // 挂载一些配置
-  let avConfig = AV._config;
-
   const hexOctet = () => Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
 
   // port from browserify path module
@@ -112,6 +109,22 @@ module.exports = function(AV) {
 
     this._extName = '';
     this._data = data;
+
+    if (process.env.CLIENT_PLATFORM === 'ReactNative' || process.env.CLIENT_PLATFORM === 'Weapp') {
+      if (data && data.blob) {
+        this._extName = extname(data.blob.uri);
+      }
+    }
+
+    if (typeof File !== "undefined" && data instanceof File && data.name) {
+      this._extName = extname(data.name);
+    }
+
+    if (!process.env.CLIENT_PLATFORM) {
+      if (data instanceof require('stream')) {
+        this._extName = extname(data.path);
+      }
+    }
 
     let owner;
     if (data && data.owner) {
@@ -455,19 +468,18 @@ module.exports = function(AV) {
                 if (!data.blob.name) {
                   data.blob.name = this.get('name');
                 }
-                if (process.env.CLIENT_PLATFORM === 'ReactNative' || process.env.CLIENT_PLATFORM === 'Weapp') {
-                  this._extName = extname(data.blob.uri);
-                }
                 return data.blob;
               }
               if (typeof File !== "undefined" && data instanceof File) {
                 if (data.size) {
                   this.attributes.metaData.size = data.size;
                 }
-                if (data.name) {
-                  this._extName = extname(data.name);
-                }
                 return data;
+              }
+              if (!process.env.CLIENT_PLATFORM) {
+                if (data instanceof require('stream')) {
+                  return data;
+                }
               }
               if (typeof Buffer !== "undefined" && Buffer.isBuffer(data)) {
                 this.attributes.metaData.size = data.length;
@@ -475,27 +487,22 @@ module.exports = function(AV) {
               }
               throw new TypeError('malformed file data');
             }).then(data => {
-              let uploadPromise;
               switch (uploadInfo.provider) {
                 case 's3':
-                  uploadPromise = s3(uploadInfo, data, this, options);
-                  break;
+                  return s3(uploadInfo, data, this, options);
                 case 'qcloud':
-                  uploadPromise = cos(uploadInfo, data, this, options);
-                  break;
+                  return cos(uploadInfo, data, this, options);
                 case 'qiniu':
                 default:
-                  uploadPromise = qiniu(uploadInfo, data, this, options);
-                  break;
+                  return qiniu(uploadInfo, data, this, options);
               }
-              return uploadPromise.then(
-                tap(() => this._callback(true)),
-                (error) => {
-                  this._callback(false);
-                  throw error;
-                }
-              );
-            });
+            }).then(
+              tap(() => this._callback(true)),
+              (error) => {
+                this._callback(false);
+                throw error;
+              }
+            );
           });
         } else if (this.attributes.url && this.attributes.metaData.__source === 'external') {
           // external link file.
