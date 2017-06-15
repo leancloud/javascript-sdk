@@ -83,6 +83,13 @@
 
 更多背景与技术细节请参考 [#453](https://github.com/leancloud/javascript-sdk/pull/453#issue-208346693).
 
+# 2.5.0 (2017-06-01) 
+### Bug Fixes 
+* 修复了查询 `Role` 时错误的打印了 deprecation 警告的问题 
+ 
+### Features 
+* `User#follow` 增加了一种重载，现在可以通过 `options.attributes` 参数为创建的 `Follower` 与 `Followee` 增加自定义属性，方便之后通过 `User#followerQuery` 与 `User#followerQuery` 进行查询。 
+
 # 2.4.0 (2017-05-19)
 ### Bug Fixes
 * **可能导致不兼容** 修复了 `Query#get` 方法在目标对象不存在的情况下会返回一个没有数据的 `AV.Object` 实例的问题，现在该方法会正确地抛出 `Object not found` 异常。这个问题是在 2.0.0 版本中引入的。
