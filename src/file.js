@@ -116,13 +116,21 @@ module.exports = function(AV) {
       }
     }
 
-    if (typeof File !== "undefined" && data instanceof File && data.name) {
-      this._extName = extname(data.name);
+    if (typeof File !== "undefined" && data instanceof File) {
+      if (data.size) {
+        this.attributes.metaData.size = data.size;
+      }
+      if (data.name) {
+        this._extName = extname(data.name);
+      }
     }
 
     if (!process.env.CLIENT_PLATFORM) {
       if (data instanceof require('stream')) {
         this._extName = extname(data.path);
+      }
+      if (Buffer.isBuffer(data)) {
+        this.attributes.metaData.size = data.length;
       }
     }
 
@@ -471,19 +479,15 @@ module.exports = function(AV) {
                 return data.blob;
               }
               if (typeof File !== "undefined" && data instanceof File) {
-                if (data.size) {
-                  this.attributes.metaData.size = data.size;
-                }
                 return data;
               }
               if (!process.env.CLIENT_PLATFORM) {
                 if (data instanceof require('stream')) {
                   return data;
                 }
-              }
-              if (typeof Buffer !== "undefined" && Buffer.isBuffer(data)) {
-                this.attributes.metaData.size = data.length;
-                return data;
+                if (Buffer.isBuffer(data)) {
+                  return data;
+                }
               }
               throw new TypeError('malformed file data');
             }).then(data => {
