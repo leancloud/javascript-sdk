@@ -1,6 +1,6 @@
 {
   "name": "leancloud-storage",
-  "version": "3.0.0-beta.3",
+  "version": "3.0.0",
   "main": "./dist/node/index.js",
   "description": "LeanCloud JavaScript SDK.",
   "repository": {
@@ -22,8 +22,8 @@
     "debug": "^2.2.0",
     "es6-promise": "^4.0.5",
     "eventemitter3": "^2.0.3",
-    "leancloud-realtime": "^3.5.0-beta.1",
-    "leancloud-realtime-plugin-live-query": "^1.0.0-beta.2",
+    "leancloud-realtime": "^3.5.0",
+    "leancloud-realtime-plugin-live-query": "^1.0.0",
     "localstorage-memory": "^1.0.1",
     "md5": "^2.0.0",
     "superagent": "^3.3.1",

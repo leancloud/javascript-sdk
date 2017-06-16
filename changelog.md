@@ -1,4 +1,119 @@
-# 3.0.0-beta.2 (2017-06-01)
+# 3.0.0 (2017-06-16)
+
+### Highlights
+- **LiveQuery**：通过订阅一个 `Query`，在其结果发生变动时实时得到通知。详见 [《LiveQuery 开发指南》](https://url.leanapp.cn/livequery)。
+- **新的序列化反序列化方法**：针对 `AV.Object` 重新设计了 `#toJSON` 方法，并提供了一对可靠的序列化反序列化方法。
+- **`AV.request` 方法**：公开了低抽象级别的 `AV.request` 方法，方便开发者直接调用 LeanCloud Rest API。
+
+### Breaking Changes
+
+- 重新设计了 `AV.Object` 序列化相关的方法：
+  - 如果需要将 `AV.Object` 中的有效信息转换成 JSON Object，请使用 `AV.Object#toJSON` 方法。请注意通过此方法得到的 JSON 不包含对象的元信息，因此是不可逆的（无法转换回 `AV.Object`）。
+  - 如果需要「存储」或「传输」`AV.Object`，请使用新增的 `AV.Object#toFullJSON`（序列化）与 `AV.parseJSON`（反序列化）方法。
+
+  新版中的 `AV.Object#toJSON` 相比于 v2 有以下区别：
+  - 如果对象某个字段类型是 Pointer，并且有内容（included），新版中会递归地输出这个字段的有效信息（旧版中会输出一个 Pointer 结构）
+    <details>
+    
+    ```javascript
+    new AV.Query('Child').include('father').first()
+      .then(child => child.toJSON().father)
+      .then(console.log);
+    /*
+    v3: {
+      objectId: "58a461118d6d8100580a0c54",
+      name: "John Doe",
+      createdAt: "2017-02-15T14:08:39.892Z",
+      updatedAt: "2017-02-16T10:49:00.176Z"
+    }
+    v2: {
+      objectId: "58a461118d6d8100580a0c54",
+      __type: "Pointer",
+      className: "Parent",
+    }
+    ```
+
+  - 如果字段的类型是 `Date`，新版中会输出该时间的 UTC 格式字符串（旧版中会输出一个 Date 结构）
+    <details>
+    
+    ```javascript
+    const child = new Child().set('birthday', new Data());
+    console.log(child.toJSON().birthday);
+    /*
+    v3: "2011-11-11T03:11:11.000Z"
+    v2: {
+      __type: "Date",
+      iso: "2011-11-11T03:11:11.000Z"
+    }
+    ```
+
+  更多背景与技术细节请参考 [#453](https://github.com/leancloud/javascript-sdk/pull/453#issue-208346693).
+
+- 为了更好的隔离服务，我们为每个应用提供了独立的域名。对于小程序用户，请前往 [《小程序域名白名单配置》](https://leancloud.cn/docs/weapp-domains.html) 更新域名白名单。
+- 创建 `Role` 时 `acl` 参数不再是可选的。在 v2 中，如果不指定，SDK 会自动为其设置一个 public read-only 的默认 acl，在新版中必须显式的指定。
+  <details>
+
+  ```javascript
+  // 之前的用法
+  new AV.Role('admin');
+
+  // 新版中等价于
+  var acl = new AV.ACL();
+  acl.setPublicReadAccess(true);
+  new AC.Role('admin', acl);
+  ```
+
+### Features
+- LiveQuery 功能允许开发者订阅一个 `Query`，在 `Query` 的结果发生变动时实时得到通知。
+  - 增加了 `Query#subscribe` 方法，返回该 `Query` 对应的 `LiveQuery` 实例；
+  - 增加了 `LiveQuery` 类，在 `Query` 结果变化时 SDK 会在 `LiveQuery` 实例上派发 `create`、`update`、`enter`、`leave`、`delete` 等事件。
+- 开放了低抽象级别的 `AV.request` 方法，方便开发者直接调用 LeanCloud Rest API。
+- 增加了 `AV.setServerURLs` 方法，允许单独配置云函数等服务的域名以进行本地调试。
+  <details>
+
+  ```javascript
+  AV.setServerURLs({
+    engine: 'http://localhost:3000',
+  });
+  ```
+
+- 支持在 Node.js 中通过 Stream 构建 `AV.File`（仅支持中国节点）。
+  <details>
+
+  ```javascript
+  const fs = require('fs');
+  const readStream = fs.createReadStream('sample.txt');
+  const file = new AV.File('filename', readStream);
+  ```
+
+### Bug Fixes
+
+- 修复了在中国节点 Node.js 中上传文件会阻塞当前线程的问题。
+
+测试版本的更新日志：
+<details>
+
+## 3.0.0 (2017-06-16)
+
+### Bug Fixes
+- 修复了上传文件 size 信息缺失的问题。
+- 修复了在中国节点 Node.js 中上传文件会阻塞当前线程的问题。
+
+### Features
+- 支持 LiveQuery。
+- 支持在 Node.js 中通过 Stream 构建 `AV.File`（仅支持中国节点）。
+  <details>
+
+  ```javascript
+  const fs = require('fs');
+  const readStream = fs.createReadStream('sample.txt');
+  const file = new AV.File('filename', readStream);
+  ```
+
+### Miscellanies
+- 包含了 v2.5.0 的新特性。
+
+## 3.0.0-beta.3 (2017-06-01)
 ### Features
 - LiveQuery
 
@@ -22,8 +137,8 @@
   ```
 
 ### Features
-- 开放了低抽象级别的 `AV.request` 方法
-- 增加了 `AV.setServerURLs` 方法，允许单独配置云函数的域名
+- 开放了低抽象级别的 `AV.request` 方法，方便开发者直接调用 SDK 还不支持的 Rest API。
+- 增加了 `AV.setServerURLs` 方法，允许单独配置云函数等服务的域名。
   <details>
 
   ```javascript
@@ -82,6 +197,8 @@
   ```
 
 更多背景与技术细节请参考 [#453](https://github.com/leancloud/javascript-sdk/pull/453#issue-208346693).
+
+</details>
 
 # 2.5.0 (2017-06-01) 
 ### Bug Fixes 
@@ -159,7 +276,7 @@
 * 修复了小程序中不启用「ES6 转 ES5」选项时加载 SDK 抛异常的问题
 
 # 2.0.0 (2017-01-09)
-### Highlight
+### Highlights
 * **全面支持微信小程序**：包括文件存储在内的所有功能均已支持微信小程序，用户系统还增加了小程序内一键登录的 API。详见 [在微信小程序中使用 LeanCloud](https://leancloud.cn/docs/weapp.html)。
 * **Promise first**：Promise 风格的异步 API 已被社区广泛接受，此前回调参数优先于其他参数的设计已过时，因此我们去掉了对 Backbone 回调风格参数的支持。
 * **支持对单次操作指定是否使用 masterKey**：此前使用 masterKey 是全局生效的，会导致无法充分利用 ACL 等内建的权限控制机制。此项改进将其生效范围细化到了单次操作。

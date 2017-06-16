@@ -1,9 +1,10 @@
 LeanCloud JavaScript SDK
 ====
+[![npm](https://img.shields.io/npm/v/leancloud-storage.svg?style=flat-square)](https://www.npmjs.com/package/leancloud-storage)
+![gzip size](http://img.badgesize.io/leancloud/javascript-sdk/dist/dist/av-min.js.svg?compression=gzip&style=flat-square)
 [![Build Status](https://img.shields.io/travis/leancloud/javascript-sdk.svg?style=flat-square)](https://travis-ci.org/leancloud/javascript-sdk)
 [![Codecov](https://img.shields.io/codecov/c/github/leancloud/javascript-sdk.svg?style=flat-square)](https://codecov.io/github/leancloud/javascript-sdk)
 [![David](https://img.shields.io/david/leancloud/javascript-sdk.svg?style=flat-square)](https://david-dm.org/leancloud/javascript-sdk)
-[![npm](https://img.shields.io/npm/v/leancloud-storage.svg?style=flat-square)](https://www.npmjs.com/package/leancloud-storage)
 
 
 JavaScript SDK for [LeanCloud](http://leancloud.cn/).
@@ -13,8 +14,8 @@ JavaScript SDK for [LeanCloud](http://leancloud.cn/).
 ```
 // npm 安装
 npm install leancloud-storage --save
-// npm 安装 1.x 版本
-npm install leancloud-storage@1 --save
+// npm 安装 2.x 版本
+npm install leancloud-storage@2 --save
 
 // bower 安装
 bower install leancloud-storage --save
@@ -61,10 +62,10 @@ bower install leancloud-storage --save
 
 ## 发布流程
 
-0. 遵循 semver 提升版本号
-  * src/version.js
-  * package.json
-  * bower.json
+1. 遵循 semver 提升版本号
+    * src/version.js
+    * package.json
+    * bower.json
 0. 对照 commit 历史写 changelog
 0. 提交当前所有改动
 0. 等待持续集成 pass
