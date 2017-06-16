@@ -69,7 +69,7 @@
   - 增加了 `LiveQuery` 类，在 `Query` 结果变化时 SDK 会在 `LiveQuery` 实例上派发 `create`、`update`、`enter`、`leave`、`delete` 等事件。
 - 开放了低抽象级别的 `AV.request` 方法，方便开发者直接调用 LeanCloud Rest API。
 - 增加了 `AV.setServerURLs` 方法，允许单独配置云函数等服务的域名以进行本地调试。
-  <details>
+  <details>
 
   ```javascript
   AV.setServerURLs({
