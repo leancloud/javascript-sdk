@@ -840,7 +840,7 @@ module.exports = function(AV) {
       AV.User._currentUser = null;
       return AV.localStorage.removeItemAsync(
         AV._getAVPath(AV.User._CURRENT_USER_KEY)
-      ).then(AV._refreshSubscriptionId);
+      ).then(() => AV._refreshSubscriptionId());
     },
 
     /**
