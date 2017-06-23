@@ -63,18 +63,18 @@
     "./src/utils/localstorage.js": "./src/utils/localstorage-browser.js",
     "./src/utils/parse-base64.js": "./src/utils/parse-base64-browser.js",
     "./src/ua/comments.js": "./src/ua/comments-browser.js",
-    "./dist/node/index.js": "./dist/av.js",
-    "./dist/node/index-live-query.js": "./dist/av-live-query.js"
+    "./dist/node/index.js": "./dist/av-min.js",
+    "./dist/node/index-live-query.js": "./dist/av-live-query-min.js"
   },
   "react-native": {
     "./src/utils/localstorage.js": "./src/utils/localstorage-rn.js",
-    "./dist/node/index.js": "./dist/av-rn.js",
-    "./dist/node/index-live-query.js": "./dist/av-live-query-rn.js"
+    "./dist/node/index.js": "./dist/av-rn-min.js",
+    "./dist/node/index-live-query.js": "./dist/av-live-query-rn-min.js"
   },
   "weapp": {
     "./src/polyfills/index.js": "./src/polyfills/index-weapp.js",
-    "./dist/node/index.js": "./dist/av-weapp.js",
-    "./dist/node/index-live-query.js": "./dist/av-live-query-weapp.js"
+    "./dist/node/index.js": "./dist/av-weapp-min.js",
+    "./dist/node/index-live-query.js": "./dist/av-live-query-weapp-min.js"
   },
   "typings": "./storage.d.ts",
   "types": "./storage.d.ts",
