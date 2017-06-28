@@ -1,9 +1,15 @@
 const _ = require('underscore');
 const AVRequest = require('./request').request;
+const { getSessionToken } = require('./utils');
 
 module.exports = function(AV) {
-  const getUser = (options = {}) => AV.User.currentAsync()
-    .then(currUser => currUser || AV.User._fetchUserBySessionToken(options.sessionToken));
+  const getUser = (options = {}) => {
+    const sessionToken = getSessionToken(options);
+    if (sessionToken) {
+      return AV.User._fetchUserBySessionToken(getSessionToken(options));
+    }
+    return AV.User.currentAsync();
+  };
 
   const getUserPointer = options => getUser(options)
     .then(currUser => AV.Object.createWithoutData('_User', currUser.id)._toPointer());
@@ -90,7 +96,7 @@ module.exports = function(AV) {
     *      });
     */
     send: function(options = {}){
-      if(!options.sessionToken && !AV.User.current()) {
+      if(!getSessionToken(options) && !AV.User.current()) {
         throw new Error('Please signin an user.');
       }
       if(!this.query){
@@ -146,7 +152,7 @@ module.exports = function(AV) {
    *      });
    */
   AV.Status.sendStatusToFollowers = function(status, options = {}) {
-    if(!options.sessionToken && !AV.User.current()){
+    if(!getSessionToken(options) && !AV.User.current()){
       throw new Error('Please signin an user.');
     }
     return getUserPointer(options).then(currUser => {
@@ -189,7 +195,7 @@ module.exports = function(AV) {
    *      });
    */
   AV.Status.sendPrivateStatus = function(status, target, options = {}) {
-    if(!options.sessionToken && !AV.User.current()){
+    if(!getSessionToken(options) && !AV.User.current()){
       throw new Error('Please signin an user.');
     }
     if(!target){
@@ -236,7 +242,7 @@ module.exports = function(AV) {
    */
   AV.Status.countUnreadStatuses = function(owner, inboxType = 'default', options = {}){
     if (!_.isString(inboxType)) options = inboxType;
-    if(!options.sessionToken && owner == null && !AV.User.current()) {
+    if(!getSessionToken(options) && owner == null && !AV.User.current()) {
       throw new Error('Please signin an user or pass the owner objectId.');
     }
     return getUser(options).then(owner => {
@@ -263,7 +269,7 @@ module.exports = function(AV) {
    */
   AV.Status.resetUnreadCount = function(owner, inboxType = 'default', options = {}){
     if (!_.isString(inboxType)) options = inboxType;
-    if(!options.sessionToken && owner == null && !AV.User.current()) {
+    if(!getSessionToken(options) && owner == null && !AV.User.current()) {
       throw new Error('Please signin an user or pass the owner objectId.');
     }
     return getUser(options).then(owner => {
