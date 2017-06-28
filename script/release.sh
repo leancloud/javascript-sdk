@@ -8,6 +8,6 @@ test "$(git config user.name)" = '' && (
 )
 git add dist -f;
 git commit -m "chore(build): build ${REV} [skip ci]";
-git push -qf https://${TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git ${BRANCH}:dist > /dev/null 2>&1;
+git push -qf https://${TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git ${BRANCH}:v2-dist > /dev/null 2>&1;
 git reset HEAD~1;
 echo "done.";
