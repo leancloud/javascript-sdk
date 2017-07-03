@@ -107,6 +107,19 @@ describe('Objects', function(){
       parsedGameScore.get('score').should.eql(gameScore.get('score'));
     });
 
+    it('toJSON and parse (User)', () => {
+      const user = new AV.Object.createWithoutData('_User', 'objectId');
+      user.set('id', 'id');
+      user.set('score', 20);
+      const json = user.toJSON();
+      json.objectId.should.eql(user.id);
+      json.score.should.eql(user.get('score'));
+      const parsedUser = new AV.User(json, { parse: true });
+      parsedUser.id.should.eql(user.id);
+      parsedUser.get('id').should.eql(user.get('id'));
+      parsedUser.get('score').should.eql(user.get('score'));
+    });
+
     it('should create a User',function(){
       var User = AV.Object.extend("User");
       var u = new User();

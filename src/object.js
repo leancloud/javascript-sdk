@@ -1005,7 +1005,7 @@ module.exports = function(AV) {
           output[key] = AV._parseDate(output[key]);
         }
       });
-      if (!output.updatedAt) {
+      if (output.createdAt && !output.updatedAt) {
         output.updatedAt = output.createdAt;
       }
       return output;
