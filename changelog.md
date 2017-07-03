@@ -1,3 +1,7 @@
+## 2.5.2 (2017-07-03)
+### Bug Fixes
+* 修复了使用 `new AV.User(data, { parse: true })` 方式构造的 User 没有数据的问题。
+
 ## 2.5.1 (2017-06-28)
 ### Bug Fixes
 * 修复了应用内社交模块对 AuthOptions 支持不完整的问题
