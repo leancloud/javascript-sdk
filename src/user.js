@@ -16,6 +16,7 @@ const getWeappLoginCode = () => {
           reject(new Error(errMsg));
         }
       },
+      fail: () => reject(new Error('wx.login 失败')),
     });
   });
 };
