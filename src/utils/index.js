@@ -1,6 +1,7 @@
 const _ = require('underscore');
 const request = require('superagent');
 const debug = require('debug')('leancloud:request');
+const Promise = require('../promise');
 
 let requestsCount = 0;
 
