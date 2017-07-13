@@ -1,3 +1,7 @@
+interface IteratorResult<T> {
+  done: boolean;
+  value: T;
+}
 interface AsyncIterator<T> {
   next(): Promise<IteratorResult<T>>
 }
@@ -553,7 +557,6 @@ declare namespace AV {
         signUp(attrs?: any, options?: AuthOptions): Promise<User>;
         logIn(options?: AuthOptions): Promise<User>;
         linkWithWeapp(): Promise<User>;
-        fetch(options?: AuthOptions): Promise<User>;
         isAuthenticated(): Promise<boolean>;
         isCurrent(): boolean;
 
