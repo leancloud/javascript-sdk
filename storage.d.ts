@@ -288,7 +288,8 @@ declare namespace AV {
         previousAttributes(): any;
         relation(attr: string): Relation;
         remove(attr: string, item: any): any;
-        save<T>(options?: Object.SaveOptions, arg2?: any, arg3?: any): Promise<T>;
+        save<T>(attrs?: object | null, options?: Object.SaveOptions): Promise<T>;
+        save<T>(key: string, value: any, options?: Object.SaveOptions): Promise<T>;
         set(key: string, value: any, options?: Object.SetOptions): boolean;
         setACL(acl: ACL, options?: Object.SetOptions): boolean;
         unset(attr: string, options?: Object.SetOptions): any;
@@ -553,7 +554,6 @@ declare namespace AV {
         logIn(options?: AuthOptions): Promise<User>;
         linkWithWeapp(): Promise<User>;
         fetch(options?: AuthOptions): Promise<User>;
-        save(arg1?: any, arg2?: any, arg3?: any): Promise<User>;
         isAuthenticated(): Promise<boolean>;
         isCurrent(): boolean;
 
@@ -572,7 +572,7 @@ declare namespace AV {
         refreshSessionToken(options?: AuthOptions): Promise<User>;
 
         getRoles(options?: AuthOptions): Promise<Role>;
-        
+
         follow(user: User|string, authOptions?: AuthOptions): Promise<void>;
         follow(options: { user: User|string, attributes?: Object}, authOptions?: AuthOptions): Promise<void>;
         unfollow(user: User|string, authOptions?: AuthOptions): Promise<void>;
@@ -764,7 +764,7 @@ declare namespace AV {
         function run(name: string, data?: any, options?: AuthOptions): Promise<any>;
         function requestSmsCode(data: string|{ mobilePhoneNumber: string, template?: string, sign?: string }, options?: SMSAuthOptions): Promise<void>;
         function verifySmsCode(code: string, phone: string): Promise<void>;
-        function requestCaptcha(options?: CaptchaOptions, authOptions?: AuthOptions): Promise<AV.Captcha>;
+        function requestCaptcha(options?: CaptchaOptions, authOptions?: AuthOptions): Promise<Captcha>;
         function verifyCaptcha(code: string, captchaToken: string): Promise<void>;
     }
 
