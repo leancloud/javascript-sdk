@@ -798,6 +798,6 @@ declare namespace AV {
       authOption?: AuthOptions,
       service?: string,
       version?: string,
-    });
+    }): Promise<any>;
 }
 export = AV;
