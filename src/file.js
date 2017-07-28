@@ -116,7 +116,7 @@ module.exports = function(AV) {
       }
     }
 
-    if (typeof File !== "undefined" && data instanceof File) {
+    if (typeof Blob !== "undefined" && data instanceof Blob) {
       if (data.size) {
         this.attributes.metaData.size = data.size;
       }
@@ -478,7 +478,7 @@ module.exports = function(AV) {
                 }
                 return data.blob;
               }
-              if (typeof File !== "undefined" && data instanceof File) {
+              if (typeof Blob !== "undefined" && data instanceof Blob) {
                 return data;
               }
               if (!process.env.CLIENT_PLATFORM) {
