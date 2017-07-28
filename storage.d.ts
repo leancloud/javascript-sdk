@@ -38,6 +38,14 @@ declare namespace AV {
       ttl?: number;
     }
 
+    interface FileSaveOptions extends AuthOptions {
+      onprogress?: (event: {
+        loaded: number,
+        total: number,
+        percent: number,
+      }) => void;
+    }
+
     export interface WaitOption {
         /**
          * Set to true to wait for the server to confirm success
@@ -151,7 +159,7 @@ declare namespace AV {
         name(): string;
         ownerId(): string;
         url(): string;
-        save(options?: AuthOptions): Promise<File>;
+        save(options?: FileSaveOptions): Promise<File>;
         setACL(acl?: ACL): any;
         size(): any;
         thumbnailURL(width: number, height: number): string;
@@ -298,7 +306,10 @@ declare namespace AV {
 
         interface DestroyAllOptions extends AuthOptions { }
 
-        interface SaveOptions extends AuthOptions, SilentOption, WaitOption { }
+        interface SaveOptions extends AuthOptions, SilentOption, WaitOption {
+          fetchWhenSave?: boolean,
+          where?: Query,
+        }
 
         interface SaveAllOptions extends AuthOptions { }
 
