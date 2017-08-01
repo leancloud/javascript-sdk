@@ -1,3 +1,7 @@
+## 2.5.3 (2017-08-01)
+### Bug Fixes
+* 修复了一些 TypeScript 定义文件的问题。 
+
 ## 2.5.2 (2017-07-03)
 ### Bug Fixes
 * 修复了使用 `new AV.User(data, { parse: true })` 方式构造的 User 没有数据的问题。
