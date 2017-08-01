@@ -58,7 +58,7 @@ let _disableAppRouter = false;
   * @param {String} [options.region='cn'] region
   * @param {Boolean} [options.production]
   * @param {String|ServerURLs} [options.serverURLs] URLs for services. if a string was given, it will be applied for all services.
-  * @param {Boolean} [options.disableCurrentUser=false]
+  * @param {Boolean} [options.disableCurrentUser]
   */
 AV.init = function init(options, ...params) {
   if (!isObject(options)) {
@@ -76,7 +76,7 @@ AV.init = function init(options, ...params) {
     hookKey,
     region = 'cn',
     serverURLs,
-    disableCurrentUser = false,
+    disableCurrentUser,
     production,
     realtime,
   } = options;
