@@ -8,7 +8,9 @@
     "url": "https://github.com/leancloud/javascript-sdk"
   },
   "scripts": {
-    "test": "NODE_ENV=test nyc --reporter lcov --reporter text mocha --timeout 300000 test/index.js",
+    "lint": "tsc storage.d.ts",
+    "test": "npm run lint && npm run test:node",
+    "test:node": "NODE_ENV=test nyc --reporter lcov --reporter text mocha --timeout 300000 test/index.js",
     "docs": "jsdoc src README.md package.json -d docs -c .jsdocrc.json",
     "build:node": "gulp babel-node",
     "build:browser": "CLIENT_PLATFORM=Browser webpack --config webpack/browser.js",
@@ -50,6 +52,7 @@
     "nyc": "^8.1.0",
     "should": "^11.1.0",
     "uglify-js": "git+https://github.com/Swaagie/UglifyJS2.git#fcb4f2f21584dc5b21af4c10e17733e1686135e4",
+    "typescript": "^2.4.1",
     "weapp-polyfill": "^1.1.0",
     "webpack": "^2.2.0-rc.3"
   },
