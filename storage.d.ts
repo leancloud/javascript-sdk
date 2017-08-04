@@ -267,6 +267,7 @@ declare namespace AV {
         attributes: any;
         changed: boolean;
         className: string;
+        query: Query;
 
         constructor(className?: string, options?: any);
         constructor(attributes?: string[], options?: any);

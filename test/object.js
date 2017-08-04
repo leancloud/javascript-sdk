@@ -304,12 +304,26 @@ describe('Objects', function(){
     });
   });
 
+  describe('query', () => {
+    it('should get AV.Query instance', () => {
+      const Foo = AV.Object.extend('Foo');
+      expect(Foo.query.className).to.be('Foo');
+      const Bar = Foo.extend('Bar');
+      expect(Bar.query.className).to.be('Bar');
+    });
+    it('should get AV.Query instance with ES6 class', () => {
+      class Foo extends AV.Object {}
+      expect(Foo.query.className).to.be('Foo');
+      class Bar extends Foo {}
+      expect(Bar.query.className).to.be('Bar');
+    });
+  });
+
   describe("Retrieving Objects",function(){
     it("should be the just save Object",function(){
       var GameScore = AV.Object.extend("GameScore");
-      var query = new AV.Query(GameScore);
       debug(objId);
-      return query.get(objId).then(function(result) {
+      return GameScore.query.get(objId).then(function(result) {
         expect(gameScore.id).to.be.ok();
         expect(gameScore.get('objectId')).to.be(gameScore.id);
         expect(gameScore.get('id')).to.be('id');

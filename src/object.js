@@ -1410,7 +1410,7 @@ module.exports = function(AV) {
       var newArguments = [className].concat(_.toArray(arguments));
       return AV.Object.extend.apply(NewClassObject, newArguments);
     };
-    NewClassObject['new'] = function(attributes, options){
+    NewClassObject['new'] = function(attributes, options) {
       return new NewClassObject(attributes, options);
     };
     AV.Object._classMap[className] = NewClassObject;
@@ -1419,7 +1419,7 @@ module.exports = function(AV) {
 
   // ES6 class syntax support
   Object.defineProperty(AV.Object.prototype, 'className', {
-    get: function(){
+    get: function() {
       const className = this._className || this.constructor._LCClassName || this.constructor.name;
       // If someone tries to subclass "User", coerce it to the right type.
       if (className === "User") {
@@ -1452,6 +1452,12 @@ module.exports = function(AV) {
     }
     AV.Object._classMap[className] = klass;
   };
+
+  Object.defineProperty(AV.Object, 'query', {
+    get() {
+      return new AV.Query(this.prototype.className);
+    },
+  });
 
   AV.Object._findUnsavedChildren = function(object, children, files) {
     AV._traverse(object, function(object) {
