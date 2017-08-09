@@ -1,3 +1,4 @@
+const _ = require('underscore');
 const EventEmitter = require('eventemitter3');
 const Promise = require('./promise');
 const { inherits } = require('./utils');
@@ -25,7 +26,7 @@ module.exports = (AV) => {
         updatedKeys,
       }) => {
         if (queryId !== this.id) return;
-        const target = AV.parseJSON(Object.assign({
+        const target = AV.parseJSON(_.extend({
           __type: object.className === '_File' ? 'File' : 'Object',
         }, object));
         if (updatedKeys) {

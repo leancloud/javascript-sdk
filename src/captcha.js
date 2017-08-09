@@ -1,3 +1,4 @@
+const _ = require('underscore');
 const { tap } = require('./utils');
 
 module.exports = (AV) => {
@@ -43,7 +44,7 @@ module.exports = (AV) => {
     return AV.Cloud._requestCaptcha(this._options, this._authOptions).then(({
       captchaToken, url,
     }) => {
-      Object.assign(this, { captchaToken, url });
+      _.extend(this, { captchaToken, url });
       return url;
     });
   };
