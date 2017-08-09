@@ -104,12 +104,12 @@ module.exports = function(AV) {
    * Saves the given list of AV.Object.
    * If any error is encountered, stops and calls the error handler.
    *
-   * <pre>
-   *   AV.Object.saveAll([object1, object2, ...]).then(function(list) {
-   *     // All the objects were saved.
-   *   }, function(error) {
-   *     // An error occurred while saving one of the objects.
-   *   });
+   * @example
+   * AV.Object.saveAll([object1, object2, ...]).then(function(list) {
+   *   // All the objects were saved.
+   * }, function(error) {
+   *   // An error occurred while saving one of the objects.
+   * });
    *
    * @param {Array} list A list of <code>AV.Object</code>.
    */
@@ -602,23 +602,25 @@ module.exports = function(AV) {
      * <code>"change"</code> unless you choose to silence it.
      *
      * <p>You can call it with an object containing keys and values, or with one
-     * key and value.  For example:<pre>
-     *   gameTurn.set({
-     *     player: player1,
-     *     diceRoll: 2
-     *   }, {
-     *     error: function(gameTurnAgain, error) {
-     *       // The set failed validation.
-     *     }
-     *   });
+     * key and value.  For example:</p>
      *
-     *   game.set("currentPlayer", player2, {
-     *     error: function(gameTurnAgain, error) {
-     *       // The set failed validation.
-     *     }
-     *   });
+     * @example
+     * gameTurn.set({
+     *   player: player1,
+     *   diceRoll: 2
+     * }, {
+     *   error: function(gameTurnAgain, error) {
+     *     // The set failed validation.
+     *   }
+     * });
      *
-     *   game.set("finished", true);</pre></p>
+     * game.set("currentPlayer", player2, {
+     *   error: function(gameTurnAgain, error) {
+     *     // The set failed validation.
+     *   }
+     * });
+     *
+     * game.set("finished", true);
      *
      * @param {String} key The key to set.
      * @param {Any} value The value to give it.
@@ -865,15 +867,16 @@ module.exports = function(AV) {
      * or<pre>
      *   object.save(key, value, options);</pre>
      *
-     * For example, <pre>
-     *   gameTurn.save({
-     *     player: "Jake Cutter",
-     *     diceRoll: 2
-     *   }).then(function(gameTurnAgain) {
-     *     // The save was successful.
-     *   }, function(error) {
-     *     // The save failed.  Error is an instance of AVError.
-     *   });</pre>
+     * @example
+     * gameTurn.save({
+     *   player: "Jake Cutter",
+     *   diceRoll: 2
+     * }).then(function(gameTurnAgain) {
+     *   // The save was successful.
+     * }, function(error) {
+     *   // The save failed.  Error is an instance of AVError.
+     * });
+     *
      * @param {AuthOptions} options AuthOptions plus:
      * @param {Boolean} options.fetchWhenSave fetch and update object after save succeeded
      * @param {AV.Query} options.query Save object only when it matches the query
@@ -1349,19 +1352,12 @@ module.exports = function(AV) {
    * created by parsing JSON, it will use the most recent extension of that
    * class.</p>
    *
-   * <p>You should call either:<pre>
-   *     var MyClass = AV.Object.extend("MyClass", {
-   *         <i>Instance properties</i>
-   *     }, {
-   *         <i>Class properties</i>
-   *     });</pre>
-   * or, for Backbone compatibility:<pre>
-   *     var MyClass = AV.Object.extend({
-   *         className: "MyClass",
-   *         <i>Other instance properties</i>
-   *     }, {
-   *         <i>Class properties</i>
-   *     });</pre></p>
+   * @example
+   * var MyClass = AV.Object.extend("MyClass", {
+   *     // Instance properties
+   * }, {
+   *     // Class properties
+   * });
    *
    * @param {String} className The name of the AV class backing this model.
    * @param {Object} protoProps Instance properties to add to instances of the
@@ -1453,6 +1449,17 @@ module.exports = function(AV) {
     AV.Object._classMap[className] = klass;
   };
 
+  /**
+   * Get a new Query of the current class
+   * @name query
+   * @memberof AV.Object
+   * @type AV.Query
+   * @readonly
+   * @since v3.1.0
+   * @example
+   * const Post = AV.Object.extend('Post');
+   * Post.query.equalTo('author', 'leancloud').find().then();
+   */
   Object.defineProperty(AV.Object, 'query', {
     get() {
       return new AV.Query(this.prototype.className);
