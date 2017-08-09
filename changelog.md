@@ -1,3 +1,17 @@
+# 3.1.0 (2017-08-09) 
+### Bug Fixes 
+- 修复了在某些运行环境中使用 LiveQuery 或 Captcha 功能时可能会出现 `Object.assign` 不存在的问题。
+ 
+### Features 
+- `AV.Object` 增加了静态属性 `query`，该属性是一个 getter，每次访问该属性会返回一个当前类的 Query。
+  <details>
+  
+  ```javascript
+  class Post extends AV.Object {}
+  // 等价于 const query = new AV.Query(Post);
+  const query = Post.query;
+  ```
+
 ## 3.0.4 (2017-08-01)
 
 ### Bug fixes
