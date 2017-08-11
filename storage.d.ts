@@ -766,6 +766,7 @@ declare namespace AV {
             expiration_time?: Date;
             expiration_interval?: number;
             where?: Query;
+            cql?: string;
             data?: any;
             alert?: string;
             badge?: string;

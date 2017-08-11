@@ -30,7 +30,7 @@ module.exports = function(AV) {
       data.where = data.where.toJSON().where;
     }
 
-    if(data.where && data.cql){
+    if (data.where && data.cql) {
       throw new Error("Both where and cql can't be set");
     }
 
