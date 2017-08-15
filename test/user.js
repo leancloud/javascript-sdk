@@ -49,7 +49,7 @@ describe("User", function() {
     it("should fail with wrong password", function() {
       return AV.User.logIn(username, 'wrong password')
         .should.be.rejectedWith({
-          message: 'The username and password mismatch.',
+          message: /The username and password mismatch./,
           code: 210,
         });
     });

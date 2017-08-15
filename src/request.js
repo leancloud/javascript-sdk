@@ -101,28 +101,6 @@ const createApiUrl = ({
   return apiURL;
 };
 
-// handle AV._request Error
-const handleError = (error) =>
-  new Promise((resolve, reject) => {
-    let errorJSON = {
-      code: error.code || -1,
-      error: error.message || error.responseText,
-    };
-    if (error.response && error.response.code) {
-      errorJSON = error.response;
-    } else if (error.responseText) {
-      try {
-        errorJSON = JSON.parse(error.responseText);
-      } catch (e) {
-        // If we fail to parse the error text, that's okay.
-      }
-    }
-
-    // Transform the error into an instance of AVError by trying to parse
-    // the error string as JSON.
-    reject(new AVError(errorJSON.code, errorJSON.error));
-  });
-
 /**
  * Low level REST API client. Call REST endpoints with authorization headers.
  * @function AV.request
@@ -144,7 +122,25 @@ const request = ({ service, version, method, path, query, data = {}, authOptions
   const url = createApiUrl({ service, path, version });
   return setHeaders(authOptions, signKey).then(
     headers => ajax({ method, url, query, data, headers })
-      .catch(handleError)
+      .catch((error) => {
+        let errorJSON = {
+          code: error.code || -1,
+          error: error.message || error.responseText,
+        };
+        if (error.response && error.response.code) {
+          errorJSON = error.response;
+        } else if (error.responseText) {
+          try {
+            errorJSON = JSON.parse(error.responseText);
+          } catch (e) {
+            // If we fail to parse the error text, that's okay.
+          }
+        }
+        errorJSON.error += ` [${method} ${url}]`;
+        // Transform the error into an instance of AVError by trying to parse
+        // the error string as JSON.
+        throw new AVError(errorJSON.code, errorJSON.error);
+      })
   );
 };
 
