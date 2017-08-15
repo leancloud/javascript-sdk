@@ -47,7 +47,7 @@ module.exports = function(AV) {
         this._sessionToken = attrs.sessionToken;
         delete attrs.sessionToken;
       }
-      AV.User.__super__._mergeMagicFields.call(this, attrs);
+      return AV.User.__super__._mergeMagicFields.call(this, attrs);
     },
 
     /**
