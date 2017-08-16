@@ -136,7 +136,7 @@ const request = ({ service, version, method, path, query, data = {}, authOptions
             // If we fail to parse the error text, that's okay.
           }
         }
-        errorJSON.error += ` [${method} ${url}]`;
+        errorJSON.error += ` [${error.statusCode||'N/A'} ${method} ${url}]`;
         // Transform the error into an instance of AVError by trying to parse
         // the error string as JSON.
         throw new AVError(errorJSON.code, errorJSON.error);
