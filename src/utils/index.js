@@ -103,14 +103,11 @@ const inherits = function inherits(parent, protoProps, staticProps) {
     child = protoProps.constructor;
   } else {
     /** @ignore */
-    child = function(){ parent.apply(this, arguments); };
+    child = function() { parent.apply(this, arguments); };
   }
 
   // Inherit class (static) properties from parent.
-  for (const prop of Object.getOwnPropertyNames(parent)) {
-    const propertyDescriptor = Object.getOwnPropertyDescriptor(parent, prop);
-    Object.defineProperty(child, prop, propertyDescriptor);
-  }
+  _.extend(child, parent);
 
   // Set the prototype chain to inherit from `parent`, without calling
   // `parent`'s constructor function.
