@@ -81,6 +81,8 @@ AV.init = function init(options, ...params) {
     realtime,
   } = options;
   if (AV.applicationId) throw new Error('SDK is already initialized.');
+  if (!appId) throw new TypeError('appId must be a string');
+  if (!appKey) throw new TypeError('appKey must be a string');
   if (process.env.CLIENT_PLATFORM && masterKey) console.warn('MasterKey is not supposed to be used in browser.');
   AV._config.applicationId = appId;
   AV._config.applicationKey = appKey;
