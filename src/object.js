@@ -1406,7 +1406,9 @@ module.exports = function(AV) {
       var newArguments = [className].concat(_.toArray(arguments));
       return AV.Object.extend.apply(NewClassObject, newArguments);
     };
-    NewClassObject['new'] = function(attributes, options) {
+    // Add the query property descriptor.
+    Object.defineProperty(NewClassObject, 'query', Object.getOwnPropertyDescriptor(AV.Object, 'query'));
+    NewClassObject['new'] = function (attributes, options) {
       return new NewClassObject(attributes, options);
     };
     AV.Object._classMap[className] = NewClassObject;
