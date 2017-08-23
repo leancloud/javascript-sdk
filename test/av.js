@@ -1,3 +1,21 @@
+describe('AV.init', () => {
+  before(function() {
+    this.originalAppId = AV.applicationId;
+    AV.applicationId = undefined;
+  });
+
+  after(function() {
+    AV.applicationId = this.originalAppId;
+  });
+
+  it('param check', () => {
+    (() => AV.init()).should.throw(/must be a string/);
+    (() => AV.init('aaa')).should.throw(/must be a string/);
+    (() => AV.init('', '')).should.throw(/must be a string/);
+  });
+});
+
+
 describe('AV utils', () => {
   describe('_encode', () => {
     it('should be pure', () => {
