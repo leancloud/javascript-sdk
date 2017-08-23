@@ -1,6 +1,6 @@
 const _ = require('underscore');
 const AVError = require('./error');
-const AVRequest = require('./request')._request;
+const { _request: AVRequest, request } = require('./request');
 const Promise = require('./promise');
 
 const getWeappLoginCode = () => {
@@ -696,14 +696,13 @@ module.exports = function(AV) {
 
     _fetchUserBySessionToken: function(sessionToken) {
       var user = AV.Object._create("_User");
-      return AVRequest(
-        "users",
-        "me",
-        null,
-        "GET", {
-          session_token: sessionToken
-        }
-      ).then(function(resp) {
+      return request({
+        method: 'GET',
+        path: '/users/me',
+        authOptions: {
+          sessionToken,
+        },
+      }).then(function(resp) {
         var serverAttrs = user.parse(resp);
         user._finishFetch(serverAttrs);
         return user;
