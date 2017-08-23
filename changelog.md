@@ -1,3 +1,10 @@
+## 3.1.1 (2017-08-23)
+
+### Bug fixes
+- 修复了 SDK 在 iOS9 中抛 `Attempting to change value of a readonly property` 异常的问题。
+- 修复了在某些 ACL 设置下，`AV.User.become` 方法会被拒绝的问题。
+- 修复了使用 `new AV.User(data, { parse: true })` 方式构造的 User 没有数据的问题。
+
 # 3.1.0 (2017-08-09) 
 ### Bug Fixes 
 - 修复了在某些运行环境中使用 LiveQuery 或 Captcha 功能时可能会出现 `Object.assign` 不存在的问题。
