@@ -605,5 +605,42 @@ describe('Objects', function(){
 
   });
 
+  describe('Bit operations', function() {
+    it('bit and', function() {
+      var score = new GameScore();
+      score.bitAnd('flags', 0b1);
+      expect(score.get('flags')).to.be(0);
+      return score.save().then(() => {
+        expect(score.get('flags')).to.be(0);
+        return GameScore.query.get(score.id);
+      }).then((savedScore) => {
+        expect(savedScore.get('flags')).to.be(0);
+      });
+    });
+
+    it('bit or', function() {
+      var score = new GameScore();
+      score.bitOr('flags', 0b1);
+      expect(score.get('flags')).to.be(0b1);
+      return score.save().then(() => {
+        expect(score.get('flags')).to.be(0b1);
+        return GameScore.query.get(score.id);
+      }).then((savedScore) => {
+        expect(savedScore.get('flags')).to.be(0b1);
+      });
+    });
+
+    it('bit xor', function() {
+      var score = new GameScore();
+      score.bitXor('flags', 0b1);
+      expect(score.get('flags')).to.be(0b1);
+      return score.save().then(() => {
+        expect(score.get('flags')).to.be(0b1);
+        return GameScore.query.get(score.id);
+      }).then((savedScore) => {
+        expect(savedScore.get('flags')).to.be(0b1);
+      });
+    });
+  });
 
 });//END  RETRIEVING

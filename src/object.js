@@ -790,6 +790,39 @@ module.exports = function(AV) {
     },
 
     /**
+     * Atomically apply a "bit and" operation on the value associated with a
+     * given key.
+     *
+     * @param attr {String} The key.
+     * @param value {Number} The value to apply.
+     */
+    bitAnd(attr, value) {
+      return this.set(attr, new AV.Op.BitAnd(value));
+    },
+
+    /**
+     * Atomically apply a "bit or" operation on the value associated with a
+     * given key.
+     *
+     * @param attr {String} The key.
+     * @param value {Number} The value to apply.
+     */
+    bitOr(attr, value) {
+      return this.set(attr, new AV.Op.BitOr(value));
+    },
+
+    /**
+     * Atomically apply a "bit xor" operation on the value associated with a
+     * given key.
+     *
+     * @param attr {String} The key.
+     * @param value {Number} The value to apply.
+     */
+    bitXor(attr, value) {
+      return this.set(attr, new AV.Op.BitXor(value));
+    },
+
+    /**
      * Returns an instance of a subclass of AV.Op describing what kind of
      * modification has been performed on this field since the last time it was
      * saved. For example, after calling object.increment("x"), calling
