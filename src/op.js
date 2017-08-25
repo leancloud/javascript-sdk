@@ -197,6 +197,138 @@ module.exports = function(AV) {
   /**
    * @private
    * @class
+   * BitAnd is an atomic operation where the given value will be bit and to the
+   * value than is stored in this field.
+   */
+  AV.Op.BitAnd = AV.Op._extend(/** @lends AV.Op.BitAnd.prototype */ {
+    _initialize(value) {
+      this._value = value;
+    },
+
+    value() {
+      return this._value;
+    },
+
+    /**
+     * Returns a JSON version of the operation suitable for sending to AV.
+     * @return {Object}
+     */
+    toJSON() {
+      return { __op: 'BitAnd', value: this.value() };
+    },
+
+    _mergeWithPrevious(previous) {
+      if (!previous) {
+        return this;
+      } else if (previous instanceof AV.Op.Unset) {
+        return new AV.Op.Set(0);
+      } else if (previous instanceof AV.Op.Set) {
+        return new AV.Op.Set(previous.value() & this.value());
+      } else {
+        throw new Error('Op is invalid after previous op.');
+      }
+    },
+
+    _estimate(oldValue) {
+      return oldValue & this.value();
+    },
+  });
+
+  AV.Op._registerDecoder('BitAnd', function (json) {
+    return new AV.Op.BitAnd(json.value);
+  });
+
+  /**
+   * @private
+   * @class
+   * BitOr is an atomic operation where the given value will be bit and to the
+   * value than is stored in this field.
+   */
+  AV.Op.BitOr = AV.Op._extend(/** @lends AV.Op.BitOr.prototype */ {
+    _initialize(value) {
+      this._value = value;
+    },
+
+    value() {
+      return this._value;
+    },
+
+    /**
+     * Returns a JSON version of the operation suitable for sending to AV.
+     * @return {Object}
+     */
+    toJSON() {
+      return { __op: 'BitOr', value: this.value() };
+    },
+
+    _mergeWithPrevious(previous) {
+      if (!previous) {
+        return this;
+      } else if (previous instanceof AV.Op.Unset) {
+        return new AV.Op.Set(this.value());
+      } else if (previous instanceof AV.Op.Set) {
+        return new AV.Op.Set(previous.value() | this.value());
+      } else {
+        throw new Error('Op is invalid after previous op.');
+      }
+    },
+
+    _estimate(oldValue) {
+      return oldValue | this.value();
+    },
+  });
+
+  AV.Op._registerDecoder('BitOr', function (json) {
+    return new AV.Op.BitOr(json.value);
+  });
+
+  /**
+   * @private
+   * @class
+   * BitXor is an atomic operation where the given value will be bit and to the
+   * value than is stored in this field.
+   */
+  AV.Op.BitXor = AV.Op._extend(/** @lends AV.Op.BitXor.prototype */ {
+    _initialize(value) {
+      this._value = value;
+    },
+
+    value() {
+      return this._value;
+    },
+
+    /**
+     * Returns a JSON version of the operation suitable for sending to AV.
+     * @return {Object}
+     */
+    toJSON() {
+      return { __op: 'BitXor', value: this.value() };
+    },
+
+    _mergeWithPrevious(previous) {
+      if (!previous) {
+        return this;
+      } else if (previous instanceof AV.Op.Unset) {
+        return new AV.Op.Set(this.value());
+      } else if (previous instanceof AV.Op.Set) {
+        return new AV.Op.Set(previous.value() ^ this.value());
+      } else {
+        throw new Error('Op is invalid after previous op.');
+      }
+    },
+
+    _estimate(oldValue) {
+      return oldValue ^ this.value();
+    },
+  });
+
+  AV.Op._registerDecoder('BitXor', function (json) {
+    return new AV.Op.BitXor(json.value);
+  });
+
+  /**
+   * @private
+   * @class
    * Add is an atomic operation where the given objects will be appended to the
    * array that is stored in this field.
    */

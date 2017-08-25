@@ -281,6 +281,9 @@ declare namespace AV {
         initialize(): void;
         add(attributeName: string, item: any): Object;
         addUnique(attributeName: string, item: any): any;
+        bitAnd(attributeName: string, item: number): Object;
+        bitOr(attributeName: string, item: number): Object;
+        bitXor(attributeName: string, item: number): Object;
         change(options: any): Object;
         changedAttributes(diff: any): boolean;
         clear(options: any): any;
