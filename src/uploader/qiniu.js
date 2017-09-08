@@ -10,6 +10,7 @@ module.exports = function upload(uploadInfo, data, file, saveOptions = {}) {
   const uptoken = uploadInfo.token;
   return new Promise((resolve, reject) => {
     const req = request('POST', 'https://up.qbox.me')
+      .set(file._uploadHeaders)
       .field('file', data)
       .field('name', file.attributes.name)
       .field('key', file._qiniu_key)

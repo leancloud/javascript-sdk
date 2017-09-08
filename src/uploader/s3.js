@@ -17,7 +17,10 @@ module.exports = function upload(uploadInfo, data, file, saveOptions = {}) {
   return new Promise((resolve, reject) => {
     // 海外节点，针对 S3 才会返回 upload_url
     const req = request('PUT', uploadInfo.upload_url)
-      .set('Content-Type', file.get('mime_type'))
+      .set(Object.assign({
+        'Content-Type': file.get('mime_type'),
+        'Cache-Control': 'public, max-age=31536000',
+      }, file._uploadHeaders));
     if (saveOptions.onprogress) {
       req.on('progress', saveOptions.onprogress);
     }
