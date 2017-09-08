@@ -67,9 +67,9 @@ module.exports = function(AV) {
    * @param data {Array} The data for the file, as either:
    *     1. an Array of byte value Numbers, or
    *     2. an Object like { base64: "..." } with a base64-encoded String.
-   *     3. a File object selected with a file upload control. (3) only works
-   *        in Firefox 3.6+, Safari 6.0.2+, Chrome 7+, and IE 10+.
-   *     4.a Buffer object in Node.js runtime.
+   *     3. a Blob(File) selected with a file upload control.
+   *     4. a Buffer in Node.js runtime.
+   *     5. a Stream in Node.js runtime.
    *
    *        For example:<pre>
    * var fileUploadControl = $("#profilePhotoFileUpload")[0];
@@ -109,6 +109,7 @@ module.exports = function(AV) {
 
     this._extName = '';
     this._data = data;
+    this._uploadHeaders = {};
 
     if (process.env.CLIENT_PLATFORM === 'ReactNative' || process.env.CLIENT_PLATFORM === 'Weapp') {
       if (data && data.blob) {
@@ -331,6 +332,19 @@ module.exports = function(AV) {
           set(args[0], args[1]);
         break;
       }
+    },
+
+    /**
+     * Set a header for the upload request. 
+     * For more infomation, go to https://url.leanapp.cn/avfile-upload-headers
+     * 
+     * @param {String} key header key
+     * @param {String} value header value
+     * @return {AV.File} this
+     */
+    setUploadHeader(key, value) {
+      this._uploadHeaders[key] = value;
+      return this;
     },
 
     /**

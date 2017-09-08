@@ -168,6 +168,7 @@ declare namespace AV {
         url(): string;
         save(options?: FileSaveOptions): Promise<File>;
         setACL(acl?: ACL): any;
+        setUploadHeader(key: string, value: string): File;
         size(): any;
         thumbnailURL(width: number, height: number): string;
         toFullJSON(): any;
