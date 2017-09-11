@@ -1,3 +1,10 @@
+# 3.2.0 (2017-09-11)
+
+### Features
+- `AV.Object` 增加了 `#bitAnd`、`#bitOr` 与 `#bitXor` 方法，支持对 `Number` 类型的字段进行位操作。
+- `AV.File` 增加了 `#setUploadHeader` 方法，支持为上传请求自定义 headers。
+
+
 ## 3.1.1 (2017-08-23)
 
 ### Bug fixes
