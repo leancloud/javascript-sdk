@@ -8,8 +8,9 @@ module.exports = function upload(uploadInfo, data, file, saveOptions = {}) {
   file.id = uploadInfo.objectId;
   // Get the uptoken to upload files to qiniu.
   const uptoken = uploadInfo.token;
+  const uploadUrl = uploadInfo.upload_url || 'https://upload.qiniup.com';
   return new Promise((resolve, reject) => {
-    const req = request('POST', 'https://up.qbox.me')
+    const req = request('POST', uploadUrl)
       .set(file._uploadHeaders)
       .field('file', data)
       .field('name', file.attributes.name)
