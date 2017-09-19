@@ -1,3 +1,9 @@
+## 3.2.1 (2017-09-19)
+
+### Bug fixes
+- 更换了被屏蔽的文件上传域名。小程序用户请前往 [《小程序域名白名单配置》](https://leancloud.cn/docs/weapp-domains.html) 更新域名白名单。
+
+
 # 3.2.0 (2017-09-11)
 
 ### Features
