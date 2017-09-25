@@ -313,9 +313,8 @@ module.exports = function(AV) {
      _newObject: function(){
       return new AV.Status();
     },
-    _createRequest: function(params, options){
-      return AVRequest('subscribe/statuses', null, null, 'GET',
-                                   params || this.toJSON(), options);
+    _createRequest: function(params, options) {
+      return AV.InboxQuery.__super__._createRequest.call(this, params, options, '/subscribe/statuses');
     },
 
 

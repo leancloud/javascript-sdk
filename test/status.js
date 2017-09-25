@@ -60,6 +60,12 @@ describe("AV.Status",function(){
           expect(response.unread).to.be.eql(0);
         });
     });
+    it('should not cause URI too long', () => {
+      return AV.Status.inboxQuery(user)
+        .containsAll('arr', new Array(50).fill(AV.Object.createWithoutData('Todo', '5850f138128fe1006978f766')))
+        .find();
+    });
+
   });
 
   describe("Status guide test.", function(){

@@ -2,7 +2,7 @@ const _ = require('underscore');
 const debug = require('debug')('leancloud:query');
 const Promise = require('./promise');
 const AVError = require('./error');
-const { _request } = require('./request');
+const { _request, request } = require('./request');
 const { ensureArray, transformFetchOptions } = require('./utils');
 
 const requires = (value, message) => {
@@ -249,27 +249,36 @@ module.exports = function(AV) {
       }
       return obj;
     },
-    _createRequest(params = this.toJSON(), options) {
-      if (JSON.stringify(params).length > 2000) {
+    _createRequest(params = this.toJSON(), options, path = `/classes/${this.className}`) {
+      if (encodeURIComponent(JSON.stringify(params)).length > 2000) {
         const body = {
           requests: [{
             method: 'GET',
-            path: `/1.1/classes/${this.className}`,
+            path: `/1.1${path}`,
             params,
           }],
         };
-        return _request('batch', null, null, 'POST', body, options)
-          .then(response => {
-            const result = response[0];
-            if (result.success) {
-              return result.success;
-            }
-            const error = new Error(result.error.error || 'Unknown batch error');
-            error.code = result.error.code;
-            throw error;
-          });
+        return request({
+          path: '/batch',
+          method: 'POST',
+          data: body,
+          authOptions: options,
+        }).then(response => {
+          const result = response[0];
+          if (result.success) {
+            return result.success;
+          }
+          const error = new Error(result.error.error || 'Unknown batch error');
+          error.code = result.error.code;
+          throw error;
+        });
       }
-      return _request('classes', this.className, null, "GET", params, options);
+      return request({
+        method: 'GET',
+        path,
+        query: params,
+        authOptions: options,
+      });
     },
 
     _parseResponse(response) {
