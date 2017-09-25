@@ -1,6 +1,6 @@
 {
   "name": "leancloud-storage",
-  "version": "2.5.3",
+  "version": "2.5.4",
   "homepage": "https://github.com/leancloud/javascript-sdk",
   "authors": [
     "LeanCloud <support@leancloud.rocks>"

@@ -1,3 +1,7 @@
+## 2.5.4 (2017-09-25)
+### Bug Fixes
+* 修复了使用应用内社交模块 `inboxQuery` 查询时可能出现 `URI too long` 异常的问题。
+
 ## 2.5.3 (2017-08-01)
 ### Bug Fixes
 * 修复了一些 TypeScript 定义文件的问题。 
