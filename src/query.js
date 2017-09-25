@@ -250,7 +250,7 @@ module.exports = function(AV) {
       return new this.objectClass();
     },
     _createRequest(params = this.toJSON(), options) {
-      if (JSON.stringify(params).length > 2000) {
+      if (encodeURIComponent(JSON.stringify(params)).length > 2000) {
         const body = {
           requests: [{
             method: 'GET',
