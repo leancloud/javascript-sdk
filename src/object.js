@@ -283,6 +283,10 @@ module.exports = function(AV) {
     dirty: function(attr) {
       this._refreshCache();
 
+      return this._dirty();
+    },
+
+    _dirty: function(attr) {
       var currentChanges = _.last(this._opSetQueue);
 
       if (attr) {
@@ -943,18 +947,13 @@ module.exports = function(AV) {
 
       var model = this;
 
-      // If there is any unsaved child, save it first.
-      model._refreshCache();
-
       var unsavedChildren = [];
       var unsavedFiles = [];
-      AV.Object._findUnsavedChildren(model.attributes,
+      AV.Object._findUnsavedChildren(model,
                                         unsavedChildren,
                                         unsavedFiles);
-      if (unsavedChildren.length + unsavedFiles.length > 0) {
-        return AV.Object._deepSaveAsync(this.attributes, model, options).then(function() {
-          return model.save(null, options);
-        });
+      if (unsavedChildren.length + unsavedFiles.length > 1) {
+        return AV.Object._deepSaveAsync(this, model, options);
       }
 
       this._startSave();
@@ -1501,11 +1500,10 @@ module.exports = function(AV) {
     },
   });
 
-  AV.Object._findUnsavedChildren = function(object, children, files) {
-    AV._traverse(object, function(object) {
+  AV.Object._findUnsavedChildren = function(objects, children, files) {
+    AV._traverse(objects, function(object) {
       if (object instanceof AV.Object) {
-        object._refreshCache();
-        if (object.dirty()) {
+        if (object._dirty()) {
           children.push(object);
         }
         return;
@@ -1548,11 +1546,6 @@ module.exports = function(AV) {
     var unsavedChildren = [];
     var unsavedFiles = [];
     AV.Object._findUnsavedChildren(object, unsavedChildren, unsavedFiles);
-    if(model) {
-      unsavedChildren = _.filter(unsavedChildren, function(object) {
-        return object != model;
-      });
-    }
 
     var promise = AV.Promise.resolve();
     _.each(unsavedFiles, function(file) {
@@ -1603,14 +1596,25 @@ module.exports = function(AV) {
         const bathSavePromise = readyToStart.then(() =>
           _request("batch", null, null, "POST", {
             requests: _.map(batch, function(object) {
-              var json = object._getSaveJSON();
-              _.extend(json, object._flags);
-              var method = "POST";
 
-              var path = "/1.1/classes/" + object.className;
+              var method = object.id ? 'PUT' : 'POST';
+              
+              var json = object._getSaveJSON();
+              var query = {};
+                  
+              _.extend(json, object._flags);
+      
+              var route = "classes";
+              var className = object.className;
+              var path = `/${route}/${className}`;
+              if (object.className === "_User" && !object.id) {
+                // Special-case user sign-up.
+                path = '/users';
+              }
+              
+              var path = `/1.1${path}`;
               if (object.id) {
                 path = path + "/" + object.id;
-                method = "PUT";
               }
 
               object._startSave();
