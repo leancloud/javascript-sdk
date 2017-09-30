@@ -187,9 +187,11 @@ describe('hooks', function() {
       return object.save();
     })).then(function() {
       return AV.Object.destroyAll([object, objectIgnoreBefore]);
-    }).then(function(result) {
-      expect(result[0].error).to.be.ok();
-      expect(result[1].error).to.not.be.ok();
-    });
+    }).catch(error => {
+      error.results.should.be.length(2);
+      error.results[0].should.be.instanceof(Error);
+      expect(error.results[1]).to.equal(null);
+      throw new Error('handled error');
+    }).should.be.rejectedWith('handled error');
   });
 });

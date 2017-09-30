@@ -16,6 +16,16 @@ const checkReservedKey = key => {
   }
 };
 
+const handleBatchResults = (results) => {
+  const firstError = _.find(results, result => result instanceof Error);
+  if (!firstError) {
+    return results;
+  }
+  const error = new AVError(firstError.code, firstError.message);
+  error.results = results;
+  throw error;
+};
+
 // Helper function to get a value from a Backbone object as a property
 // or as a function.
 function getValue(object, prop) {
@@ -139,17 +149,17 @@ module.exports = function(AV) {
         }),
       }, options)
     ).then(function(response) {
-      _.forEach(objects, function(object, i) {
+      const results = _.map(objects, function(object, i) {
         if (response[i].success) {
-          object._finishFetch(
-            object.parse(response[i].success));
-        } else {
-          const error = new Error(response[i].error.error);
-          error.code = response[i].error.code;
-          throw error;
+          object._finishFetch(object.parse(response[i].success));
+          return object;
         }
+        if (response[i].success === null) {
+          return new AVError(AVError.OBJECT_NOT_FOUND, 'Object not found.');
+        }
+        return new AVError(response[i].error.code, response[i].error.error);
       });
-      return objects;
+      return handleBatchResults(results);
     });
 
   // Attach all inheritable methods to the AV.Object prototype.
@@ -1309,21 +1319,26 @@ module.exports = function(AV) {
       if (!objects || objects.length === 0){
 		    return AV.Promise.resolve();
       }
-      const objectsByClassNameAndFlags = _.groupBy(objects, object => JSON.stringify({
-        className: object.className,
-        flags: object._flags
-      }));
       const body = {
-        requests: _.map(objectsByClassNameAndFlags, objects => {
-          const ids = _.map(objects, 'id').join(',');
+        requests: _.map(objects, object => {
+          if (!object.className) throw new Error('object must have className to destroy');
+          if (!object.id) throw new Error('object must have id to destroy');
           return {
             method: 'DELETE',
-            path: `/1.1/classes/${objects[0].className}/${ids}`,
-            body: objects[0]._flags
-          }
-        })
+            path: `/1.1/classes/${object.className}/${object.id}`,
+            body: object._flags
+          };
+        }),
       };
-      return _request('batch', null, null, 'POST', body, options);
+      return _request('batch', null, null, 'POST', body, options).then(function(response) {
+        const results = _.map(objects, function(object, i) {
+          if (response[i].success) {
+            return null;
+          }
+          return new AVError(response[i].error.code, response[i].error.error);
+        });
+        return handleBatchResults(results);
+      });
    };
 
   /**
@@ -1627,21 +1642,15 @@ module.exports = function(AV) {
             })
 
           }, options).then(function(response) {
-            var error;
-            AV._arrayEach(batch, function(object, i) {
+            const results = _.map(batch, function(object, i) {
               if (response[i].success) {
-                object._finishSave(
-                  object.parse(response[i].success));
-              } else {
-                error = error || response[i].error;
-                object._cancelSave();
+                object._finishSave(object.parse(response[i].success));
+                return object;
               }
+              object._cancelSave();
+              return new AVError(response[i].error.code, response[i].error.error);
             });
-            if (error) {
-              return AV.Promise.reject(
-                new AVError(error.code, error.error));
-            }
-
+            return handleBatchResults(results);
           })
         );
         AV._arrayEach(batch, function(object) {
