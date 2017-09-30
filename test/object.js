@@ -297,7 +297,7 @@ describe('Objects', function(){
   });
 
   describe('set', () => {
-    it('should not mute value', () => {
+    it('should not mutate value', () => {
       const originalValue = {
         name: 'LC',
         objectId: '11111111111',
@@ -642,5 +642,38 @@ describe('Objects', function(){
       });
     });
   });
+
+  describe('circular referrences', () => {
+    it('dirty check', () => {
+      const id = 'fake';
+      const a = AV.parseJSON({
+        __type: 'Object',
+        className: 'A',
+        objectId: id,
+        b: [
+          {
+            __type: 'Pointer',
+            className: 'B',
+            objectId: id,
+          },
+        ],
+        c: {
+          __type: 'Pointer',
+          className: 'C',
+          objectId: id,
+        }
+      });
+      const b = a.get('b')[0];
+      const c = a.get('c');
+      b.set({a});
+      a._dirty().should.eql(false);
+      b._dirty().should.eql(true);
+      c._dirty().should.eql(false);
+      c.set({a});
+      a._dirty().should.eql(false);
+      b._dirty().should.eql(true);
+      c._dirty().should.eql(true);
+    });
+  })
 
 });//END  RETRIEVING
