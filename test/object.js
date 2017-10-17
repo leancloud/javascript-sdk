@@ -389,11 +389,19 @@ describe('Objects', function(){
         expect(score2.id).to.be.eql(gameScore.id);
       })
     );
-    it('fetchAll with non-existed Class should fail', () =>
+    it('fetchAll with non-existed Class/object should fail', () =>
       AV.Object.fetchAll([
         AV.Object.createWithoutData('GameScore', gameScore.id),
+        AV.Object.createWithoutData('GameScore', 'fakeId'),
         AV.Object.createWithoutData('FakeClass', gameScore.id),
-      ]).should.be.rejected()
+      ]).catch(error => {
+        error.message.should.eql('Object not found.');
+        error.results.should.be.length(3);
+        error.results[0].should.be.instanceof(GameScore);
+        error.results[1].should.be.instanceof(Error);
+        error.results[2].should.be.instanceof(Error);
+        throw new Error('handled error');
+      }).should.be.rejectedWith('handled error')
     );
     it('fetchAll with dirty objet should fail', () =>
       AV.Object.fetchAll([
@@ -404,9 +412,28 @@ describe('Objects', function(){
   });
 
   describe("Deleting Objects",function(){
-    it("should delete cheatMode",function(){
-      gameScore.unset("cheatMode");
-      return gameScore.save();
+    it("should delete object",function(){
+      return new GameScore().save().then(gameScore =>
+        gameScore.destroy().then(() =>
+          GameScore.query.get(gameScore.id)
+            .should.be.rejectedWith('Object not found.')
+        )
+      )
+    });
+    it("batch delete",function(){
+      const acl = new AV.ACL();
+      acl.setPublicWriteAccess(false);
+      return new GameScore({ACL: acl}).save().then(gameScore =>
+        AV.Object.destroyAll([
+          AV.Object.createWithoutData('GameScore', 'fakeId'),
+          gameScore,
+        ]).catch(error => {
+          error.results.should.be.length(2);
+          const [_, err] = error.results;
+          err.should.be.instanceof(Error);
+          throw new Error('handled error');
+        }).should.be.rejectedWith('handled error')
+      );
     });
   });
 
@@ -522,6 +549,23 @@ describe('Objects', function(){
       }).then(([person]) => {
         person.id.should.be.ok();
         person.get('age').should.eql(30);
+      });
+    });
+
+    it("should save all partially", function(){
+      var Person = AV.Object.extend("Person");
+      return AV.Object.saveAll([
+        AV.Object.createWithoutData('Person', 'fakeid').set('age', 30),
+        new Person({
+          age: 40,
+        }),
+      ]).catch(error => {
+        error.results.should.be.length(2);
+        const [err, person] = error.results;
+        err.should.be.instanceof(Error);
+        person.should.be.instanceof(Person);
+        person.id.should.be.ok();
+        person.get('age').should.eql(40);
       });
     });
 
