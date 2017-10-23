@@ -576,6 +576,8 @@ declare namespace AV {
         isAuthenticated(): Promise<boolean>;
         isCurrent(): boolean;
 
+        associateWithAuthData(authData: Object, platform?: string): Promise<User>;
+        dissociateAuthData(platform?: string): Promise<User>;
 
         getEmail(): string;
         setEmail(email: string, options?: AuthOptions): boolean;
