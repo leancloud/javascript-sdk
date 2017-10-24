@@ -108,7 +108,7 @@ module.exports = function(AV) {
       }
       var success = provider.restoreAuthentication(authData[authType]);
       if (!success) {
-        this._unlinkFrom(provider);
+        this.dissociateAuthData(provider);
       }
     },
 
@@ -161,10 +161,30 @@ module.exports = function(AV) {
     },
 
     /**
+     * Associate the user with a third party authData.
+     * @since 3.3.0
+     * @param {Object} authData The response json data returned from third party token, maybe like { openid: 'abc123', access_token: '123abc', expires_in: 1382686496 }
+     * @param {string} platform Available platform for sign up.
+     * @return {Promise<AV.User>} A promise that is fulfilled with the user when completed.
+     * @example user.associateWithAuthData({
+     *   openid: 'abc123',
+     *   access_token: '123abc',
+     *   expires_in: 1382686496
+     * }, 'weixin').then(function(user) {
+     *   //Access user here
+     * }).catch(function(error) {
+     *   //console.error("error: ", error);
+     * });
+     */
+    associateWithAuthData(authData, platform) {
+      return this._linkWith(platform, authData);
+    },
+
+    /**
      * 将用户与小程序用户进行关联。适用于为已经在用户系统中存在的用户关联当前使用小程序的微信帐号。
      * 仅在小程序中可用。
      *
-     * @return {AV.User}
+     * @return {Promise<AV.User>}
      */
     linkWithWeapp() {
       return getWeappLoginCode().then(code => this._linkWith('lc_weapp', { code }));
@@ -172,9 +192,11 @@ module.exports = function(AV) {
 
     /**
      * Unlinks a user from a service.
-     * @private
+     * @param {string} platform
+     * @return {Promise<AV.User>}
+     * @since 3.3.0
      */
-    _unlinkFrom: function(provider) {
+    dissociateAuthData(provider) {
       if (_.isString(provider)) {
         provider = AV.User._authProviders[provider];
       }
@@ -182,6 +204,15 @@ module.exports = function(AV) {
         this._synchronizeAuthData(provider);
         return model;
       });
+    },
+
+    /**
+     * @private
+     * @deprecated
+     */
+    _unlinkFrom(provider) {
+      console.warn('DEPRECATED: User#_unlinkFrom 已废弃，请使用 User#dissociateAuthData 代替');
+      return this.dissociateAuthData(provider);
     },
 
     /**
@@ -800,24 +831,8 @@ module.exports = function(AV) {
       return getWeappLoginCode().then(code => this.signUpOrlogInWithAuthData({ code }, 'lc_weapp'));
     },
 
-    /**
-     * Associate a user with a third party auth data(AccessToken).
-     *
-     * @param {AV.User} userObj A user which you want to associate.
-     * @param {string} platform Available platform for sign up.
-     * @param {Object} authData The response json data returned from third party token, maybe like { openid: 'abc123', access_token: '123abc', expires_in: 1382686496 }
-     * @return {Promise} A promise that is fulfilled with the user when completed.
-     * @example AV.User.associateWithAuthData(loginUser, 'weixin', {
-     *   openid: 'abc123',
-     *   access_token: '123abc',
-     *   expires_in: 1382686496
-     * }).then(function(user) {
-     *   //Access user here
-     * }).catch(function(error) {
-     *   //console.error("error: ", error);
-     * });
-     */
     associateWithAuthData(userObj, platform, authData) {
+      console.warn('DEPRECATED: User.associateWithAuthData 已废弃，请使用 User#dissociateAuthData 代替');
       return userObj._linkWith(platform, authData);
     },
     /**
