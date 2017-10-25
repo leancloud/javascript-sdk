@@ -462,7 +462,7 @@ module.exports = function(AV) {
     /**
      * Saves the file to the AV cloud.
      * @param {Object} [options]
-     * @param {UploadProgressCallback} [options.onprogress] 文件上传进度，在 Node.js 与小程序中无效，回调参数说明详见 {@link UploadProgressCallback}。
+     * @param {UploadProgressCallback} [options.onprogress] 文件上传进度，在 Node.js 中无效，回调参数说明详见 {@link UploadProgressCallback}。
      * @return {Promise} Promise that is resolved when the save finishes.
      */
     save(options) {
