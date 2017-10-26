@@ -420,21 +420,6 @@ describe('Objects', function(){
         )
       )
     });
-    it("batch delete",function(){
-      const acl = new AV.ACL();
-      acl.setPublicWriteAccess(false);
-      return new GameScore({ACL: acl}).save().then(gameScore =>
-        AV.Object.destroyAll([
-          AV.Object.createWithoutData('GameScore', 'fakeId'),
-          gameScore,
-        ]).catch(error => {
-          error.results.should.be.length(2);
-          const [_, err] = error.results;
-          err.should.be.instanceof(Error);
-          throw new Error('handled error');
-        }).should.be.rejectedWith('handled error')
-      );
-    });
   });
 
   describe('Array Data', function () {

@@ -186,12 +186,7 @@ describe('hooks', function() {
     return Promise.all([object, objectIgnoreBefore].map(function(object) {
       return object.save();
     })).then(function() {
-      return AV.Object.destroyAll([object, objectIgnoreBefore]);
-    }).catch(error => {
-      error.results.should.be.length(2);
-      error.results[0].should.be.instanceof(Error);
-      expect(error.results[1]).to.equal(null);
-      throw new Error('handled error');
-    }).should.be.rejectedWith('handled error');
+      return AV.Object.destroyAll([objectIgnoreBefore, object]);
+    }).should.be.rejectedWith(/Error from beforeDelete/);
   });
 });

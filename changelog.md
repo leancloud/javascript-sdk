@@ -1,11 +1,11 @@
 # 3.3.0 (2017-10-24)
 
 ### Features
-- `AV.Object` 的批量操作 API（`.saveAll`，`.fetchAll` 与 `deleteAll`）失败时，抛出的异常 error 对象增加 `results` 属性，类型为 `Array<AV.Object|Error>`。通过这个属性，开发者可以知道哪些对象的操作成功了，哪些失败了。
+- `AV.Object.saveAll` 与 `AV.Object.fetchAll` 失败时，抛出的异常 error 对象增加 `results` 属性，类型为 `Array<AV.Object|Error>`。通过这个属性，开发者可以知道哪些对象的操作成功了，哪些失败了。
 - `AV.User` 增加了 `#associateWithAuthData` 与 `#disassociateAuthData` 用于关联、解绑第三方平台。原有的静态方法 `AV.User.associateWithAuthData` 已废弃。
 
 ### Bug Fixes
-- 优化了关联对象保存时的逻辑，减少了一些不必要的保存请求，避免了在关联对象有循环依赖时可能会出现死循环的问题。
+- 优化了关联对象保存时的逻辑，减少了一些不必要的保存请求，避免了在关联对象有循环依赖时可能会出现死循环的问题。
 - 修复了使用应用内社交模块 `inboxQuery` 查询时可能出现 `URI too long` 异常的问题。
 
 

@@ -1315,31 +1315,30 @@ module.exports = function(AV) {
     * @return {Promise} A promise that is fulfilled when the save
     *     completes.
     */
-   AV.Object.destroyAll = function(objects, options = {}){
-      if (!objects || objects.length === 0){
-		    return AV.Promise.resolve();
-      }
-      const body = {
-        requests: _.map(objects, object => {
-          if (!object.className) throw new Error('object must have className to destroy');
-          if (!object.id) throw new Error('object must have id to destroy');
-          return {
-            method: 'DELETE',
-            path: `/1.1/classes/${object.className}/${object.id}`,
-            body: object._flags
-          };
-        }),
-      };
-      return _request('batch', null, null, 'POST', body, options).then(function(response) {
-        const results = _.map(objects, function(object, i) {
-          if (response[i].success) {
-            return null;
-          }
-          return new AVError(response[i].error.code, response[i].error.error);
-        });
-        return handleBatchResults(results);
-      });
-   };
+  AV.Object.destroyAll = function(objects, options = {}){
+    if (!objects || objects.length === 0){
+      return AV.Promise.resolve();
+    }
+    const objectsByClassNameAndFlags = _.groupBy(objects, object => JSON.stringify({
+      className: object.className,
+      flags: object._flags
+    }));
+    const body = {
+      requests: _.map(objectsByClassNameAndFlags, objects => {
+        const ids = _.map(objects, 'id').join(',');
+        return {
+          method: 'DELETE',
+          path: `/1.1/classes/${objects[0].className}/${ids}`,
+          body: objects[0]._flags
+        }
+      })
+    };
+    return _request('batch', null, null, 'POST', body, options).then(response => {
+      const firstError = _.find(response, result => !result.success);
+      if (firstError) throw new AVError(firstError.error.code, firstError.error.error);
+      return undefined;
+    });
+  };
 
   /**
    * Returns the appropriate subclass for making new instances of the given
