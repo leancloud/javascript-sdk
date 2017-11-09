@@ -16,6 +16,7 @@ module.exports = function(AV) {
   // port from browserify path module
   // since react-native packager won't shim node modules.
   const extname = (path) => {
+    if (!_.isString(path)) return '';
     return path.match(/^(\/?|)([\s\S]*?)((?:\.{1,2}|[^\/]+?|)(\.[^.\/]*|))(?:[\/]*)$/)[4];
   };
 
@@ -127,7 +128,7 @@ module.exports = function(AV) {
     }
 
     if (!process.env.CLIENT_PLATFORM) {
-      if (data instanceof require('stream')) {
+      if (data instanceof require('stream') && data.path) {
         this._extName = extname(data.path);
       }
       if (Buffer.isBuffer(data)) {
