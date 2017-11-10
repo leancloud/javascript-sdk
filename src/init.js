@@ -161,6 +161,10 @@ AV._setServerURLs = (urls, disableAppRouter = true) => {
  */
 AV.setServerURLs = urls => AV._setServerURLs(urls);
 
+AV.keepErrorRawMessage = value => {
+  AV._sharedConfig.keepErrorRawMessage = value;
+};
+
 // backword compatible
 AV.initialize = AV.init;
 
