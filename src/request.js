@@ -1,9 +1,9 @@
+const _ = require('underscore');
 const md5 = require('md5');
 const {
   extend,
 } = require('underscore');
 const Promise = require('./promise');
-const AVError = require('./error');
 const AV = require('./av');
 const {
   getSessionToken,
@@ -136,10 +136,15 @@ const request = ({ service, version, method, path, query, data = {}, authOptions
             // If we fail to parse the error text, that's okay.
           }
         }
-        errorJSON.error += ` [${error.statusCode||'N/A'} ${method} ${url}]`;
+        errorJSON.rawMessage = errorJSON.rawMessage || errorJSON.error;
+        if (!AV._sharedConfig.keepErrorRawMessage) {
+          errorJSON.error += ` [${error.statusCode||'N/A'} ${method} ${url}]`;
+        }
         // Transform the error into an instance of AVError by trying to parse
         // the error string as JSON.
-        throw new AVError(errorJSON.code, errorJSON.error);
+        const err = new Error(errorJSON.error);
+        delete errorJSON.error;
+        throw _.extend(err, errorJSON);
       })
   );
 };
