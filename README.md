@@ -4,7 +4,7 @@ LeanCloud JavaScript SDK
 ![gzip size](http://img.badgesize.io/leancloud/javascript-sdk/dist/dist/av-min.js.svg?compression=gzip&style=flat-square)
 [![Build Status](https://img.shields.io/travis/leancloud/javascript-sdk.svg?style=flat-square)](https://travis-ci.org/leancloud/javascript-sdk)
 [![Codecov](https://img.shields.io/codecov/c/github/leancloud/javascript-sdk.svg?style=flat-square)](https://codecov.io/github/leancloud/javascript-sdk)
-[![David](https://img.shields.io/david/leancloud/javascript-sdk.svg?style=flat-square)](https://david-dm.org/leancloud/javascript-sdk)
+[![Known Vulnerabilities](https://snyk.io/test/github/leancloud/javascript-sdk/badge.svg?style=flat-square)](https://snyk.io/test/github/leancloud/javascript-sdk)
 
 
 JavaScript SDK for [LeanCloud](http://leancloud.cn/).
@@ -30,7 +30,7 @@ bower install leancloud-storage --save
 ----
 * 如果你发现了新的 bug，或者有新的 feature request，请新建一个 issue
 * 在使用过程中遇到了问题时
-  * 如果你购买了技术支持服务，请新建一个 ticket。
+  * 如果你是商用版用户，请新建一个工单。
   * 也可以在 [论坛](https://forum.leancloud.cn/) 提问、讨论。
 
 贡献
