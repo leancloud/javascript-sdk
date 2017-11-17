@@ -1,3 +1,10 @@
+## 3.4.1 (2017-11-17)
+
+### Bug fixes
+- 修复了华北节点在 Node.js 中上传大文件可能会抛出 `invalid multipart format: multipart: message too large` 异常的问题。
+- 修复了小程序中请求返回值被错误地解析为 null 导致的问题。
+
+
 # 3.4.0 (2017-11-13)
 
 ### Features

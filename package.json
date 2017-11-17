@@ -1,6 +1,6 @@
 {
   "name": "leancloud-storage",
-  "version": "3.4.0",
+  "version": "3.4.1",
   "main": "./dist/node/index.js",
   "description": "LeanCloud JavaScript SDK.",
   "repository": {
@@ -54,7 +54,7 @@
     "qiniu": "^6.1.11",
     "should": "^11.1.0",
     "typescript": "^2.4.1",
-    "weapp-polyfill": "^2.0.0",
+    "weapp-polyfill": "^2.0.1",
     "webpack": "^2.2.0-rc.3"
   },
   "license": "MIT",
