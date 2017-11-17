@@ -12,7 +12,7 @@ module.exports = function upload(uploadInfo, data, file, saveOptions = {}) {
   return new Promise((resolve, reject) => {
     const req = request('POST', uploadUrl)
       .set(file._uploadHeaders)
-      .field('file', data)
+      .attach('file', data, file.attributes.name)
       .field('name', file.attributes.name)
       .field('key', file._qiniu_key)
       .field('token', uptoken);

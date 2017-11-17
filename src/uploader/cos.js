@@ -11,7 +11,7 @@ module.exports = function upload(uploadInfo, data, file, saveOptions = {}) {
   return new Promise((resolve, reject) => {
     const req = request('POST', uploadUrl)
       .set(file._uploadHeaders)
-      .field('fileContent', data)
+      .attach('fileContent', data, file.attributes.name)
       .field('op', 'upload');
     if (saveOptions.onprogress) {
       req.on('progress', saveOptions.onprogress);
