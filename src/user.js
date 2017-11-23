@@ -197,13 +197,8 @@ module.exports = function(AV) {
      * @since 3.3.0
      */
     dissociateAuthData(provider) {
-      if (_.isString(provider)) {
-        provider = AV.User._authProviders[provider];
-      }
-      return this._linkWith(provider, null).then(model => {
-        this._synchronizeAuthData(provider);
-        return model;
-      });
+      this.unset(`authData.${provider}`);
+      return this.save().then(model => model._handleSaveResult(true).then(() => model));
     },
 
     /**
@@ -832,7 +827,7 @@ module.exports = function(AV) {
     },
 
     associateWithAuthData(userObj, platform, authData) {
-      console.warn('DEPRECATED: User.associateWithAuthData 已废弃，请使用 User#dissociateAuthData 代替');
+      console.warn('DEPRECATED: User.associateWithAuthData 已废弃，请使用 User#associateWithAuthData 代替');
       return userObj._linkWith(platform, authData);
     },
     /**

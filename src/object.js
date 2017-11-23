@@ -7,6 +7,8 @@ const {
   isNullOrUndefined,
   ensureArray,
   transformFetchOptions,
+  setValue,
+  findValue,
 } = require('./utils');
 
 const RESERVED_KEYS = ['objectId', 'createdAt', 'updatedAt'];
@@ -525,9 +527,10 @@ module.exports = function(AV) {
     _applyOpSet: function(opSet, target) {
       var self = this;
       AV._objectEach(opSet, function(change, key) {
-        target[key] = change._estimate(target[key], self, key);
-        if (target[key] === AV.Op._UNSET) {
-          delete target[key];
+        const [value, actualTarget, actualKey] = findValue(target, key);
+        setValue(target, key, change._estimate(value, self, key));
+        if (actualTarget && actualTarget[actualKey] === AV.Op._UNSET) {
+          delete actualTarget[actualKey];
         }
       });
     },
@@ -569,9 +572,10 @@ module.exports = function(AV) {
       AV._arrayEach(this._opSetQueue, function(opSet) {
         var op = opSet[key];
         if (op) {
-          self.attributes[key] = op._estimate(self.attributes[key], self, key);
-          if (self.attributes[key] === AV.Op._UNSET) {
-            delete self.attributes[key];
+          const [value, actualTarget, actualKey] = findValue(self.attributes, key);
+          setValue(self.attributes, key, op._estimate(value, self, key));
+          if (actualTarget && actualTarget[actualKey] === AV.Op._UNSET) {
+            delete actualTarget[actualKey];
           } else {
             self._resetCacheForKey(key);
           }

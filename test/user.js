@@ -202,6 +202,11 @@ describe("User", function() {
           access_token: 'a123123aaabbbbcccc',
           expires_in: 1382686496,
         });
+      }).then(user => {
+        user.get('authData').should.have.property('weixin');
+        return user.dissociateAuthData('weixin');
+      }).then(user => {
+        user.get('authData').should.not.have.property('weixin');
       });
     });
   });
