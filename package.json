@@ -21,7 +21,7 @@
     "prepublishOnly": "./script/check-version.js"
   },
   "dependencies": {
-    "debug": "^2.2.0",
+    "debug": "^3.1.0",
     "es6-promise": "^4.0.5",
     "eventemitter3": "^2.0.3",
     "leancloud-realtime": "^3.5.0",
