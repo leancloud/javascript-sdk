@@ -156,6 +156,33 @@ function parseDate(iso8601) {
   return new Date(Date.UTC(year, month, day, hour, minute, second, milli));
 }
 
+const setValue = (target, key, value) => {
+  // '.' is not allowed in Class keys, escaping is not in concern now.
+  const segs = key.split('.');
+  const lastSeg = segs.pop();
+  let currentTarget = target;
+  segs.forEach((seg) => {
+    if (currentTarget[seg] === undefined) currentTarget[seg] = {};
+    currentTarget = currentTarget[seg];
+  });
+  currentTarget[lastSeg] = value;
+  return target;
+};
+
+const findValue = (target, key) => {
+  const segs = key.split('.');
+  const lastSeg = segs.pop();
+  let currentTarget = target;
+  for (let i = 0; i < segs.length; i++) {
+    currentTarget = currentTarget[segs[i]];
+    if (currentTarget === undefined) {
+      return [undefined, undefined, lastSeg];
+    }
+  }
+  const value = currentTarget[lastSeg];
+  return [value, currentTarget, lastSeg];
+};
+
 module.exports = {
   ajax,
   isNullOrUndefined,
@@ -165,4 +192,6 @@ module.exports = {
   tap,
   inherits,
   parseDate,
+  setValue,
+  findValue,
 };
