@@ -1,6 +1,8 @@
 const _ = require('underscore');
 const request = require('superagent');
-const debug = require('debug')('leancloud:request');
+const debug = require('debug');
+const debugRequest = debug('leancloud:request');
+const debugRequestError = debug('leancloud:request:error');
 const Promise = require('../promise');
 
 let requestsCount = 0;
@@ -8,7 +10,7 @@ let requestsCount = 0;
 const ajax = ({ method, url, query, data, headers = {}, onprogress }) => {
   const count = requestsCount++;
 
-  debug(`request(${count})`, method, url, query, data, headers);
+  debugRequest(`request(${count})`, method, url, query, data, headers);
 
   const flattenedQuery = {};
   if (query) {
@@ -30,17 +32,19 @@ const ajax = ({ method, url, query, data, headers = {}, onprogress }) => {
       req.on('progress', onprogress);
     }
     req.end((err, res) => {
-      if (res) {
-        debug(`response(${count})`, res.status, res.body || res.text, res.header);
-      }
       if (err) {
         if (res) {
+          if (!debug.enabled('leancloud:request')) {
+            debugRequestError(`request(${count})`, method, url, query, data, headers);
+          }
+          debugRequestError(`response(${count})`, res.status, res.body || res.text, res.header);
           err.statusCode = res.status;
           err.responseText = res.text;
           err.response = res.body;
         }
         return reject(err);
       }
+      debugRequest(`response(${count})`, res.status, res.body || res.text, res.header);
       return resolve(res.body);
     });
   });
