@@ -1,3 +1,13 @@
+## 3.4.2 (2017-11-28)
+
+### Features
+- 细化了请求日志级别。
+
+### Bug fixes
+- 修复了 `AV.User#dissociateAuthData` 方法抛异常的问题。
+- 修复了使用 `object#set('a.b', value)` 修改嵌套的属性后，本地再次获取属性值没有更新的问题。
+
+
 ## 3.4.1 (2017-11-17)
 
 ### Bug fixes
@@ -27,7 +37,7 @@
 
 ### Features
 - `AV.Object.saveAll` 与 `AV.Object.fetchAll` 失败时，抛出的异常 error 对象增加 `results` 属性，类型为 `Array<AV.Object|Error>`。通过这个属性，开发者可以知道哪些对象的操作成功了，哪些失败了。
-- `AV.User` 增加了 `#associateWithAuthData` 与 `#disassociateAuthData` 用于关联、解绑第三方平台。原有的静态方法 `AV.User.associateWithAuthData` 已废弃。
+- `AV.User` 增加了 `#associateWithAuthData` 与 `#dissociateAuthData` 用于关联、解绑第三方平台。原有的静态方法 `AV.User.associateWithAuthData` 已废弃。
 
 ### Bug Fixes
 - 优化了关联对象保存时的逻辑，减少了一些不必要的保存请求，避免了在关联对象有循环依赖时可能会出现死循环的问题。
