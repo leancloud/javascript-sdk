@@ -96,7 +96,7 @@ AV.init = function init(options, ...params) {
     {},
     getDefaultServerURLs(appId, region),
     AV._config.serverURLs,
-    serverURLs
+    typeof serverURLs === 'string' ? fillServerURLs(serverURLs) : serverURLs,
   ), disableAppRouter);
   if (realtime) {
     AV._config.realtime = realtime;
