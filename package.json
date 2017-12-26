@@ -55,7 +55,8 @@
     "should": "^11.1.0",
     "typescript": "^2.4.1",
     "weapp-polyfill": "^2.0.1",
-    "webpack": "^2.2.0-rc.3"
+    "webpack": "^2.2.0-rc.3",
+    "webpack-strip-block": "^0.2.0"
   },
   "license": "MIT",
   "author": {
