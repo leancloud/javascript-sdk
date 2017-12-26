@@ -34,6 +34,21 @@ exports.create = () => ({
         query: {
           presets: ['es2015'],
         },
+      }, {
+        test: /\.js$/,
+        enforce: 'pre',
+        include: [
+          path.resolve(__dirname, '../src'),
+        ],
+        use: [
+          {
+            loader: 'webpack-strip-block',
+            options: {
+              start: 'NODE-ONLY:start',
+              end: 'NODE-ONLY:end',
+            },
+          },
+        ],
       },
     ],
   },

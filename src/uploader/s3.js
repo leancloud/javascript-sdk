@@ -29,12 +29,12 @@ module.exports = function upload(uploadInfo, data, file, saveOptions = {}) {
       reject(handleError(res.error, res));
     });
     req.on('error', (err, res) => reject(handleError(err, res)));
-    if (!process.env.CLIENT_PLATFORM) {
-      if (data instanceof require('stream')) {
-        // data.pipe(req);
-        throw new TypeError('Saving an AV.File from a Stream to S3 is not yet supported');
-      }
+    /* NODE-ONLY:start */
+    if (data instanceof require('stream')) {
+      // data.pipe(req);
+      throw new TypeError('Saving an AV.File from a Stream to S3 is not yet supported');
     }
+    /* NODE-ONLY:end */
     req.send(data).end();
   });
 };

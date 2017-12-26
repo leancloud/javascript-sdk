@@ -126,15 +126,15 @@ module.exports = function(AV) {
         this._extName = extname(data.name);
       }
     }
-
-    if (!process.env.CLIENT_PLATFORM) {
-      if (data instanceof require('stream') && data.path) {
-        this._extName = extname(data.path);
-      }
-      if (Buffer.isBuffer(data)) {
-        this.attributes.metaData.size = data.length;
-      }
+    
+    /* NODE-ONLY:start */
+    if (data instanceof require('stream') && data.path) {
+      this._extName = extname(data.path);
     }
+    if (Buffer.isBuffer(data)) {
+      this.attributes.metaData.size = data.length;
+    }
+    /* NODE-ONLY:end */
 
     let owner;
     if (data && data.owner) {
@@ -496,14 +496,14 @@ module.exports = function(AV) {
               if (typeof Blob !== "undefined" && data instanceof Blob) {
                 return data;
               }
-              if (!process.env.CLIENT_PLATFORM) {
-                if (data instanceof require('stream')) {
-                  return data;
-                }
-                if (Buffer.isBuffer(data)) {
-                  return data;
-                }
+              /* NODE-ONLY:start */
+              if (data instanceof require('stream')) {
+                return data;
               }
+              if (Buffer.isBuffer(data)) {
+                return data;
+              }
+              /* NODE-ONLY:end */
               throw new TypeError('malformed file data');
             }).then(data => {
               switch (uploadInfo.provider) {
