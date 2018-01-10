@@ -9,7 +9,7 @@ config.entry = {
 };
 config.resolve.aliasFields = ['weapp', 'browser'];
 config.plugins.push(new webpack.BannerPlugin({
-  banner: 'var window={};var XMLHttpRequest;',
+  banner: 'var window={};var XMLHttpRequest;var navigator;var localStorage;',
   raw: true,
 }));
 
