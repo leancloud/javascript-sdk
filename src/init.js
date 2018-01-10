@@ -103,6 +103,7 @@ AV.init = function init(options, ...params) {
   } else if (AV._sharedConfig.liveQueryRealtime) {
     AV._config.realtime = new AV._sharedConfig.liveQueryRealtime({
       appId,
+      appKey,
       region,
     });
   }
