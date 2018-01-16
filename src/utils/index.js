@@ -7,7 +7,7 @@ const Promise = require('../promise');
 
 let requestsCount = 0;
 
-const ajax = ({ method, url, query, data, headers = {}, onprogress }) => {
+const ajax = ({ method, url, query, data, headers = {}, onprogress, timeout }) => {
   const count = requestsCount++;
 
   debugRequest(`request(${count})`, method, url, query, data, headers);
@@ -30,6 +30,9 @@ const ajax = ({ method, url, query, data, headers = {}, onprogress }) => {
       .send(data);
     if (onprogress) {
       req.on('progress', onprogress);
+    }
+    if (timeout) {
+      req.timeout(timeout);
     }
     req.end((err, res) => {
       if (err) {

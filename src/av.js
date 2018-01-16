@@ -13,6 +13,7 @@ AV._config = {
   useMasterKey: false,
   production: null,
   realtime: null,
+  requestTimeout: null,
 };
 
 // configs shared by all AV instances

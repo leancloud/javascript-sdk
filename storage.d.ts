@@ -808,6 +808,7 @@ export function init(options: {
 }): void;
 export function setServerURLs(urls: string|ServerURLs): void;
 export function setProduction(production: boolean): void;
+export function setRequestTimeout(ms: number): void;
 export function parseJSON(json: any): Object|File|any;
 export function request(options: {
   method: string,

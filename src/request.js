@@ -119,9 +119,10 @@ const request = ({ service, version, method, path, query, data = {}, authOptions
     throw new Error('Not initialized');
   }
   AV._appRouter.refresh();
+  const { requestTimeout: timeout } = AV._config;
   const url = createApiUrl({ service, path, version });
   return setHeaders(authOptions, signKey).then(
-    headers => ajax({ method, url, query, data, headers })
+    headers => ajax({ method, url, query, data, headers, timeout })
       .catch((error) => {
         let errorJSON = {
           code: error.code || -1,

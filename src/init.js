@@ -154,7 +154,7 @@ AV._setServerURLs = (urls, disableAppRouter = true) => {
   }
 };
 /**
- * set server URLs for services.
+ * Set server URLs for services.
  * @function AV.setServerURLs
  * @since 3.0.0
  * @param {String|ServerURLs} urls URLs for services. if a string was given, it will be applied for all services.
@@ -165,6 +165,17 @@ AV.setServerURLs = urls => AV._setServerURLs(urls);
 AV.keepErrorRawMessage = value => {
   AV._sharedConfig.keepErrorRawMessage = value;
 };
+
+/**
+ * Set a deadline for requests to complete.
+ * Note that file upload requests are not affected.
+ * @function AV.setRequestTimeout
+ * @since 3.6.0
+ * @param {number} ms 
+ */
+AV.setRequestTimeout = ms => {
+  AV._config.requestTimeout = ms;
+}
 
 // backword compatible
 AV.initialize = AV.init;
