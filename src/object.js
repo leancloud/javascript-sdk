@@ -1263,7 +1263,7 @@ module.exports = function(AV) {
      * @param {AV.ACL} acl An instance of AV.ACL.
      * @param {Object} options Optional Backbone-like options object to be
      *     passed in to set.
-     * @return {Boolean} Whether the set passed validation.
+     * @return {AV.Object} self
      * @see AV.Object#set
      */
     setACL: function(acl, options) {
