@@ -21,6 +21,17 @@ const getWeappLoginCode = () => {
   });
 };
 
+const mergeUnionDataIntoAuthData = (authData, unionId, { unionIdPlatform = 'weixin', asMainAccount = false } = {}) => {
+  if (typeof unionId !== 'string') throw new AVError(AVError.OTHER_CAUSE, 'unionId is not a string');
+  if (typeof unionIdPlatform !== 'string') throw new AVError(AVError.OTHER_CAUSE, 'unionIdPlatform is not a string');
+
+  return _.extend({}, authData, {
+    platform: unionIdPlatform,
+    unionid: unionId,
+    main_account: Boolean(asMainAccount),
+  });
+};
+
 module.exports = function(AV) {
   /**
    * @class
@@ -178,6 +189,33 @@ module.exports = function(AV) {
      */
     associateWithAuthData(authData, platform) {
       return this._linkWith(platform, authData);
+    },
+
+    /**
+     * Associate the user with a third party authData and unionId.
+     * @since 3.5.0
+     * @param {Object} authData The response json data returned from third party token, maybe like { openid: 'abc123', access_token: '123abc', expires_in: 1382686496 }
+     * @param {string} platform Available platform for sign up.
+     * @param {string} unionId
+     * @param {Object} [unionLoginOptions]
+     * @param {string} [unionLoginOptions.unionIdPlatform = 'weixin'] unionId platform
+     * @param {boolean} [unionLoginOptions.asMainAccount = false]
+     * @return {Promise<AV.User>} A promise that is fulfilled with the user when completed.
+     * @example user.associateWithAuthData({
+     *   openid: 'abc123',
+     *   access_token: '123abc',
+     *   expires_in: 1382686496
+     * }, 'weixin', 'union123', {
+     *   unionIdPlatform: 'weixin',
+     *   asMainAccount: false,
+     * }).then(function(user) {
+     *   //Access user here
+     * }).catch(function(error) {
+     *   //console.error("error: ", error);
+     * });
+     */
+    associateWithAuthDataAndUnionId(authData, platform, unionId, unionLoginOptions) {
+      return this._linkWith(platform, mergeUnionDataIntoAuthData(authData, unionId, unionLoginOptions));
     },
 
     /**
@@ -804,7 +842,11 @@ module.exports = function(AV) {
      * @param {string} platform Available platform for sign up.
      * @return {Promise} A promise that is fulfilled with the user when
      *     the login completes.
-     * @example AV.User.signUpOrlogInWithAuthData(authData, platform).then(function(user) {
+     * @example AV.User.signUpOrlogInWithAuthData({
+     *   openid: 'abc123',
+     *   access_token: '123abc',
+     *   expires_in: 1382686496
+     * }, 'weixin').then(function(user) {
      *   //Access user here
      * }).catch(function(error) {
      *   //console.error("error: ", error);
@@ -813,6 +855,33 @@ module.exports = function(AV) {
      */
     signUpOrlogInWithAuthData(authData, platform) {
       return AV.User._logInWith(platform, authData);
+    },
+
+    /**
+     * Sign up or logs in a user with a third party authData and unionId.
+     * @since 3.5.0
+     * @param {Object} authData The response json data returned from third party token, maybe like { openid: 'abc123', access_token: '123abc', expires_in: 1382686496 }
+     * @param {string} platform Available platform for sign up.
+     * @param {string} unionId
+     * @param {Object} [unionLoginOptions]
+     * @param {string} [unionLoginOptions.unionIdPlatform = 'weixin'] unionId platform
+     * @param {boolean} [unionLoginOptions.asMainAccount = false]
+     * @return {Promise<AV.User>} A promise that is fulfilled with the user when completed.
+     * @example user.associateWithAuthData({
+     *   openid: 'abc123',
+     *   access_token: '123abc',
+     *   expires_in: 1382686496
+     * }, 'weixin', 'union123', {
+     *   unionIdPlatform: 'weixin',
+     *   asMainAccount: false,
+     * }).then(function(user) {
+     *   //Access user here
+     * }).catch(function(error) {
+     *   //console.error("error: ", error);
+     * });
+     */
+    signUpOrlogInWithAuthDataAndUnionId(authData, platform, unionId, unionLoginOptions) {
+      return this.signUpOrlogInWithAuthData(mergeUnionDataIntoAuthData(authData, unionId, unionLoginOptions), platform);
     },
 
     /**

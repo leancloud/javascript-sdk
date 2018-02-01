@@ -187,6 +187,27 @@ describe("User", function() {
     });
   });
 
+  describe('authData and unionId', () => {
+    it('should login as the same user', () => {
+      const now = Date.now();
+      return AV.User.signUpOrlogInWithAuthDataAndUnionId({
+        openid: 'openid1' + now,
+        access_token: 'access_token',
+        expires_in: 1382686496,
+      }, 'weixin_1', 'unionid' + now, {
+        asMainAccount: true,
+      }).then((user1) => {
+        return AV.User.signUpOrlogInWithAuthDataAndUnionId({
+          openid: 'openid2' + now,
+          access_token: 'access_token',
+          expires_in: 1382686496,
+        }, 'weixin_2', 'unionid' + now).then(user2 => {
+          user2.id.should.be.eql(user1.id);
+        });
+      });
+    });
+  });
+
   describe('associate with authData', function() {
     it('logIn an user, and associate with authData', function() {
       var username = Date.now().toString(36);

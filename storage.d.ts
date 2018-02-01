@@ -537,6 +537,11 @@ export class Role extends Object {
     setName(name: string): Role;
 }
 
+interface UnionLoginOptions {
+  unionIdPlatform?: string;
+  asMainAccount?: boolean;
+}
+
 /**
  * @class
  *
@@ -558,6 +563,7 @@ export class User extends Object {
     static logInWithMobilePhone(mobilePhone: string, password: string, options?: AuthOptions): Promise<User>;
     static logInWithMobilePhoneSmsCode(mobilePhone: string, smsCode: string, options?: AuthOptions): Promise<User>;
     static signUpOrlogInWithAuthData(data: any, platform: string, options?: AuthOptions): Promise<User>;
+    static signUpOrlogInWithAuthDataAndUnionId(authData: Object, platform: string, unionId: string, unionLoginOptions?: UnionLoginOptions): Promise<User>;
     static signUpOrlogInWithMobilePhone(mobilePhoneNumber: string, smsCode: string, attributes?: any, options?: AuthOptions): Promise<User>;
     static requestEmailVerify(email: string, options?: AuthOptions): Promise<User>;
     static requestLoginSmsCode(mobilePhoneNumber: string, options?: SMSAuthOptions): Promise<void>;
@@ -576,8 +582,9 @@ export class User extends Object {
     isAuthenticated(): Promise<boolean>;
     isCurrent(): boolean;
 
-    associateWithAuthData(authData: Object, platform?: string): Promise<User>;
-    dissociateAuthData(platform?: string): Promise<User>;
+    associateWithAuthData(authData: Object, platform: string): Promise<User>;
+    associateWithAuthDataAndUnionId(authData: Object, platform: string, unionId: string, unionLoginOptions?: UnionLoginOptions): Promise<User>;
+    dissociateAuthData(platform: string): Promise<User>;
 
     getEmail(): string;
     setEmail(email: string, options?: AuthOptions): boolean;
