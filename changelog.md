@@ -1,3 +1,13 @@
+# 3.6.0 (2018-02-05)
+
+### Features
+- 第三方登录支持使用微信 unionId + openId 登录。
+- 支持全局设置请求超时时间： `AV.setRequestTimeout(ms);`，超时后 SDK 会抛出 `ECONNABORTED` 异常。
+
+### Bug Fixes
+- 修复了一个微信小游戏环境中的异常。
+
+
 # 3.5.0 (2018-01-10)
 
 ### Features
