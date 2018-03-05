@@ -201,7 +201,7 @@ module.exports = function(AV) {
      * @param {string} [unionLoginOptions.unionIdPlatform = 'weixin'] unionId platform
      * @param {boolean} [unionLoginOptions.asMainAccount = false]
      * @return {Promise<AV.User>} A promise that is fulfilled with the user when completed.
-     * @example user.associateWithAuthData({
+     * @example user.associateWithAuthDataAndUnionId({
      *   openid: 'abc123',
      *   access_token: '123abc',
      *   expires_in: 1382686496
@@ -867,7 +867,7 @@ module.exports = function(AV) {
      * @param {string} [unionLoginOptions.unionIdPlatform = 'weixin'] unionId platform
      * @param {boolean} [unionLoginOptions.asMainAccount = false]
      * @return {Promise<AV.User>} A promise that is fulfilled with the user when completed.
-     * @example user.associateWithAuthData({
+     * @example AV.User.signUpOrlogInWithAuthDataAndUnionId({
      *   openid: 'abc123',
      *   access_token: '123abc',
      *   expires_in: 1382686496
