@@ -40,7 +40,7 @@ describe('hooks', function() {
     var object = new IgnoreHookTest();
     object.set('title', 'test');
     return object.save().then(function() {
-      object.set('title', 'something')
+      object.set('title', 'something');
       return object.save().then(function() {
         return object.fetch(function(object) {
           expect(object.get('byBeforeSave')).to.be.ok();
@@ -78,37 +78,42 @@ describe('hooks', function() {
     object.set('child1', child1);
     object.disableAfterHook();
     return object.save().then(function() {
-      return object.fetch(function(object) {
-        expect(object.get('byBeforeSave')).to.be.ok();
-        expect(object.get('byAfterSave')).to.not.be.ok();
-      }).then(function() {
-        return child1.fetch(function(child1) {
-          expect(child1.get('byBeforeSave')).to.not.be.ok();
-          expect(child1.get('byAfterSave')).to.be.ok();
-        });
-      }).then(function() {
-        child1.set('title', 'something');
-        object.set('child1', child1);
-        child2.set('title', 'test');
-        child2.disableAfterHook();
-        object.set('child2', child2);
-        return object.save().then(function() {
-          object.fetch(function(object) {
-            expect(object.get('byBeforeUpdate')).to.be.ok();
-            expect(object.get('byAfterUpdate')).to.not.be.ok();
+      return object
+        .fetch(function(object) {
+          expect(object.get('byBeforeSave')).to.be.ok();
+          expect(object.get('byAfterSave')).to.not.be.ok();
+        })
+        .then(function() {
+          return child1.fetch(function(child1) {
+            expect(child1.get('byBeforeSave')).to.not.be.ok();
+            expect(child1.get('byAfterSave')).to.be.ok();
+          });
+        })
+        .then(function() {
+          child1.set('title', 'something');
+          object.set('child1', child1);
+          child2.set('title', 'test');
+          child2.disableAfterHook();
+          object.set('child2', child2);
+          return object.save().then(function() {
+            object.fetch(function(object) {
+              expect(object.get('byBeforeUpdate')).to.be.ok();
+              expect(object.get('byAfterUpdate')).to.not.be.ok();
+            });
+          });
+        })
+        .then(function() {
+          child1.fetch().then(function(child1) {
+            expect(child1.get('byBeforeUpdate')).to.not.be.ok();
+            expect(child1.get('byAfterUpdate')).to.be.ok();
+          });
+        })
+        .then(function() {
+          child2.fetch().then(function(child2) {
+            expect(child2.get('byBeforeSave')).to.be.ok();
+            expect(child2.get('byAfterSave')).to.not.be.ok();
           });
         });
-      }).then(function() {
-        child1.fetch().then(function(child1) {
-          expect(child1.get('byBeforeUpdate')).to.not.be.ok();
-          expect(child1.get('byAfterUpdate')).to.be.ok();
-        });
-      }).then(function() {
-        child2.fetch().then(function(child2) {
-          expect(child2.get('byBeforeSave')).to.be.ok();
-          expect(child2.get('byAfterSave')).to.not.be.ok();
-        });
-      });
     });
   });
 
@@ -119,26 +124,36 @@ describe('hooks', function() {
     var newObject = new IgnoreHookTest();
     var newObjectIgnoreAll = new IgnoreHookTest();
 
-    return Promise.all([object, objectIgnoreBefore, objectIgnoreAfter].map(function(object) {
-      object.set('title', 'test');
-      return object.save();
-    })).then(function() {
+    return Promise.all(
+      [object, objectIgnoreBefore, objectIgnoreAfter].map(function(object) {
+        object.set('title', 'test');
+        return object.save();
+      })
+    ).then(function() {
       newObjectIgnoreAll.disableBeforeHook();
       newObjectIgnoreAll.disableAfterHook();
 
       objectIgnoreBefore.disableBeforeHook();
       objectIgnoreAfter.disableAfterHook();
 
-      var objects = [object, objectIgnoreBefore, objectIgnoreAfter, newObject, newObjectIgnoreAll];
+      var objects = [
+        object,
+        objectIgnoreBefore,
+        objectIgnoreAfter,
+        newObject,
+        newObjectIgnoreAll,
+      ];
 
       objects.forEach(function(object) {
         object.set('title', 'something');
       });
 
       return AV.Object.saveAll(objects).then(function(objects) {
-        return Promise.all(objects.map(function(object) {
-          return object.fetch();
-        })).then(function() {
+        return Promise.all(
+          objects.map(function(object) {
+            return object.fetch();
+          })
+        ).then(function() {
           expect(object.get('byBeforeSave')).to.be.ok();
           expect(object.get('byAfterSave')).to.be.ok();
           expect(object.get('byBeforeUpdate')).to.be.ok();
@@ -183,10 +198,14 @@ describe('hooks', function() {
     var objectIgnoreBefore = new IgnoreHookTest();
     objectIgnoreBefore.disableBeforeHook();
 
-    return Promise.all([object, objectIgnoreBefore].map(function(object) {
-      return object.save();
-    })).then(function() {
-      return AV.Object.destroyAll([objectIgnoreBefore, object]);
-    }).should.be.rejectedWith(/Error from beforeDelete/);
+    return Promise.all(
+      [object, objectIgnoreBefore].map(function(object) {
+        return object.save();
+      })
+    )
+      .then(function() {
+        return AV.Object.destroyAll([objectIgnoreBefore, object]);
+      })
+      .should.be.rejectedWith(/Error from beforeDelete/);
   });
 });

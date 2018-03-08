@@ -1,9 +1,6 @@
 const _ = require('underscore');
 const userAgent = require('./ua');
-const {
-  inherits,
-  parseDate,
-} = require('./utils');
+const { inherits, parseDate } = require('./utils');
 
 const AV = global.AV || {};
 
@@ -36,22 +33,26 @@ AV._sharedConfig = {
  */
 AV._getAVPath = function(path) {
   if (!AV.applicationId) {
-    throw new Error("You need to call AV.initialize before using AV.");
+    throw new Error('You need to call AV.initialize before using AV.');
   }
   if (!path) {
-    path = "";
+    path = '';
   }
   if (!_.isString(path)) {
     throw new Error("Tried to get a localStorage path that wasn't a String.");
   }
-  if (path[0] === "/") {
+  if (path[0] === '/') {
     path = path.substring(1);
   }
-  return "AV/" + AV.applicationId + "/" + path;
+  return 'AV/' + AV.applicationId + '/' + path;
 };
 
-const hexOctet = () => Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
-const uuid = () => `${hexOctet()}${hexOctet()}-${hexOctet()}-${hexOctet()}-${hexOctet()}-${hexOctet()}${hexOctet()}${hexOctet()}`;
+const hexOctet = () =>
+  Math.floor((1 + Math.random()) * 0x10000)
+    .toString(16)
+    .substring(1);
+const uuid = () =>
+  `${hexOctet()}${hexOctet()}-${hexOctet()}-${hexOctet()}-${hexOctet()}-${hexOctet()}${hexOctet()}${hexOctet()}`;
 
 /**
  * Returns the unique string for this app on this machine.
@@ -67,12 +68,14 @@ AV._getInstallationId = () => {
 
   // Try to get it from localStorage.
   const path = AV._getAVPath('installationId');
-  return AV.localStorage.getItemAsync(path).then((_installationId) => {
+  return AV.localStorage.getItemAsync(path).then(_installationId => {
     AV._installationId = _installationId;
     if (!AV._installationId) {
       // It wasn't in localStorage, so create a new one.
       AV._installationId = _installationId = uuid();
-      return AV.localStorage.setItemAsync(path, _installationId).then(() => _installationId);
+      return AV.localStorage
+        .setItemAsync(path, _installationId)
+        .then(() => _installationId);
     }
     return _installationId;
   });
@@ -80,8 +83,10 @@ AV._getInstallationId = () => {
 
 AV._subscriptionId = null;
 AV._refreshSubscriptionId = (path = AV._getAVPath('subscriptionId')) => {
-  const subscriptionId = AV._subscriptionId = uuid();
-  return AV.localStorage.setItemAsync(path, subscriptionId).then(() => subscriptionId);
+  const subscriptionId = (AV._subscriptionId = uuid());
+  return AV.localStorage
+    .setItemAsync(path, subscriptionId)
+    .then(() => subscriptionId);
 };
 AV._getSubscriptionId = () => {
   // See if it's cached in RAM.
@@ -91,7 +96,7 @@ AV._getSubscriptionId = () => {
 
   // Try to get it from localStorage.
   const path = AV._getAVPath('subscriptionId');
-  return AV.localStorage.getItemAsync(path).then((_subscriptionId) => {
+  return AV.localStorage.getItemAsync(path).then(_subscriptionId => {
     AV._subscriptionId = _subscriptionId;
     if (!AV._subscriptionId) {
       // It wasn't in localStorage, so create a new one.
@@ -123,7 +128,7 @@ AV._extend = function(protoProps, classProps) {
 AV._encode = function(value, seenObjects, disallowObjects, full = true) {
   if (value instanceof AV.Object) {
     if (disallowObjects) {
-      throw new Error("AV.Objects not allowed here");
+      throw new Error('AV.Objects not allowed here');
     }
     if (!seenObjects || _.include(seenObjects, value) || !value._hasData) {
       return value._toPointer();
@@ -134,7 +139,7 @@ AV._encode = function(value, seenObjects, disallowObjects, full = true) {
     return value.toJSON();
   }
   if (_.isDate(value)) {
-    return full ? { "__type": "Date", "iso": value.toJSON() } : value.toJSON();
+    return full ? { __type: 'Date', iso: value.toJSON() } : value.toJSON();
   }
   if (value instanceof AV.GeoPoint) {
     return value.toJSON();
@@ -155,12 +160,14 @@ AV._encode = function(value, seenObjects, disallowObjects, full = true) {
   }
   if (value instanceof AV.File) {
     if (!value.url() && !value.id) {
-      throw new Error("Tried to save an object containing an unsaved file.");
+      throw new Error('Tried to save an object containing an unsaved file.');
     }
     return value._toFullJSON(seenObjects, full);
   }
   if (_.isObject(value)) {
-    return _.mapObject(value, (v, k) => AV._encode(v, seenObjects, disallowObjects, full));
+    return _.mapObject(value, (v, k) =>
+      AV._encode(v, seenObjects, disallowObjects, full)
+    );
   }
   return value;
 };
@@ -198,20 +205,20 @@ AV._decode = function(value, key) {
     return AV.Op._decode(value);
   }
   var className;
-  if (value.__type === "Pointer") {
+  if (value.__type === 'Pointer') {
     className = value.className;
     var pointer = AV.Object._create(className);
-    if(Object.keys(value).length > 3) {
-        const v = _.clone(value);
-        delete v.__type;
-        delete v.className;
-        pointer._finishFetch(v, true);
-    }else{
-        pointer._finishFetch({ objectId: value.objectId }, false);
+    if (Object.keys(value).length > 3) {
+      const v = _.clone(value);
+      delete v.__type;
+      delete v.className;
+      pointer._finishFetch(v, true);
+    } else {
+      pointer._finishFetch({ objectId: value.objectId }, false);
     }
     return pointer;
   }
-  if (value.__type === "Object") {
+  if (value.__type === 'Object') {
     // It's an Object included in a query result.
     className = value.className;
     const v = _.clone(value);
@@ -221,16 +228,16 @@ AV._decode = function(value, key) {
     object._finishFetch(v, true);
     return object;
   }
-  if (value.__type === "Date") {
+  if (value.__type === 'Date') {
     return AV._parseDate(value.iso);
   }
-  if (value.__type === "GeoPoint") {
+  if (value.__type === 'GeoPoint') {
     return new AV.GeoPoint({
       latitude: value.latitude,
-      longitude: value.longitude
+      longitude: value.longitude,
     });
   }
-  if (value.__type === "Relation") {
+  if (value.__type === 'Relation') {
     if (!key) throw new Error('key missing decoding a Relation');
     var relation = new AV.Relation(null, key);
     relation.targetClassName = value.className;
@@ -256,7 +263,7 @@ AV.parseJSON = AV._decode;
 
 AV._encodeObjectOrArray = function(value) {
   var encodeAVObject = function(object) {
-    if (object && object._toFullJSON){
+    if (object && object._toFullJSON) {
       object = object._toFullJSON([]);
     }
 

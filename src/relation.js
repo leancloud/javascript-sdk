@@ -17,7 +17,7 @@ module.exports = function(AV) {
    * </p>
    */
   AV.Relation = function(parent, key) {
-    if (! _.isString(key)) {
+    if (!_.isString(key)) {
       throw new TypeError('key must be a string');
     }
     this.parent = parent;
@@ -32,84 +32,91 @@ module.exports = function(AV) {
    * @param {AV.Object} child The child object.
    * @return {AV.Query}
    */
-  AV.Relation.reverseQuery = function(parentClass, relationKey, child){
+  AV.Relation.reverseQuery = function(parentClass, relationKey, child) {
     var query = new AV.Query(parentClass);
     query.equalTo(relationKey, child._toPointer());
     return query;
   };
 
-  _.extend(AV.Relation.prototype, /** @lends AV.Relation.prototype */ {
-    /**
-     * Makes sure that this relation has the right parent and key.
-     * @private
-     */
-    _ensureParentAndKey: function(parent, key) {
-      this.parent = this.parent || parent;
-      this.key = this.key || key;
-      if (this.parent !== parent) {
-        throw new Error("Internal Error. Relation retrieved from two different Objects.");
-      }
-      if (this.key !== key) {
-        throw new Error("Internal Error. Relation retrieved from two different keys.");
-      }
-    },
+  _.extend(
+    AV.Relation.prototype,
+    /** @lends AV.Relation.prototype */ {
+      /**
+       * Makes sure that this relation has the right parent and key.
+       * @private
+       */
+      _ensureParentAndKey: function(parent, key) {
+        this.parent = this.parent || parent;
+        this.key = this.key || key;
+        if (this.parent !== parent) {
+          throw new Error(
+            'Internal Error. Relation retrieved from two different Objects.'
+          );
+        }
+        if (this.key !== key) {
+          throw new Error(
+            'Internal Error. Relation retrieved from two different keys.'
+          );
+        }
+      },
 
-    /**
-     * Adds a AV.Object or an array of AV.Objects to the relation.
-     * @param {AV.Object|AV.Object[]} objects The item or items to add.
-     */
-    add: function(objects) {
-      if (!_.isArray(objects)) {
-        objects = [objects];
-      }
+      /**
+       * Adds a AV.Object or an array of AV.Objects to the relation.
+       * @param {AV.Object|AV.Object[]} objects The item or items to add.
+       */
+      add: function(objects) {
+        if (!_.isArray(objects)) {
+          objects = [objects];
+        }
 
-      var change = new AV.Op.Relation(objects, []);
-      this.parent.set(this.key, change);
-      this.targetClassName = change._targetClassName;
-    },
+        var change = new AV.Op.Relation(objects, []);
+        this.parent.set(this.key, change);
+        this.targetClassName = change._targetClassName;
+      },
 
-    /**
-     * Removes a AV.Object or an array of AV.Objects from this relation.
-     * @param {AV.Object|AV.Object[]} objects The item or items to remove.
-     */
-    remove: function(objects) {
-      if (!_.isArray(objects)) {
-        objects = [objects];
-      }
+      /**
+       * Removes a AV.Object or an array of AV.Objects from this relation.
+       * @param {AV.Object|AV.Object[]} objects The item or items to remove.
+       */
+      remove: function(objects) {
+        if (!_.isArray(objects)) {
+          objects = [objects];
+        }
 
-      var change = new AV.Op.Relation([], objects);
-      this.parent.set(this.key, change);
-      this.targetClassName = change._targetClassName;
-    },
+        var change = new AV.Op.Relation([], objects);
+        this.parent.set(this.key, change);
+        this.targetClassName = change._targetClassName;
+      },
 
-    /**
-     * Returns a JSON version of the object suitable for saving to disk.
-     * @return {Object}
-     */
-    toJSON: function() {
-      return { "__type": "Relation", "className": this.targetClassName };
-    },
+      /**
+       * Returns a JSON version of the object suitable for saving to disk.
+       * @return {Object}
+       */
+      toJSON: function() {
+        return { __type: 'Relation', className: this.targetClassName };
+      },
 
-    /**
-     * Returns a AV.Query that is limited to objects in this
-     * relation.
-     * @return {AV.Query}
-     */
-    query: function() {
-      var targetClass;
-      var query;
-      if (!this.targetClassName) {
-        targetClass = AV.Object._getSubclass(this.parent.className);
-        query = new AV.Query(targetClass);
-        query._extraOptions.redirectClassNameForKey = this.key;
-      } else {
-        targetClass = AV.Object._getSubclass(this.targetClassName);
-        query = new AV.Query(targetClass);
-      }
-      query._addCondition("$relatedTo", "object", this.parent._toPointer());
-      query._addCondition("$relatedTo", "key", this.key);
+      /**
+       * Returns a AV.Query that is limited to objects in this
+       * relation.
+       * @return {AV.Query}
+       */
+      query: function() {
+        var targetClass;
+        var query;
+        if (!this.targetClassName) {
+          targetClass = AV.Object._getSubclass(this.parent.className);
+          query = new AV.Query(targetClass);
+          query._extraOptions.redirectClassNameForKey = this.key;
+        } else {
+          targetClass = AV.Object._getSubclass(this.targetClassName);
+          query = new AV.Query(targetClass);
+        }
+        query._addCondition('$relatedTo', 'object', this.parent._toPointer());
+        query._addCondition('$relatedTo', 'key', this.key);
 
-      return query;
+        return query;
+      },
     }
-  });
+  );
 };

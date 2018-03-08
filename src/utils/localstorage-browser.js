@@ -13,12 +13,7 @@ var Promise = require('../promise');
 //   Promise clearAsync();
 // }
 var Storage = {};
-var apiNames = [
-  'getItem',
-  'setItem',
-  'removeItem',
-  'clear'
-];
+var apiNames = ['getItem', 'setItem', 'removeItem', 'clear'];
 
 var localStorage = global.localStorage;
 

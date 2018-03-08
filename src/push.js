@@ -1,7 +1,7 @@
 const request = require('./request').request;
 
 module.exports = function(AV) {
-  AV.Installation = AV.Object.extend("_Installation");
+  AV.Installation = AV.Object.extend('_Installation');
 
   /**
    * @namespace
@@ -43,7 +43,9 @@ module.exports = function(AV) {
     }
 
     if (data.expiration_time && data.expiration_time_interval) {
-      throw new Error("Both expiration_time and expiration_time_interval can't be set");
+      throw new Error(
+        "Both expiration_time and expiration_time_interval can't be set"
+      );
     }
 
     return request({

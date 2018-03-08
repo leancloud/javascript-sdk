@@ -1,6 +1,6 @@
 var Post = AV.Object.extend('Post');
 describe('Geopoints', () => {
-  before(function () {
+  before(function() {
     // Make a new post
     const user = AV.User.current();
 
@@ -12,13 +12,13 @@ describe('Geopoints', () => {
     this.post = post;
   });
 
-  it('save object with geopoints', function () {
+  it('save object with geopoints', function() {
     const point = new AV.GeoPoint({ latitude: 40.0, longitude: -30.0 });
     this.post.set('location', point);
     return this.post.save();
   });
 
-  it('near', function () {
+  it('near', function() {
     const postGeoPoint = this.post.get('location');
     // Create a query for places
     const query = new AV.Query(Post);

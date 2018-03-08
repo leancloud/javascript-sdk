@@ -13,17 +13,14 @@ var Promise = require('../promise');
 //   Promise clearAsync();
 // }
 var Storage = {};
-var apiNames = [
-  'getItem',
-  'setItem',
-  'removeItem',
-  'clear'
-];
+var apiNames = ['getItem', 'setItem', 'removeItem', 'clear'];
 
 var AsyncStorage = require('react-native').AsyncStorage;
 _(apiNames).each(function(apiName) {
   Storage[apiName + 'Async'] = function() {
-    return Promise.resolve(AsyncStorage[apiName].apply(AsyncStorage, arguments));
+    return Promise.resolve(
+      AsyncStorage[apiName].apply(AsyncStorage, arguments)
+    );
   };
 });
 Storage.async = true;

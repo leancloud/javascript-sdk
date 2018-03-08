@@ -1,6 +1,6 @@
 'use strict';
 
-describe("AV.Cloud", function() {
+describe('AV.Cloud', function() {
   var originalServerURLs, originalAppId, originalAppKey, originalUseMasterKey;
 
   before(function() {
@@ -17,8 +17,8 @@ describe("AV.Cloud", function() {
     AV.User._currentUser = null;
   });
 
-  describe("#getServerDate", function(){
-    it("should return a date.", function() {
+  describe('#getServerDate', function() {
+    it('should return a date.', function() {
       return AV.Cloud.getServerDate().then(function(date) {
         expect(date).to.be.a('object');
         expect(date instanceof Date).to.be(true);
@@ -37,22 +37,30 @@ describe("AV.Cloud", function() {
         expect(result.avObject.className).to.be('ComplexObject');
         expect(result.avObject.get('numberColumn')).to.be(1.23);
         expect(result.avObject.get('arrayColumn')).to.eql([1, 2, 3]);
-        expect(result.avObject.get('objectColumn')).to.eql({foo: 'bar'});
+        expect(result.avObject.get('objectColumn')).to.eql({ foo: 'bar' });
         expect(result.avObject.get('stringColumn')).to.be('testString');
         expect(result.avObject.get('anyColumn')).to.be('');
         expect(result.avObject.get('booleanColumn')).to.be(true);
         expect(result.avObject.get('pointerColumn')).to.be.a(AV.Object);
-        expect(result.avObject.get('pointerColumn').id).to.be('55069e5be4b0c93838ed8e6c');
+        expect(result.avObject.get('pointerColumn').id).to.be(
+          '55069e5be4b0c93838ed8e6c'
+        );
         expect(result.avObject.get('relationColumn')).to.be.a(AV.Relation);
-        expect(result.avObject.get('relationColumn').targetClassName).to.be('TestObject');
+        expect(result.avObject.get('relationColumn').targetClassName).to.be(
+          'TestObject'
+        );
         expect(result.avObject.get('geopointColumn')).to.be.a(AV.GeoPoint);
         expect(result.avObject.get('geopointColumn').latitude).to.be(0);
         expect(result.avObject.get('geopointColumn').longitude).to.be(30);
         expect(result.avObject.get('dateColumn')).to.be.a(Date);
-        expect(result.avObject.get('dateColumn').toISOString()).to.be('2015-05-14T06:24:47.000Z');
+        expect(result.avObject.get('dateColumn').toISOString()).to.be(
+          '2015-05-14T06:24:47.000Z'
+        );
         expect(result.avObject.get('fileColumn')).to.be.a(AV.File);
         expect(result.avObject.get('fileColumn').name()).to.be('ttt.jpg');
-        expect(result.avObject.get('fileColumn').url()).to.be('http://ac-4h2h4okw.clouddn.com/4qSbLMO866Tf4YtT9QEwJwysTlHGC9sMl7bpTwhQ.jpg');
+        expect(result.avObject.get('fileColumn').url()).to.be(
+          'http://ac-4h2h4okw.clouddn.com/4qSbLMO866Tf4YtT9QEwJwysTlHGC9sMl7bpTwhQ.jpg'
+        );
 
         result.avObjects.forEach(function(object) {
           expect(object).to.be.a(AV.Object);
@@ -84,18 +92,24 @@ describe("AV.Cloud", function() {
 
       avObject.set({
         name: 'avObject',
-        pointerColumn: AV.Object.createWithoutData('_User', '55069e5be4b0c93838ed8e6c')._toPointer()
+        pointerColumn: AV.Object.createWithoutData(
+          '_User',
+          '55069e5be4b0c93838ed8e6c'
+        )._toPointer(),
       });
 
       avObjectItem.set({
-        name: 'avObjects'
+        name: 'avObjects',
       });
 
       return AV.Object.saveAll([avObject, avObjectItem]).then(function() {
         return AV.Cloud.rpc('testAVObjectParams', {
           avObject: avObject,
-          avFile: AV.File.withURL('hello.txt', 'http://ac-1qdney6b.qiniudn.com/3zLG4o0d27MsCQ0qHGRg4JUKbaXU2fiE35HdhC8j.txt'),
-          avObjects: [avObjectItem]
+          avFile: AV.File.withURL(
+            'hello.txt',
+            'http://ac-1qdney6b.qiniudn.com/3zLG4o0d27MsCQ0qHGRg4JUKbaXU2fiE35HdhC8j.txt'
+          ),
+          avObjects: [avObjectItem],
         });
       });
     });
@@ -105,7 +119,10 @@ describe("AV.Cloud", function() {
 
       avObject.set({
         name: 'avObject',
-        avFile: AV.File.withURL('hello.txt', 'http://ac-1qdney6b.qiniudn.com/3zLG4o0d27MsCQ0qHGRg4JUKbaXU2fiE35HdhC8j.txt')
+        avFile: AV.File.withURL(
+          'hello.txt',
+          'http://ac-1qdney6b.qiniudn.com/3zLG4o0d27MsCQ0qHGRg4JUKbaXU2fiE35HdhC8j.txt'
+        ),
       });
 
       return AV.Cloud.rpc('testBareAVObjectParams', avObject);

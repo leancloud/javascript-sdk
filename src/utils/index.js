@@ -7,7 +7,15 @@ const Promise = require('../promise');
 
 let requestsCount = 0;
 
-const ajax = ({ method, url, query, data, headers = {}, onprogress, timeout }) => {
+const ajax = ({
+  method,
+  url,
+  query,
+  data,
+  headers = {},
+  onprogress,
+  timeout,
+}) => {
   const count = requestsCount++;
 
   debugRequest(`request(${count})`, method, url, query, data, headers);
@@ -38,24 +46,40 @@ const ajax = ({ method, url, query, data, headers = {}, onprogress, timeout }) =
       if (err) {
         if (res) {
           if (!debug.enabled('leancloud:request')) {
-            debugRequestError(`request(${count})`, method, url, query, data, headers);
+            debugRequestError(
+              `request(${count})`,
+              method,
+              url,
+              query,
+              data,
+              headers
+            );
           }
-          debugRequestError(`response(${count})`, res.status, res.body || res.text, res.header);
+          debugRequestError(
+            `response(${count})`,
+            res.status,
+            res.body || res.text,
+            res.header
+          );
           err.statusCode = res.status;
           err.responseText = res.text;
           err.response = res.body;
         }
         return reject(err);
       }
-      debugRequest(`response(${count})`, res.status, res.body || res.text, res.header);
+      debugRequest(
+        `response(${count})`,
+        res.status,
+        res.body || res.text,
+        res.header
+      );
       return resolve(res.body);
     });
   });
 };
 
-
 // Helper function to check null or undefined.
-const isNullOrUndefined = (x) => _.isNull(x) || _.isUndefined(x);
+const isNullOrUndefined = x => _.isNull(x) || _.isUndefined(x);
 
 const ensureArray = target => {
   if (_.isArray(target)) {
@@ -81,18 +105,19 @@ const transformFetchOptions = ({ keys, include, includeACL } = {}) => {
   return fetchOptions;
 };
 
-const getSessionToken = (authOptions) => {
+const getSessionToken = authOptions => {
   if (authOptions.sessionToken) {
     return authOptions.sessionToken;
   }
   if (
-    authOptions.user && typeof authOptions.user.getSessionToken === 'function'
+    authOptions.user &&
+    typeof authOptions.user.getSessionToken === 'function'
   ) {
     return authOptions.user.getSessionToken();
   }
 };
 
-const tap = interceptor => value => ((interceptor(value), value));
+const tap = interceptor => value => (interceptor(value), value);
 
 // Shared empty constructor function to aid in prototype-chain creation.
 const EmptyConstructor = function() {};
@@ -110,7 +135,9 @@ const inherits = function inherits(parent, protoProps, staticProps) {
     child = protoProps.constructor;
   } else {
     /** @ignore */
-    child = function() { parent.apply(this, arguments); };
+    child = function() {
+      parent.apply(this, arguments);
+    };
   }
 
   // Inherit class (static) properties from parent.
@@ -144,9 +171,12 @@ const inherits = function inherits(parent, protoProps, staticProps) {
 
 function parseDate(iso8601) {
   var regexp = new RegExp(
-    "^([0-9]{1,4})-([0-9]{1,2})-([0-9]{1,2})" + "T" +
-    "([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})" +
-    "(.([0-9]+))?" + "Z$");
+    '^([0-9]{1,4})-([0-9]{1,2})-([0-9]{1,2})' +
+      'T' +
+      '([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})' +
+      '(.([0-9]+))?' +
+      'Z$'
+  );
   var match = regexp.exec(iso8601);
   if (!match) {
     return null;
@@ -168,7 +198,7 @@ const setValue = (target, key, value) => {
   const segs = key.split('.');
   const lastSeg = segs.pop();
   let currentTarget = target;
-  segs.forEach((seg) => {
+  segs.forEach(seg => {
     if (currentTarget[seg] === undefined) currentTarget[seg] = {};
     currentTarget = currentTarget[seg];
   });

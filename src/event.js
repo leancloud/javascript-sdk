@@ -30,7 +30,6 @@ module.exports = function(AV) {
      * function. Passing `"all"` will bind the callback to all events fired.
      */
     on: function(events, callback, context) {
-
       var calls, event, node, tail, list;
       if (!callback) {
         return this;
@@ -48,7 +47,7 @@ module.exports = function(AV) {
         node.next = tail = {};
         node.context = context;
         node.callback = callback;
-        calls[event] = {tail: tail, next: list ? list.next : node};
+        calls[event] = { tail: tail, next: list ? list.next : node };
         event = events.shift();
       }
 
@@ -137,7 +136,7 @@ module.exports = function(AV) {
       }
 
       return this;
-    }
+    },
   };
 
   /**

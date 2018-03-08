@@ -1,15 +1,15 @@
 'use strict';
 
-var GameScore = AV.Object.extend("GameScore");
+var GameScore = AV.Object.extend('GameScore');
 
-var Post=AV.Object.extend("Post");
+var Post = AV.Object.extend('Post');
 
 // for #extend test
 class Person extends AV.Object {}
 class UglifiedClass extends AV.Object {}
 var BackbonePerson = AV.Object.extend('Person');
 
-describe('Objects', function(){
+describe('Objects', function() {
   var objId;
   var gameScore = GameScore.new();
   after(function() {
@@ -22,28 +22,31 @@ describe('Objects', function(){
       },
       set: function(value) {
         return this.set('name', value);
-      }
+      },
     });
     new Post().name;
   });
-  
+
   it('reserved keys', () => {
-    (() => new Person({
-      objectId: '0'
-    })).should.throwError(/reserved/);
-    (() => new Person({
-      createdAt: '0'
-    })).should.throwError(/reserved/);
-    (() => new Person({
-      updatedAt: '0'
-    })).should.throwError(/reserved/);
+    (() =>
+      new Person({
+        objectId: '0',
+      })).should.throwError(/reserved/);
+    (() =>
+      new Person({
+        createdAt: '0',
+      })).should.throwError(/reserved/);
+    (() =>
+      new Person({
+        updatedAt: '0',
+      })).should.throwError(/reserved/);
     (() => new Person().set('objectId', '1')).should.throwError(/reserved/);
-  })
+  });
 
   describe('#extend', () => {
     it('extend for multiple times should not throw', () => {
       let Test;
-      for (var i=100000; i > 0; i--) {
+      for (var i = 100000; i > 0; i--) {
         Test = AV.Object.extend('Test');
       }
       new Test();
@@ -63,36 +66,36 @@ describe('Objects', function(){
       AV.Object.register(Person);
       expect(new AV.Object('Person')).to.be.a(Person);
       expect(() => AV.Object.register(1)).to.throwError();
-      expect(() => AV.Object.register(function(){})).to.throwError();
+      expect(() => AV.Object.register(function() {})).to.throwError();
     });
 
     it('#register with name', () => {
       AV.Object.register(UglifiedClass, 'RealClass');
       expect(new AV.Object('RealClass')).to.be.a(UglifiedClass);
       expect(AV._encode(new UglifiedClass()).className).to.equal('RealClass');
-    })
+    });
   });
 
-  describe('#Saving Objects', function(){
-    it('should crate a Object', function(){
+  describe('#Saving Objects', function() {
+    it('should crate a Object', function() {
       //gameScore.set("newcol","sss")
       var myPost = new Post();
-      myPost.set("title", "post1");
-      myPost.set("content", "Where should we go for lunch?");
-      var point = new AV.GeoPoint({latitude: 80.01, longitude: -30.01});
-      myPost.set("geo",point);
+      myPost.set('title', 'post1');
+      myPost.set('content', 'Where should we go for lunch?');
+      var point = new AV.GeoPoint({ latitude: 80.01, longitude: -30.01 });
+      myPost.set('geo', point);
       return myPost.save();
     });
 
     it('should create another Object', function() {
-      gameScore.set("score", 1111);
-      gameScore.set("playerName", "dd");
-      gameScore.set("cheatMode", false);
-      gameScore.set("arr", ["arr1","arr2"]);
+      gameScore.set('score', 1111);
+      gameScore.set('playerName', 'dd');
+      gameScore.set('cheatMode', false);
+      gameScore.set('arr', ['arr1', 'arr2']);
       gameScore.set('id', 'id');
       return gameScore.save().then(function(result) {
         expect(result.id).to.be.ok();
-        objId=result.id;
+        objId = result.id;
       });
     });
 
@@ -190,76 +193,78 @@ describe('Objects', function(){
       });
 
       const response = {
-        "__type":'Object',
-        "className":'A',
-        "foo": "bar",
-        "createdAt": "2017-02-15T14:08:39.892Z",
-        "updatedAt": "2017-02-20T07:31:57.808Z",
-        "b": {
-          "a": {
-            "foo": "bar",
-            "createdAt": "2017-02-15T14:08:39.892Z",
-            "updatedAt": "2017-02-20T07:31:57.808Z",
-            "b": {
-              "__type": "Pointer",
-              "className": "B",
-              "objectId": "58a461118d6d8100580a0c54"
+        __type: 'Object',
+        className: 'A',
+        foo: 'bar',
+        createdAt: '2017-02-15T14:08:39.892Z',
+        updatedAt: '2017-02-20T07:31:57.808Z',
+        b: {
+          a: {
+            foo: 'bar',
+            createdAt: '2017-02-15T14:08:39.892Z',
+            updatedAt: '2017-02-20T07:31:57.808Z',
+            b: {
+              __type: 'Pointer',
+              className: 'B',
+              objectId: '58a461118d6d8100580a0c54',
             },
-            "time": {
-              "__type": "Date",
-              "iso": "2011-11-11T03:11:11.000Z"
+            time: {
+              __type: 'Date',
+              iso: '2011-11-11T03:11:11.000Z',
             },
-            "file": {
-              "__type": "Pointer",
-              "className": "_File",
-              "objectId": "58a42299570c35006cdfdd5c"
+            file: {
+              __type: 'Pointer',
+              className: '_File',
+              objectId: '58a42299570c35006cdfdd5c',
             },
-            "objectId": "58a460e78d6d810057e9f616",
-            "__type": "Pointer",
-            "className": "A"
+            objectId: '58a460e78d6d810057e9f616',
+            __type: 'Pointer',
+            className: 'A',
           },
-          "createdAt": "2017-02-15T14:09:21.965Z",
-          "updatedAt": "2017-02-15T14:09:21.965Z",
-          "objectId": "58a461118d6d8100580a0c54",
-          "__type": "Pointer",
-          "className": "B"
+          createdAt: '2017-02-15T14:09:21.965Z',
+          updatedAt: '2017-02-15T14:09:21.965Z',
+          objectId: '58a461118d6d8100580a0c54',
+          __type: 'Pointer',
+          className: 'B',
         },
-        "time": {
-          "__type": "Date",
-          "iso": "2011-11-11T03:11:11.000Z"
+        time: {
+          __type: 'Date',
+          iso: '2011-11-11T03:11:11.000Z',
         },
-        "file": {
-          "mime_type": "image/jpeg",
-          "updatedAt": "2017-02-15T09:42:49.960Z",
-          "name": "file-name.jpg",
-          "objectId": "58a42299570c35006cdfdd5c",
-          "createdAt": "2017-02-15T09:42:49.960Z",
-          "__type": "File",
-          "url": "http://ac-rYAutyUJ.clouddn.com/9a403255e8e55d309d81.jpg",
-          "metaData": {
-            "owner": "589aeac3128fe10058fde344"
+        file: {
+          mime_type: 'image/jpeg',
+          updatedAt: '2017-02-15T09:42:49.960Z',
+          name: 'file-name.jpg',
+          objectId: '58a42299570c35006cdfdd5c',
+          createdAt: '2017-02-15T09:42:49.960Z',
+          __type: 'File',
+          url: 'http://ac-rYAutyUJ.clouddn.com/9a403255e8e55d309d81.jpg',
+          metaData: {
+            owner: '589aeac3128fe10058fde344',
           },
-          "bucket": "rYAutyUJ"
+          bucket: 'rYAutyUJ',
         },
-        "inlineFile": {
-          "name": "README.md",
-          "url": "http://ac-rYAutyUJ.clouddn.com/c5e38dfc54ab3db0c051.md",
-          "mime_type": "application/octet-stream",
-          "bucket": "rYAutyUJ",
-          "metaData": {
-            "owner": "unknown",
-            "size": 3296
+        inlineFile: {
+          name: 'README.md',
+          url: 'http://ac-rYAutyUJ.clouddn.com/c5e38dfc54ab3db0c051.md',
+          mime_type: 'application/octet-stream',
+          bucket: 'rYAutyUJ',
+          metaData: {
+            owner: 'unknown',
+            size: 3296,
           },
-          "objectId": "58aaac378d6d810058b790dd",
-          "createdAt": "2017-02-20T08:43:35.719Z",
-          "updatedAt": "2017-02-20T08:43:35.719Z",
-          "__type": "File"
+          objectId: '58aaac378d6d810058b790dd',
+          createdAt: '2017-02-20T08:43:35.719Z',
+          updatedAt: '2017-02-20T08:43:35.719Z',
+          __type: 'File',
         },
-        "objectId": "58a460e78d6d810057e9f616"
+        objectId: '58a460e78d6d810057e9f616',
       };
-      
-      AV.parseJSON(response).toFullJSON().should.eql(response);
-      
+
+      AV.parseJSON(response)
+        .toFullJSON()
+        .should.eql(response);
+
       // should be shallow for backward compatiblity
       a._toFullJSON().should.eql({
         __type: 'Object',
@@ -272,21 +277,21 @@ describe('Objects', function(){
       });
     });
 
-    it('should create a User',function(){
-      var User = AV.Object.extend("User");
+    it('should create a User', function() {
+      var User = AV.Object.extend('User');
       var u = new User();
-      var r=Math.random();
-      u.set("username","u"+r);
-      u.set("password","11111111");
-      u.set("email","u"+r+"@test.com");
+      var r = Math.random();
+      u.set('username', 'u' + r);
+      u.set('password', '11111111');
+      u.set('email', 'u' + r + '@test.com');
       return u.save();
     });
 
-    it('should validate failed.', function(){
+    it('should validate failed.', function() {
       var TestObject = AV.Object.extend('TestObject', {
-        validate: function (attrs, options){
+        validate: function(attrs, options) {
           throw new Error('test');
-        }
+        },
       });
       var testObject = new TestObject();
       (() => testObject.set('a', 1)).should.throwError({
@@ -307,8 +312,8 @@ describe('Objects', function(){
           __type: 'File',
           id: '11111111111',
           name: 'avatar',
-          url: 'url'
-        }
+          url: 'url',
+        },
       };
       const originalString = JSON.stringify(originalValue);
       new GameScore().set('user', originalValue);
@@ -332,9 +337,9 @@ describe('Objects', function(){
     });
   });
 
-  describe("Retrieving Objects",function(){
-    it("should be the just save Object",function(){
-      var GameScore = AV.Object.extend("GameScore");
+  describe('Retrieving Objects', function() {
+    it('should be the just save Object', function() {
+      var GameScore = AV.Object.extend('GameScore');
       debug(objId);
       return GameScore.query.get(objId).then(function(result) {
         expect(gameScore.id).to.be.ok();
@@ -344,38 +349,41 @@ describe('Objects', function(){
     });
   });
 
-  describe("Updating Objects",function(){
-    it("should update prop",function(){
-      gameScore.set("score", 10000);
+  describe('Updating Objects', function() {
+    it('should update prop', function() {
+      gameScore.set('score', 10000);
       return gameScore.save().then(function(result) {
         expect(result.id).to.be.ok();
       });
     });
-    it('should not update prop when query not match',function(){
+    it('should not update prop when query not match', function() {
       gameScore.set('score', 10000);
-      return gameScore.save(null, {
-        query: new AV.Query(GameScore).equalTo('score', -1),
-      }).should.be.rejectedWith({
-        code: 305,
-      });
+      return gameScore
+        .save(null, {
+          query: new AV.Query(GameScore).equalTo('score', -1),
+        })
+        .should.be.rejectedWith({
+          code: 305,
+        });
     });
-    it('should update prop when query match',function(){
+    it('should update prop when query match', function() {
       gameScore.set('score', 10000);
       return gameScore.save(null, {
         query: new AV.Query(GameScore).notEqualTo('score', -1),
-        fetchWhenSave: true
+        fetchWhenSave: true,
       });
     });
   });
 
   describe('Fetching Objects', () => {
     it('fetch', () =>
-      AV.Object.createWithoutData('GameScore', gameScore.id).fetch().then(score => {
-        expect(score.get('score')).to.be.a('number');
-        expect(score.createdAt).to.be.a(Date);
-        expect(score.id).to.be.eql(gameScore.id);
-      })
-    );
+      AV.Object.createWithoutData('GameScore', gameScore.id)
+        .fetch()
+        .then(score => {
+          expect(score.get('score')).to.be.a('number');
+          expect(score.createdAt).to.be.a(Date);
+          expect(score.id).to.be.eql(gameScore.id);
+        }));
     it('fetchAll', () =>
       AV.Object.fetchAll([
         AV.Object.createWithoutData('GameScore', gameScore.id),
@@ -387,42 +395,46 @@ describe('Objects', function(){
         expect(score2.get('score')).to.be.a('number');
         expect(score2.createdAt).to.be.a(Date);
         expect(score2.id).to.be.eql(gameScore.id);
-      })
-    );
+      }));
     it('fetchAll with non-existed Class/object should fail', () =>
       AV.Object.fetchAll([
         AV.Object.createWithoutData('GameScore', gameScore.id),
         AV.Object.createWithoutData('GameScore', 'fakeId'),
         AV.Object.createWithoutData('FakeClass', gameScore.id),
-      ]).catch(error => {
-        error.message.should.eql('Object not found.');
-        error.results.should.be.length(3);
-        error.results[0].should.be.instanceof(GameScore);
-        error.results[1].should.be.instanceof(Error);
-        error.results[2].should.be.instanceof(Error);
-        throw new Error('handled error');
-      }).should.be.rejectedWith('handled error')
-    );
+      ])
+        .catch(error => {
+          error.message.should.eql('Object not found.');
+          error.results.should.be.length(3);
+          error.results[0].should.be.instanceof(GameScore);
+          error.results[1].should.be.instanceof(Error);
+          error.results[2].should.be.instanceof(Error);
+          throw new Error('handled error');
+        })
+        .should.be.rejectedWith('handled error'));
     it('fetchAll with dirty objet should fail', () =>
       AV.Object.fetchAll([
         AV.Object.createWithoutData('GameScore', gameScore.id),
         new GameScore(),
-      ]).should.be.rejected()
-    );
+      ]).should.be.rejected());
   });
 
-  describe("Deleting Objects",function(){
-    it("should delete object",function(){
-      return new GameScore().save().then(gameScore =>
-        gameScore.destroy().then(() =>
-          GameScore.query.get(gameScore.id)
-            .should.be.rejectedWith('Object not found.')
-        )
-      )
+  describe('Deleting Objects', function() {
+    it('should delete object', function() {
+      return new GameScore()
+        .save()
+        .then(gameScore =>
+          gameScore
+            .destroy()
+            .then(() =>
+              GameScore.query
+                .get(gameScore.id)
+                .should.be.rejectedWith('Object not found.')
+            )
+        );
     });
   });
 
-  describe('Array Data', function () {
+  describe('Array Data', function() {
     let post;
     beforeEach(function() {
       post = new Post({
@@ -435,110 +447,132 @@ describe('Objects', function(){
     });
 
     it('add', function() {
-      return post.add('data', 2).save().then(function() {
-        return post.fetch();
-      }).then(function(post) {
-        expect(post.get('data')).to.be.eql([1,2,2]);
-      });
+      return post
+        .add('data', 2)
+        .save()
+        .then(function() {
+          return post.fetch();
+        })
+        .then(function(post) {
+          expect(post.get('data')).to.be.eql([1, 2, 2]);
+        });
     });
     it('addUnique', function() {
-      return post.addUnique('data', 2).save().then(function() {
-        return post.fetch();
-      }).then(function(post) {
-        expect(post.get('data')).to.be.eql([1,2]);
-      });
+      return post
+        .addUnique('data', 2)
+        .save()
+        .then(function() {
+          return post.fetch();
+        })
+        .then(function(post) {
+          expect(post.get('data')).to.be.eql([1, 2]);
+        });
     });
     it('remove', function() {
-      return post.remove('data', 2).save().then(function() {
-        return post.fetch();
-      }).then(function(post) {
-        expect(post.get('data')).to.be.eql([1]);
-      });
+      return post
+        .remove('data', 2)
+        .save()
+        .then(function() {
+          return post.fetch();
+        })
+        .then(function(post) {
+          expect(post.get('data')).to.be.eql([1]);
+        });
     });
     it('accept array param', function() {
-      return post.remove('data', [2]).save().then(function() {
-        return post.fetch();
-      }).then(function(post) {
-        expect(post.get('data')).to.be.eql([1]);
-      });
+      return post
+        .remove('data', [2])
+        .save()
+        .then(function() {
+          return post.fetch();
+        })
+        .then(function(post) {
+          expect(post.get('data')).to.be.eql([1]);
+        });
     });
   });
 
-  describe("Relational Data",function(){
-
-    var commentId,myComment,myPost,relation;
-    it("should set relation ",function(){
-
+  describe('Relational Data', function() {
+    var commentId, myComment, myPost, relation;
+    it('should set relation ', function() {
       // Declare the types.
-      var Post = AV.Object.extend("Post");
-      var Comment = AV.Object.extend("Comment");
+      var Post = AV.Object.extend('Post');
+      var Comment = AV.Object.extend('Comment');
 
       // Create the post
 
       myPost = Post.new();
-      myPost.set("title", "post1");
-      myPost.set("author", "author1");
-      myPost.set("content", "Where should we go for lunch?");
-      var point = new AV.GeoPoint({latitude: 80.01, longitude: -30.01});
-      myPost.set("location",point);
+      myPost.set('title', 'post1');
+      myPost.set('author', 'author1');
+      myPost.set('content', 'Where should we go for lunch?');
+      var point = new AV.GeoPoint({ latitude: 80.01, longitude: -30.01 });
+      myPost.set('location', point);
 
       // Create the comment
       myComment = new Comment();
-      myComment.set("content", "comment1");
+      myComment.set('content', 'comment1');
 
       // Add a relation between the Post and Comment
-      myComment.set("parent", myPost);
+      myComment.set('parent', myPost);
 
       // This will save both myPost and myComment
-      return myComment.save().then(function(myComment){
-        var query = new AV.Query(Comment);
-        query.include("parent");
-        return query.get(myComment.id);
-      }).then(function(obj) {
-        expect(obj.get("parent").get("title")).to.be("post1");
-      });
+      return myComment
+        .save()
+        .then(function(myComment) {
+          var query = new AV.Query(Comment);
+          query.include('parent');
+          return query.get(myComment.id);
+        })
+        .then(function(obj) {
+          expect(obj.get('parent').get('title')).to.be('post1');
+        });
     });
 
-    var Person=AV.Object.extend("Person");
+    var Person = AV.Object.extend('Person');
     var p;
 
-    it("should create a Person",function(){
-      var Person = AV.Object.extend("Person");
+    it('should create a Person', function() {
+      var Person = AV.Object.extend('Person');
       p = new Person();
-      p.set("pname","person1");
+      p.set('pname', 'person1');
       return p.save();
     });
 
-    it("should create many to many relations",function(){
+    it('should create many to many relations', function() {
       return Promise.all([
         new AV.Query(Post).first(),
         new AV.Query(Person).first(),
-      ]).then(function([post, p]){
-        var relation = p.relation("likes");
-        relation.add(post);
-        p.set("pname","plike1");
-        return p.save();
-      }).then(function() {
-        debug(p.toJSON());
-        debug(p.get("likes"));
-      });
+      ])
+        .then(function([post, p]) {
+          var relation = p.relation('likes');
+          relation.add(post);
+          p.set('pname', 'plike1');
+          return p.save();
+        })
+        .then(function() {
+          debug(p.toJSON());
+          debug(p.get('likes'));
+        });
     });
 
-    it("should save all successfully", function(){
-      var Person=AV.Object.extend("Person");
-      var query=new AV.Query(Person);
-      return query.first().then(function(result){
-        var person = AV.Object.createWithoutData('Person', result.id);
-        person.set('age', 30);
-        return AV.Object.saveAll([person]);
-      }).then(([person]) => {
-        person.id.should.be.ok();
-        person.get('age').should.eql(30);
-      });
+    it('should save all successfully', function() {
+      var Person = AV.Object.extend('Person');
+      var query = new AV.Query(Person);
+      return query
+        .first()
+        .then(function(result) {
+          var person = AV.Object.createWithoutData('Person', result.id);
+          person.set('age', 30);
+          return AV.Object.saveAll([person]);
+        })
+        .then(([person]) => {
+          person.id.should.be.ok();
+          person.get('age').should.eql(30);
+        });
     });
 
-    it("should save all partially", function(){
-      var Person = AV.Object.extend("Person");
+    it('should save all partially', function() {
+      var Person = AV.Object.extend('Person');
       return AV.Object.saveAll([
         AV.Object.createWithoutData('Person', 'fakeid').set('age', 30),
         new Person({
@@ -554,84 +588,96 @@ describe('Objects', function(){
       });
     });
 
-    it("should query relational data",function(){
-      var Person=AV.Object.extend("Person");
-      var query=new AV.Query(Person);
-      return query.first().then(function(result){
-        var relation = result.relation("likes");
+    it('should query relational data', function() {
+      var Person = AV.Object.extend('Person');
+      var query = new AV.Query(Person);
+      return query.first().then(function(result) {
+        var relation = result.relation('likes');
         return relation.query().find();
       });
     });
 
-    it("should fetch when save", function(){
-      var query=new AV.Query(Person);
-      return query.first().then(function(person){
-        var person2 = new Person();
-        person2.id = person.id;
-        person2.set('age', 0);
-        person2.increment('age',9);
-        return person2.save();
-      }).then(function(person){
-        person.increment('age', 10);
-        return person.save(null, {
-          fetchWhenSave: true
+    it('should fetch when save', function() {
+      var query = new AV.Query(Person);
+      return query
+        .first()
+        .then(function(person) {
+          var person2 = new Person();
+          person2.id = person.id;
+          person2.set('age', 0);
+          person2.increment('age', 9);
+          return person2.save();
+        })
+        .then(function(person) {
+          person.increment('age', 10);
+          return person.save(null, {
+            fetchWhenSave: true,
+          });
+        })
+        .then(function(p) {
+          expect(p.get('age')).to.be(19);
         });
-      }).then(function(p){
-        expect(p.get('age')).to.be(19);
-      });
     });
 
     // 需要在控制台配置 Person company 默认值为 'leancloud'
-    it("should fetch when save when creating new object.", function(){
-      var p= new Person();
+    it('should fetch when save when creating new object.', function() {
+      var p = new Person();
       p.set('pname', 'dennis');
-      return p.save(null, {
-        fetchWhenSave: true
-      }).then(function(person) {
-        expect(person.get('company')).to.be('leancloud');
-      });
+      return p
+        .save(null, {
+          fetchWhenSave: true,
+        })
+        .then(function(person) {
+          expect(person.get('company')).to.be('leancloud');
+        });
     });
 
     it('should fetch include authors successfully', function() {
       var myPost = new Post();
-      myPost.set('author1', new Person({name: '1'}));
-      myPost.set('author2', new Person({name: '2'}));
+      myPost.set('author1', new Person({ name: '1' }));
+      myPost.set('author2', new Person({ name: '2' }));
       return myPost.save().then(function() {
         myPost = AV.Object.createWithoutData('Post', myPost.id);
-        return myPost.fetch({include: ['author1', 'author2']}, {}).then(function() {
-          expect(myPost.get('author1').get('name')).to.be('1');
-          expect(myPost.get('author2').get('name')).to.be('2');
-        });
+        return myPost
+          .fetch({ include: ['author1', 'author2'] }, {})
+          .then(function() {
+            expect(myPost.get('author1').get('name')).to.be('1');
+            expect(myPost.get('author2').get('name')).to.be('2');
+          });
       });
     });
 
     it('should compatible with previous include option of fetch', function() {
       var myPost = new Post();
-      myPost.set('author1', new Person({name: '1'}));
-      myPost.set('author2', new Person({name: '2'}));
+      myPost.set('author1', new Person({ name: '1' }));
+      myPost.set('author2', new Person({ name: '2' }));
       return myPost.save().then(function() {
         myPost = AV.Object.createWithoutData('Post', myPost.id);
-        return myPost.fetch({include: 'author1, author2'}, {}).then(function() {
-          expect(myPost.get('author1').get('name')).to.be('1');
-          expect(myPost.get('author2').get('name')).to.be('2');
-        });
+        return myPost
+          .fetch({ include: 'author1, author2' }, {})
+          .then(function() {
+            expect(myPost.get('author1').get('name')).to.be('1');
+            expect(myPost.get('author2').get('name')).to.be('2');
+          });
       });
     });
 
-    it("fetchOptions keys", function(){
+    it('fetchOptions keys', function() {
       var person = new Person();
       person.set('pname', 'dennis');
-      person.set('age', 1)
-      return person.save().then(() =>
-        AV.Object.createWithoutData('Person', person.id).fetch({
-          keys: ['pname'],
-        })
-      ).then(function(person) {
-        expect(person.get('pname')).to.be('dennis');
-        expect(person.get('age')).to.be(undefined);
-      });
+      person.set('age', 1);
+      return person
+        .save()
+        .then(() =>
+          AV.Object.createWithoutData('Person', person.id).fetch({
+            keys: ['pname'],
+          })
+        )
+        .then(function(person) {
+          expect(person.get('pname')).to.be('dennis');
+          expect(person.get('age')).to.be(undefined);
+        });
     });
-
   });
 
   describe('Bit operations', function() {
@@ -639,36 +685,45 @@ describe('Objects', function(){
       var score = new GameScore();
       score.bitAnd('flags', 0b1);
       expect(score.get('flags')).to.be(0);
-      return score.save().then(() => {
-        expect(score.get('flags')).to.be(0);
-        return GameScore.query.get(score.id);
-      }).then((savedScore) => {
-        expect(savedScore.get('flags')).to.be(0);
-      });
+      return score
+        .save()
+        .then(() => {
+          expect(score.get('flags')).to.be(0);
+          return GameScore.query.get(score.id);
+        })
+        .then(savedScore => {
+          expect(savedScore.get('flags')).to.be(0);
+        });
     });
 
     it('bit or', function() {
       var score = new GameScore();
       score.bitOr('flags', 0b1);
       expect(score.get('flags')).to.be(0b1);
-      return score.save().then(() => {
-        expect(score.get('flags')).to.be(0b1);
-        return GameScore.query.get(score.id);
-      }).then((savedScore) => {
-        expect(savedScore.get('flags')).to.be(0b1);
-      });
+      return score
+        .save()
+        .then(() => {
+          expect(score.get('flags')).to.be(0b1);
+          return GameScore.query.get(score.id);
+        })
+        .then(savedScore => {
+          expect(savedScore.get('flags')).to.be(0b1);
+        });
     });
 
     it('bit xor', function() {
       var score = new GameScore();
       score.bitXor('flags', 0b1);
       expect(score.get('flags')).to.be(0b1);
-      return score.save().then(() => {
-        expect(score.get('flags')).to.be(0b1);
-        return GameScore.query.get(score.id);
-      }).then((savedScore) => {
-        expect(savedScore.get('flags')).to.be(0b1);
-      });
+      return score
+        .save()
+        .then(() => {
+          expect(score.get('flags')).to.be(0b1);
+          return GameScore.query.get(score.id);
+        })
+        .then(savedScore => {
+          expect(savedScore.get('flags')).to.be(0b1);
+        });
     });
   });
 
@@ -690,19 +745,18 @@ describe('Objects', function(){
           __type: 'Pointer',
           className: 'C',
           objectId: id,
-        }
+        },
       });
       const b = a.get('b')[0];
       const c = a.get('c');
-      b.set({a});
+      b.set({ a });
       a._dirty().should.eql(false);
       b._dirty().should.eql(true);
       c._dirty().should.eql(false);
-      c.set({a});
+      c.set({ a });
       a._dirty().should.eql(false);
       b._dirty().should.eql(true);
       c._dirty().should.eql(true);
     });
-  })
-
-});//END  RETRIEVING
+  });
+}); //END  RETRIEVING

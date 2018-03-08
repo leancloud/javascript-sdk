@@ -1,7 +1,6 @@
 var _ = require('underscore');
 
 module.exports = function(AV) {
-
   /**
    * @private
    * @class
@@ -19,9 +18,12 @@ module.exports = function(AV) {
     this._initialize.apply(this, arguments);
   };
 
-  _.extend(AV.Op.prototype, /** @lends AV.Op.prototype */ {
-    _initialize: function() {}
-  });
+  _.extend(
+    AV.Op.prototype,
+    /** @lends AV.Op.prototype */ {
+      _initialize: function() {},
+    }
+  );
 
   _.extend(AV.Op, {
     /**
@@ -53,13 +55,13 @@ module.exports = function(AV) {
       } else {
         return undefined;
       }
-    }
+    },
   });
 
   /*
    * Add a handler for Batch ops.
    */
-  AV.Op._registerDecoder("Batch", function(json) {
+  AV.Op._registerDecoder('Batch', function(json) {
     var op = null;
     AV._arrayEach(json.ops, function(nextOp) {
       nextOp = AV.Op._decode(nextOp);
@@ -75,34 +77,36 @@ module.exports = function(AV) {
    * AV.Object.set, or it is a mutable container that was detected as being
    * changed.
    */
-  AV.Op.Set = AV.Op._extend(/** @lends AV.Op.Set.prototype */ {
-    _initialize: function(value) {
-      this._value = value;
-    },
+  AV.Op.Set = AV.Op._extend(
+    /** @lends AV.Op.Set.prototype */ {
+      _initialize: function(value) {
+        this._value = value;
+      },
 
-    /**
-     * Returns the new value of this field after the set.
-     */
-    value: function() {
-      return this._value;
-    },
+      /**
+       * Returns the new value of this field after the set.
+       */
+      value: function() {
+        return this._value;
+      },
 
-    /**
-     * Returns a JSON version of the operation suitable for sending to AV.
-     * @return {Object}
-     */
-    toJSON: function() {
-      return AV._encode(this.value());
-    },
+      /**
+       * Returns a JSON version of the operation suitable for sending to AV.
+       * @return {Object}
+       */
+      toJSON: function() {
+        return AV._encode(this.value());
+      },
 
-    _mergeWithPrevious: function(previous) {
-      return this;
-    },
+      _mergeWithPrevious: function(previous) {
+        return this;
+      },
 
-    _estimate: function(oldValue) {
-      return this.value();
+      _estimate: function(oldValue) {
+        return this.value();
+      },
     }
-  });
+  );
 
   /**
    * A sentinel value that is returned by AV.Op.Unset._estimate to
@@ -117,25 +121,27 @@ module.exports = function(AV) {
    * An Unset operation indicates that this field has been deleted from the
    * object.
    */
-  AV.Op.Unset = AV.Op._extend(/** @lends AV.Op.Unset.prototype */ {
-    /**
-     * Returns a JSON version of the operation suitable for sending to AV.
-     * @return {Object}
-     */
-    toJSON: function() {
-      return { __op: "Delete" };
-    },
+  AV.Op.Unset = AV.Op._extend(
+    /** @lends AV.Op.Unset.prototype */ {
+      /**
+       * Returns a JSON version of the operation suitable for sending to AV.
+       * @return {Object}
+       */
+      toJSON: function() {
+        return { __op: 'Delete' };
+      },
 
-    _mergeWithPrevious: function(previous) {
-      return this;
-    },
+      _mergeWithPrevious: function(previous) {
+        return this;
+      },
 
-    _estimate: function(oldValue) {
-      return AV.Op._UNSET;
+      _estimate: function(oldValue) {
+        return AV.Op._UNSET;
+      },
     }
-  });
+  );
 
-  AV.Op._registerDecoder("Delete", function(json) {
+  AV.Op._registerDecoder('Delete', function(json) {
     return new AV.Op.Unset();
   });
 
@@ -146,51 +152,51 @@ module.exports = function(AV) {
    * will be increased by a given amount.
    */
   AV.Op.Increment = AV.Op._extend(
-      /** @lends AV.Op.Increment.prototype */ {
+    /** @lends AV.Op.Increment.prototype */ {
+      _initialize: function(amount) {
+        this._amount = amount;
+      },
 
-    _initialize: function(amount) {
-      this._amount = amount;
-    },
+      /**
+       * Returns the amount to increment by.
+       * @return {Number} the amount to increment by.
+       */
+      amount: function() {
+        return this._amount;
+      },
 
-    /**
-     * Returns the amount to increment by.
-     * @return {Number} the amount to increment by.
-     */
-    amount: function() {
-      return this._amount;
-    },
+      /**
+       * Returns a JSON version of the operation suitable for sending to AV.
+       * @return {Object}
+       */
+      toJSON: function() {
+        return { __op: 'Increment', amount: this._amount };
+      },
 
-    /**
-     * Returns a JSON version of the operation suitable for sending to AV.
-     * @return {Object}
-     */
-    toJSON: function() {
-      return { __op: "Increment", amount: this._amount };
-    },
+      _mergeWithPrevious: function(previous) {
+        if (!previous) {
+          return this;
+        } else if (previous instanceof AV.Op.Unset) {
+          return new AV.Op.Set(this.amount());
+        } else if (previous instanceof AV.Op.Set) {
+          return new AV.Op.Set(previous.value() + this.amount());
+        } else if (previous instanceof AV.Op.Increment) {
+          return new AV.Op.Increment(this.amount() + previous.amount());
+        } else {
+          throw new Error('Op is invalid after previous op.');
+        }
+      },
 
-    _mergeWithPrevious: function(previous) {
-      if (!previous) {
-        return this;
-      } else if (previous instanceof AV.Op.Unset) {
-        return new AV.Op.Set(this.amount());
-      } else if (previous instanceof AV.Op.Set) {
-        return new AV.Op.Set(previous.value() + this.amount());
-      } else if (previous instanceof AV.Op.Increment) {
-        return new AV.Op.Increment(this.amount() + previous.amount());
-      } else {
-        throw new Error('Op is invalid after previous op.');
-      }
-    },
-
-    _estimate: function(oldValue) {
-      if (!oldValue) {
-        return this.amount();
-      }
-      return oldValue + this.amount();
+      _estimate: function(oldValue) {
+        if (!oldValue) {
+          return this.amount();
+        }
+        return oldValue + this.amount();
+      },
     }
-  });
+  );
 
-  AV.Op._registerDecoder("Increment", function(json) {
+  AV.Op._registerDecoder('Increment', function(json) {
     return new AV.Op.Increment(json.amount);
   });
 
@@ -200,41 +206,43 @@ module.exports = function(AV) {
    * BitAnd is an atomic operation where the given value will be bit and to the
    * value than is stored in this field.
    */
-  AV.Op.BitAnd = AV.Op._extend(/** @lends AV.Op.BitAnd.prototype */ {
-    _initialize(value) {
-      this._value = value;
-    },
+  AV.Op.BitAnd = AV.Op._extend(
+    /** @lends AV.Op.BitAnd.prototype */ {
+      _initialize(value) {
+        this._value = value;
+      },
 
-    value() {
-      return this._value;
-    },
+      value() {
+        return this._value;
+      },
 
-    /**
-     * Returns a JSON version of the operation suitable for sending to AV.
-     * @return {Object}
-     */
-    toJSON() {
-      return { __op: 'BitAnd', value: this.value() };
-    },
+      /**
+       * Returns a JSON version of the operation suitable for sending to AV.
+       * @return {Object}
+       */
+      toJSON() {
+        return { __op: 'BitAnd', value: this.value() };
+      },
 
-    _mergeWithPrevious(previous) {
-      if (!previous) {
-        return this;
-      } else if (previous instanceof AV.Op.Unset) {
-        return new AV.Op.Set(0);
-      } else if (previous instanceof AV.Op.Set) {
-        return new AV.Op.Set(previous.value() & this.value());
-      } else {
-        throw new Error('Op is invalid after previous op.');
-      }
-    },
+      _mergeWithPrevious(previous) {
+        if (!previous) {
+          return this;
+        } else if (previous instanceof AV.Op.Unset) {
+          return new AV.Op.Set(0);
+        } else if (previous instanceof AV.Op.Set) {
+          return new AV.Op.Set(previous.value() & this.value());
+        } else {
+          throw new Error('Op is invalid after previous op.');
+        }
+      },
 
-    _estimate(oldValue) {
-      return oldValue & this.value();
-    },
-  });
+      _estimate(oldValue) {
+        return oldValue & this.value();
+      },
+    }
+  );
 
-  AV.Op._registerDecoder('BitAnd', function (json) {
+  AV.Op._registerDecoder('BitAnd', function(json) {
     return new AV.Op.BitAnd(json.value);
   });
 
@@ -244,41 +252,43 @@ module.exports = function(AV) {
    * BitOr is an atomic operation where the given value will be bit and to the
    * value than is stored in this field.
    */
-  AV.Op.BitOr = AV.Op._extend(/** @lends AV.Op.BitOr.prototype */ {
-    _initialize(value) {
-      this._value = value;
-    },
+  AV.Op.BitOr = AV.Op._extend(
+    /** @lends AV.Op.BitOr.prototype */ {
+      _initialize(value) {
+        this._value = value;
+      },
 
-    value() {
-      return this._value;
-    },
+      value() {
+        return this._value;
+      },
 
-    /**
-     * Returns a JSON version of the operation suitable for sending to AV.
-     * @return {Object}
-     */
-    toJSON() {
-      return { __op: 'BitOr', value: this.value() };
-    },
+      /**
+       * Returns a JSON version of the operation suitable for sending to AV.
+       * @return {Object}
+       */
+      toJSON() {
+        return { __op: 'BitOr', value: this.value() };
+      },
 
-    _mergeWithPrevious(previous) {
-      if (!previous) {
-        return this;
-      } else if (previous instanceof AV.Op.Unset) {
-        return new AV.Op.Set(this.value());
-      } else if (previous instanceof AV.Op.Set) {
-        return new AV.Op.Set(previous.value() | this.value());
-      } else {
-        throw new Error('Op is invalid after previous op.');
-      }
-    },
+      _mergeWithPrevious(previous) {
+        if (!previous) {
+          return this;
+        } else if (previous instanceof AV.Op.Unset) {
+          return new AV.Op.Set(this.value());
+        } else if (previous instanceof AV.Op.Set) {
+          return new AV.Op.Set(previous.value() | this.value());
+        } else {
+          throw new Error('Op is invalid after previous op.');
+        }
+      },
 
-    _estimate(oldValue) {
-      return oldValue | this.value();
-    },
-  });
+      _estimate(oldValue) {
+        return oldValue | this.value();
+      },
+    }
+  );
 
-  AV.Op._registerDecoder('BitOr', function (json) {
+  AV.Op._registerDecoder('BitOr', function(json) {
     return new AV.Op.BitOr(json.value);
   });
 
@@ -288,41 +298,43 @@ module.exports = function(AV) {
    * BitXor is an atomic operation where the given value will be bit and to the
    * value than is stored in this field.
    */
-  AV.Op.BitXor = AV.Op._extend(/** @lends AV.Op.BitXor.prototype */ {
-    _initialize(value) {
-      this._value = value;
-    },
+  AV.Op.BitXor = AV.Op._extend(
+    /** @lends AV.Op.BitXor.prototype */ {
+      _initialize(value) {
+        this._value = value;
+      },
 
-    value() {
-      return this._value;
-    },
+      value() {
+        return this._value;
+      },
 
-    /**
-     * Returns a JSON version of the operation suitable for sending to AV.
-     * @return {Object}
-     */
-    toJSON() {
-      return { __op: 'BitXor', value: this.value() };
-    },
+      /**
+       * Returns a JSON version of the operation suitable for sending to AV.
+       * @return {Object}
+       */
+      toJSON() {
+        return { __op: 'BitXor', value: this.value() };
+      },
 
-    _mergeWithPrevious(previous) {
-      if (!previous) {
-        return this;
-      } else if (previous instanceof AV.Op.Unset) {
-        return new AV.Op.Set(this.value());
-      } else if (previous instanceof AV.Op.Set) {
-        return new AV.Op.Set(previous.value() ^ this.value());
-      } else {
-        throw new Error('Op is invalid after previous op.');
-      }
-    },
+      _mergeWithPrevious(previous) {
+        if (!previous) {
+          return this;
+        } else if (previous instanceof AV.Op.Unset) {
+          return new AV.Op.Set(this.value());
+        } else if (previous instanceof AV.Op.Set) {
+          return new AV.Op.Set(previous.value() ^ this.value());
+        } else {
+          throw new Error('Op is invalid after previous op.');
+        }
+      },
 
-    _estimate(oldValue) {
-      return oldValue ^ this.value();
-    },
-  });
+      _estimate(oldValue) {
+        return oldValue ^ this.value();
+      },
+    }
+  );
 
-  AV.Op._registerDecoder('BitXor', function (json) {
+  AV.Op._registerDecoder('BitXor', function(json) {
     return new AV.Op.BitXor(json.value);
   });
 
@@ -332,51 +344,53 @@ module.exports = function(AV) {
    * Add is an atomic operation where the given objects will be appended to the
    * array that is stored in this field.
    */
-  AV.Op.Add = AV.Op._extend(/** @lends AV.Op.Add.prototype */ {
-    _initialize: function(objects) {
-      this._objects = objects;
-    },
+  AV.Op.Add = AV.Op._extend(
+    /** @lends AV.Op.Add.prototype */ {
+      _initialize: function(objects) {
+        this._objects = objects;
+      },
 
-    /**
-     * Returns the objects to be added to the array.
-     * @return {Array} The objects to be added to the array.
-     */
-    objects: function() {
-      return this._objects;
-    },
+      /**
+       * Returns the objects to be added to the array.
+       * @return {Array} The objects to be added to the array.
+       */
+      objects: function() {
+        return this._objects;
+      },
 
-    /**
-     * Returns a JSON version of the operation suitable for sending to AV.
-     * @return {Object}
-     */
-    toJSON: function() {
-      return { __op: "Add", objects: AV._encode(this.objects()) };
-    },
+      /**
+       * Returns a JSON version of the operation suitable for sending to AV.
+       * @return {Object}
+       */
+      toJSON: function() {
+        return { __op: 'Add', objects: AV._encode(this.objects()) };
+      },
 
-    _mergeWithPrevious: function(previous) {
-      if (!previous) {
-        return this;
-      } else if (previous instanceof AV.Op.Unset) {
-        return new AV.Op.Set(this.objects());
-      } else if (previous instanceof AV.Op.Set) {
-        return new AV.Op.Set(this._estimate(previous.value()));
-      } else if (previous instanceof AV.Op.Add) {
-        return new AV.Op.Add(previous.objects().concat(this.objects()));
-      } else {
-        throw new Error('Op is invalid after previous op.');
-      }
-    },
+      _mergeWithPrevious: function(previous) {
+        if (!previous) {
+          return this;
+        } else if (previous instanceof AV.Op.Unset) {
+          return new AV.Op.Set(this.objects());
+        } else if (previous instanceof AV.Op.Set) {
+          return new AV.Op.Set(this._estimate(previous.value()));
+        } else if (previous instanceof AV.Op.Add) {
+          return new AV.Op.Add(previous.objects().concat(this.objects()));
+        } else {
+          throw new Error('Op is invalid after previous op.');
+        }
+      },
 
-    _estimate: function(oldValue) {
-      if (!oldValue) {
-        return _.clone(this.objects());
-      } else {
-        return oldValue.concat(this.objects());
-      }
+      _estimate: function(oldValue) {
+        if (!oldValue) {
+          return _.clone(this.objects());
+        } else {
+          return oldValue.concat(this.objects());
+        }
+      },
     }
-  });
+  );
 
-  AV.Op._registerDecoder("Add", function(json) {
+  AV.Op._registerDecoder('Add', function(json) {
     return new AV.Op.Add(AV._decode(json.objects));
   });
 
@@ -388,71 +402,71 @@ module.exports = function(AV) {
    * present in the array.
    */
   AV.Op.AddUnique = AV.Op._extend(
-      /** @lends AV.Op.AddUnique.prototype */ {
+    /** @lends AV.Op.AddUnique.prototype */ {
+      _initialize: function(objects) {
+        this._objects = _.uniq(objects);
+      },
 
-    _initialize: function(objects) {
-      this._objects = _.uniq(objects);
-    },
+      /**
+       * Returns the objects to be added to the array.
+       * @return {Array} The objects to be added to the array.
+       */
+      objects: function() {
+        return this._objects;
+      },
 
-    /**
-     * Returns the objects to be added to the array.
-     * @return {Array} The objects to be added to the array.
-     */
-    objects: function() {
-      return this._objects;
-    },
+      /**
+       * Returns a JSON version of the operation suitable for sending to AV.
+       * @return {Object}
+       */
+      toJSON: function() {
+        return { __op: 'AddUnique', objects: AV._encode(this.objects()) };
+      },
 
-    /**
-     * Returns a JSON version of the operation suitable for sending to AV.
-     * @return {Object}
-     */
-    toJSON: function() {
-      return { __op: "AddUnique", objects: AV._encode(this.objects()) };
-    },
+      _mergeWithPrevious: function(previous) {
+        if (!previous) {
+          return this;
+        } else if (previous instanceof AV.Op.Unset) {
+          return new AV.Op.Set(this.objects());
+        } else if (previous instanceof AV.Op.Set) {
+          return new AV.Op.Set(this._estimate(previous.value()));
+        } else if (previous instanceof AV.Op.AddUnique) {
+          return new AV.Op.AddUnique(this._estimate(previous.objects()));
+        } else {
+          throw new Error('Op is invalid after previous op.');
+        }
+      },
 
-    _mergeWithPrevious: function(previous) {
-      if (!previous) {
-        return this;
-      } else if (previous instanceof AV.Op.Unset) {
-        return new AV.Op.Set(this.objects());
-      } else if (previous instanceof AV.Op.Set) {
-        return new AV.Op.Set(this._estimate(previous.value()));
-      } else if (previous instanceof AV.Op.AddUnique) {
-        return new AV.Op.AddUnique(this._estimate(previous.objects()));
-      } else {
-        throw new Error('Op is invalid after previous op.');
-      }
-    },
-
-    _estimate: function(oldValue) {
-      if (!oldValue) {
-        return _.clone(this.objects());
-      } else {
-        // We can't just take the _.uniq(_.union(...)) of oldValue and
-        // this.objects, because the uniqueness may not apply to oldValue
-        // (especially if the oldValue was set via .set())
-        var newValue = _.clone(oldValue);
-        AV._arrayEach(this.objects(), function(obj) {
-          if (obj instanceof AV.Object && obj.id) {
-            var matchingObj = _.find(newValue, function(anObj) {
-              return (anObj instanceof AV.Object) && (anObj.id === obj.id);
-            });
-            if (!matchingObj) {
+      _estimate: function(oldValue) {
+        if (!oldValue) {
+          return _.clone(this.objects());
+        } else {
+          // We can't just take the _.uniq(_.union(...)) of oldValue and
+          // this.objects, because the uniqueness may not apply to oldValue
+          // (especially if the oldValue was set via .set())
+          var newValue = _.clone(oldValue);
+          AV._arrayEach(this.objects(), function(obj) {
+            if (obj instanceof AV.Object && obj.id) {
+              var matchingObj = _.find(newValue, function(anObj) {
+                return anObj instanceof AV.Object && anObj.id === obj.id;
+              });
+              if (!matchingObj) {
+                newValue.push(obj);
+              } else {
+                var index = _.indexOf(newValue, matchingObj);
+                newValue[index] = obj;
+              }
+            } else if (!_.contains(newValue, obj)) {
               newValue.push(obj);
-            } else {
-              var index = _.indexOf(newValue, matchingObj);
-              newValue[index] = obj;
             }
-          } else if (!_.contains(newValue, obj)) {
-            newValue.push(obj);
-          }
-        });
-        return newValue;
-      }
+          });
+          return newValue;
+        }
+      },
     }
-  });
+  );
 
-  AV.Op._registerDecoder("AddUnique", function(json) {
+  AV.Op._registerDecoder('AddUnique', function(json) {
     return new AV.Op.AddUnique(AV._decode(json.objects));
   });
 
@@ -462,60 +476,62 @@ module.exports = function(AV) {
    * Remove is an atomic operation where the given objects will be removed from
    * the array that is stored in this field.
    */
-  AV.Op.Remove = AV.Op._extend(/** @lends AV.Op.Remove.prototype */ {
-    _initialize: function(objects) {
-      this._objects = _.uniq(objects);
-    },
+  AV.Op.Remove = AV.Op._extend(
+    /** @lends AV.Op.Remove.prototype */ {
+      _initialize: function(objects) {
+        this._objects = _.uniq(objects);
+      },
 
-    /**
-     * Returns the objects to be removed from the array.
-     * @return {Array} The objects to be removed from the array.
-     */
-    objects: function() {
-      return this._objects;
-    },
+      /**
+       * Returns the objects to be removed from the array.
+       * @return {Array} The objects to be removed from the array.
+       */
+      objects: function() {
+        return this._objects;
+      },
 
-    /**
-     * Returns a JSON version of the operation suitable for sending to AV.
-     * @return {Object}
-     */
-    toJSON: function() {
-      return { __op: "Remove", objects: AV._encode(this.objects()) };
-    },
+      /**
+       * Returns a JSON version of the operation suitable for sending to AV.
+       * @return {Object}
+       */
+      toJSON: function() {
+        return { __op: 'Remove', objects: AV._encode(this.objects()) };
+      },
 
-    _mergeWithPrevious: function(previous) {
-      if (!previous) {
-        return this;
-      } else if (previous instanceof AV.Op.Unset) {
-        return previous;
-      } else if (previous instanceof AV.Op.Set) {
-        return new AV.Op.Set(this._estimate(previous.value()));
-      } else if (previous instanceof AV.Op.Remove) {
-        return new AV.Op.Remove(_.union(previous.objects(), this.objects()));
-      } else {
-        throw new Error('Op is invalid after previous op.');
-      }
-    },
+      _mergeWithPrevious: function(previous) {
+        if (!previous) {
+          return this;
+        } else if (previous instanceof AV.Op.Unset) {
+          return previous;
+        } else if (previous instanceof AV.Op.Set) {
+          return new AV.Op.Set(this._estimate(previous.value()));
+        } else if (previous instanceof AV.Op.Remove) {
+          return new AV.Op.Remove(_.union(previous.objects(), this.objects()));
+        } else {
+          throw new Error('Op is invalid after previous op.');
+        }
+      },
 
-    _estimate: function(oldValue) {
-      if (!oldValue) {
-        return [];
-      } else {
-        var newValue = _.difference(oldValue, this.objects());
-        // If there are saved AV Objects being removed, also remove them.
-        AV._arrayEach(this.objects(), function(obj) {
-          if (obj instanceof AV.Object && obj.id) {
-            newValue = _.reject(newValue, function(other) {
-              return (other instanceof AV.Object) && (other.id === obj.id);
-            });
-          }
-        });
-        return newValue;
-      }
+      _estimate: function(oldValue) {
+        if (!oldValue) {
+          return [];
+        } else {
+          var newValue = _.difference(oldValue, this.objects());
+          // If there are saved AV Objects being removed, also remove them.
+          AV._arrayEach(this.objects(), function(obj) {
+            if (obj instanceof AV.Object && obj.id) {
+              newValue = _.reject(newValue, function(other) {
+                return other instanceof AV.Object && other.id === obj.id;
+              });
+            }
+          });
+          return newValue;
+        }
+      },
     }
-  });
+  );
 
-  AV.Op._registerDecoder("Remove", function(json) {
+  AV.Op._registerDecoder('Remove', function(json) {
     return new AV.Op.Remove(AV._decode(json.objects));
   });
 
@@ -527,146 +543,168 @@ module.exports = function(AV) {
    * relation.
    */
   AV.Op.Relation = AV.Op._extend(
-      /** @lends AV.Op.Relation.prototype */ {
+    /** @lends AV.Op.Relation.prototype */ {
+      _initialize: function(adds, removes) {
+        this._targetClassName = null;
 
-    _initialize: function(adds, removes) {
-      this._targetClassName = null;
+        var self = this;
 
-      var self = this;
-
-      var pointerToId = function(object) {
-        if (object instanceof AV.Object) {
-          if (!object.id) {
-            throw new Error('You can\'t add an unsaved AV.Object to a relation.');
-          }
-          if (!self._targetClassName) {
-            self._targetClassName = object.className;
-          }
-          if (self._targetClassName !== object.className) {
-            throw new Error("Tried to create a AV.Relation with 2 different types: " +
-                  self._targetClassName + " and " + object.className + ".");
-          }
-          return object.id;
-        }
-        return object;
-      };
-
-      this.relationsToAdd = _.uniq(_.map(adds, pointerToId));
-      this.relationsToRemove = _.uniq(_.map(removes, pointerToId));
-    },
-
-    /**
-     * Returns an array of unfetched AV.Object that are being added to the
-     * relation.
-     * @return {Array}
-     */
-    added: function() {
-      var self = this;
-      return _.map(this.relationsToAdd, function(objectId) {
-        var object = AV.Object._create(self._targetClassName);
-        object.id = objectId;
-        return object;
-      });
-    },
-
-    /**
-     * Returns an array of unfetched AV.Object that are being removed from
-     * the relation.
-     * @return {Array}
-     */
-    removed: function() {
-      var self = this;
-      return _.map(this.relationsToRemove, function(objectId) {
-        var object = AV.Object._create(self._targetClassName);
-        object.id = objectId;
-        return object;
-      });
-    },
-
-    /**
-     * Returns a JSON version of the operation suitable for sending to AV.
-     * @return {Object}
-     */
-    toJSON: function() {
-      var adds = null;
-      var removes = null;
-      var self = this;
-      var idToPointer = function(id) {
-        return { __type: 'Pointer',
-                 className: self._targetClassName,
-                 objectId: id };
-      };
-      var pointers = null;
-      if (this.relationsToAdd.length > 0) {
-        pointers = _.map(this.relationsToAdd, idToPointer);
-        adds = { "__op": "AddRelation", "objects": pointers };
-      }
-
-      if (this.relationsToRemove.length > 0) {
-        pointers = _.map(this.relationsToRemove, idToPointer);
-        removes = { "__op": "RemoveRelation", "objects": pointers };
-      }
-
-      if (adds && removes) {
-        return { "__op": "Batch", "ops": [adds, removes]};
-      }
-
-      return adds || removes || {};
-    },
-
-    _mergeWithPrevious: function(previous) {
-      if (!previous) {
-        return this;
-      } else if (previous instanceof AV.Op.Unset) {
-        throw new Error('You can\'t modify a relation after deleting it.');
-      } else if (previous instanceof AV.Op.Relation) {
-        if (previous._targetClassName &&
-            previous._targetClassName !== this._targetClassName) {
-          throw new Error("Related object must be of class " + previous._targetClassName +
-              ", but " + this._targetClassName + " was passed in.");
-        }
-        var newAdd = _.union(_.difference(previous.relationsToAdd,
-                                          this.relationsToRemove),
-                             this.relationsToAdd);
-        var newRemove = _.union(_.difference(previous.relationsToRemove,
-                                             this.relationsToAdd),
-                                this.relationsToRemove);
-
-        var newRelation = new AV.Op.Relation(newAdd, newRemove);
-        newRelation._targetClassName = this._targetClassName;
-        return newRelation;
-      } else {
-        throw new Error('Op is invalid after previous op.');
-      }
-    },
-
-    _estimate: function(oldValue, object, key) {
-      if (!oldValue) {
-        var relation = new AV.Relation(object, key);
-        relation.targetClassName = this._targetClassName;
-      } else if (oldValue instanceof AV.Relation) {
-        if (this._targetClassName) {
-          if (oldValue.targetClassName) {
-            if (oldValue.targetClassName !== this._targetClassName) {
-              throw new Error("Related object must be a " + oldValue.targetClassName +
-                  ", but a " + this._targetClassName + " was passed in.");
+        var pointerToId = function(object) {
+          if (object instanceof AV.Object) {
+            if (!object.id) {
+              throw new Error(
+                "You can't add an unsaved AV.Object to a relation."
+              );
             }
-          } else {
-            oldValue.targetClassName = this._targetClassName;
+            if (!self._targetClassName) {
+              self._targetClassName = object.className;
+            }
+            if (self._targetClassName !== object.className) {
+              throw new Error(
+                'Tried to create a AV.Relation with 2 different types: ' +
+                  self._targetClassName +
+                  ' and ' +
+                  object.className +
+                  '.'
+              );
+            }
+            return object.id;
           }
-        }
-        return oldValue;
-      } else {
-        throw new Error('Op is invalid after previous op.');
-      }
-    }
-  });
+          return object;
+        };
 
-  AV.Op._registerDecoder("AddRelation", function(json) {
+        this.relationsToAdd = _.uniq(_.map(adds, pointerToId));
+        this.relationsToRemove = _.uniq(_.map(removes, pointerToId));
+      },
+
+      /**
+       * Returns an array of unfetched AV.Object that are being added to the
+       * relation.
+       * @return {Array}
+       */
+      added: function() {
+        var self = this;
+        return _.map(this.relationsToAdd, function(objectId) {
+          var object = AV.Object._create(self._targetClassName);
+          object.id = objectId;
+          return object;
+        });
+      },
+
+      /**
+       * Returns an array of unfetched AV.Object that are being removed from
+       * the relation.
+       * @return {Array}
+       */
+      removed: function() {
+        var self = this;
+        return _.map(this.relationsToRemove, function(objectId) {
+          var object = AV.Object._create(self._targetClassName);
+          object.id = objectId;
+          return object;
+        });
+      },
+
+      /**
+       * Returns a JSON version of the operation suitable for sending to AV.
+       * @return {Object}
+       */
+      toJSON: function() {
+        var adds = null;
+        var removes = null;
+        var self = this;
+        var idToPointer = function(id) {
+          return {
+            __type: 'Pointer',
+            className: self._targetClassName,
+            objectId: id,
+          };
+        };
+        var pointers = null;
+        if (this.relationsToAdd.length > 0) {
+          pointers = _.map(this.relationsToAdd, idToPointer);
+          adds = { __op: 'AddRelation', objects: pointers };
+        }
+
+        if (this.relationsToRemove.length > 0) {
+          pointers = _.map(this.relationsToRemove, idToPointer);
+          removes = { __op: 'RemoveRelation', objects: pointers };
+        }
+
+        if (adds && removes) {
+          return { __op: 'Batch', ops: [adds, removes] };
+        }
+
+        return adds || removes || {};
+      },
+
+      _mergeWithPrevious: function(previous) {
+        if (!previous) {
+          return this;
+        } else if (previous instanceof AV.Op.Unset) {
+          throw new Error("You can't modify a relation after deleting it.");
+        } else if (previous instanceof AV.Op.Relation) {
+          if (
+            previous._targetClassName &&
+            previous._targetClassName !== this._targetClassName
+          ) {
+            throw new Error(
+              'Related object must be of class ' +
+                previous._targetClassName +
+                ', but ' +
+                this._targetClassName +
+                ' was passed in.'
+            );
+          }
+          var newAdd = _.union(
+            _.difference(previous.relationsToAdd, this.relationsToRemove),
+            this.relationsToAdd
+          );
+          var newRemove = _.union(
+            _.difference(previous.relationsToRemove, this.relationsToAdd),
+            this.relationsToRemove
+          );
+
+          var newRelation = new AV.Op.Relation(newAdd, newRemove);
+          newRelation._targetClassName = this._targetClassName;
+          return newRelation;
+        } else {
+          throw new Error('Op is invalid after previous op.');
+        }
+      },
+
+      _estimate: function(oldValue, object, key) {
+        if (!oldValue) {
+          var relation = new AV.Relation(object, key);
+          relation.targetClassName = this._targetClassName;
+        } else if (oldValue instanceof AV.Relation) {
+          if (this._targetClassName) {
+            if (oldValue.targetClassName) {
+              if (oldValue.targetClassName !== this._targetClassName) {
+                throw new Error(
+                  'Related object must be a ' +
+                    oldValue.targetClassName +
+                    ', but a ' +
+                    this._targetClassName +
+                    ' was passed in.'
+                );
+              }
+            } else {
+              oldValue.targetClassName = this._targetClassName;
+            }
+          }
+          return oldValue;
+        } else {
+          throw new Error('Op is invalid after previous op.');
+        }
+      },
+    }
+  );
+
+  AV.Op._registerDecoder('AddRelation', function(json) {
     return new AV.Op.Relation(AV._decode(json.objects), []);
   });
-  AV.Op._registerDecoder("RemoveRelation", function(json) {
+  AV.Op._registerDecoder('RemoveRelation', function(json) {
     return new AV.Op.Relation([], AV._decode(json.objects));
   });
-
 };

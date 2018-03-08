@@ -1,7 +1,9 @@
 const storage = require('./localstorage');
 const AV = require('./av');
 
-const removeAsync = exports.removeAsync = storage.removeItemAsync.bind(storage);
+const removeAsync = (exports.removeAsync = storage.removeItemAsync.bind(
+  storage
+));
 
 const getCacheData = (cacheData, key) => {
   try {
@@ -19,10 +21,9 @@ const getCacheData = (cacheData, key) => {
   return null;
 };
 
-exports.getAsync = (key) => {
+exports.getAsync = key => {
   key = `AV/${AV.applicationId}/${key}`;
-  return storage.getItemAsync(key)
-    .then(cache => getCacheData(cache, key));
+  return storage.getItemAsync(key).then(cache => getCacheData(cache, key));
 };
 
 exports.setAsync = (key, value, ttl) => {
@@ -32,6 +33,6 @@ exports.setAsync = (key, value, ttl) => {
   }
   return storage.setItemAsync(
     `AV/${AV.applicationId}/${key}`,
-     JSON.stringify(cache)
-   );
+    JSON.stringify(cache)
+  );
 };

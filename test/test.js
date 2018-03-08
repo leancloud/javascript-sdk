@@ -1,6 +1,6 @@
 'use strict';
 
-if (!process) process = { env: {}};
+if (!process) process = { env: {} };
 
 if (typeof require !== 'undefined') {
   global.debug = require('debug')('test');

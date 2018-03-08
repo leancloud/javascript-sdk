@@ -8,16 +8,22 @@
     "url": "https://github.com/leancloud/javascript-sdk"
   },
   "scripts": {
+    "precommit": "pretty-quick --staged",
     "lint": "tsc storage.d.ts",
     "test": "npm run lint && npm run test:node",
-    "test:node": "cross-env NODE_ENV=test nyc --reporter lcov --reporter text mocha --timeout 300000 test/index.js",
+    "test:node":
+      "cross-env NODE_ENV=test nyc --reporter lcov --reporter text mocha --timeout 300000 test/index.js",
     "docs": "jsdoc src README.md package.json -d docs -c .jsdocrc.json",
     "build:node": "gulp babel-node",
-    "build:browser": "cross-env CLIENT_PLATFORM=Browser webpack --config webpack/browser.js",
-    "build:rn": "cross-env CLIENT_PLATFORM=ReactNative webpack --config webpack/rn.js",
-    "build:weapp": "cross-env CLIENT_PLATFORM=Weapp webpack --config webpack/weapp.js",
+    "build:browser":
+      "cross-env CLIENT_PLATFORM=Browser webpack --config webpack/browser.js",
+    "build:rn":
+      "cross-env CLIENT_PLATFORM=ReactNative webpack --config webpack/rn.js",
+    "build:weapp":
+      "cross-env CLIENT_PLATFORM=Weapp webpack --config webpack/weapp.js",
     "build": "gulp build && npm run build:live-query",
-    "build:live-query": "export LIVE_QUERY=1 && npm run build:browser && npm run build:rn && npm run build:weapp",
+    "build:live-query":
+      "export LIVE_QUERY=1 && npm run build:browser && npm run build:rn && npm run build:weapp",
     "prepublishOnly": "./script/check-version.js"
   },
   "dependencies": {
@@ -49,9 +55,12 @@
     "gulp-babel": "^6.1.1",
     "gulp-clean": "^0.3.1",
     "gulp-shell": "^0.5.2",
+    "husky": "^0.14.3",
     "jsdoc": "^3.5.5",
     "mocha": "^3.0.0",
     "nyc": "^8.1.0",
+    "prettier": "^1.11.1",
+    "pretty-quick": "^1.4.1",
     "qiniu": "^6.1.11",
     "should": "^11.1.0",
     "typescript": "^2.4.1",
@@ -83,10 +92,12 @@
   },
   "typings": "./storage.d.ts",
   "types": "./storage.d.ts",
+  "prettier": {
+    "singleQuote": true,
+    "trailingComma": "es5"
+  },
   "nyc": {
-    "require": [
-      "babel-register"
-    ],
+    "require": ["babel-register"],
     "sourceMap": false,
     "instrument": false
   }

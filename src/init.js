@@ -1,12 +1,7 @@
 const AV = require('./av');
 const AppRouter = require('./app-router');
-const {
-  isNullOrUndefined,
-} = require('./utils');
-const {
-  extend,
-  isObject,
-} = require('underscore');
+const { isNullOrUndefined } = require('./utils');
+const { extend, isObject } = require('underscore');
 
 const fillServerURLs = url => ({
   push: url,
@@ -48,18 +43,18 @@ let _disableAppRouter = false;
  */
 
 /**
-  * Call this method first to set up your authentication tokens for AV.
-  * You can get your app keys from the LeanCloud dashboard on http://leancloud.cn .
-  * @function AV.init
-  * @param {Object} options
-  * @param {String} options.appId application id
-  * @param {String} options.appKey application key
-  * @param {String} [options.masterKey] application master key
-  * @param {String} [options.region='cn'] region
-  * @param {Boolean} [options.production]
-  * @param {String|ServerURLs} [options.serverURLs] URLs for services. if a string was given, it will be applied for all services.
-  * @param {Boolean} [options.disableCurrentUser]
-  */
+ * Call this method first to set up your authentication tokens for AV.
+ * You can get your app keys from the LeanCloud dashboard on http://leancloud.cn .
+ * @function AV.init
+ * @param {Object} options
+ * @param {String} options.appId application id
+ * @param {String} options.appKey application key
+ * @param {String} [options.masterKey] application master key
+ * @param {String} [options.region='cn'] region
+ * @param {Boolean} [options.production]
+ * @param {String|ServerURLs} [options.serverURLs] URLs for services. if a string was given, it will be applied for all services.
+ * @param {Boolean} [options.disableCurrentUser]
+ */
 AV.init = function init(options, ...params) {
   if (!isObject(options)) {
     return AV.init({
@@ -83,21 +78,28 @@ AV.init = function init(options, ...params) {
   if (AV.applicationId) throw new Error('SDK is already initialized.');
   if (!appId) throw new TypeError('appId must be a string');
   if (!appKey) throw new TypeError('appKey must be a string');
-  if (process.env.CLIENT_PLATFORM && masterKey) console.warn('MasterKey is not supposed to be used in browser.');
+  if (process.env.CLIENT_PLATFORM && masterKey)
+    console.warn('MasterKey is not supposed to be used in browser.');
   AV._config.applicationId = appId;
   AV._config.applicationKey = appKey;
   AV._config.masterKey = masterKey;
-  if (!process.env.CLIENT_PLATFORM) AV._config.hookKey = hookKey || process.env.LEANCLOUD_APP_HOOK_KEY;
+  if (!process.env.CLIENT_PLATFORM)
+    AV._config.hookKey = hookKey || process.env.LEANCLOUD_APP_HOOK_KEY;
   if (typeof production !== 'undefined') AV._config.production = production;
-  if (typeof disableCurrentUser !== 'undefined') AV._config.disableCurrentUser = disableCurrentUser;
+  if (typeof disableCurrentUser !== 'undefined')
+    AV._config.disableCurrentUser = disableCurrentUser;
   AV._appRouter = new AppRouter(AV);
-  const disableAppRouter = _disableAppRouter || typeof serverURLs !== 'undefined' || region !== 'cn';
-  AV._setServerURLs(extend(
-    {},
-    getDefaultServerURLs(appId, region),
-    AV._config.serverURLs,
-    typeof serverURLs === 'string' ? fillServerURLs(serverURLs) : serverURLs,
-  ), disableAppRouter);
+  const disableAppRouter =
+    _disableAppRouter || typeof serverURLs !== 'undefined' || region !== 'cn';
+  AV._setServerURLs(
+    extend(
+      {},
+      getDefaultServerURLs(appId, region),
+      AV._config.serverURLs,
+      typeof serverURLs === 'string' ? fillServerURLs(serverURLs) : serverURLs
+    ),
+    disableAppRouter
+  );
   if (realtime) {
     AV._config.realtime = realtime;
   } else if (AV._sharedConfig.liveQueryRealtime) {
@@ -130,7 +132,7 @@ if (!process.env.CLIENT_PLATFORM) {
  * @param {Boolean} production True is production environment,and
  *  it's true by default.
  */
-AV.setProduction = (production) => {
+AV.setProduction = production => {
   if (!isNullOrUndefined(production)) {
     AV._config.production = production ? 1 : 0;
   } else {
@@ -171,22 +173,25 @@ AV.keepErrorRawMessage = value => {
  * Note that file upload requests are not affected.
  * @function AV.setRequestTimeout
  * @since 3.6.0
- * @param {number} ms 
+ * @param {number} ms
  */
 AV.setRequestTimeout = ms => {
   AV._config.requestTimeout = ms;
-}
+};
 
 // backword compatible
 AV.initialize = AV.init;
 
-const defineConfig = property => Object.defineProperty(AV, property, {
-  get() {
-    return AV._config[property];
-  },
-  set(value) {
-    AV._config[property] = value;
-  },
-});
+const defineConfig = property =>
+  Object.defineProperty(AV, property, {
+    get() {
+      return AV._config[property];
+    },
+    set(value) {
+      AV._config[property] = value;
+    },
+  });
 
-['applicationId', 'applicationKey', 'masterKey', 'hookKey'].forEach(defineConfig);
+['applicationId', 'applicationKey', 'masterKey', 'hookKey'].forEach(
+  defineConfig
+);

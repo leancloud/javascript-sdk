@@ -6,7 +6,8 @@ module.exports = function upload(uploadInfo, data, file, saveOptions = {}) {
   file.attributes.url = uploadInfo.url;
   file._bucket = uploadInfo.bucket;
   file.id = uploadInfo.objectId;
-  const uploadUrl = uploadInfo.upload_url + "?sign=" + encodeURIComponent(uploadInfo.token);
+  const uploadUrl =
+    uploadInfo.upload_url + '?sign=' + encodeURIComponent(uploadInfo.token);
 
   return new Promise((resolve, reject) => {
     const req = request('POST', uploadUrl)

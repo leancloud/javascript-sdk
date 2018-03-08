@@ -50,17 +50,17 @@ module.exports = function(AV) {
       // getters and setters for latitude and longitude.
       this._latitude = this.latitude;
       this._longitude = this.longitude;
-      this.__defineGetter__("latitude", function() {
+      this.__defineGetter__('latitude', function() {
         return self._latitude;
       });
-      this.__defineGetter__("longitude", function() {
+      this.__defineGetter__('longitude', function() {
         return self._longitude;
       });
-      this.__defineSetter__("latitude", function(val) {
+      this.__defineSetter__('latitude', function(val) {
         AV.GeoPoint._validate(val, self.longitude);
         self._latitude = val;
       });
-      this.__defineSetter__("longitude", function(val) {
+      this.__defineSetter__('longitude', function(val) {
         AV.GeoPoint._validate(self.latitude, val);
         self._longitude = val;
       });
@@ -81,16 +81,16 @@ module.exports = function(AV) {
    */
   AV.GeoPoint._validate = function(latitude, longitude) {
     if (latitude < -90.0) {
-      throw new Error("AV.GeoPoint latitude " + latitude + " < -90.0.");
+      throw new Error('AV.GeoPoint latitude ' + latitude + ' < -90.0.');
     }
     if (latitude > 90.0) {
-      throw new Error("AV.GeoPoint latitude " + latitude + " > 90.0.");
+      throw new Error('AV.GeoPoint latitude ' + latitude + ' > 90.0.');
     }
     if (longitude < -180.0) {
-      throw new Error("AV.GeoPoint longitude " + longitude + " < -180.0.");
+      throw new Error('AV.GeoPoint longitude ' + longitude + ' < -180.0.');
     }
     if (longitude > 180.0) {
-      throw new Error("AV.GeoPoint longitude " + longitude + " > 180.0.");
+      throw new Error('AV.GeoPoint longitude ' + longitude + ' > 180.0.');
     }
   };
 
@@ -98,68 +98,77 @@ module.exports = function(AV) {
    * Creates a GeoPoint with the user's current location, if available.
    * @return {Promise.<AV.GeoPoint>}
    */
-  AV.GeoPoint.current = () => new AV.Promise((resolve, reject) => {
-    navigator.geolocation.getCurrentPosition(function(location) {
-      resolve(new AV.GeoPoint({
-        latitude: location.coords.latitude,
-        longitude: location.coords.longitude
-      }));
-    }, reject);
-  });
+  AV.GeoPoint.current = () =>
+    new AV.Promise((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(function(location) {
+        resolve(
+          new AV.GeoPoint({
+            latitude: location.coords.latitude,
+            longitude: location.coords.longitude,
+          })
+        );
+      }, reject);
+    });
 
-  _.extend(AV.GeoPoint.prototype, /** @lends AV.GeoPoint.prototype */ {
-    /**
-     * Returns a JSON representation of the GeoPoint, suitable for AV.
-     * @return {Object}
-     */
-    toJSON: function() {
-      AV.GeoPoint._validate(this.latitude, this.longitude);
-      return {
-        "__type": "GeoPoint",
-        latitude: this.latitude,
-        longitude: this.longitude
-      };
-    },
+  _.extend(
+    AV.GeoPoint.prototype,
+    /** @lends AV.GeoPoint.prototype */ {
+      /**
+       * Returns a JSON representation of the GeoPoint, suitable for AV.
+       * @return {Object}
+       */
+      toJSON: function() {
+        AV.GeoPoint._validate(this.latitude, this.longitude);
+        return {
+          __type: 'GeoPoint',
+          latitude: this.latitude,
+          longitude: this.longitude,
+        };
+      },
 
-    /**
-     * Returns the distance from this GeoPoint to another in radians.
-     * @param {AV.GeoPoint} point the other AV.GeoPoint.
-     * @return {Number}
-     */
-    radiansTo: function(point) {
-      var d2r = Math.PI / 180.0;
-      var lat1rad = this.latitude * d2r;
-      var long1rad = this.longitude * d2r;
-      var lat2rad = point.latitude * d2r;
-      var long2rad = point.longitude * d2r;
-      var deltaLat = lat1rad - lat2rad;
-      var deltaLong = long1rad - long2rad;
-      var sinDeltaLatDiv2 = Math.sin(deltaLat / 2);
-      var sinDeltaLongDiv2 = Math.sin(deltaLong / 2);
-      // Square of half the straight line chord distance between both points.
-      var a = ((sinDeltaLatDiv2 * sinDeltaLatDiv2) +
-               (Math.cos(lat1rad) * Math.cos(lat2rad) *
-                sinDeltaLongDiv2 * sinDeltaLongDiv2));
-      a = Math.min(1.0, a);
-      return 2 * Math.asin(Math.sqrt(a));
-    },
+      /**
+       * Returns the distance from this GeoPoint to another in radians.
+       * @param {AV.GeoPoint} point the other AV.GeoPoint.
+       * @return {Number}
+       */
+      radiansTo: function(point) {
+        var d2r = Math.PI / 180.0;
+        var lat1rad = this.latitude * d2r;
+        var long1rad = this.longitude * d2r;
+        var lat2rad = point.latitude * d2r;
+        var long2rad = point.longitude * d2r;
+        var deltaLat = lat1rad - lat2rad;
+        var deltaLong = long1rad - long2rad;
+        var sinDeltaLatDiv2 = Math.sin(deltaLat / 2);
+        var sinDeltaLongDiv2 = Math.sin(deltaLong / 2);
+        // Square of half the straight line chord distance between both points.
+        var a =
+          sinDeltaLatDiv2 * sinDeltaLatDiv2 +
+          Math.cos(lat1rad) *
+            Math.cos(lat2rad) *
+            sinDeltaLongDiv2 *
+            sinDeltaLongDiv2;
+        a = Math.min(1.0, a);
+        return 2 * Math.asin(Math.sqrt(a));
+      },
 
-    /**
-     * Returns the distance from this GeoPoint to another in kilometers.
-     * @param {AV.GeoPoint} point the other AV.GeoPoint.
-     * @return {Number}
-     */
-    kilometersTo: function(point) {
-      return this.radiansTo(point) * 6371.0;
-    },
+      /**
+       * Returns the distance from this GeoPoint to another in kilometers.
+       * @param {AV.GeoPoint} point the other AV.GeoPoint.
+       * @return {Number}
+       */
+      kilometersTo: function(point) {
+        return this.radiansTo(point) * 6371.0;
+      },
 
-    /**
-     * Returns the distance from this GeoPoint to another in miles.
-     * @param {AV.GeoPoint} point the other AV.GeoPoint.
-     * @return {Number}
-     */
-    milesTo: function(point) {
-      return this.radiansTo(point) * 3958.8;
+      /**
+       * Returns the distance from this GeoPoint to another in miles.
+       * @param {AV.GeoPoint} point the other AV.GeoPoint.
+       * @return {Number}
+       */
+      milesTo: function(point) {
+        return this.radiansTo(point) * 3958.8;
+      },
     }
-  });
+  );
 };

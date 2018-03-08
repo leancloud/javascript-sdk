@@ -1,7 +1,7 @@
 var _ = require('underscore');
 
 module.exports = function(AV) {
-  var PUBLIC_KEY = "*";
+  var PUBLIC_KEY = '*';
 
   /**
    * Creates a new ACL.
@@ -26,7 +26,9 @@ module.exports = function(AV) {
         self.setWriteAccess(arg1, true);
       } else {
         if (_.isFunction(arg1)) {
-          throw new Error('AV.ACL() called with a function.  Did you forget ()?');
+          throw new Error(
+            'AV.ACL() called with a function.  Did you forget ()?'
+          );
         }
         AV._objectEach(arg1, function(accessList, userId) {
           if (!_.isString(userId)) {
@@ -34,11 +36,15 @@ module.exports = function(AV) {
           }
           self.permissionsById[userId] = {};
           AV._objectEach(accessList, function(allowed, permission) {
-            if (permission !== "read" && permission !== "write") {
-              throw new Error('Tried to create an ACL with an invalid permission type.');
+            if (permission !== 'read' && permission !== 'write') {
+              throw new Error(
+                'Tried to create an ACL with an invalid permission type.'
+              );
             }
             if (!_.isBoolean(allowed)) {
-              throw new Error('Tried to create an ACL with an invalid permission value.');
+              throw new Error(
+                'Tried to create an ACL with an invalid permission value.'
+              );
             }
             self.permissionsById[userId][permission] = allowed;
           });
@@ -59,7 +65,7 @@ module.exports = function(AV) {
     if (userId instanceof AV.User) {
       userId = userId.id;
     } else if (userId instanceof AV.Role) {
-      userId = "role:" + userId.getName();
+      userId = 'role:' + userId.getName();
     }
     if (!_.isString(userId)) {
       throw new Error('userId must be a string.');
@@ -92,7 +98,7 @@ module.exports = function(AV) {
     if (userId instanceof AV.User) {
       userId = userId.id;
     } else if (userId instanceof AV.Role) {
-      userId = "role:" + userId.getName();
+      userId = 'role:' + userId.getName();
     }
     var permissions = this.permissionsById[userId];
     if (!permissions) {
@@ -107,7 +113,7 @@ module.exports = function(AV) {
    * @param {Boolean} allowed Whether that user should have read access.
    */
   AV.ACL.prototype.setReadAccess = function(userId, allowed) {
-    this._setAccess("read", userId, allowed);
+    this._setAccess('read', userId, allowed);
   };
 
   /**
@@ -119,7 +125,7 @@ module.exports = function(AV) {
    * @return {Boolean}
    */
   AV.ACL.prototype.getReadAccess = function(userId) {
-    return this._getAccess("read", userId);
+    return this._getAccess('read', userId);
   };
 
   /**
@@ -128,7 +134,7 @@ module.exports = function(AV) {
    * @param {Boolean} allowed Whether that user should have write access.
    */
   AV.ACL.prototype.setWriteAccess = function(userId, allowed) {
-    this._setAccess("write", userId, allowed);
+    this._setAccess('write', userId, allowed);
   };
 
   /**
@@ -140,7 +146,7 @@ module.exports = function(AV) {
    * @return {Boolean}
    */
   AV.ACL.prototype.getWriteAccess = function(userId) {
-    return this._getAccess("write", userId);
+    return this._getAccess('write', userId);
   };
 
   /**
@@ -190,7 +196,7 @@ module.exports = function(AV) {
       role = role.getName();
     }
     if (_.isString(role)) {
-      return this.getReadAccess("role:" + role);
+      return this.getReadAccess('role:' + role);
     }
     throw new Error('role must be a AV.Role or a String');
   };
@@ -210,7 +216,7 @@ module.exports = function(AV) {
       role = role.getName();
     }
     if (_.isString(role)) {
-      return this.getWriteAccess("role:" + role);
+      return this.getWriteAccess('role:' + role);
     }
     throw new Error('role must be a AV.Role or a String');
   };
@@ -229,7 +235,7 @@ module.exports = function(AV) {
       role = role.getName();
     }
     if (_.isString(role)) {
-      this.setReadAccess("role:" + role, allowed);
+      this.setReadAccess('role:' + role, allowed);
       return;
     }
     throw new Error('role must be a AV.Role or a String');
@@ -249,10 +255,9 @@ module.exports = function(AV) {
       role = role.getName();
     }
     if (_.isString(role)) {
-      this.setWriteAccess("role:" + role, allowed);
+      this.setWriteAccess('role:' + role, allowed);
       return;
     }
     throw new Error('role must be a AV.Role or a String');
   };
-
 };

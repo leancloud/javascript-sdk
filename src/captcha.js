@@ -1,7 +1,7 @@
 const _ = require('underscore');
 const { tap } = require('./utils');
 
-module.exports = (AV) => {
+module.exports = AV => {
   /**
    * @class
    * @example
@@ -41,12 +41,12 @@ module.exports = (AV) => {
    * @return {Promise.<string>} a new capcha url
    */
   AV.Captcha.prototype.refresh = function refresh() {
-    return AV.Cloud._requestCaptcha(this._options, this._authOptions).then(({
-      captchaToken, url,
-    }) => {
-      _.extend(this, { captchaToken, url });
-      return url;
-    });
+    return AV.Cloud._requestCaptcha(this._options, this._authOptions).then(
+      ({ captchaToken, url }) => {
+        _.extend(this, { captchaToken, url });
+        return url;
+      }
+    );
   };
 
   /**
@@ -55,8 +55,9 @@ module.exports = (AV) => {
    * @return {Promise.<string>} validateToken if the code is valid
    */
   AV.Captcha.prototype.verify = function verify(code) {
-    return AV.Cloud.verifyCaptcha(code, this.captchaToken)
-      .then(tap(validateToken => (this.validateToken = validateToken)));
+    return AV.Cloud.verifyCaptcha(code, this.captchaToken).then(
+      tap(validateToken => (this.validateToken = validateToken))
+    );
   };
 
   if (process.env.CLIENT_PLATFORM === 'Browser') {
@@ -70,17 +71,14 @@ module.exports = (AV) => {
      * @param {Function} [callbacks.success] Success callback will be called if the code is verified. The param `validateCode` can be used for further SMS request.
      * @param {Function} [callbacks.error] Error callback will be called if something goes wrong, detailed in param `error.message`.
      */
-    AV.Captcha.prototype.bind = function bind({
-      textInput,
-      image,
-      verifyButton,
-    }, {
-      success,
-      error,
-    }) {
+    AV.Captcha.prototype.bind = function bind(
+      { textInput, image, verifyButton },
+      { success, error }
+    ) {
       if (typeof textInput === 'string') {
         textInput = document.getElementById(textInput);
-        if (!textInput) throw new Error(`textInput with id ${textInput} not found`);
+        if (!textInput)
+          throw new Error(`textInput with id ${textInput} not found`);
       }
       if (typeof image === 'string') {
         image = document.getElementById(image);
@@ -88,16 +86,20 @@ module.exports = (AV) => {
       }
       if (typeof verifyButton === 'string') {
         verifyButton = document.getElementById(verifyButton);
-        if (!verifyButton) throw new Error(`verifyButton with id ${verifyButton} not found`);
+        if (!verifyButton)
+          throw new Error(`verifyButton with id ${verifyButton} not found`);
       }
 
-      this.__refresh = () => this.refresh().then(url => {
-        image.src = url;
-        if (textInput) {
-          textInput.value = '';
-          textInput.focus();
-        }
-      }).catch(err => console.warn(`refresh captcha fail: ${err.message}`));
+      this.__refresh = () =>
+        this.refresh()
+          .then(url => {
+            image.src = url;
+            if (textInput) {
+              textInput.value = '';
+              textInput.focus();
+            }
+          })
+          .catch(err => console.warn(`refresh captcha fail: ${err.message}`));
       if (image) {
         this.__image = image;
         image.src = this.url;
@@ -106,10 +108,13 @@ module.exports = (AV) => {
 
       this.__verify = () => {
         const code = textInput.value;
-        this.verify(code).catch(err => {
-          this.__refresh();
-          throw err;
-        }).then(success, error).catch(err => console.warn(`verify captcha fail: ${err.message}`));
+        this.verify(code)
+          .catch(err => {
+            this.__refresh();
+            throw err;
+          })
+          .then(success, error)
+          .catch(err => console.warn(`verify captcha fail: ${err.message}`));
       };
       if (textInput && verifyButton) {
         this.__verifyButton = verifyButton;
@@ -121,11 +126,12 @@ module.exports = (AV) => {
      * unbind the captcha from HTMLElements. <b>ONLY AVAILABLE in browsers</b>.
      */
     AV.Captcha.prototype.unbind = function unbind() {
-      if (this.__image) this.__image.removeEventListener('click', this.__refresh);
-      if (this.__verifyButton) this.__verifyButton.removeEventListener('click', this.__verify);
+      if (this.__image)
+        this.__image.removeEventListener('click', this.__refresh);
+      if (this.__verifyButton)
+        this.__verifyButton.removeEventListener('click', this.__verify);
     };
   }
-
 
   /**
    * Request a captcha
