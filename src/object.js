@@ -162,7 +162,9 @@ module.exports = function(AV) {
       .then(function(response) {
         const results = _.map(objects, function(object, i) {
           if (response[i].success) {
-            object._finishFetch(object.parse(response[i].success));
+            const fetchedAttrs = object.parse(response[i].success);
+            object._cleanupUnsetKeys(fetchedAttrs);
+            object._finishFetch(fetchedAttrs);
             return object;
           }
           if (response[i].success === null) {
@@ -922,7 +924,7 @@ module.exports = function(AV) {
        * @return {Promise} A promise that is fulfilled when the fetch
        *     completes.
        */
-      fetch: function(fetchOptions, options) {
+      fetch: function(fetchOptions = {}, options) {
         var self = this;
         var request = _request(
           'classes',
@@ -933,8 +935,16 @@ module.exports = function(AV) {
           options
         );
         return request.then(function(response) {
-          self._finishFetch(self.parse(response), true);
+          const fetchedAttrs = self.parse(response);
+          if (!fetchOptions.keys) self._cleanupUnsetKeys(fetchedAttrs);
+          self._finishFetch(fetchedAttrs, true);
           return self;
+        });
+      },
+
+      _cleanupUnsetKeys(fetchedAttrs) {
+        AV._objectEach(this._serverData, (value, key) => {
+          if (fetchedAttrs[key] === undefined) delete this._serverData[key];
         });
       },
 

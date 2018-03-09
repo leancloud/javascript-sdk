@@ -384,6 +384,16 @@ describe('Objects', function() {
           expect(score.createdAt).to.be.a(Date);
           expect(score.id).to.be.eql(gameScore.id);
         }));
+    it('fetch should remove deleted keys', () => {
+      const score = AV.parseJSON(
+        Object.assign(gameScore.toFullJSON(), {
+          fakedDeletedKey: 'value',
+        })
+      );
+      return score.fetch().then(() => {
+        expect(score.get('fakedDeletedKey')).to.eql(undefined);
+      });
+    });
     it('fetchAll', () =>
       AV.Object.fetchAll([
         AV.Object.createWithoutData('GameScore', gameScore.id),
