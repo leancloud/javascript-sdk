@@ -4,6 +4,16 @@ const Promise = require('./promise');
 const { inherits } = require('./utils');
 const { request } = require('./request');
 
+const subscribe = (queryJSON, subscriptionId) =>
+  request({
+    method: 'POST',
+    path: '/LiveQuery/subscribe',
+    data: {
+      query: queryJSON,
+      id: subscriptionId,
+    },
+  });
+
 module.exports = AV => {
   /**
    * @class
@@ -13,12 +23,19 @@ module.exports = AV => {
   AV.LiveQuery = inherits(
     EventEmitter,
     /** @lends AV.LiveQuery.prototype */ {
-      constructor(id, client) {
+      constructor(id, client, queryJSON, subscriptionId) {
         EventEmitter.apply(this);
         this.id = id;
         this._client = client;
         this._client.register(this);
+        this._queryJSON = queryJSON;
+        this._subscriptionId = subscriptionId;
         client.on('message', this._dispatch.bind(this));
+        client.on('reconnect', () => {
+          subscribe(this._queryJSON, this._subscriptionId).catch(error =>
+            console.error(`LiveQuery resubscribe error: ${error.message}`)
+          );
+        });
       },
       _dispatch(message) {
         message.forEach(({ op, object, query_id: queryId, updatedKeys }) => {
@@ -96,28 +113,27 @@ module.exports = AV => {
           );
         if (!(query instanceof AV.Query))
           throw new TypeError('LiveQuery must be inited with a Query');
-        const { where, keys, returnACL } = query.toJSON();
         return Promise.resolve(userDefinedSubscriptionId).then(subscriptionId =>
           AV._config.realtime
             .createLiveQueryClient(subscriptionId)
-            .then(liveQueryClient =>
-              request({
-                method: 'POST',
-                path: '/LiveQuery/subscribe',
-                data: {
-                  query: {
-                    where,
-                    keys,
-                    returnACL,
-                    className: query.className,
-                  },
-                  id: subscriptionId,
-                },
-              }).then(
+            .then(liveQueryClient => {
+              const { where, keys, returnACL } = query.toJSON();
+              const queryJSON = {
+                where,
+                keys,
+                returnACL,
+                className: query.className,
+              };
+              return subscribe(queryJSON, subscriptionId).then(
                 ({ query_id: queryId }) =>
-                  new AV.LiveQuery(queryId, liveQueryClient)
-              )
-            )
+                  new AV.LiveQuery(
+                    queryId,
+                    liveQueryClient,
+                    queryJSON,
+                    subscriptionId
+                  )
+              );
+            })
         );
       },
     }
