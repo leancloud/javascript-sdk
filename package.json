@@ -1,6 +1,6 @@
 {
   "name": "leancloud-storage",
-  "version": "3.6.1",
+  "version": "3.6.2",
   "main": "./dist/node/index.js",
   "description": "LeanCloud JavaScript SDK.",
   "repository": {
@@ -23,7 +23,7 @@
       "cross-env CLIENT_PLATFORM=Weapp webpack --config webpack/weapp.js",
     "build": "gulp build && npm run build:live-query",
     "build:live-query":
-      "export LIVE_QUERY=1 && npm run build:browser && npm run build:rn && npm run build:weapp",
+      "cross-env LIVE_QUERY=1 && npm run build:browser && npm run build:rn && npm run build:weapp",
     "prepublishOnly": "./script/check-version.js"
   },
   "dependencies": {
@@ -65,7 +65,7 @@
     "should": "^11.1.0",
     "typescript": "^2.4.1",
     "weapp-polyfill": "^3.1.2",
-    "webpack": "^2.2.0-rc.3",
+    "webpack": "^3.11.0",
     "webpack-strip-block": "^0.2.0"
   },
   "license": "MIT",
