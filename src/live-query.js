@@ -98,25 +98,26 @@ module.exports = AV => {
           throw new TypeError('LiveQuery must be inited with a Query');
         const { where, keys, returnACL } = query.toJSON();
         return Promise.resolve(userDefinedSubscriptionId).then(subscriptionId =>
-          request({
-            method: 'POST',
-            path: '/LiveQuery/subscribe',
-            data: {
-              query: {
-                where,
-                keys,
-                returnACL,
-                className: query.className,
-              },
-              id: subscriptionId,
-            },
-          }).then(({ query_id: queryId }) =>
-            AV._config.realtime
-              .createLiveQueryClient(subscriptionId)
-              .then(
-                liveQueryClient => new AV.LiveQuery(queryId, liveQueryClient)
+          AV._config.realtime
+            .createLiveQueryClient(subscriptionId)
+            .then(liveQueryClient =>
+              request({
+                method: 'POST',
+                path: '/LiveQuery/subscribe',
+                data: {
+                  query: {
+                    where,
+                    keys,
+                    returnACL,
+                    className: query.className,
+                  },
+                  id: subscriptionId,
+                },
+              }).then(
+                ({ query_id: queryId }) =>
+                  new AV.LiveQuery(queryId, liveQueryClient)
               )
-          )
+            )
         );
       },
     }
