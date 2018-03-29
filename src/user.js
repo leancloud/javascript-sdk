@@ -1296,7 +1296,7 @@ module.exports = function(AV) {
           user._isCurrentUser = true;
           AV.User._currentUser = user;
 
-          var json = user.toJSON();
+          var json = user._toFullJSON();
           json._id = user.id;
           json._sessionToken = user._sessionToken;
           return AV.localStorage
