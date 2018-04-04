@@ -208,6 +208,7 @@ const setValue = (target, key, value) => {
 
 const findValue = (target, key) => {
   const segs = key.split('.');
+  const firstSeg = segs[0];
   const lastSeg = segs.pop();
   let currentTarget = target;
   for (let i = 0; i < segs.length; i++) {
@@ -217,7 +218,7 @@ const findValue = (target, key) => {
     }
   }
   const value = currentTarget[lastSeg];
-  return [value, currentTarget, lastSeg];
+  return [value, currentTarget, lastSeg, firstSeg];
 };
 
 module.exports = {

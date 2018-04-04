@@ -9,6 +9,15 @@ const {
   findValue,
 } = require('./utils');
 
+const recursiveToPointer = value => {
+  if (_.isObject(value)) {
+    if (value._toPointer) return value._toPointer();
+    return _.mapObject(value, recursiveToPointer);
+  }
+  if (_.isArray(value)) return value.map(recursiveToPointer);
+  return value;
+};
+
 const RESERVED_KEYS = ['objectId', 'createdAt', 'updatedAt'];
 const checkReservedKey = key => {
   if (RESERVED_KEYS.indexOf(key) !== -1) {
@@ -311,10 +320,6 @@ module.exports = function(AV) {
       dirty: function(attr) {
         this._refreshCache();
 
-        return this._dirty();
-      },
-
-      _dirty: function(attr) {
         var currentChanges = _.last(this._opSetQueue);
 
         if (attr) {
@@ -567,8 +572,7 @@ module.exports = function(AV) {
           !(value instanceof AV.Object) &&
           !(value instanceof AV.File)
         ) {
-          value = value.toJSON ? value.toJSON() : value;
-          var json = JSON.stringify(value);
+          var json = JSON.stringify(recursiveToPointer(value));
           if (this._hashedJSON[key] !== json) {
             var wasSet = !!this._hashedJSON[key];
             this._hashedJSON[key] = json;
@@ -593,16 +597,15 @@ module.exports = function(AV) {
         AV._arrayEach(this._opSetQueue, function(opSet) {
           var op = opSet[key];
           if (op) {
-            const [value, actualTarget, actualKey] = findValue(
+            const [value, actualTarget, actualKey, firstKey] = findValue(
               self.attributes,
               key
             );
             setValue(self.attributes, key, op._estimate(value, self, key));
             if (actualTarget && actualTarget[actualKey] === AV.Op._UNSET) {
               delete actualTarget[actualKey];
-            } else {
-              self._resetCacheForKey(key);
             }
+            self._resetCacheForKey(firstKey);
           }
         });
       },
@@ -1604,7 +1607,7 @@ module.exports = function(AV) {
   AV.Object._findUnsavedChildren = function(objects, children, files) {
     AV._traverse(objects, function(object) {
       if (object instanceof AV.Object) {
-        if (object._dirty()) {
+        if (object.dirty()) {
           children.push(object);
         }
         return;

@@ -756,17 +756,31 @@ describe('Objects', function() {
           className: 'C',
           objectId: id,
         },
+        d: {
+          __type: 'Pointer',
+          className: 'C',
+          objectId: id,
+          objects: [{}],
+        },
       });
       const b = a.get('b')[0];
       const c = a.get('c');
+      const d = a.get('d');
       b.set({ a });
-      a._dirty().should.eql(false);
-      b._dirty().should.eql(true);
-      c._dirty().should.eql(false);
+      a.dirty().should.eql(false);
+      b.dirty().should.eql(true);
+      c.dirty().should.eql(false);
+      d.dirty().should.eql(false);
+      d.get('objects')[0].foo = 'bar';
+      a.dirty().should.eql(false);
+      b.dirty().should.eql(true);
+      c.dirty().should.eql(false);
+      d.dirty().should.eql(true);
       c.set({ a });
-      a._dirty().should.eql(false);
-      b._dirty().should.eql(true);
-      c._dirty().should.eql(true);
+      a.dirty().should.eql(false);
+      b.dirty().should.eql(true);
+      c.dirty().should.eql(true);
+      d.dirty().should.eql(true);
     });
   });
 }); //END  RETRIEVING
