@@ -10,11 +10,11 @@ const {
 } = require('./utils');
 
 const recursiveToPointer = value => {
+  if (_.isArray(value)) return value.map(recursiveToPointer);
   if (_.isObject(value)) {
     if (value._toPointer) return value._toPointer();
     return _.mapObject(value, recursiveToPointer);
   }
-  if (_.isArray(value)) return value.map(recursiveToPointer);
   return value;
 };
 
@@ -516,6 +516,9 @@ module.exports = function(AV) {
           }
         });
         this._rebuildAllEstimatedData();
+        const opSetQueue = this._opSetQueue.map(_.clone);
+        this._refreshCache();
+        this._opSetQueue = opSetQueue;
         this._saving = this._saving - 1;
       },
 
