@@ -1,3 +1,11 @@
+## 3.6.6 (2018-04-18)
+
+### Bug fixes
+
+* 修复了使用 LiveQuery 时在某些情况下会异常断开连接的问题。
+* 修复了使用 `AV.Status` 的 `countUnreadStatuses` 与 `resetUnreadCount` 方法时指定 `owner` 参数不生效（始终作用于当前用户）的问题。
+* 修复了使用 `fetchWhenSave` 选项更新对象时，如果更新的属性使用了嵌套的 key（如 `book.name`），更新成功后对象会有一些异常的未保存的值的问题。这个问题是 v3.6.5 中引入的。
+
 ## 3.6.5 (2018-04-09)
 
 ### Bug fixes
