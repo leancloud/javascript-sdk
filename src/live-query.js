@@ -30,12 +30,14 @@ module.exports = AV => {
         this._client.register(this);
         this._queryJSON = queryJSON;
         this._subscriptionId = subscriptionId;
-        client.on('message', this._dispatch.bind(this));
-        client.on('reconnect', () => {
+        this._onMessage = this._dispatch.bind(this);
+        this._onReconnect = () => {
           subscribe(this._queryJSON, this._subscriptionId).catch(error =>
             console.error(`LiveQuery resubscribe error: ${error.message}`)
           );
-        });
+        };
+        client.on('message', this._onMessage);
+        client.on('reconnect', this._onReconnect);
       },
       _dispatch(message) {
         message.forEach(({ op, object, query_id: queryId, updatedKeys }) => {
@@ -89,12 +91,15 @@ module.exports = AV => {
        * @return {Promise}
        */
       unsubscribe() {
-        this._client.deregister(this);
+        const client = this._client;
+        client.off('message', this._onMessage);
+        client.off('reconnect', this._onReconnect);
+        client.deregister(this);
         return request({
           method: 'POST',
           path: '/LiveQuery/unsubscribe',
           data: {
-            id: this._client.id,
+            id: client.id,
             query_id: this.id,
           },
         });
@@ -124,15 +129,21 @@ module.exports = AV => {
                 returnACL,
                 className: query.className,
               };
-              return subscribe(queryJSON, subscriptionId).then(
-                ({ query_id: queryId }) =>
-                  new AV.LiveQuery(
-                    queryId,
-                    liveQueryClient,
-                    queryJSON,
-                    subscriptionId
-                  )
-              );
+              const promise = subscribe(queryJSON, subscriptionId)
+                .then(
+                  ({ query_id: queryId }) =>
+                    new AV.LiveQuery(
+                      queryId,
+                      liveQueryClient,
+                      queryJSON,
+                      subscriptionId
+                    )
+                )
+                .finally(() => {
+                  liveQueryClient.deregister(promise);
+                });
+              liveQueryClient.register(promise);
+              return promise;
             })
         );
       },
