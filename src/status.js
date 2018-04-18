@@ -1,4 +1,5 @@
 const _ = require('underscore');
+const Promise = require('./promise');
 const AVRequest = require('./request')._request;
 const { getSessionToken } = require('./utils');
 
@@ -254,7 +255,7 @@ module.exports = function(AV) {
     if (!getSessionToken(options) && owner == null && !AV.User.current()) {
       throw new Error('Please signin an user or pass the owner objectId.');
     }
-    return getUser(options).then(owner => {
+    return Promise.resolve(owner || getUser(options)).then(owner => {
       var params = {};
       params.inboxType = AV._encode(inboxType);
       params.owner = AV._encode(owner);
@@ -292,7 +293,7 @@ module.exports = function(AV) {
     if (!getSessionToken(options) && owner == null && !AV.User.current()) {
       throw new Error('Please signin an user or pass the owner objectId.');
     }
-    return getUser(options).then(owner => {
+    return Promise.resolve(owner || getUser(options)).then(owner => {
       var params = {};
       params.inboxType = AV._encode(inboxType);
       params.owner = AV._encode(owner);

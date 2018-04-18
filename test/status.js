@@ -45,7 +45,9 @@ describe('AV.Status', function() {
         response
       ) {
         expect(response.total).to.be.a('number');
+        expect(response.total).to.be.greaterThan(0);
         expect(response.unread).to.be.a('number');
+        expect(response.unread).to.be.greaterThan(0);
       });
     });
     it('should return private statuses.', function() {
