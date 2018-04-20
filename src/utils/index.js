@@ -221,6 +221,9 @@ const findValue = (target, key) => {
   return [value, currentTarget, lastSeg, firstSeg];
 };
 
+const isPlainObject = obj =>
+  _.isObject(obj) && Object.getPrototypeOf(obj) === Object.prototype;
+
 module.exports = {
   ajax,
   isNullOrUndefined,
@@ -232,4 +235,5 @@ module.exports = {
   parseDate,
   setValue,
   findValue,
+  isPlainObject,
 };

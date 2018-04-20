@@ -7,14 +7,13 @@ const {
   transformFetchOptions,
   setValue,
   findValue,
+  isPlainObject,
 } = require('./utils');
 
 const recursiveToPointer = value => {
   if (_.isArray(value)) return value.map(recursiveToPointer);
-  if (_.isObject(value)) {
-    if (value._toPointer) return value._toPointer();
-    return _.mapObject(value, recursiveToPointer);
-  }
+  if (isPlainObject(value)) return _.mapObject(value, recursiveToPointer);
+  if (_.isObject(value) && value._toPointer) return value._toPointer();
   return value;
 };
 

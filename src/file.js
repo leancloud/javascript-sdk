@@ -249,6 +249,18 @@ module.exports = function(AV) {
       },
 
       /**
+       * Gets a Pointer referencing this file.
+       * @private
+       */
+      _toPointer() {
+        return {
+          __type: 'Pointer',
+          className: this.className,
+          objectId: this.id,
+        };
+      },
+
+      /**
        * Returns the ACL for this file.
        * @returns {AV.ACL} An instance of AV.ACL.
        */
