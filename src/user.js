@@ -726,7 +726,7 @@ module.exports = function(AV) {
       /**
        * Get this user's Roles.
        * @param {AuthOptions} [options]
-       * @return {Promise} A promise that is fulfilled with the roles when
+       * @return {Promise.<AV.Role[]>} A promise that is fulfilled with the roles when
        *     the query is complete.
        */
       getRoles(options) {
