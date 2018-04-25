@@ -451,8 +451,8 @@ export class Query extends BaseObject {
 
   constructor(objectClass: any);
 
-  static or(...var_args: Query[]): Query;
-  static and(...var_args: Query[]): Query;
+  static or(...querys: Query[]): Query;
+  static and(...querys: Query[]): Query;
   static doCloudQuery<T>(
     cql: string,
     pvalues?: any,
@@ -483,7 +483,7 @@ export class Query extends BaseObject {
   get<T>(objectId: string, options?: Query.GetOptions): Promise<T>;
   greaterThan(key: string, value: any): Query;
   greaterThanOrEqualTo(key: string, value: any): Query;
-  include(key: string): Query;
+  include(...keys: string[]): Query;
   include(keys: string[]): Query;
   includeACL(value?: boolean): Query;
   lessThan(key: string, value: any): Query;
@@ -496,6 +496,7 @@ export class Query extends BaseObject {
   notContainedIn(key: string, values: any[]): Query;
   notEqualTo(key: string, value: any): Query;
   select(...keys: string[]): Query;
+  select(keys: string[]): Query;
   skip(n: number): Query;
   startsWith(key: string, prefix: string): Query;
   withinGeoBox(key: string, southwest: GeoPoint, northeast: GeoPoint): Query;
