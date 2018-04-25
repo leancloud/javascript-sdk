@@ -1,6 +1,4 @@
-'use strict';
-
-if (!process) process = { env: {} };
+if (typeof process === 'undefined') process = { env: {} };
 
 if (typeof require !== 'undefined') {
   global.debug = require('debug')('test');
@@ -8,11 +6,11 @@ if (typeof require !== 'undefined') {
   global.AV = require('../src');
 }
 
-// AV._config.APIServerURL = 'https://cn-stg1.avoscloud.com';
 // AV.init({
-//   appId: 'mxrb5nn3qz7drek0etojy5lh4yrwjnk485lqajnsgjwfxrb5',
-//   appKey: 'd7sbus0d81mrum4tko4t8gl74b27vl0rh762ff7ngrb6ymmq',
-//   masterKey: 'l0n9wu3kwnrtf2cg1b6w2l87nphzpypgff6240d0lxui2mm4'
+//   appId: 'Vpe1RqHgS5VGWBlhB6pdiiow-null',
+//   appKey: 'OxKVgM0izOIckMi9WiT0pBSf',
+//   masterKey: 'RCLNNJ6l51YJXzv7YG4fHA5v',
+//   serverURLs: 'https://cn-stg1.leancloud.cn',
 // });
 AV.init({
   appId: process.env.APPID || '95TNUaOSUd8IpKNW0RSqSEOm-9Nh9j0Va',
