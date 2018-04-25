@@ -18,7 +18,15 @@ const ajax = ({
 }) => {
   const count = requestsCount++;
 
-  debugRequest(`request(${count})`, method, url, query, data, headers);
+  debugRequest(
+    'request(%d) %s %s %o %o %o',
+    count,
+    method,
+    url,
+    query,
+    data,
+    headers
+  );
 
   const flattenedQuery = {};
   if (query) {
@@ -47,7 +55,8 @@ const ajax = ({
         if (res) {
           if (!debug.enabled('leancloud:request')) {
             debugRequestError(
-              `request(${count})`,
+              'request(%d) %s %s %o %o %o',
+              count,
               method,
               url,
               query,
@@ -56,7 +65,8 @@ const ajax = ({
             );
           }
           debugRequestError(
-            `response(${count})`,
+            'response(%d) %d %O %o',
+            count,
             res.status,
             res.body || res.text,
             res.header
@@ -68,7 +78,8 @@ const ajax = ({
         return reject(err);
       }
       debugRequest(
-        `response(${count})`,
+        'response(%d) %d %O %o',
+        count,
         res.status,
         res.body || res.text,
         res.header
