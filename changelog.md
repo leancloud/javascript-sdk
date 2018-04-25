@@ -1,3 +1,10 @@
+## 3.6.8 (2018-04-25)
+
+### Bug fixes
+
+* 修复了 `AV.User#associateWithAuthDataAndUnionId` 方法在当前用户已经连接了其他第三方平台时，unionId 没有生效的问题。
+* 修复了一些 TypeScript 定义文件的问题。
+
 ## 3.6.7 (2018-04-20)
 
 ### Bug fixes
