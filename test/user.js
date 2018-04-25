@@ -206,7 +206,7 @@ describe('User', function() {
       const now = Date.now();
       return AV.User.signUpOrlogInWithAuthDataAndUnionId(
         {
-          openid: 'openid1' + now,
+          uid: 'openid1' + now,
           access_token: 'access_token',
           expires_in: 1382686496,
         },
@@ -218,7 +218,7 @@ describe('User', function() {
       ).then(user1 => {
         return AV.User.signUpOrlogInWithAuthDataAndUnionId(
           {
-            openid: 'openid2' + now,
+            uid: 'openid2' + now,
             access_token: 'access_token',
             expires_in: 1382686496,
           },
@@ -234,15 +234,15 @@ describe('User', function() {
   describe('associate with authData', function() {
     it('logIn an user, and associate with authData', function() {
       var username = Date.now().toString(36);
-      var password = '123456';
-      var user = new AV.User();
-      user.set('username', username);
-      user.set('password', password);
-      return user
-        .save()
-        .then(function() {
-          return AV.User.logIn(username, password);
-        })
+
+      return AV.User.signUpOrlogInWithAuthData(
+        {
+          uid: 'zaabbbccc123123' + username,
+          access_token: 'a123123aaabbbbcccc',
+          expires_in: 1382686496,
+        },
+        'test'
+      )
         .then(function(loginedUser) {
           return AV.User.associateWithAuthData(loginedUser, 'weixin', {
             openid: 'aaabbbccc123123' + username,
@@ -252,10 +252,12 @@ describe('User', function() {
         })
         .then(user => {
           user.get('authData').should.have.property('weixin');
+          user.get('authData').should.have.property('test');
           return user.dissociateAuthData('weixin');
         })
         .then(user => {
           user.get('authData').should.not.have.property('weixin');
+          user.get('authData').should.have.property('test');
         });
     });
   });

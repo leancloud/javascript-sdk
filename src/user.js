@@ -168,9 +168,10 @@ module.exports = function(AV) {
           authType = provider.getAuthType();
         }
         if (data) {
-          var authData = this.get('authData') || {};
-          authData[authType] = data;
-          return this.save({ authData }).then(function(model) {
+          return this.save(
+            { authData: { [authType]: data } },
+            { fetchWhenSave: !!this.get('authData') }
+          ).then(function(model) {
             return model._handleSaveResult(true).then(function() {
               return model;
             });
@@ -218,7 +219,7 @@ module.exports = function(AV) {
        *   expires_in: 1382686496
        * }, 'weixin', 'union123', {
        *   unionIdPlatform: 'weixin',
-       *   asMainAccount: false,
+       *   asMainAccount: true,
        * }).then(function(user) {
        *   //Access user here
        * }).catch(function(error) {
