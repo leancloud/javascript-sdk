@@ -159,7 +159,7 @@ module.exports = function(AV) {
        * call linkWith on the user (even if it doesn't exist yet on the server).
        * @private
        */
-      _linkWith: function(provider, data) {
+      _linkWith: function(provider, data, { failOnNotExist = false } = {}) {
         var authType;
         if (_.isString(provider)) {
           authType = provider;
@@ -170,7 +170,10 @@ module.exports = function(AV) {
         if (data) {
           return this.save(
             { authData: { [authType]: data } },
-            { fetchWhenSave: !!this.get('authData') }
+            {
+              fetchWhenSave: !!this.get('authData'),
+              _failOnNotExist: failOnNotExist,
+            }
           ).then(function(model) {
             return model._handleSaveResult(true).then(function() {
               return model;
@@ -211,7 +214,7 @@ module.exports = function(AV) {
        * @param {string} unionId
        * @param {Object} [unionLoginOptions]
        * @param {string} [unionLoginOptions.unionIdPlatform = 'weixin'] unionId platform
-       * @param {boolean} [unionLoginOptions.asMainAccount = false]
+       * @param {boolean} [unionLoginOptions.asMainAccount = false] If true, the unionId will be associated with the user.
        * @return {Promise<AV.User>} A promise that is fulfilled with the user when completed.
        * @example user.associateWithAuthDataAndUnionId({
        *   openid: 'abc123',
@@ -897,6 +900,8 @@ module.exports = function(AV) {
        *
        * @param {Object} authData The response json data returned from third party token, maybe like { openid: 'abc123', access_token: '123abc', expires_in: 1382686496 }
        * @param {string} platform Available platform for sign up.
+       * @param {Object} [options]
+       * @param {boolean} [options.failOnNotExist] If true, the login request will fail when no user match this authData exists.
        * @return {Promise} A promise that is fulfilled with the user when
        *     the login completes.
        * @example AV.User.signUpOrlogInWithAuthData({
@@ -910,8 +915,8 @@ module.exports = function(AV) {
        * });
        * @see {@link https://leancloud.cn/docs/js_guide.html#绑定第三方平台账户}
        */
-      signUpOrlogInWithAuthData(authData, platform) {
-        return AV.User._logInWith(platform, authData);
+      signUpOrlogInWithAuthData(authData, platform, options) {
+        return AV.User._logInWith(platform, authData, options);
       },
 
       /**
@@ -922,7 +927,8 @@ module.exports = function(AV) {
        * @param {string} unionId
        * @param {Object} [unionLoginOptions]
        * @param {string} [unionLoginOptions.unionIdPlatform = 'weixin'] unionId platform
-       * @param {boolean} [unionLoginOptions.asMainAccount = false]
+       * @param {boolean} [unionLoginOptions.asMainAccount = false] If true, the unionId will be associated with the user.
+       * @param {boolean} [options.failOnNotExist] If true, the login request will fail when no user match this authData exists.
        * @return {Promise<AV.User>} A promise that is fulfilled with the user when completed.
        * @example AV.User.signUpOrlogInWithAuthDataAndUnionId({
        *   openid: 'abc123',
@@ -930,7 +936,7 @@ module.exports = function(AV) {
        *   expires_in: 1382686496
        * }, 'weixin', 'union123', {
        *   unionIdPlatform: 'weixin',
-       *   asMainAccount: false,
+       *   asMainAccount: true,
        * }).then(function(user) {
        *   //Access user here
        * }).catch(function(error) {
@@ -945,7 +951,8 @@ module.exports = function(AV) {
       ) {
         return this.signUpOrlogInWithAuthData(
           mergeUnionDataIntoAuthData(authData, unionId, unionLoginOptions),
-          platform
+          platform,
+          unionLoginOptions
         );
       },
 
@@ -1320,9 +1327,9 @@ module.exports = function(AV) {
         }
       },
 
-      _logInWith: function(provider, options) {
+      _logInWith: function(provider, authData, options) {
         var user = AV.Object._create('_User');
-        return user._linkWith(provider, options);
+        return user._linkWith(provider, authData, options);
       },
     }
   );

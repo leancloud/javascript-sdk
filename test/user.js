@@ -202,8 +202,20 @@ describe('User', function() {
   });
 
   describe('authData and unionId', () => {
+    const now = Date.now();
+    it('failOnNotExist', () =>
+      AV.User.signUpOrlogInWithAuthData(
+        {
+          uid: 'openid1' + now,
+          access_token: 'access_token',
+          expires_in: 1382686496,
+        },
+        'weixin_1',
+        {
+          failOnNotExist: true,
+        }
+      ).should.be.rejectedWith(/Could not find user/));
     it('should login as the same user', () => {
-      const now = Date.now();
       return AV.User.signUpOrlogInWithAuthDataAndUnionId(
         {
           uid: 'openid1' + now,

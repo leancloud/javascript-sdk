@@ -1030,6 +1030,10 @@ module.exports = function(AV) {
             if (model._fetchWhenSave || options.fetchWhenSave) {
               query['new'] = 'true';
             }
+            // user login option
+            if (options._failOnNotExist) {
+              query.failOnNotExist = 'true';
+            }
 
             if (options.query) {
               var queryJSON;
