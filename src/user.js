@@ -898,13 +898,14 @@ module.exports = function(AV) {
        * On success, this saves the session to disk, so you can retrieve the currently
        * logged in user using <code>current</code>.
        *
+       * @since 3.7.0
        * @param {Object} authData The response json data returned from third party token, maybe like { openid: 'abc123', access_token: '123abc', expires_in: 1382686496 }
        * @param {string} platform Available platform for sign up.
        * @param {Object} [options]
-       * @param {boolean} [options.failOnNotExist] If true, the login request will fail when no user match this authData exists.
+       * @param {boolean} [options.failOnNotExist] If true, the login request will fail when no user matches this authData exists.
        * @return {Promise} A promise that is fulfilled with the user when
        *     the login completes.
-       * @example AV.User.signUpOrlogInWithAuthData({
+       * @example AV.User.loginWithAuthData({
        *   openid: 'abc123',
        *   access_token: '123abc',
        *   expires_in: 1382686496
@@ -915,22 +916,32 @@ module.exports = function(AV) {
        * });
        * @see {@link https://leancloud.cn/docs/js_guide.html#绑定第三方平台账户}
        */
-      signUpOrlogInWithAuthData(authData, platform, options) {
+      loginWithAuthData(authData, platform, options) {
         return AV.User._logInWith(platform, authData, options);
       },
 
       /**
+       * @deprecated renamed to {@link AV.User.loginWithAuthData}
+       */
+      signUpOrlogInWithAuthData(...param) {
+        console.warn(
+          'DEPRECATED: User.signUpOrlogInWithAuthData 已废弃，请使用 User#loginWithAuthData 代替'
+        );
+        return this.loginWithAuthData(...param);
+      },
+
+      /**
        * Sign up or logs in a user with a third party authData and unionId.
-       * @since 3.5.0
+       * @since 3.7.0
        * @param {Object} authData The response json data returned from third party token, maybe like { openid: 'abc123', access_token: '123abc', expires_in: 1382686496 }
        * @param {string} platform Available platform for sign up.
        * @param {string} unionId
        * @param {Object} [unionLoginOptions]
        * @param {string} [unionLoginOptions.unionIdPlatform = 'weixin'] unionId platform
        * @param {boolean} [unionLoginOptions.asMainAccount = false] If true, the unionId will be associated with the user.
-       * @param {boolean} [options.failOnNotExist] If true, the login request will fail when no user match this authData exists.
+       * @param {boolean} [unionLoginOptions.failOnNotExist] If true, the login request will fail when no user matches this authData exists.
        * @return {Promise<AV.User>} A promise that is fulfilled with the user when completed.
-       * @example AV.User.signUpOrlogInWithAuthDataAndUnionId({
+       * @example AV.User.loginWithAuthDataAndUnionId({
        *   openid: 'abc123',
        *   access_token: '123abc',
        *   expires_in: 1382686496
@@ -943,17 +954,28 @@ module.exports = function(AV) {
        *   //console.error("error: ", error);
        * });
        */
-      signUpOrlogInWithAuthDataAndUnionId(
+      loginWithAuthDataAndUnionId(
         authData,
         platform,
         unionId,
         unionLoginOptions
       ) {
-        return this.signUpOrlogInWithAuthData(
+        return this.loginWithAuthData(
           mergeUnionDataIntoAuthData(authData, unionId, unionLoginOptions),
           platform,
           unionLoginOptions
         );
+      },
+
+      /**
+       * @deprecated renamed to {@link AV.User.loginWithAuthDataAndUnionId}
+       * @since 3.5.0
+       */
+      signUpOrlogInWithAuthDataAndUnionId(...param) {
+        console.warn(
+          'DEPRECATED: User.signUpOrlogInWithAuthDataAndUnionId 已废弃，请使用 User#loginWithAuthDataAndUnionId 代替'
+        );
+        return this.loginWithAuthDataAndUnionId(...param);
       },
 
       /**
@@ -965,7 +987,7 @@ module.exports = function(AV) {
        */
       loginWithWeapp() {
         return getWeappLoginCode().then(code =>
-          this.signUpOrlogInWithAuthData({ code }, 'lc_weapp')
+          this.loginWithAuthData({ code }, 'lc_weapp')
         );
       },
 
