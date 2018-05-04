@@ -983,11 +983,13 @@ module.exports = function(AV) {
        * 仅在小程序中可用。
        *
        * @since 2.0.0
-       * @return {AV.User}
+       * @param {Object} [options]
+       * @param {boolean} [options.failOnNotExist] If true, the login request will fail when no user matches this authData exists. (since v3.7.0)
+       * @return {Promise.<AV.User>}
        */
-      loginWithWeapp() {
+      loginWithWeapp(options) {
         return getWeappLoginCode().then(code =>
-          this.loginWithAuthData({ code }, 'lc_weapp')
+          this.loginWithAuthData({ code }, 'lc_weapp', options)
         );
       },
 
