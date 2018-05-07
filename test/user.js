@@ -203,6 +203,7 @@ describe('User', function() {
 
   describe('authData and unionId', () => {
     const now = Date.now();
+    const username = now.toString(36);
     it('failOnNotExist', () =>
       AV.User.signUpOrlogInWithAuthData(
         {
@@ -216,30 +217,34 @@ describe('User', function() {
         }
       ).should.be.rejectedWith(/Could not find user/));
     it('should login as the same user', () => {
-      return AV.User.signUpOrlogInWithAuthDataAndUnionId(
-        {
-          uid: 'openid1' + now,
-          access_token: 'access_token',
-          expires_in: 1382686496,
-        },
-        'weixin_1',
-        'unionid' + now,
-        {
-          asMainAccount: true,
-        }
-      ).then(user1 => {
-        return AV.User.signUpOrlogInWithAuthDataAndUnionId(
+      return new AV.User()
+        .setUsername(username)
+        .loginWithAuthDataAndUnionId(
           {
-            uid: 'openid2' + now,
+            uid: 'openid1' + now,
             access_token: 'access_token',
             expires_in: 1382686496,
           },
-          'weixin_2',
-          'unionid' + now
-        ).then(user2 => {
-          user2.id.should.be.eql(user1.id);
+          'weixin_1',
+          'unionid' + now,
+          {
+            asMainAccount: true,
+          }
+        )
+        .then(user1 => {
+          return AV.User.signUpOrlogInWithAuthDataAndUnionId(
+            {
+              uid: 'openid2' + now,
+              access_token: 'access_token',
+              expires_in: 1382686496,
+            },
+            'weixin_2',
+            'unionid' + now
+          ).then(user2 => {
+            user2.id.should.be.eql(user1.id);
+            user2.getUsername().should.be.eql(username);
+          });
         });
-      });
     });
   });
 

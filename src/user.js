@@ -424,6 +424,41 @@ module.exports = function(AV) {
       },
 
       /**
+       * The same with {@link AV.User.loginWithAuthData}, except that you can set attributes before login.
+       * @since 3.7.0
+       */
+      loginWithAuthData(authData, platform, options) {
+        return this._linkWith(platform, authData, options);
+      },
+
+      /**
+       * The same with {@link AV.User.loginWithAuthDataAndUnionId}, except that you can set attributes before login.
+       * @since 3.7.0
+       */
+      loginWithAuthDataAndUnionId(
+        authData,
+        platform,
+        unionId,
+        unionLoginOptions
+      ) {
+        return this.loginWithAuthData(
+          mergeUnionDataIntoAuthData(authData, unionId, unionLoginOptions),
+          platform,
+          unionLoginOptions
+        );
+      },
+
+      /**
+       * The same with {@link AV.User.loginWithWeapp}, except that you can set attributes before login.
+       * @since 3.7.0
+       */
+      loginWithWeapp(options) {
+        return getWeappLoginCode().then(code =>
+          this.loginWithAuthData({ code }, 'lc_weapp', options)
+        );
+      },
+
+      /**
        * Logs in a AV.User. On success, this saves the session to localStorage,
        * so you can retrieve the currently logged in user using
        * <code>current</code>.
