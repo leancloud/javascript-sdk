@@ -16,7 +16,13 @@ function getDefaultServerURLs(appId, region) {
   switch (appId.slice(-9)) {
     case '-9Nh9j0Va':
       // TAB
-      return fillServerURLs('https://e1-api.leancloud.cn');
+      id = appId.slice(0, 8).toLowerCase();
+      return {
+        push: `https://${id}.push.lncldapi.com`,
+        stats: `https://${id}.stats.lncldapi.com`,
+        engine: `https://${id}.engine.lncldapi.com`,
+        api: `https://${id}.api.lncldapi.com`,
+      };
     case '-MdYXbMMI':
       // US
       return fillServerURLs('https://us-api.leancloud.cn');
