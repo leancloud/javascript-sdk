@@ -545,10 +545,16 @@ export class Role extends Object {
   setName(name: string): Role;
 }
 
-interface UnionLoginOptions {
+interface OAuthLoginOptions {
+  failOnNotExist?: boolean;
+}
+
+interface UnionOptions {
   unionIdPlatform?: string;
   asMainAccount?: boolean;
 }
+
+interface UnionLoginOptions extends OAuthLoginOptions, UnionOptions {}
 
 /**
  * @class
@@ -561,35 +567,41 @@ interface UnionLoginOptions {
  */
 export class User extends Object {
   static current(): User;
+  static currentAsync(): Promise<User>;
   static signUp(
     username: string,
     password: string,
-    attrs: any,
+    attrs?: any,
     options?: AuthOptions
   ): Promise<User>;
-  static logIn(
-    username: string,
-    password: string,
-    options?: AuthOptions
-  ): Promise<User>;
+  static logIn(username: string, password: string): Promise<User>;
   static logOut(): Promise<User>;
-  static become(sessionToken: string, options?: AuthOptions): Promise<User>;
+  static become(sessionToken: string): Promise<User>;
 
-  static loginWithWeapp(): Promise<User>;
+  static loginWithWeapp(options?: OAuthLoginOptions): Promise<User>;
   static logInWithMobilePhone(
     mobilePhone: string,
-    password: string,
-    options?: AuthOptions
+    password: string
   ): Promise<User>;
   static logInWithMobilePhoneSmsCode(
     mobilePhone: string,
-    smsCode: string,
-    options?: AuthOptions
+    smsCode: string
+  ): Promise<User>;
+  static loginWithAuthData(
+    authData: Object,
+    platform: string,
+    options?: OAuthLoginOptions
   ): Promise<User>;
   static signUpOrlogInWithAuthData(
-    data: any,
+    authData: Object,
     platform: string,
-    options?: AuthOptions
+    options?: OAuthLoginOptions
+  ): Promise<User>;
+  static loginWithAuthDataAndUnionId(
+    authData: Object,
+    platform: string,
+    unionId: string,
+    unionLoginOptions?: UnionLoginOptions
   ): Promise<User>;
   static signUpOrlogInWithAuthDataAndUnionId(
     authData: Object,
@@ -633,8 +645,21 @@ export class User extends Object {
   static followerQuery(userObjectId: string): FriendShipQuery;
   static followeeQuery(userObjectId: string): FriendShipQuery;
 
+  loginWithWeapp(options?: OAuthLoginOptions): Promise<User>;
+  loginWithAuthData(
+    authData: Object,
+    platform: string,
+    options?: OAuthLoginOptions
+  ): Promise<User>;
+  loginWithAuthDataAndUnionId(
+    authData: Object,
+    platform: string,
+    unionId: string,
+    unionLoginOptions?: UnionLoginOptions
+  ): Promise<User>;
+
   signUp(attrs?: any, options?: AuthOptions): Promise<User>;
-  logIn(options?: AuthOptions): Promise<User>;
+  logIn(): Promise<User>;
   linkWithWeapp(): Promise<User>;
   isAuthenticated(): Promise<boolean>;
   isCurrent(): boolean;
@@ -644,23 +669,20 @@ export class User extends Object {
     authData: Object,
     platform: string,
     unionId: string,
-    unionLoginOptions?: UnionLoginOptions
+    unionLoginOptions?: UnionOptions
   ): Promise<User>;
   dissociateAuthData(platform: string): Promise<User>;
 
   getEmail(): string;
-  setEmail(email: string, options?: AuthOptions): boolean;
+  setEmail(email: string): boolean;
 
-  setMobilePhoneNumber(
-    mobilePhoneNumber: string,
-    options?: AuthOptions
-  ): boolean;
+  setMobilePhoneNumber(mobilePhoneNumber: string): boolean;
   getMobilePhoneNumber(): string;
 
   getUsername(): string;
-  setUsername(username: string, options?: AuthOptions): boolean;
+  setUsername(username: string): boolean;
 
-  setPassword(password: string, options?: AuthOptions): boolean;
+  setPassword(password: string): boolean;
   getSessionToken(): string;
   refreshSessionToken(options?: AuthOptions): Promise<User>;
 

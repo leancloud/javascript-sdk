@@ -644,7 +644,6 @@ module.exports = function(AV) {
       /**
        * Calls set("mobilePhoneNumber", phoneNumber, options) and returns the result.
        * @param {String} mobilePhoneNumber
-       * @param {AuthOptions} options
        * @return {Boolean}
        * @see AV.Object#set
        */
@@ -655,7 +654,6 @@ module.exports = function(AV) {
       /**
        * Calls set("username", username, options) and returns the result.
        * @param {String} username
-       * @param {AuthOptions} options
        * @return {Boolean}
        * @see AV.Object#set
        */
@@ -666,7 +664,6 @@ module.exports = function(AV) {
       /**
        * Calls set("password", password, options) and returns the result.
        * @param {String} password
-       * @param {AuthOptions} options
        * @return {Boolean}
        * @see AV.Object#set
        */
@@ -799,8 +796,8 @@ module.exports = function(AV) {
        *
        * @param {String} username The username (or email) to sign up with.
        * @param {String} password The password to sign up with.
-       * @param {Object} attrs Extra fields to set on the new user.
-       * @param {AuthOptions} options
+       * @param {Object} [attrs] Extra fields to set on the new user.
+       * @param {AuthOptions} [options]
        * @return {Promise} A promise that is fulfilled with the user when
        *     the signup completes.
        * @see AV.User#signUp
@@ -820,15 +817,14 @@ module.exports = function(AV) {
        *
        * @param {String} username The username (or email) to log in with.
        * @param {String} password The password to log in with.
-       * @param {AuthOptions} options
        * @return {Promise} A promise that is fulfilled with the user when
        *     the login completes.
        * @see AV.User#logIn
        */
-      logIn: function(username, password, options) {
+      logIn: function(username, password) {
         var user = AV.Object._create('_User');
         user._finishFetch({ username: username, password: password });
-        return user.logIn(options);
+        return user.logIn();
       },
 
       /**
@@ -869,15 +865,14 @@ module.exports = function(AV) {
        *
        * @param {String} mobilePhone The user's mobilePhoneNumber
        * @param {String} smsCode The sms code sent by AV.User.requestLoginSmsCode
-       * @param {AuthOptions} options
        * @return {Promise} A promise that is fulfilled with the user when
        *     the login completes.
        * @see AV.User#logIn
        */
-      logInWithMobilePhoneSmsCode: function(mobilePhone, smsCode, options) {
+      logInWithMobilePhoneSmsCode: function(mobilePhone, smsCode) {
         var user = AV.Object._create('_User');
         user._finishFetch({ mobilePhoneNumber: mobilePhone, smsCode: smsCode });
-        return user.logIn(options);
+        return user.logIn();
       },
 
       /**
@@ -914,18 +909,17 @@ module.exports = function(AV) {
        *
        * @param {String} mobilePhone The user's mobilePhoneNumber
        * @param {String} password The password to log in with.
-       * @param {AuthOptions} options
        * @return {Promise} A promise that is fulfilled with the user when
        *     the login completes.
        * @see AV.User#logIn
        */
-      logInWithMobilePhone: function(mobilePhone, password, options) {
+      logInWithMobilePhone: function(mobilePhone, password) {
         var user = AV.Object._create('_User');
         user._finishFetch({
           mobilePhoneNumber: mobilePhone,
           password: password,
         });
-        return user.logIn(options);
+        return user.logIn();
       },
 
       /**
