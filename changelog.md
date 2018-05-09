@@ -1,3 +1,26 @@
+# 3.7.0-beta.0 (2018-05-09)
+
+### Features
+
+* 新增排行版功能（`AV.Leaderboard`）。
+* 第三方账号登录功能增加了两项新的能力：
+
+  * 所有第三方账号登录 API 增加了 `failOnNotExist` 参数，指定该参数为 `true` 时如果当前不存在该 `authData` 对应的用户，将会抛出「未找到用户」异常。该选项使开发者在使用第三方账号登录创建新用户之前有机会要求用户填写手机号码等信息。
+
+    我们还重新命名了这些 API，以更好的反映其功能：
+
+    * `AV.User.loginWithAuthData` 代替了 `AV.User.signUpOrlogInWithAuthData`
+    * `AV.User.loginWithAuthDataAndUnionId` 代替了 `AV.User.signUpOrlogInWithAuthDataAndUnionId`
+    * `AV.User.loginWithWeapp` 没有变化
+
+    旧的 API 已不赞成使用，并将会在 v4.0.0 中移除。
+
+  * 所有第三方账号登录静态 API 增加了对应的实例方法。开发者可以在调用这些方法前，先设置好用户的 `username`，`password` 等信息，再与 `authData` 一起进行登录。增加的方法有：
+
+    * `AV.User#loginWithAuthData`
+    * `AV.User#loginWithAuthDataAndUnionId`
+    * `AV.User#loginWithWeapp`
+
 ## 3.6.8 (2018-04-25)
 
 ### Bug fixes
