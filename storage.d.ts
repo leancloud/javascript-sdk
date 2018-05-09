@@ -767,6 +767,72 @@ export class Conversation extends Object {
   ): Promise<void>;
 }
 
+declare class Statistic {
+  name: string;
+  value: number;
+  user: AV.User;
+  position?: number;
+  version?: number;
+}
+
+export class Leaderboard {
+  statisticName: string;
+  versionChangeInterval: LeaderboardVersionChangeInterval;
+  version: number;
+  nextResetAt?: Date;
+
+  static createWithoutData(statisticName: string): Leaderboard;
+  static createLeaderboard(
+    options: {
+      statisticName: string;
+      order: LeaderboardOrder;
+      versionChangeInterval: LeaderboardVersionChangeInterval;
+    },
+    authOptions?: AuthOptions
+  ): Promise<Leaderboard>;
+  static getLeaderboard(
+    statisticName: string,
+    authOptions?: AuthOptions
+  ): Promise<Leaderboard>;
+  static getStatistics(
+    user: User,
+    options?: { statisticNames?: string[] }
+  ): Promise<Statistic[]>;
+  static updateStatistics(
+    user: User,
+    statistics: { [name: string]: number },
+    authOptions?: AuthOptions
+  ): Promise<Statistic[]>;
+
+  fetch(authOptions?: AuthOptions): Promise<Leaderboard>;
+  getResults(
+    options?: { skip?: number; limit?: number; includeUserKeys?: string[] },
+    authOptions?: AuthOptions
+  ): Promise<Statistic[]>;
+  getResultsAroundUser(
+    options?: { limit?: number; includeUserKeys?: string[] },
+    authOptions?: AuthOptions
+  ): Promise<Statistic[]>;
+  updateVersionChangeInterval(
+    versionChangeInterval: LeaderboardVersionChangeInterval,
+    authOptions?: AuthOptions
+  ): Promise<Leaderboard>;
+  reset(authOptions?: AuthOptions): Promise<Leaderboard>;
+}
+
+export enum LeaderboardOrder {
+  ASCENDING,
+  DESCENDING,
+}
+
+export enum LeaderboardVersionChangeInterval {
+  NEVER,
+  HOUR,
+  DAY,
+  WEEK,
+  MONTH,
+}
+
 export class Error {
   code: ErrorCode;
   message: string;
@@ -933,7 +999,7 @@ export function request(options: {
   path: string;
   query?: object;
   data?: object;
-  authOption?: AuthOptions;
+  authOptions?: AuthOptions;
   service?: string;
   version?: string;
 }): Promise<any>;

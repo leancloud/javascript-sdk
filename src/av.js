@@ -256,6 +256,7 @@ AV._decode = function(value, key) {
 /**
  * The inverse function of {@link AV.Object#toFullJSON}.
  * @since 2.0.0
+ * @method
  * @param {Object}
  * return {AV.Object|AV.File|any}
  */

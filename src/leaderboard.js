@@ -4,7 +4,11 @@ const { request } = require('./request');
 const { ensureArray, parseDate } = require('./utils');
 const AV = require('./av');
 
-const LeaderboardVersionChangeInterval = {
+/**
+ * The version change interval for Leaderboard
+ * @enum
+ */
+AV.LeaderboardVersionChangeInterval = {
   NEVER: 'never',
   HOUR: 'hour',
   DAY: 'day',
@@ -12,28 +16,82 @@ const LeaderboardVersionChangeInterval = {
   MONTH: 'month',
 };
 
-const LeaderboardOrder = {
+/**
+ * The order of the leaderboard results
+ * @enum
+ */
+AV.LeaderboardOrder = {
   ASCENDING: 'ascending',
   DESCENDING: 'descending',
 };
 
+/**
+ * @class
+ */
 function Statistic({ user, name, value, position, version }) {
+  /**
+   * @type {string}
+   */
   this.name = name;
+  /**
+   * @type {number}
+   */
   this.value = value;
+  /**
+   * @type {AV.User}
+   */
   this.user = user;
+  /**
+   * The position of the leandboard. Only occurs in leaderboard results.
+   * @type {number?}
+   */
   this.position = position;
+  /**
+   * @type {number?}
+   */
   this.version = version;
 }
 
-function Leaderboard(statisticName) {
+/**
+ * @class
+ */
+AV.Leaderboard = function(statisticName) {
+  /**
+   * @type {string}
+   */
   this.statisticName = statisticName;
+  /**
+   * @type {AV.LeaderboardVersionChangeInterval}
+   */
   this.versionChangeInterval = undefined;
+  /**
+   * @type {number}
+   */
   this.version = undefined;
+  /**
+   * @type {Date?}
+   */
   this.nextResetAt = undefined;
-}
+};
+const Leaderboard = AV.Leaderboard;
 
-Leaderboard.createWithoutData = statisticName => new Leaderboard(statisticName);
-Leaderboard.createLeaderboard = (
+/**
+ * Create an instance of Leaderboard for the give statistic name.
+ * @param {string} statisticName
+ * @return {AV.Leaderboard}
+ */
+AV.Leaderboard.createWithoutData = statisticName =>
+  new Leaderboard(statisticName);
+/**
+ * (masterKey required) Create a new Leaderboard.
+ * @param {Object} options
+ * @param {string} options.statisticName
+ * @param {AV.LeaderboardOrder} options.order
+ * @param {AV.LeaderboardVersionChangeInterval} options.versionChangeInterval
+ * @param {AuthOptions} [authOptions]
+ * @return {Promise<AV.Leaderboard>}
+ */
+AV.Leaderboard.createLeaderboard = (
   { statisticName, order, versionChangeInterval },
   authOptions
 ) =>
@@ -50,9 +108,23 @@ Leaderboard.createLeaderboard = (
     const leaderboard = new Leaderboard(statisticName);
     return leaderboard._finishFetch(data);
   });
-Leaderboard.getLeaderboard = (statisticName, authOptions) =>
+/**
+ * Get the Leaderboard with the specified statistic name.
+ * @param {string} statisticName
+ * @param {AuthOptions} [authOptions]
+ * @return {Promise<AV.Leaderboard>}
+ */
+AV.Leaderboard.getLeaderboard = (statisticName, authOptions) =>
   Leaderboard.createWithoutData(statisticName).fetch(authOptions);
-Leaderboard.getStatistics = (user, { statisticNames } = {}, authOptions) =>
+/**
+ * Get Statistics for the specified user.
+ * @param {AV.User} user The specified AV.User pointer.
+ * @param {Object} [options]
+ * @param {string[]} [options.statisticNames] Specify the statisticNames. If not set, all statistics of the user will be fetched.
+ * @param {AuthOptions} [authOptions]
+ * @return {Promise<Statistic[]>}
+ */
+AV.Leaderboard.getStatistics = (user, { statisticNames } = {}, authOptions) =>
   Promise.resolve().then(() => {
     if (!(user && user.id)) throw new Error('user must be an AV.User');
     return request({
@@ -73,7 +145,14 @@ Leaderboard.getStatistics = (user, { statisticNames } = {}, authOptions) =>
       })
     );
   });
-Leaderboard.updateStatistics = (user, statistics, authOptions) =>
+/**
+ * Update Statistics for the specified user.
+ * @param {AV.User} user The specified AV.User pointer.
+ * @param {Object} statistics A name-value pair representing the statistics to update.
+ * @param {AuthOptions} [authOptions]
+ * @return {Promise<Statistic[]>}
+ */
+AV.Leaderboard.updateStatistics = (user, statistics, authOptions) =>
   Promise.resolve().then(() => {
     if (!(user && user.id)) throw new Error('user must be an AV.User');
     const data = _.map(statistics, (value, key) => ({
@@ -97,80 +176,110 @@ Leaderboard.updateStatistics = (user, statistics, authOptions) =>
     );
   });
 
-_.extend(Leaderboard.prototype, {
-  _finishFetch(data) {
-    _.forEach(data, (value, key) => {
-      if (key === 'updatedAt' || key === 'objectId') return;
-      if (key === 'expiredAt') {
-        key = 'nextResetAt';
-      }
-      if (value.__type === 'Date') {
-        value = parseDate(value.iso);
-      }
-      this[key] = value;
-    });
-    return this;
-  },
-  fetch(authOptions) {
-    return request({
-      method: 'GET',
-      path: `/play/leaderboards/${this.statisticName}`,
-      authOptions,
-    }).then(data => this._finishFetch(data));
-  },
-  _getResults({ skip, limit, includeUserKeys }, authOptions, self) {
-    return request({
-      method: 'GET',
-      path: `/play/leaderboards/${this.statisticName}/positions${
-        self ? '/self' : ''
-      }`,
-      query: {
-        skip,
-        limit,
-        includeUser: includeUserKeys
-          ? ensureArray(includeUserKeys).join(',')
-          : undefined,
-      },
-      authOptions,
-    }).then(({ results }) =>
-      results.map(statisticData => {
-        const {
-          user,
-          statisticName: name,
-          statisticValue: value,
-          position,
-        } = AV._decode(statisticData);
-        return new Statistic({ user, name, value, position });
-      })
-    );
-  },
-  getResults({ skip, limit, includeUserKeys } = {}, authOptions) {
-    return this._getResults({ skip, limit, includeUserKeys }, authOptions);
-  },
-  getResultsAroundUser({ limit, includeUserKeys } = {}, authOptions) {
-    return this._getResults({ limit, includeUserKeys }, authOptions, true);
-  },
-  updateVersionChangeInterval(versionChangeInterval, authOptions) {
-    return request({
-      method: 'PUT',
-      path: `/play/leaderboards/${this.statisticName}`,
-      data: {
-        versionChangeInterval,
-      },
-      authOptions,
-    }).then(data => this._finishFetch(data));
-  },
-  reset(authOptions) {
-    return request({
-      method: 'PUT',
-      path: `/play/leaderboards/${this.statisticName}/incrementVersion`,
-      authOptions,
-    }).then(data => this._finishFetch(data));
-  },
-});
-
-module.exports = {
-  Leaderboard,
-  LeaderboardOrder,
-  LeaderboardVersionChangeInterval,
-};
+_.extend(
+  Leaderboard.prototype,
+  /** @lends AV.Leaderboard.prototype */ {
+    _finishFetch(data) {
+      _.forEach(data, (value, key) => {
+        if (key === 'updatedAt' || key === 'objectId') return;
+        if (key === 'expiredAt') {
+          key = 'nextResetAt';
+        }
+        if (value.__type === 'Date') {
+          value = parseDate(value.iso);
+        }
+        this[key] = value;
+      });
+      return this;
+    },
+    /**
+     * Fetch data from the srever.
+     * @param {AuthOptions} [authOptions]
+     * @return {Promise<AV.Leaderboard>}
+     */
+    fetch(authOptions) {
+      return request({
+        method: 'GET',
+        path: `/play/leaderboards/${this.statisticName}`,
+        authOptions,
+      }).then(data => this._finishFetch(data));
+    },
+    _getResults({ skip, limit, includeUserKeys }, authOptions, self) {
+      return request({
+        method: 'GET',
+        path: `/play/leaderboards/${this.statisticName}/positions${
+          self ? '/self' : ''
+        }`,
+        query: {
+          skip,
+          limit,
+          includeUser: includeUserKeys
+            ? ensureArray(includeUserKeys).join(',')
+            : undefined,
+        },
+        authOptions,
+      }).then(({ results }) =>
+        results.map(statisticData => {
+          const {
+            user,
+            statisticName: name,
+            statisticValue: value,
+            position,
+          } = AV._decode(statisticData);
+          return new Statistic({ user, name, value, position });
+        })
+      );
+    },
+    /**
+     * Retrieve a list of ranked users for this Leaderboard.
+     * @param {Object} [options]
+     * @param {number} [options.skip] The number of results to skip. This is useful for pagination.
+     * @param {number} [options.limit] The limit of the number of results.
+     * @param {string[]} [options.includeUserKeys] Specify keys of the users to include
+     * @param {AuthOptions} [authOptions]
+     * @return {Promise<Statistic[]>}
+     */
+    getResults({ skip, limit, includeUserKeys } = {}, authOptions) {
+      return this._getResults({ skip, limit, includeUserKeys }, authOptions);
+    },
+    /**
+     * Retrieve a list of ranked users for this Leaderboard, centered on the specified user.
+     * @param {Object} [options]
+     * @param {number} [options.limit] The limit of the number of results.
+     * @param {string[]} [options.includeUserKeys] Specify keys of the users to include
+     * @param {AuthOptions} [authOptions]
+     * @return {Promise<Statistic[]>}
+     */
+    getResultsAroundUser({ limit, includeUserKeys } = {}, authOptions) {
+      return this._getResults({ limit, includeUserKeys }, authOptions, true);
+    },
+    /**
+     * (masterKey required) Update the version change interval of the Leaderboard.
+     * @param {AV.LeaderboardVersionChangeInterval} versionChangeInterval
+     * @param {AuthOptions} [authOptions]
+     * @return {Promise<AV.Leaderboard>}
+     */
+    updateVersionChangeInterval(versionChangeInterval, authOptions) {
+      return request({
+        method: 'PUT',
+        path: `/play/leaderboards/${this.statisticName}`,
+        data: {
+          versionChangeInterval,
+        },
+        authOptions,
+      }).then(data => this._finishFetch(data));
+    },
+    /**
+     * (masterKey required) Reset the Leaderboard. The version of the Leaderboard will be incremented by 1.
+     * @param {AuthOptions} [authOptions]
+     * @return {Promise<AV.Leaderboard>}
+     */
+    reset(authOptions) {
+      return request({
+        method: 'PUT',
+        path: `/play/leaderboards/${this.statisticName}/incrementVersion`,
+        authOptions,
+      }).then(data => this._finishFetch(data));
+    },
+  }
+);

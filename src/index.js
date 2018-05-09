@@ -37,7 +37,7 @@ require('./search')(AV);
 require('./insight')(AV);
 
 AV.Conversation = require('./conversation');
-_.extend(AV, require('./leaderboard'));
+require('./leaderboard');
 module.exports = AV;
 
 /**
