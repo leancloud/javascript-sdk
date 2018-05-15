@@ -27,7 +27,7 @@ module.exports = function(AV) {
    */
   AV.Push.send = function(data, options) {
     if (data.where) {
-      data.where = data.where.toJSON().where;
+      data.where = data.where._getParams().where;
     }
 
     if (data.where && data.cql) {

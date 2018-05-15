@@ -531,6 +531,7 @@ export class Query<T extends Queriable> extends BaseQuery<T> {
     pvalues?: any,
     options?: AuthOptions
   ): Promise<U>;
+  static fromJSON<U extends Queriable>(json: object): Query<U>;
 
   containedIn(key: string, values: any[]): this;
   contains(key: string, substring: string): this;

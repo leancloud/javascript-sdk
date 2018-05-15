@@ -124,7 +124,7 @@ module.exports = function(AV) {
           null,
           null,
           'GET',
-          params || this.toJSON(),
+          params || this._getParams(),
           options
         );
       },
@@ -257,8 +257,8 @@ module.exports = function(AV) {
         });
       },
 
-      toJSON: function() {
-        var params = AV.SearchQuery.__super__.toJSON.call(this);
+      _getParams: function() {
+        var params = AV.SearchQuery.__super__._getParams.call(this);
         delete params.where;
         if (this.className) {
           params.clazz = this.className;

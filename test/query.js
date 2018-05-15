@@ -10,6 +10,23 @@ var query = new AV.Query(GameScore);
 describe('Queries', function() {
   setupPolly();
 
+  it('serialize and parse', () => {
+    const json = new AV.Query(GameScore)
+      .equalTo('a', 1)
+      .lessThan('b', 2)
+      .contains('c', 'c')
+      .limit(1)
+      .select('z')
+      .select('y')
+      .include('z')
+      .includeACL(true)
+      .addAscending('a')
+      .addAscending('b')
+      .toJSON();
+    const newQuery = AV.Query.fromJSON(json);
+    newQuery.toJSON().should.eql(json);
+  });
+
   describe('#Basic Queries', function() {
     it('should return Class Array', function() {
       query = new AV.Query(GameScore);

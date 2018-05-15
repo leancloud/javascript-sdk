@@ -127,7 +127,7 @@ module.exports = AV => {
           AV._config.realtime
             .createLiveQueryClient(subscriptionId)
             .then(liveQueryClient => {
-              const { where, keys, returnACL } = query.toJSON();
+              const { where, keys, returnACL } = query._getParams();
               const queryJSON = {
                 where,
                 keys,

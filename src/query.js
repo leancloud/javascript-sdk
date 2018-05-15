@@ -70,7 +70,6 @@ module.exports = function(AV) {
     this._select = [];
     this._limit = -1; // negative limit means, do not send a limit
     this._skip = 0;
-    this._extraOptions = {};
   };
 
   /**
@@ -164,6 +163,39 @@ module.exports = function(AV) {
     });
   };
 
+  /**
+   * Return a query with conditions from json.
+   * This can be useful to send a query from server side to client side.
+   * @since 4.0.0
+   * @param {Object} json from {@link AV.Query#toJSON}
+   * @return {AV.Query}
+   */
+  AV.Query.fromJSON = ({
+    className,
+    where,
+    include,
+    select,
+    includeACL,
+    limit,
+    skip,
+    order,
+  }) => {
+    if (typeof className !== 'string') {
+      throw new TypeError('Invalid Query JSON, className must be a String.');
+    }
+    const query = new AV.Query(className);
+    _.extend(query, {
+      _where: where,
+      _include: include,
+      _select: select,
+      _includeACL: includeACL,
+      _limit: limit,
+      _skip: skip,
+      _order: order,
+    });
+    return query;
+  };
+
   AV.Query._extend = AV._extend;
 
   _.extend(
@@ -195,7 +227,7 @@ module.exports = function(AV) {
         var obj = this._newObject();
         obj.id = objectId;
 
-        var queryJSON = this.toJSON();
+        var queryJSON = this._getParams();
         var fetchOptions = {};
 
         if (queryJSON.keys) fetchOptions.keys = queryJSON.keys;
@@ -222,7 +254,30 @@ module.exports = function(AV) {
        * Returns a JSON representation of this query.
        * @return {Object}
        */
-      toJSON: function() {
+      toJSON() {
+        const {
+          className,
+          _where: where,
+          _include: include,
+          _select: select,
+          _includeACL: includeACL,
+          _limit: limit,
+          _skip: skip,
+          _order: order,
+        } = this;
+        return {
+          className,
+          where,
+          include,
+          select,
+          includeACL,
+          limit,
+          skip,
+          order,
+        };
+      },
+
+      _getParams: function() {
         var params = {
           where: this._where,
         };
@@ -246,10 +301,6 @@ module.exports = function(AV) {
           params.order = this._order;
         }
 
-        AV._objectEach(this._extraOptions, function(v, k) {
-          params[k] = v;
-        });
-
         return params;
       },
 
@@ -263,7 +314,7 @@ module.exports = function(AV) {
         return obj;
       },
       _createRequest(
-        params = this.toJSON(),
+        params = this._getParams(),
         options,
         path = `/classes/${this.className}`
       ) {
@@ -348,7 +399,7 @@ module.exports = function(AV) {
        * });
        */
       scan({ orderedBy, batchSize } = {}, authOptions) {
-        const condition = this.toJSON();
+        const condition = this._getParams();
         debug('scan %O', condition);
         if (condition.order) {
           console.warn(
@@ -434,7 +485,7 @@ module.exports = function(AV) {
        * the query completes.
        */
       count: function(options) {
-        var params = this.toJSON();
+        var params = this._getParams();
         params.limit = 0;
         params.count = 1;
         var request = this._createRequest(params, options);
@@ -454,7 +505,7 @@ module.exports = function(AV) {
       first: function(options) {
         var self = this;
 
-        var params = this.toJSON();
+        var params = this._getParams();
         params.limit = 1;
         var request = this._createRequest(params, options);
 
@@ -691,7 +742,7 @@ module.exports = function(AV) {
        * @return {AV.Query} Returns the query, so you can chain this call.
        */
       matchesQuery: function(key, query) {
-        var queryJSON = query.toJSON();
+        var queryJSON = query._getParams();
         queryJSON.className = query.className;
         this._addCondition(key, '$inQuery', queryJSON);
         return this;
@@ -706,7 +757,7 @@ module.exports = function(AV) {
        * @return {AV.Query} Returns the query, so you can chain this call.
        */
       doesNotMatchQuery: function(key, query) {
-        var queryJSON = query.toJSON();
+        var queryJSON = query._getParams();
         queryJSON.className = query.className;
         this._addCondition(key, '$notInQuery', queryJSON);
         return this;
@@ -723,7 +774,7 @@ module.exports = function(AV) {
        * @return {AV.Query} Returns the query, so you can chain this call.
        */
       matchesKeyInQuery: function(key, queryKey, query) {
-        var queryJSON = query.toJSON();
+        var queryJSON = query._getParams();
         queryJSON.className = query.className;
         this._addCondition(key, '$select', { key: queryKey, query: queryJSON });
         return this;
@@ -740,7 +791,7 @@ module.exports = function(AV) {
        * @return {AV.Query} Returns the query, so you can chain this call.
        */
       doesNotMatchKeyInQuery: function(key, queryKey, query) {
-        var queryJSON = query.toJSON();
+        var queryJSON = query._getParams();
         queryJSON.className = query.className;
         this._addCondition(key, '$dontSelect', {
           key: queryKey,
@@ -757,7 +808,7 @@ module.exports = function(AV) {
        */
       _orQuery: function(queries) {
         var queryJSON = _.map(queries, function(q) {
-          return q.toJSON().where;
+          return q._getParams().where;
         });
 
         this._where.$or = queryJSON;
@@ -772,7 +823,7 @@ module.exports = function(AV) {
        */
       _andQuery: function(queries) {
         var queryJSON = _.map(queries, function(q) {
-          return q.toJSON().where;
+          return q._getParams().where;
         });
 
         this._where.$and = queryJSON;
