@@ -109,7 +109,7 @@ module.exports = function(AV) {
 
         return getUserPointer(options)
           .then(currUser => {
-            var query = this.query.toJSON();
+            var query = this.query._getParams();
             query.className = this.query.className;
             var data = {};
             data.query = query;
@@ -391,8 +391,8 @@ module.exports = function(AV) {
         this._inboxType = type;
         return this;
       },
-      toJSON: function() {
-        var params = AV.InboxQuery.__super__.toJSON.call(this);
+      _getParams: function() {
+        var params = AV.InboxQuery.__super__._getParams.call(this);
         params.owner = AV._encode(this._owner);
         params.inboxType = AV._encode(this._inboxType);
         params.sinceId = AV._encode(this._sinceId);

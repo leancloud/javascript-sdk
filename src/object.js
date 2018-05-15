@@ -1042,11 +1042,11 @@ module.exports = function(AV) {
             }
 
             if (options.query) {
-              var queryJSON;
-              if (typeof options.query.toJSON === 'function') {
-                queryJSON = options.query.toJSON();
-                if (queryJSON) {
-                  query.where = queryJSON.where;
+              var queryParams;
+              if (typeof options.query._getParams === 'function') {
+                queryParams = options.query._getParams();
+                if (queryParams) {
+                  query.where = queryParams.where;
                 }
               }
               if (!query.where) {
