@@ -533,6 +533,7 @@ module.exports = function(AV) {
        */
       sizeEqualTo: function(key, value) {
         this._addCondition(key, '$size', value);
+        return this;
       },
 
       /**
