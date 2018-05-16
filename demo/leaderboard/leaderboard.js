@@ -50,7 +50,7 @@ var app = new Vue({
   data: {
     statistics: [],
     score: null,
-    hightScore: 0,
+    highScore: 0,
     newHighScore: false,
     username: '',
     password: '',
@@ -79,7 +79,7 @@ var app = new Vue({
         this.fetchResults();
         if (!id) {
           this.score = null;
-          this.hightScore = 0;
+          this.highScore = 0;
           this.newHighScore = false;
         }
       },
@@ -93,9 +93,9 @@ var app = new Vue({
       this.newHighScore = false;
       setTimeout(() => {
         this.score = Math.ceil(Math.pow(Math.random(), 2) * 1000);
-        if (this.score > this.hightScore) {
+        if (this.score > this.highScore) {
           this.newHighScore = true;
-          this.hightScore = this.score;
+          this.highScore = this.score;
           this.updateScore(this.score);
         }
         this.rolling = false;
@@ -126,15 +126,22 @@ var app = new Vue({
             : []
         ),
       ])
-        .then(([tops, [beforeUser, user]]) => {
-          console.log(tops, [beforeUser, user]);
+        .then(([topStatistics, [beforeUserStatistic, userStatistic]]) => {
+          console.log(topStatistics, [beforeUserStatistic, userStatistic]);
           let statistics;
-          if (user && user.position >= MAX_RESULTS_COUNT) {
-            statistics = [...tops.slice(0, -2), beforeUser, user];
+          if (userStatistic && userStatistic.position >= MAX_RESULTS_COUNT) {
+            statistics = [
+              ...topStatistics.slice(0, -2),
+              beforeUserStatistic,
+              userStatistic,
+            ];
           } else {
-            statistics = tops;
+            statistics = topStatistics;
           }
           this.statistics = JSON.parse(JSON.stringify(statistics));
+          if (userStatistic) {
+            this.highScore = userStatistic.value;
+          }
         })
         .catch(console.error);
     },

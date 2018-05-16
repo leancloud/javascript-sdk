@@ -17,6 +17,8 @@ a:visited {
 
 #app {
   height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 [v-cloak] {
@@ -62,18 +64,20 @@ a:visited {
 
 .statistic-list {
   height: 100%;
+  flex: 1;
   margin: 0;
   padding: 0;
   list-style: none;
   display: flex;
   flex-direction: column;
   font-size: 1.4em;
+  overflow: auto;
 }
 
 .statistic {
   background: linear-gradient(320deg, #581b98, #9c1de7);
   height: 100%;
-  max-height: 7.84%;
+  max-height: 8.333%;
   min-height: 44px;
   flex: 1;
   display: flex;
@@ -110,19 +114,20 @@ a:visited {
   width: 100%;
   flex: 1;
 }
+.statistic .score {
+  max-width: 44px;
+  overflow: hidden;
+}
 
 .operations {
-  position: fixed;
-  bottom: 0;
-  padding: 6px;
-  width: 100%;
+  padding: 6px 0;
   text-align: center;
   color: #ddd;
 }
 
 .operations .separator {
   display: inline-block;
-  margin: 0 0.5em;
+  margin: 0 0.4em;
 }
 
 #overlay {
@@ -143,6 +148,7 @@ a:visited {
   background: transparent;
   border: 1px solid #ffffff99;
   border-width: 0 0 2px 0;
+  border-radius: 0;
   color: white;
   font-size: 20px;
   text-align: center;
