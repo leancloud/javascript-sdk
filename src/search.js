@@ -156,7 +156,7 @@ module.exports = function(AV) {
        *   //or pass an array.
        *   query.highlights(['title', 'content'])
        * </code></pre>
-       * @param {String[]} highlights a list of fields.
+       * @param {String|String[]} highlights a list of fields.
        * @return {AV.SearchQuery} Returns the query, so you can chain this call.
        */
       highlights: function(highlights) {
@@ -286,3 +286,56 @@ module.exports = function(AV) {
     }
   );
 };
+
+/**
+ * Sorts the results in ascending order by the given key.
+ *
+ * @method AV.SearchQuery#ascending
+ * @param {String} key The key to order by.
+ * @return {AV.SearchQuery} Returns the query, so you can chain this call.
+ */
+/**
+ * Also sorts the results in ascending order by the given key. The previous sort keys have
+ * precedence over this key.
+ *
+ * @method AV.SearchQuery#addAscending
+ * @param {String} key The key to order by
+ * @return {AV.SearchQuery} Returns the query so you can chain this call.
+ */
+/**
+ * Sorts the results in descending order by the given key.
+ *
+ * @method AV.SearchQuery#descending
+ * @param {String} key The key to order by.
+ * @return {AV.SearchQuery} Returns the query, so you can chain this call.
+ */
+/**
+ * Also sorts the results in descending order by the given key. The previous sort keys have
+ * precedence over this key.
+ *
+ * @method AV.SearchQuery#addDescending
+ * @param {String} key The key to order by
+ * @return {AV.SearchQuery} Returns the query so you can chain this call.
+ */
+/**
+ * Include nested AV.Objects for the provided key.  You can use dot
+ * notation to specify which fields in the included object are also fetch.
+ * @method AV.SearchQuery#include
+ * @param {String[]} keys The name of the key to include.
+ * @return {AV.SearchQuery} Returns the query, so you can chain this call.
+ */
+/**
+ * Sets the number of results to skip before returning any results.
+ * This is useful for pagination.
+ * Default is to skip zero results.
+ * @method AV.SearchQuery#skip
+ * @param {Number} n the number of results to skip.
+ * @return {AV.SearchQuery} Returns the query, so you can chain this call.
+ */
+/**
+ * Sets the limit of the number of results to return. The default limit is
+ * 100, with a maximum of 1000 results being returned at a time.
+ * @method AV.SearchQuery#limit
+ * @param {Number} n the number of results to limit to.
+ * @return {AV.SearchQuery} Returns the query, so you can chain this call.
+ */

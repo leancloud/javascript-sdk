@@ -390,6 +390,26 @@ export class Events {
   unbind(eventName?: string, callback?: Function, context?: any): Events;
 }
 
+declare class BaseQuery extends BaseObject {
+  className: string;
+
+  constructor(objectClass: string);
+  constructor(objectClass: Object);
+
+  addAscending(key: string): this;
+  addAscending(key: string[]): this;
+  addDescending(key: string): this;
+  addDescending(key: string[]): this;
+  ascending(key: string): this;
+  ascending(key: string[]): this;
+  include(...keys: string[]): this;
+  include(keys: string[]): this;
+  limit(n: number): this;
+  skip(n: number): this;
+
+  find(options?: AuthOptions): Promise<Object>;
+}
+
 /**
  * Creates a new AV AV.Query for the given AV.Object subclass.
  * @param objectClass -
@@ -446,29 +466,19 @@ export class Events {
  *   }
  * });</pre></p>
  */
-export class Query extends BaseObject {
-  className: string;
-
-  constructor(objectClass: any);
-
+export class Query extends BaseQuery {
   static or(...querys: Query[]): Query;
   static and(...querys: Query[]): Query;
   static doCloudQuery<T>(
     cql: string,
     pvalues?: any,
-    options?: Query.FindOptions
+    options?: AuthOptions
   ): Promise<T>;
 
-  addAscending(key: string): Query;
-  addAscending(key: string[]): Query;
-  addDescending(key: string): Query;
-  addDescending(key: string[]): Query;
-  ascending(key: string): Query;
-  ascending(key: string[]): Query;
   containedIn(key: string, values: any[]): Query;
   contains(key: string, substring: string): Query;
   containsAll(key: string, values: any[]): Query;
-  count<T>(options?: Query.CountOptions): Promise<T>;
+  count<T>(options?: AuthOptions): Promise<T>;
   descending(key: string): Query;
   descending(key: string[]): Query;
   doesNotExist(key: string): Query;
@@ -478,17 +488,13 @@ export class Query extends BaseObject {
   endsWith(key: string, suffix: string): Query;
   equalTo(key: string, value: any): Query;
   exists(key: string): Query;
-  find<T>(options?: Query.FindOptions): Promise<T>;
-  first<T>(options?: Query.FirstOptions): Promise<T>;
-  get<T>(objectId: string, options?: Query.GetOptions): Promise<T>;
+  first<T>(options?: AuthOptions): Promise<T>;
+  get<T>(objectId: string, options?: AuthOptions): Promise<T>;
   greaterThan(key: string, value: any): Query;
   greaterThanOrEqualTo(key: string, value: any): Query;
-  include(...keys: string[]): Query;
-  include(keys: string[]): Query;
   includeACL(value?: boolean): Query;
   lessThan(key: string, value: any): Query;
   lessThanOrEqualTo(key: string, value: any): Query;
-  limit(n: number): Query;
   matches(key: string, regex: RegExp, modifiers?: any): Query;
   matchesKeyInQuery(key: string, queryKey: string, query: Query): Query;
   matchesQuery(key: string, query: Query): Query;
@@ -497,7 +503,6 @@ export class Query extends BaseObject {
   notEqualTo(key: string, value: any): Query;
   select(...keys: string[]): Query;
   select(keys: string[]): Query;
-  skip(n: number): Query;
   startsWith(key: string, prefix: string): Query;
   withinGeoBox(key: string, southwest: GeoPoint, northeast: GeoPoint): Query;
   withinKilometers(key: string, point: GeoPoint, maxDistance: number): Query;
@@ -514,14 +519,30 @@ declare class LiveQuery extends EventEmitter {
   unsubscribe(): Promise<void>;
 }
 
-export namespace Query {
-  interface CountOptions extends AuthOptions {}
-  interface FindOptions extends AuthOptions {}
-  interface FirstOptions extends AuthOptions {}
-  interface GetOptions extends AuthOptions {}
+declare class FriendShipQuery extends Query {}
+
+export class earchQuery extends BaseQuery {
+  sid(sid: string): this;
+  queryString(q: string): this;
+  highlights(highlights: string[]): this;
+  highlights(highlight: string): this;
+  sortBy(builder: SearchSortBuilder): this;
+  hits(): number;
+  hasMore(): boolean;
+  reset(): void;
 }
 
-declare class FriendShipQuery extends Query {}
+export class SearchSortBuilder {
+  constructor();
+  ascending(key: string, mode?: string, missingKeyBehaviour?: string): this;
+  descending(key: string, mode?: string, missingKeyBehaviour?: string): this;
+  whereNear(
+    key: string,
+    point?: GeoPoint,
+    options?: { order?: string; mode?: string; unit?: string }
+  ): this;
+  build(): string;
+}
 
 /**
  * Represents a Role on the AV server. Roles represent groupings of
