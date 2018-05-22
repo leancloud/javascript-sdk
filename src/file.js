@@ -455,7 +455,7 @@ module.exports = function(AV) {
        */
       destroy: function(options) {
         if (!this.id) {
-          return Promise.reject(new Error('The file id is not eixsts.'));
+          return Promise.reject(new Error('The file id does not eixst.'));
         }
         var request = AVRequest(
           'files',
