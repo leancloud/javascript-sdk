@@ -521,7 +521,7 @@ declare class LiveQuery extends EventEmitter {
 
 declare class FriendShipQuery extends Query {}
 
-export class earchQuery extends BaseQuery {
+export class SearchQuery extends BaseQuery {
   sid(sid: string): this;
   queryString(q: string): this;
   highlights(highlights: string[]): this;
