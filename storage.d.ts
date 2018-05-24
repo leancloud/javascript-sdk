@@ -798,16 +798,20 @@ declare class Statistic {
 
 export class Leaderboard {
   statisticName: string;
-  versionChangeInterval: LeaderboardVersionChangeInterval;
-  version: number;
+  order?: LeaderboardOrder;
+  updateStrategy?: LeaderboardUpdateStrategy;
+  versionChangeInterval?: LeaderboardVersionChangeInterval;
+  version?: number;
   nextResetAt?: Date;
+  createdAt?: Date;
 
   static createWithoutData(statisticName: string): Leaderboard;
   static createLeaderboard(
     options: {
       statisticName: string;
       order: LeaderboardOrder;
-      versionChangeInterval: LeaderboardVersionChangeInterval;
+      versionChangeInterval?: LeaderboardVersionChangeInterval;
+      updateStrategy?: LeaderboardUpdateStrategy;
     },
     authOptions?: AuthOptions
   ): Promise<Leaderboard>;
@@ -838,12 +842,21 @@ export class Leaderboard {
     versionChangeInterval: LeaderboardVersionChangeInterval,
     authOptions?: AuthOptions
   ): Promise<Leaderboard>;
+  updateUpdateStrategy(
+    updateStrategy: LeaderboardUpdateStrategy,
+    authOptions?: AuthOptions
+  ): Promise<Leaderboard>;
   reset(authOptions?: AuthOptions): Promise<Leaderboard>;
 }
 
 export enum LeaderboardOrder {
   ASCENDING,
   DESCENDING,
+}
+
+export enum LeaderboardUpdateStrategy {
+  BETTER,
+  LAST,
 }
 
 export enum LeaderboardVersionChangeInterval {

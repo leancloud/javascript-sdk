@@ -5,6 +5,7 @@ describe('Leaderboard', () => {
     return AV.Leaderboard.createLeaderboard(
       {
         statisticName,
+        updateStrategy: AV.LeaderboardUpdateStrategy.BETTER,
         order: AV.LeaderboardOrder.ASCENDING,
         versionChangeInterval: AV.LeaderboardVersionChangeInterval.WEEK,
       },
@@ -19,6 +20,9 @@ describe('Leaderboard', () => {
   function validateLeaderboard(leaderboard) {
     leaderboard.should.be.instanceof(AV.Leaderboard);
     leaderboard.statisticName.should.be.eql(statisticName);
+    leaderboard.updateStrategy.should.be.eql(
+      AV.LeaderboardUpdateStrategy.BETTER
+    );
     leaderboard.versionChangeInterval.should.be.eql(
       AV.LeaderboardVersionChangeInterval.WEEK
     );
@@ -47,6 +51,17 @@ describe('Leaderboard', () => {
       .then(leaderboard => {
         leaderboard.versionChangeInterval.should.be.eql(
           AV.LeaderboardVersionChangeInterval.DAY
+        );
+      });
+  });
+  it('mutation with masterKey', function() {
+    return this.leaderboard
+      .updateUpdateStrategy(AV.LeaderboardUpdateStrategy.LAST, {
+        useMasterKey: true,
+      })
+      .then(leaderboard => {
+        leaderboard.updateStrategy.should.be.eql(
+          AV.LeaderboardUpdateStrategy.LAST
         );
       });
   });

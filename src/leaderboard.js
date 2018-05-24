@@ -25,6 +25,11 @@ AV.LeaderboardOrder = {
   DESCENDING: 'descending',
 };
 
+AV.LeaderboardUpdateStrategy = {
+  BETTER: 'better',
+  LAST: 'last',
+};
+
 /**
  * @class
  */
@@ -61,6 +66,14 @@ AV.Leaderboard = function(statisticName) {
    */
   this.statisticName = statisticName;
   /**
+   * @type {AV.LeaderboardOrder}
+   */
+  this.order = undefined;
+  /**
+   * @type {AV.LeaderboardUpdateStrategy}
+   */
+  this.updateStrategy = undefined;
+  /**
    * @type {AV.LeaderboardVersionChangeInterval}
    */
   this.versionChangeInterval = undefined;
@@ -72,6 +85,10 @@ AV.Leaderboard = function(statisticName) {
    * @type {Date?}
    */
   this.nextResetAt = undefined;
+  /**
+   * @type {Date?}
+   */
+  this.createdAt = undefined;
 };
 const Leaderboard = AV.Leaderboard;
 
@@ -87,12 +104,13 @@ AV.Leaderboard.createWithoutData = statisticName =>
  * @param {Object} options
  * @param {string} options.statisticName
  * @param {AV.LeaderboardOrder} options.order
- * @param {AV.LeaderboardVersionChangeInterval} options.versionChangeInterval
+ * @param {AV.LeaderboardVersionChangeInterval} [options.versionChangeInterval] default to WEEK
+ * @param {AV.LeaderboardUpdateStrategy} [options.updateStrategy] default to BETTER
  * @param {AuthOptions} [authOptions]
  * @return {Promise<AV.Leaderboard>}
  */
 AV.Leaderboard.createLeaderboard = (
-  { statisticName, order, versionChangeInterval },
+  { statisticName, order, versionChangeInterval, updateStrategy },
   authOptions
 ) =>
   request({
@@ -102,6 +120,7 @@ AV.Leaderboard.createLeaderboard = (
       statisticName,
       order,
       versionChangeInterval,
+      updateStrategy,
     },
     authOptions,
   }).then(data => {
@@ -185,6 +204,9 @@ _.extend(
         if (key === 'expiredAt') {
           key = 'nextResetAt';
         }
+        if (key === 'createdAt') {
+          value = parseDate(value);
+        }
         if (value.__type === 'Date') {
           value = parseDate(value.iso);
         }
@@ -253,6 +275,14 @@ _.extend(
     getResultsAroundUser({ limit, includeUserKeys } = {}, authOptions) {
       return this._getResults({ limit, includeUserKeys }, authOptions, true);
     },
+    _update(data, authOptions) {
+      return request({
+        method: 'PUT',
+        path: `/play/leaderboards/${this.statisticName}`,
+        data,
+        authOptions,
+      }).then(result => this._finishFetch(result));
+    },
     /**
      * (masterKey required) Update the version change interval of the Leaderboard.
      * @param {AV.LeaderboardVersionChangeInterval} versionChangeInterval
@@ -260,14 +290,16 @@ _.extend(
      * @return {Promise<AV.Leaderboard>}
      */
     updateVersionChangeInterval(versionChangeInterval, authOptions) {
-      return request({
-        method: 'PUT',
-        path: `/play/leaderboards/${this.statisticName}`,
-        data: {
-          versionChangeInterval,
-        },
-        authOptions,
-      }).then(data => this._finishFetch(data));
+      return this._update({ versionChangeInterval }, authOptions);
+    },
+    /**
+     * (masterKey required) Update the version change interval of the Leaderboard.
+     * @param {AV.LeaderboardUpdateStrategy} updateStrategy
+     * @param {AuthOptions} [authOptions]
+     * @return {Promise<AV.Leaderboard>}
+     */
+    updateUpdateStrategy(updateStrategy, authOptions) {
+      return this._update({ updateStrategy }, authOptions);
     },
     /**
      * (masterKey required) Reset the Leaderboard. The version of the Leaderboard will be incremented by 1.
