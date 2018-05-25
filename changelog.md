@@ -1,8 +1,11 @@
-# 3.7.0-beta.0 (2018-05-09)
+# 3.7.0 (2018-05-25)
 
 ### Features
 
-* 新增排行版功能（`AV.Leaderboard`）。
+* 新功能：排行版（`AV.Leaderboard`）
+  * [使用文档](https://url.leanapp.cn/leaderboard-js)
+  * [API 文档](https://leancloud.github.io/javascript-sdk/docs/AV.Leaderboard.html)
+  * [Demo](https://leancloud.github.io/javascript-sdk/demo/leaderboard/)
 * 第三方账号登录功能增加了两项新的能力：
 
   * 所有第三方账号登录 API 增加了 `failOnNotExist` 参数，指定该参数为 `true` 时如果当前不存在该 `authData` 对应的用户，将会抛出「未找到用户」异常。该选项使开发者在使用第三方账号登录创建新用户之前有机会要求用户填写手机号码等信息。
@@ -20,6 +23,10 @@
     * `AV.User#loginWithAuthData`
     * `AV.User#loginWithAuthDataAndUnionId`
     * `AV.User#loginWithWeapp`
+
+### Bug fixes
+
+* 修复了 `AV.Query#sizeEqualTo` 方法没有返回 `this` 的问题。
 
 ## 3.6.8 (2018-04-25)
 
