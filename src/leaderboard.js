@@ -25,8 +25,14 @@ AV.LeaderboardOrder = {
   DESCENDING: 'descending',
 };
 
+/**
+ * The update strategy for Leaderboard
+ * @enum
+ */
 AV.LeaderboardUpdateStrategy = {
+  /** Only keep the best statistic. If the leaderboard is in descending order, the best statistic is the highest one. */
   BETTER: 'better',
+  /** Keep the last updated statistic */
   LAST: 'last',
 };
 
