@@ -1,8 +1,16 @@
+## 3.7.1 (2018-05-31)
+
+### Bug fixes
+
+* 更新了排行榜使用的 Rest API 路径。
+* 增加了遗漏的 `AV.Leaderboard#destroy` 方法。
+* 修复了将一个通过 `AV.File.withURL` 方法创建的文件保存为一个对象的属性时，文件被错误地保存为 `null` 的问题。
+
 # 3.7.0 (2018-05-25)
 
 ### Features
 
-* 新功能：排行版（`AV.Leaderboard`）
+* 新功能：排行榜（`AV.Leaderboard`）
   * [使用文档](https://url.leanapp.cn/leaderboard-js)
   * [API 文档](https://leancloud.github.io/javascript-sdk/docs/AV.Leaderboard.html)
   * [Demo](https://leancloud.github.io/javascript-sdk/demo/leaderboard/)
