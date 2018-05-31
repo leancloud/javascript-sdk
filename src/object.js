@@ -1620,7 +1620,7 @@ module.exports = function(AV) {
       }
 
       if (object instanceof AV.File) {
-        if (!object.url() && !object.id) {
+        if (!object.id) {
           files.push(object);
         }
         return;
