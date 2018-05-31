@@ -121,7 +121,7 @@ AV.Leaderboard.createLeaderboard = (
 ) =>
   request({
     method: 'POST',
-    path: '/play/leaderboards',
+    path: '/leaderboard/leaderboards',
     data: {
       statisticName,
       order,
@@ -154,7 +154,7 @@ AV.Leaderboard.getStatistics = (user, { statisticNames } = {}, authOptions) =>
     if (!(user && user.id)) throw new Error('user must be an AV.User');
     return request({
       method: 'GET',
-      path: `/play/users/${user.id}/statistics`,
+      path: `/leaderboard/users/${user.id}/statistics`,
       query: {
         statistics: statisticNames ? ensureArray(statisticNames) : undefined,
       },
@@ -186,7 +186,7 @@ AV.Leaderboard.updateStatistics = (user, statistics, authOptions) =>
     }));
     return request({
       method: 'POST',
-      path: `/play/users/${user.id}/statistics`,
+      path: `/leaderboard/users/${user.id}/statistics`,
       data,
       authOptions,
     }).then(({ results }) =>
@@ -228,14 +228,14 @@ _.extend(
     fetch(authOptions) {
       return request({
         method: 'GET',
-        path: `/play/leaderboards/${this.statisticName}`,
+        path: `/leaderboard/leaderboards/${this.statisticName}`,
         authOptions,
       }).then(data => this._finishFetch(data));
     },
     _getResults({ skip, limit, includeUserKeys }, authOptions, self) {
       return request({
         method: 'GET',
-        path: `/play/leaderboards/${this.statisticName}/positions${
+        path: `/leaderboard/leaderboards/${this.statisticName}/positions${
           self ? '/self' : ''
         }`,
         query: {
@@ -284,7 +284,7 @@ _.extend(
     _update(data, authOptions) {
       return request({
         method: 'PUT',
-        path: `/play/leaderboards/${this.statisticName}`,
+        path: `/leaderboard/leaderboards/${this.statisticName}`,
         data,
         authOptions,
       }).then(result => this._finishFetch(result));
@@ -315,7 +315,9 @@ _.extend(
     reset(authOptions) {
       return request({
         method: 'PUT',
-        path: `/play/leaderboards/${this.statisticName}/incrementVersion`,
+        path: `/leaderboard/leaderboards/${
+          this.statisticName
+        }/incrementVersion`,
         authOptions,
       }).then(data => this._finishFetch(data));
     },

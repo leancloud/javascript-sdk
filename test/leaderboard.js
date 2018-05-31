@@ -153,7 +153,7 @@ describe('Leaderboard', () => {
   after(() =>
     AV.request({
       method: 'DELETE',
-      path: `/play/leaderboards/${statisticName}`,
+      path: `/leaderboard/leaderboards/${statisticName}`,
       authOptions: {
         useMasterKey: true,
       },
