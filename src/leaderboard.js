@@ -321,5 +321,17 @@ _.extend(
         authOptions,
       }).then(data => this._finishFetch(data));
     },
+    /**
+     * (masterKey required) Delete the Leaderboard and its all archived versions.
+     * @param {AuthOptions} [authOptions]
+     * @return {void}
+     */
+    destroy(authOptions) {
+      return AV.request({
+        method: 'DELETE',
+        path: `/leaderboard/leaderboards/${this.statisticName}`,
+        authOptions,
+      }).then(() => undefined);
+    },
   }
 );

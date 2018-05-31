@@ -847,6 +847,7 @@ export class Leaderboard {
     authOptions?: AuthOptions
   ): Promise<Leaderboard>;
   reset(authOptions?: AuthOptions): Promise<Leaderboard>;
+  destroy(authOptions?: AuthOptions): Promise<void>;
 }
 
 export enum LeaderboardOrder {

@@ -150,13 +150,7 @@ describe('Leaderboard', () => {
     });
   });
 
-  after(() =>
-    AV.request({
-      method: 'DELETE',
-      path: `/leaderboard/leaderboards/${statisticName}`,
-      authOptions: {
-        useMasterKey: true,
-      },
-    })
-  );
+  after(function() {
+    return this.leaderboard.destroy({ useMasterKey: true });
+  });
 });
