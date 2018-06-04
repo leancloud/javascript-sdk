@@ -407,7 +407,7 @@ declare class BaseQuery extends BaseObject {
   limit(n: number): this;
   skip(n: number): this;
 
-  find(options?: AuthOptions): Promise<Object>;
+  find(options?: AuthOptions): Promise<Object[]>;
 }
 
 /**
