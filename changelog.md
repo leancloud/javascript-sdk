@@ -1,3 +1,10 @@
+## 3.7.2 (2018-06-06)
+
+### Bug fixes
+
+* 修复了 `AV.Query#find` 方法错误的 TypeScript 定义。
+* 排行榜 API 进行了修订。
+
 ## 3.7.1 (2018-05-31)
 
 ### Bug fixes
