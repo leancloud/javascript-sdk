@@ -2,18 +2,14 @@
 
 ### Bug fixes
 
-* 更新了排行榜使用的 Rest API 路径。
 * 增加了遗漏的 `AV.Leaderboard#destroy` 方法。
 * 修复了将一个通过 `AV.File.withURL` 方法创建的文件保存为一个对象的属性时，文件被错误地保存为 `null` 的问题。
+* 更新了排行榜使用的 Rest API 路径。
 
 # 3.7.0 (2018-05-25)
 
 ### Features
 
-* 新功能：排行榜（`AV.Leaderboard`）
-  * [使用文档](https://url.leanapp.cn/leaderboard-js)
-  * [API 文档](https://leancloud.github.io/javascript-sdk/docs/AV.Leaderboard.html)
-  * [Demo](https://leancloud.github.io/javascript-sdk/demo/leaderboard/)
 * 第三方账号登录功能增加了两项新的能力：
 
   * 所有第三方账号登录 API 增加了 `failOnNotExist` 参数，指定该参数为 `true` 时如果当前不存在该 `authData` 对应的用户，将会抛出「未找到用户」异常。该选项使开发者在使用第三方账号登录创建新用户之前有机会要求用户填写手机号码等信息。
@@ -31,6 +27,14 @@
     * `AV.User#loginWithAuthData`
     * `AV.User#loginWithAuthDataAndUnionId`
     * `AV.User#loginWithWeapp`
+
+* 新功能预览：排行榜（`AV.Leaderboard`）
+
+  排行榜功能目前在预览阶段，在正式发布前 API 可能会有不向前兼容的变更，请不要在生产环境使用。
+
+  * [使用文档](https://url.leanapp.cn/leaderboard-js)
+  * [API 文档](https://leancloud.github.io/javascript-sdk/docs/AV.Leaderboard.html)
+  * [Demo](https://leancloud.github.io/javascript-sdk/demo/leaderboard/)
 
 ### Bug fixes
 
