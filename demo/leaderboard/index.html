@@ -31,14 +31,14 @@
         </transition>
       </div>
     </div>
-    <transition-group name="statistic-list" class="statistic-list" tag="ul">
-      <li v-for="statistic in statistics" class="statistic" :key="statistic.user.username" :class="{ completed: statistic.done }">
-        <span>{{statistic.position + 1}}.&nbsp;</span>
-        <span class="username">{{statistic.user.username}}
-          <span v-if="statistic.user.username == user.username">（你）</span>
+    <transition-group name="ranking-list" class="ranking-list" tag="ul">
+      <li v-for="ranking in rankings" class="ranking" :key="ranking.user.username" :class="{ completed: ranking.done }">
+        <span>{{ranking.rank + 1}}.&nbsp;</span>
+        <span class="username">{{ranking.user.username}}
+          <span v-if="ranking.user.username == user.username">（你）</span>
         </span>
         <span class="score">
-          <animated-integer :value="statistic.value"></animated-integer>
+          <animated-integer :value="ranking.value"></animated-integer>
         </span>
       </li>
     </transition-group>

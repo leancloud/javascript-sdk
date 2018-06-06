@@ -1,19 +1,34 @@
 const statisticName = `score_${Date.now()}`;
+const statisticName2 = `score_${Date.now()}_2`;
 
 describe('Leaderboard', () => {
   before(function setUpLeaderboard() {
-    return AV.Leaderboard.createLeaderboard(
-      {
-        statisticName,
-        updateStrategy: AV.LeaderboardUpdateStrategy.BETTER,
-        order: AV.LeaderboardOrder.ASCENDING,
-        versionChangeInterval: AV.LeaderboardVersionChangeInterval.WEEK,
-      },
-      {
-        useMasterKey: true,
-      }
-    ).then(leaderboard => {
+    return Promise.all([
+      AV.Leaderboard.createLeaderboard(
+        {
+          statisticName,
+          updateStrategy: AV.LeaderboardUpdateStrategy.BETTER,
+          order: AV.LeaderboardOrder.ASCENDING,
+          versionChangeInterval: AV.LeaderboardVersionChangeInterval.WEEK,
+        },
+        {
+          useMasterKey: true,
+        }
+      ),
+      AV.Leaderboard.createLeaderboard(
+        {
+          statisticName: statisticName2,
+          updateStrategy: AV.LeaderboardUpdateStrategy.BETTER,
+          order: AV.LeaderboardOrder.ASCENDING,
+          versionChangeInterval: AV.LeaderboardVersionChangeInterval.NEVER,
+        },
+        {
+          useMasterKey: true,
+        }
+      ),
+    ]).then(([leaderboard, leaderboard2]) => {
       this.leaderboard = leaderboard;
+      this.leaderboard2 = leaderboard2;
     });
   });
 
@@ -83,7 +98,7 @@ describe('Leaderboard', () => {
             users.map((user, index) =>
               AV.Leaderboard.updateStatistics(
                 user,
-                { [statisticName]: index },
+                { [statisticName]: index, [statisticName2]: -index },
                 {
                   user,
                 }
@@ -103,7 +118,6 @@ describe('Leaderboard', () => {
     function validateStatistic(statistic) {
       statistic.name.should.eql(statisticName);
       statistic.value.should.eql(2);
-      statistic.user.id.should.eql(currentUser.id);
     }
 
     it('shoud have properties', () => {
@@ -117,40 +131,59 @@ describe('Leaderboard', () => {
         user: currentUser,
       }).then(statistics => {
         statistics.should.be.an.Array();
-        validateStatistic(statistics[0]);
-        statistics[0].version.should.eql(0);
+        const score = statistics.find(
+          statistic => statistic.name === statisticName
+        );
+        validateStatistic(score);
+        score.version.should.eql(0);
       }));
 
     it('getResults', function() {
       const leaderboard = this.leaderboard;
       return leaderboard
-        .getResults({ includeUserKeys: ['username'] })
-        .then(statistics => {
-          statistics.should.be.an.Array();
-          statistics.should.be.length(4);
-          statistics
-            .map(statistic => statistic.position)
-            .should.eql([0, 1, 2, 3]);
-          validateStatistic(statistics[2]);
-          statistics[2].user
+        .getResults({
+          selectUserKeys: ['username'],
+          includeStatistics: [statisticName2],
+        })
+        .then(rankings => {
+          rankings.should.be.an.Array();
+          rankings.should.be.length(4);
+          rankings.map(ranking => ranking.rank).should.eql([0, 1, 2, 3]);
+          rankings[2].value.should.eql(2);
+          rankings[2].user
             .get('username')
             .should.be.eql(currentUser.get('username'));
+          rankings[2].includedStatistics.should.be.an.Array();
+          rankings[2].includedStatistics[0].name.should.be.eql(statisticName2);
         });
+    });
+    it('include a non-exist statistic should throw', function() {
+      const leaderboard = this.leaderboard;
+      return leaderboard
+        .getResults({
+          includeStatistics: ['fake'],
+        })
+        .should.be.rejected();
     });
     it('getResultsAroundUser', function() {
       const leaderboard = this.leaderboard;
       return leaderboard
         .getResultsAroundUser({ limit: 3 }, { user: currentUser })
-        .then(statistics => {
-          statistics.should.be.an.Array();
-          statistics.should.be.length(3);
-          validateStatistic(statistics[1]);
-          statistics.map(statistic => statistic.position).should.eql([1, 2, 3]);
+        .then(rankings => {
+          rankings.should.be.an.Array();
+          rankings.should.be.length(3);
+          rankings[1].value.should.eql(2);
+          expect(rankings[1].user.get('username')).to.be(undefined);
+          rankings[1].includedStatistics.should.be.an.Array();
+          rankings.map(ranking => ranking.rank).should.eql([1, 2, 3]);
         });
     });
   });
 
   after(function() {
-    return this.leaderboard.destroy({ useMasterKey: true });
+    return Promise.all([
+      this.leaderboard.destroy({ useMasterKey: true }),
+      this.leaderboard2.destroy({ useMasterKey: true }),
+    ]);
   });
 });

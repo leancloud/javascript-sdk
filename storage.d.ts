@@ -791,9 +791,14 @@ export class Conversation extends Object {
 declare class Statistic {
   name: string;
   value: number;
-  user: AV.User;
-  position?: number;
   version?: number;
+}
+
+declare interface Ranking {
+  value: number;
+  user: AV.User;
+  rank: number;
+  includedStatistics?: Statistic[];
 }
 
 export class Leaderboard {
@@ -831,13 +836,22 @@ export class Leaderboard {
 
   fetch(authOptions?: AuthOptions): Promise<Leaderboard>;
   getResults(
-    options?: { skip?: number; limit?: number; includeUserKeys?: string[] },
+    options?: {
+      skip?: number;
+      limit?: number;
+      selectUserKeys?: string | string[];
+      includeStatistics?: string | string[];
+    },
     authOptions?: AuthOptions
-  ): Promise<Statistic[]>;
+  ): Promise<Ranking[]>;
   getResultsAroundUser(
-    options?: { limit?: number; includeUserKeys?: string[] },
+    options?: {
+      limit?: number;
+      selectUserKeys?: string | string[];
+      includeStatistics?: string | string[];
+    },
     authOptions?: AuthOptions
-  ): Promise<Statistic[]>;
+  ): Promise<Ranking[]>;
   updateVersionChangeInterval(
     versionChangeInterval: LeaderboardVersionChangeInterval,
     authOptions?: AuthOptions

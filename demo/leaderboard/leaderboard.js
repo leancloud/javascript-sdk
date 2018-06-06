@@ -48,7 +48,7 @@ Vue.component('animated-integer', {
 
 var app = new Vue({
   data: {
-    statistics: [],
+    rankings: [],
     score: null,
     highScore: 0,
     newHighScore: false,
@@ -115,32 +115,32 @@ var app = new Vue({
       Promise.all([
         leaderboard.getResults({
           limit: MAX_RESULTS_COUNT,
-          includeUserKeys: ['username'],
+          selectUserKeys: ['username'],
         }),
         Promise.resolve(
           AV.User.current()
             ? leaderboard.getResultsAroundUser({
                 limit: 3,
-                includeUserKeys: ['username'],
+                selectUserKeys: ['username'],
               })
             : []
         ),
       ])
-        .then(([topStatistics, [beforeUserStatistic, userStatistic]]) => {
-          console.log(topStatistics, [beforeUserStatistic, userStatistic]);
-          let statistics;
-          if (userStatistic && userStatistic.position >= MAX_RESULTS_COUNT) {
-            statistics = [
-              ...topStatistics.slice(0, -2),
-              beforeUserStatistic,
-              userStatistic,
+        .then(([topRankings, [beforeUserRankings, userRanking]]) => {
+          console.log(topRankings, [beforeUserRankings, userRanking]);
+          let rankings;
+          if (userRanking && userRanking.rank >= MAX_RESULTS_COUNT) {
+            rankings = [
+              ...topRankings.slice(0, -2),
+              beforeUserRankings,
+              userRanking,
             ];
           } else {
-            statistics = topStatistics;
+            rankings = topRankings;
           }
-          this.statistics = JSON.parse(JSON.stringify(statistics));
-          if (userStatistic) {
-            this.highScore = userStatistic.value;
+          this.rankings = JSON.parse(JSON.stringify(rankings));
+          if (userRanking) {
+            this.highScore = userRanking.value;
           }
         })
         .catch(console.error);
