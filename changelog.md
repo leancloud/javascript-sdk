@@ -1,3 +1,10 @@
+## 3.7.3 (2018-06-14)
+
+### Bug fixes
+
+* 修复了 CocosCreator 中 `AV.Query#find` 等方法在模拟器及真机上不触发回调并打印 `[ERROR] args[0] isn't a typed array or an array buffer` 的问题。
+* 修复了通过 `require('leancloud-storage/live-query')` 引入 SDK 无法得到 TypeScript 定义的问题。
+
 ## 3.7.2 (2018-06-06)
 
 ### Bug fixes
