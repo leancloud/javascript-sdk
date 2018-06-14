@@ -116,7 +116,7 @@ const request = ({
   method,
   path,
   query,
-  data = {},
+  data,
   authOptions,
   signKey = true,
 }) => {
@@ -160,7 +160,7 @@ const _request = (
   className,
   objectId,
   method,
-  data = {},
+  data,
   authOptions,
   query
 ) => {
