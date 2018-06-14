@@ -10,7 +10,6 @@ const AV = require('./av');
  */
 AV.LeaderboardVersionChangeInterval = {
   NEVER: 'never',
-  HOUR: 'hour',
   DAY: 'day',
   WEEK: 'week',
   MONTH: 'month',
