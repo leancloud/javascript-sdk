@@ -222,13 +222,13 @@ export class Relation extends BaseObject {
     parentClass: string,
     relationKey: string,
     child: Object
-  ): Query;
+  ): Query<any>;
 
   //Adds a AV.Object or an array of AV.Objects to the relation.
   add(object: Object): void;
 
   // Returns a AV.Query that is limited to objects in this relation.
-  query(): Query;
+  query(): Query<any>;
 
   // Removes a AV.Object or an array of AV.Objects from this relation.
   remove(object: Object): void;
@@ -268,7 +268,7 @@ export class Object extends BaseObject {
   attributes: any;
   changed: boolean;
   className: string;
-  query: Query;
+  query: Query<this>;
 
   constructor(className?: string, options?: any);
   constructor(attributes?: string[], options?: any);
@@ -311,8 +311,15 @@ export class Object extends BaseObject {
   previousAttributes(): any;
   relation(attr: string): Relation;
   remove(attr: string, item: any): this;
-  save(attrs?: object | null, options?: Object.SaveOptions): Promise<this>;
-  save(key: string, value: any, options?: Object.SaveOptions): Promise<this>;
+  save(
+    attrs?: object | null,
+    options?: Object.SaveOptions<this>
+  ): Promise<this>;
+  save(
+    key: string,
+    value: any,
+    options?: Object.SaveOptions<this>
+  ): Promise<this>;
   set(key: string, value: any, options?: Object.SetOptions): this;
   setACL(acl: ACL, options?: Object.SetOptions): this;
   unset(attr: string, options?: Object.SetOptions): this;
@@ -325,9 +332,12 @@ export namespace Object {
 
   interface DestroyAllOptions extends AuthOptions {}
 
-  interface SaveOptions extends AuthOptions, SilentOption, WaitOption {
+  interface SaveOptions<T extends Queriable>
+    extends AuthOptions,
+      SilentOption,
+      WaitOption {
     fetchWhenSave?: boolean;
-    where?: Query;
+    where?: Query<T>;
   }
 
   interface SaveAllOptions extends AuthOptions {}
@@ -390,11 +400,13 @@ export class Events {
   unbind(eventName?: string, callback?: Function, context?: any): Events;
 }
 
-declare class BaseQuery extends BaseObject {
+declare type Queriable = Object | File;
+
+declare class BaseQuery<T extends Queriable> extends BaseObject {
   className: string;
 
+  constructor(objectClass: new (...any) => T);
   constructor(objectClass: string);
-  constructor(objectClass: Object);
 
   addAscending(key: string): this;
   addAscending(key: string[]): this;
@@ -407,7 +419,7 @@ declare class BaseQuery extends BaseObject {
   limit(n: number): this;
   skip(n: number): this;
 
-  find(options?: AuthOptions): Promise<Object[]>;
+  find(options?: AuthOptions): Promise<T[]>;
 }
 
 /**
@@ -466,49 +478,57 @@ declare class BaseQuery extends BaseObject {
  *   }
  * });</pre></p>
  */
-export class Query extends BaseQuery {
-  static or(...querys: Query[]): Query;
-  static and(...querys: Query[]): Query;
-  static doCloudQuery<T>(
+export class Query<T extends Queriable> extends BaseQuery<T> {
+  static or<U extends Queriable>(...querys: Query<U>[]): U;
+  static and<U extends Queriable>(...querys: Query<U>[]): U;
+  static doCloudQuery<U extends Queriable>(
     cql: string,
     pvalues?: any,
     options?: AuthOptions
-  ): Promise<T>;
+  ): Promise<U>;
 
-  containedIn(key: string, values: any[]): Query;
-  contains(key: string, substring: string): Query;
-  containsAll(key: string, values: any[]): Query;
-  count<T>(options?: AuthOptions): Promise<T>;
-  descending(key: string): Query;
-  descending(key: string[]): Query;
-  doesNotExist(key: string): Query;
-  doesNotMatchKeyInQuery(key: string, queryKey: string, query: Query): Query;
-  doesNotMatchQuery(key: string, query: Query): Query;
-  each<T>(callback: Function, options?: AuthOptions): Promise<T>;
-  endsWith(key: string, suffix: string): Query;
-  equalTo(key: string, value: any): Query;
-  exists(key: string): Query;
-  first<T>(options?: AuthOptions): Promise<T>;
-  get<T>(objectId: string, options?: AuthOptions): Promise<T>;
-  greaterThan(key: string, value: any): Query;
-  greaterThanOrEqualTo(key: string, value: any): Query;
-  includeACL(value?: boolean): Query;
-  lessThan(key: string, value: any): Query;
-  lessThanOrEqualTo(key: string, value: any): Query;
-  matches(key: string, regex: RegExp, modifiers?: any): Query;
-  matchesKeyInQuery(key: string, queryKey: string, query: Query): Query;
-  matchesQuery(key: string, query: Query): Query;
-  near(key: string, point: GeoPoint): Query;
-  notContainedIn(key: string, values: any[]): Query;
-  notEqualTo(key: string, value: any): Query;
-  select(...keys: string[]): Query;
-  select(keys: string[]): Query;
-  startsWith(key: string, prefix: string): Query;
-  withinGeoBox(key: string, southwest: GeoPoint, northeast: GeoPoint): Query;
-  withinKilometers(key: string, point: GeoPoint, maxDistance: number): Query;
-  withinMiles(key: string, point: GeoPoint, maxDistance: number): Query;
-  withinRadians(key: string, point: GeoPoint, maxDistance: number): Query;
-  scan<T>(
+  containedIn(key: string, values: any[]): this;
+  contains(key: string, substring: string): this;
+  containsAll(key: string, values: any[]): this;
+  count(options?: AuthOptions): Promise<T>;
+  descending(key: string): this;
+  descending(key: string[]): this;
+  doesNotExist(key: string): this;
+  doesNotMatchKeyInQuery<U extends Queriable>(
+    key: string,
+    queryKey: string,
+    query: Query<U>
+  ): this;
+  doesNotMatchQuery<U extends Queriable>(key: string, query: Query<U>): this;
+  each(callback: Function, options?: AuthOptions): Promise<T>;
+  endsWith(key: string, suffix: string): this;
+  equalTo(key: string, value: any): this;
+  exists(key: string): this;
+  first(options?: AuthOptions): Promise<T>;
+  get(objectId: string, options?: AuthOptions): Promise<T>;
+  greaterThan(key: string, value: any): this;
+  greaterThanOrEqualTo(key: string, value: any): this;
+  includeACL(value?: boolean): this;
+  lessThan(key: string, value: any): this;
+  lessThanOrEqualTo(key: string, value: any): this;
+  matches(key: string, regex: RegExp, modifiers?: any): this;
+  matchesKeyInQuery<U extends Queriable>(
+    key: string,
+    queryKey: string,
+    query: Query<U>
+  ): this;
+  matchesQuery<U extends Queriable>(key: string, query: Query<U>): this;
+  near(key: string, point: GeoPoint): this;
+  notContainedIn(key: string, values: any[]): this;
+  notEqualTo(key: string, value: any): this;
+  select(...keys: string[]): this;
+  select(keys: string[]): this;
+  startsWith(key: string, prefix: string): this;
+  withinGeoBox(key: string, southwest: GeoPoint, northeast: GeoPoint): this;
+  withinKilometers(key: string, point: GeoPoint, maxDistance: number): this;
+  withinMiles(key: string, point: GeoPoint, maxDistance: number): this;
+  withinRadians(key: string, point: GeoPoint, maxDistance: number): this;
+  scan(
     options?: { orderedBy?: string; batchSize?: number },
     authOptions?: AuthOptions
   ): AsyncIterator<T>;
@@ -519,9 +539,9 @@ declare class LiveQuery extends EventEmitter {
   unsubscribe(): Promise<void>;
 }
 
-declare class FriendShipQuery extends Query {}
+declare class FriendShipQuery extends Query<User> {}
 
-export class SearchQuery extends BaseQuery {
+export class SearchQuery<T extends Queriable> extends BaseQuery<T> {
   sid(sid: string): this;
   queryString(q: string): this;
   highlights(highlights: string[]): this;
@@ -997,7 +1017,7 @@ export namespace Push {
     push_time?: Date;
     expiration_time?: Date;
     expiration_interval?: number;
-    where?: Query;
+    where?: Query<Installation>;
     cql?: string;
     data?: any;
     alert?: string;
