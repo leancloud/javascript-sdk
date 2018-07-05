@@ -8,11 +8,13 @@ interface AsyncIterator<T> {
   next(): Promise<IteratorResult<T>>;
 }
 
-declare class EventEmitter {
-  on(evt: string, listener: Function): EventEmitter;
-  once(evt: string, listener: Function): EventEmitter;
-  off(evt: string, listener: Function): EventEmitter;
-  emit(evt: string, ...args: any[]): Boolean;
+declare class EventEmitter<T> {
+  on<K extends keyof T>(event: K, listener: T[K]): this;
+  on(evt: string, listener: Function): this;
+  once<K extends keyof T>(event: K, listener: T[K]): this;
+  once(evt: string, listener: Function): this;
+  off<K extends keyof T>(event: T | string, listener?: Function): this;
+  emit<K extends keyof T>(event: T | string, ...args: any[]): boolean;
 }
 
 export var applicationId: string;
@@ -158,16 +160,16 @@ export class File extends BaseObject {
   static createWithoutData(objectId: string): File;
 
   destroy(): Promise<void>;
-  fetch(fetchOptions?: FetchOptions, options?: AuthOptions): Promise<File>;
+  fetch(fetchOptions?: FetchOptions, options?: AuthOptions): Promise<this>;
   metaData(): any;
   metaData(metaKey: string): any;
   metaData(metaKey: string, metaValue: any): any;
   name(): string;
   ownerId(): string;
   url(): string;
-  save(options?: FileSaveOptions): Promise<File>;
+  save(options?: FileSaveOptions): Promise<this>;
   setACL(acl?: ACL): any;
-  setUploadHeader(key: string, value: string): File;
+  setUploadHeader(key: string, value: string): this;
   size(): any;
   thumbnailURL(width: number, height: number): string;
   toFullJSON(): any;
@@ -532,11 +534,19 @@ export class Query<T extends Queriable> extends BaseQuery<T> {
     options?: { orderedBy?: string; batchSize?: number },
     authOptions?: AuthOptions
   ): AsyncIterator<T>;
-  subscribe(options?: { subscriptionId?: string }): Promise<LiveQuery>;
+  subscribe(options?: { subscriptionId?: string }): Promise<LiveQuery<T>>;
 }
 
-declare class LiveQuery extends EventEmitter {
+declare class LiveQuery<T> extends EventEmitter<LiveQueryEvent<T>> {
   unsubscribe(): Promise<void>;
+}
+
+declare interface LiveQueryEvent<T> {
+  create: (target?: T) => any;
+  update: (target?: T, updatedKeys?: string[]) => any;
+  enter: (target?: T, updatedKeys?: string[]) => any;
+  leave: (target?: T, updatedKeys?: string[]) => any;
+  delete: (target?: T) => any;
 }
 
 declare class FriendShipQuery extends Query<User> {}
