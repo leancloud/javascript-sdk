@@ -6,7 +6,7 @@ node_js:
 sudo: false
 env:
   global:
-    - REGION=us
+    - S3=true
     - APPID=QvNM6AG2khJtBQo6WRMWqfLV-gzGzoHsz
     - APPKEY=be2YmUduiuEnCB2VR9bLRnnV
     - MASTERKEY=1AqFJWElESSui6JKqHiKnLTY

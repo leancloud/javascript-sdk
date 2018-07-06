@@ -10,31 +10,27 @@ const fillServerURLs = url => ({
   api: url,
 });
 
-function getDefaultServerURLs(appId, region) {
-  if (region === 'us') return fillServerURLs('https://us-api.leancloud.cn');
-  let id;
+function getDefaultServerURLs(appId) {
+  let domain;
+  const id = appId.slice(0, 8).toLowerCase();
   switch (appId.slice(-9)) {
     case '-9Nh9j0Va':
       // TAB
-      id = appId.slice(0, 8).toLowerCase();
-      return {
-        push: `https://${id}.push.lncldapi.com`,
-        stats: `https://${id}.stats.lncldapi.com`,
-        engine: `https://${id}.engine.lncldapi.com`,
-        api: `https://${id}.api.lncldapi.com`,
-      };
+      domain = 'lncldapi.com';
+      break;
     case '-MdYXbMMI':
       // US
-      return fillServerURLs('https://us-api.leancloud.cn');
+      domain = 'lncldglobal.com';
+      break;
     default:
-      id = appId.slice(0, 8).toLowerCase();
-      return {
-        push: `https://${id}.push.lncld.net`,
-        stats: `https://${id}.stats.lncld.net`,
-        engine: `https://${id}.engine.lncld.net`,
-        api: `https://${id}.api.lncld.net`,
-      };
+      domain = 'lncld.net';
   }
+  return {
+    push: `https://${id}.push.${domain}`,
+    stats: `https://${id}.stats.${domain}`,
+    engine: `https://${id}.engine.${domain}`,
+    api: `https://${id}.api.${domain}`,
+  };
 }
 
 let _disableAppRouter = false;
@@ -56,7 +52,6 @@ let _disableAppRouter = false;
  * @param {String} options.appId application id
  * @param {String} options.appKey application key
  * @param {String} [options.masterKey] application master key
- * @param {String} [options.region='cn'] region
  * @param {Boolean} [options.production]
  * @param {String|ServerURLs} [options.serverURLs] URLs for services. if a string was given, it will be applied for all services.
  * @param {Boolean} [options.disableCurrentUser]
@@ -67,7 +62,6 @@ AV.init = function init(options, ...params) {
       appId: options,
       appKey: params[0],
       masterKey: params[1],
-      region: params[2],
     });
   }
   const {
@@ -75,7 +69,6 @@ AV.init = function init(options, ...params) {
     appKey,
     masterKey,
     hookKey,
-    region = 'cn',
     serverURLs,
     disableCurrentUser,
     production,
@@ -96,11 +89,11 @@ AV.init = function init(options, ...params) {
     AV._config.disableCurrentUser = disableCurrentUser;
   AV._appRouter = new AppRouter(AV);
   const disableAppRouter =
-    _disableAppRouter || typeof serverURLs !== 'undefined' || region !== 'cn';
+    _disableAppRouter || typeof serverURLs !== 'undefined';
   AV._setServerURLs(
     extend(
       {},
-      getDefaultServerURLs(appId, region),
+      getDefaultServerURLs(appId),
       AV._config.serverURLs,
       typeof serverURLs === 'string' ? fillServerURLs(serverURLs) : serverURLs
     ),
@@ -112,7 +105,6 @@ AV.init = function init(options, ...params) {
     AV._config.realtime = new AV._sharedConfig.liveQueryRealtime({
       appId,
       appKey,
-      region,
     });
   }
 };

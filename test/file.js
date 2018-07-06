@@ -77,8 +77,8 @@ describe('File', function() {
     });
 
     describe('Saving stream in node.js', function() {
-      if (process.env.REGION === 'us') {
-        it('should throw in us region', () => {
+      if (process.env.S3 === 'true') {
+        it('should throw with s3', () => {
           return new AV.File(
             'stream-test',
             require('fs').createReadStream(__filename)
