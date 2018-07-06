@@ -33,6 +33,8 @@ AV.LeaderboardUpdateStrategy = {
   BETTER: 'better',
   /** Keep the last updated statistic */
   LAST: 'last',
+  /** Keep the sum of all updated statistics */
+  SUM: 'sum',
 };
 
 /**

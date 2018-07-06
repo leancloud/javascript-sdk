@@ -902,11 +902,11 @@ export enum LeaderboardOrder {
 export enum LeaderboardUpdateStrategy {
   BETTER,
   LAST,
+  SUM,
 }
 
 export enum LeaderboardVersionChangeInterval {
   NEVER,
-  HOUR,
   DAY,
   WEEK,
   MONTH,
