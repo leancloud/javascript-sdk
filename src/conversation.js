@@ -3,13 +3,13 @@ const { _request } = require('./request');
 const AV = require('./av');
 
 const serializeMessage = message => {
-  if (typeof message.toJSON === 'function') {
-    return message.toJSON();
+  if (typeof message === 'string') {
+    return message;
   }
-  if (typeof message !== 'string') {
-    return JSON.stringify(message);
+  if (typeof message.getPayload === 'function') {
+    return JSON.stringify(message.getPayload());
   }
-  return message;
+  return JSON.stringify(message);
 };
 
 /**
