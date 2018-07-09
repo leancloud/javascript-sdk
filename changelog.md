@@ -1,3 +1,15 @@
+# 3.8.0 (2018-07-09)
+
+### Features
+
+* 初始化时不再需要 `region` 参数了。
+* 改进了 TypeScript 定义，现在 `AV.Query` 的查询结果会得到正确的类型推导。
+* 排行榜 API 根据产品功能的更新进行了一些调整：
+  * 增加了一个新的数据更新策略 `AV.LeaderboardUpdateStrategy.SUM`。
+  * 移除了不再可用的 `AV.LeaderboardVersionChangeInterval.HOUR`。
+* `AV.Conversation` 的发送消息 API 现在可以接受 leancloud-realtime v4 中的新 `Message` 类了。
+* 美国节点的应用现在也启用了每个应用独立的域名。
+
 ## 3.7.3 (2018-06-14)
 
 ### Bug fixes
