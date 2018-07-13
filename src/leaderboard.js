@@ -281,7 +281,7 @@ _.extend(
       );
     },
     /**
-     * Retrieve a list of ranked users for this Leaderboard, centered on the specified user.
+     * Retrieve a list of ranked users for this Leaderboard, centered on the current user.
      * @param {Object} [options]
      * @param {number} [options.limit] The limit of the number of results.
      * @param {string[]} [options.selectUserKeys] Specify keys of the users to include
