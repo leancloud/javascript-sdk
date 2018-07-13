@@ -155,12 +155,18 @@ export class ACL extends BaseObject {
  *     extension.
  */
 export class File extends BaseObject {
+  id?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+
   constructor(name: string, data: any, type?: string);
   static withURL(name: string, url: string): File;
   static createWithoutData(objectId: string): File;
 
-  destroy(): Promise<void>;
+  destroy(options?: AuthOptions): Promise<void>;
   fetch(fetchOptions?: FetchOptions, options?: AuthOptions): Promise<this>;
+  get(attr: string): any;
+  getACL(): ACL;
   metaData(): any;
   metaData(metaKey: string): any;
   metaData(metaKey: string, metaValue: any): any;
@@ -168,7 +174,8 @@ export class File extends BaseObject {
   ownerId(): string;
   url(): string;
   save(options?: FileSaveOptions): Promise<this>;
-  setACL(acl?: ACL): any;
+  set(key: string, value: any): this;
+  setACL(acl: ACL): this;
   setUploadHeader(key: string, value: string): this;
   size(): any;
   thumbnailURL(width: number, height: number): string;
@@ -264,9 +271,9 @@ export class Relation extends BaseObject {
  * interface.</p>
  */
 export class Object extends BaseObject {
-  id: any;
-  createdAt: any;
-  updatedAt: any;
+  id?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
   attributes: any;
   changed: boolean;
   className: string;
@@ -285,7 +292,7 @@ export class Object extends BaseObject {
     list: Object[],
     options?: Object.SaveAllOptions
   ): Promise<T>;
-  static register(klass: Function, name?: string): void;
+  static register(klass: new (...args: any[]) => Object, name?: string): void;
 
   initialize(): void;
   add(attributeName: string, item: any): this;
@@ -407,7 +414,7 @@ declare type Queriable = Object | File;
 declare class BaseQuery<T extends Queriable> extends BaseObject {
   className: string;
 
-  constructor(objectClass: new (...any) => T);
+  constructor(objectClass: new (...args: any[]) => T);
   constructor(objectClass: string);
 
   addAscending(key: string): this;
@@ -481,8 +488,8 @@ declare class BaseQuery<T extends Queriable> extends BaseObject {
  * });</pre></p>
  */
 export class Query<T extends Queriable> extends BaseQuery<T> {
-  static or<U extends Queriable>(...querys: Query<U>[]): U;
-  static and<U extends Queriable>(...querys: Query<U>[]): U;
+  static or<U extends Queriable>(...querys: Query<U>[]): Query<U>;
+  static and<U extends Queriable>(...querys: Query<U>[]): Query<U>;
   static doCloudQuery<U extends Queriable>(
     cql: string,
     pvalues?: any,
@@ -492,7 +499,7 @@ export class Query<T extends Queriable> extends BaseQuery<T> {
   containedIn(key: string, values: any[]): this;
   contains(key: string, substring: string): this;
   containsAll(key: string, values: any[]): this;
-  count(options?: AuthOptions): Promise<T>;
+  count(options?: AuthOptions): Promise<number>;
   descending(key: string): this;
   descending(key: string[]): this;
   doesNotExist(key: string): this;
@@ -1039,6 +1046,7 @@ export namespace Push {
 
 export namespace Cloud {
   function run(name: string, data?: any, options?: AuthOptions): Promise<any>;
+  function rpc(name: string, data?: any, options?: AuthOptions): Promise<any>;
   function requestSmsCode(
     data:
       | string
