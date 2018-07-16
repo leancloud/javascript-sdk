@@ -332,7 +332,7 @@ describe('Queries', function() {
         test.set('number', i);
         promises.unshift(test.save());
       }
-      return AV.Promise.all(promises)
+      return Promise.all(promises)
         .then(function() {
           return new AV.Query('deletedAll').limit(300).destroyAll();
         })

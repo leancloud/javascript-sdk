@@ -65,7 +65,7 @@ module.exports = function(AV) {
        */
       destroy: function(options) {
         if (!this.id)
-          return AV.Promise.reject(new Error('The status id is not exists.'));
+          return Promise.reject(new Error('The status id is not exists.'));
         var request = AVRequest('statuses', null, this.id, 'DELETE', options);
         return request;
       },

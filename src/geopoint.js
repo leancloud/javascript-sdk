@@ -1,4 +1,5 @@
 var _ = require('underscore');
+const Promise = require('./promise');
 
 /*global navigator: false */
 module.exports = function(AV) {
@@ -99,7 +100,7 @@ module.exports = function(AV) {
    * @return {Promise.<AV.GeoPoint>}
    */
   AV.GeoPoint.current = () =>
-    new AV.Promise((resolve, reject) => {
+    new Promise((resolve, reject) => {
       navigator.geolocation.getCurrentPosition(function(location) {
         resolve(
           new AV.GeoPoint({

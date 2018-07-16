@@ -1,5 +1,6 @@
 const _ = require('underscore');
 const AVError = require('./error');
+const Promise = require('./promise');
 const { _request } = require('./request');
 const {
   isNullOrUndefined,
@@ -144,7 +145,7 @@ module.exports = function(AV) {
    */
 
   AV.Object.fetchAll = (objects, options) =>
-    AV.Promise.resolve()
+    Promise.resolve()
       .then(() =>
         _request(
           'batch',
@@ -978,7 +979,7 @@ module.exports = function(AV) {
        * @param {AuthOptions} options AuthOptions plus:
        * @param {Boolean} options.fetchWhenSave fetch and update object after save succeeded
        * @param {AV.Query} options.query Save object only when it matches the query
-       * @return {AV.Promise} A promise that is fulfilled when the save
+       * @return {Promise} A promise that is fulfilled when the save
        *     completes.
        * @see AVError
        */
@@ -1018,7 +1019,7 @@ module.exports = function(AV) {
         this._startSave();
         this._saving = (this._saving || 0) + 1;
 
-        this._allPreviousSaves = this._allPreviousSaves || AV.Promise.resolve();
+        this._allPreviousSaves = this._allPreviousSaves || Promise.resolve();
         this._allPreviousSaves = this._allPreviousSaves
           .catch(e => {})
           .then(function() {
@@ -1400,7 +1401,7 @@ module.exports = function(AV) {
    */
   AV.Object.destroyAll = function(objects, options = {}) {
     if (!objects || objects.length === 0) {
-      return AV.Promise.resolve();
+      return Promise.resolve();
     }
     const objectsByClassNameAndFlags = _.groupBy(objects, object =>
       JSON.stringify({
@@ -1655,7 +1656,7 @@ module.exports = function(AV) {
     var unsavedFiles = [];
     AV.Object._findUnsavedChildren(object, unsavedChildren, unsavedFiles);
 
-    var promise = AV.Promise.resolve();
+    var promise = Promise.resolve();
     _.each(unsavedFiles, function(file) {
       promise = promise.then(function() {
         return file.save();
@@ -1667,7 +1668,7 @@ module.exports = function(AV) {
 
     return promise
       .then(function() {
-        return AV.Promise._continueWhile(
+        return Promise._continueWhile(
           function() {
             return remaining.length > 0;
           },
@@ -1692,7 +1693,7 @@ module.exports = function(AV) {
 
             // If we can't save any objects, there must be a circular reference.
             if (batch.length === 0) {
-              return AV.Promise.reject(
+              return Promise.reject(
                 new AVError(
                   AVError.OTHER_CAUSE,
                   'Tried to save a batch with a cycle.'
@@ -1701,9 +1702,9 @@ module.exports = function(AV) {
             }
 
             // Reserve a spot in every object's save queue.
-            var readyToStart = AV.Promise.resolve(
+            var readyToStart = Promise.resolve(
               _.map(batch, function(object) {
-                return object._allPreviousSaves || AV.Promise.resolve();
+                return object._allPreviousSaves || Promise.resolve();
               })
             );
 

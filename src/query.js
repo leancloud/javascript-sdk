@@ -1013,7 +1013,7 @@ module.exports = function(AV) {
           var error = new Error(
             'Cannot iterate on a query with sort, skip, or limit.'
           );
-          return AV.Promise.reject(error);
+          return Promise.reject(error);
         }
 
         var query = new AV.Query(this.objectClass);
@@ -1026,13 +1026,13 @@ module.exports = function(AV) {
         query.ascending('objectId');
 
         var finished = false;
-        return AV.Promise._continueWhile(
+        return Promise._continueWhile(
           function() {
             return !finished;
           },
           function() {
             return query.find(options).then(function(results) {
-              var callbacksDone = AV.Promise.resolve();
+              var callbacksDone = Promise.resolve();
               _.each(results, function(result) {
                 callbacksDone = callbacksDone.then(function() {
                   return callback(result);

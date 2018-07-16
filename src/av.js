@@ -1,6 +1,7 @@
 const _ = require('underscore');
 const userAgent = require('./ua');
 const { inherits, parseDate } = require('./utils');
+const Promise = require('./promise');
 
 const AV = global.AV || {};
 
@@ -63,7 +64,7 @@ AV._installationId = null;
 AV._getInstallationId = () => {
   // See if it's cached in RAM.
   if (AV._installationId) {
-    return AV.Promise.resolve(AV._installationId);
+    return Promise.resolve(AV._installationId);
   }
 
   // Try to get it from localStorage.
@@ -91,7 +92,7 @@ AV._refreshSubscriptionId = (path = AV._getAVPath('subscriptionId')) => {
 AV._getSubscriptionId = () => {
   // See if it's cached in RAM.
   if (AV._subscriptionId) {
-    return AV.Promise.resolve(AV._subscriptionId);
+    return Promise.resolve(AV._subscriptionId);
   }
 
   // Try to get it from localStorage.

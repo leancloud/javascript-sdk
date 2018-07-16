@@ -1,6 +1,7 @@
 const _ = require('underscore');
 const AVError = require('./error');
 const { request } = require('./request');
+const Promise = require('./promise');
 
 module.exports = function(AV) {
   /**
@@ -129,11 +130,9 @@ module.exports = function(AV) {
           signKey: false,
         }).then(function(response) {
           if (response.error) {
-            return AV.Promise.reject(
-              new AVError(response.code, response.error)
-            );
+            return Promise.reject(new AVError(response.code, response.error));
           }
-          return AV.Promise.resolve(response);
+          return Promise.resolve(response);
         });
       },
     }

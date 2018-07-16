@@ -112,7 +112,7 @@ describe('File', function() {
           expect(file.size()).to.be(9);
           expect(file.ownerId()).to.be.ok();
           expect(file.id).to.be.ok();
-          return new AV.Promise(function(resolve, reject) {
+          return new Promise(function(resolve, reject) {
             request(file.url()).end(function(err, res) {
               if (err) {
                 return reject(err);
