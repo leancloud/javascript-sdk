@@ -878,6 +878,7 @@ export class Leaderboard {
       limit?: number;
       selectUserKeys?: string | string[];
       includeStatistics?: string | string[];
+      version?: number;
     },
     authOptions?: AuthOptions
   ): Promise<Ranking[]>;
@@ -886,6 +887,7 @@ export class Leaderboard {
       limit?: number;
       selectUserKeys?: string | string[];
       includeStatistics?: string | string[];
+      version?: number;
     },
     authOptions?: AuthOptions
   ): Promise<Ranking[]>;

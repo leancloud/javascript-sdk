@@ -73,7 +73,7 @@ const parseStatisticData = statisticData => {
 /**
  * @class
  */
-AV.Leaderboard = function(statisticName) {
+AV.Leaderboard = function Leaderboard(statisticName) {
   /**
    * @type {string}
    */
@@ -224,7 +224,7 @@ _.extend(
       }).then(data => this._finishFetch(data));
     },
     _getResults(
-      { skip, limit, selectUserKeys, includeStatistics },
+      { skip, limit, selectUserKeys, includeStatistics, version },
       authOptions,
       self
     ) {
@@ -242,6 +242,7 @@ _.extend(
           includeStatistics: includeStatistics
             ? ensureArray(includeStatistics).join(',')
             : undefined,
+          version,
         },
         authOptions,
       }).then(({ results: rankings }) =>
@@ -268,15 +269,16 @@ _.extend(
      * @param {number} [options.limit] The limit of the number of results.
      * @param {string[]} [options.selectUserKeys] Specify keys of the users to include
      * @param {string[]} [options.includeStatistics] Specify other statistics to include in the Rankings
+     * @param {number} [options.version] Specify the version of the leaderboard
      * @param {AuthOptions} [authOptions]
      * @return {Promise<Ranking[]>}
      */
     getResults(
-      { skip, limit, selectUserKeys, includeStatistics } = {},
+      { skip, limit, selectUserKeys, includeStatistics, version } = {},
       authOptions
     ) {
       return this._getResults(
-        { skip, limit, selectUserKeys, includeStatistics },
+        { skip, limit, selectUserKeys, includeStatistics, version },
         authOptions
       );
     },
@@ -286,15 +288,16 @@ _.extend(
      * @param {number} [options.limit] The limit of the number of results.
      * @param {string[]} [options.selectUserKeys] Specify keys of the users to include
      * @param {string[]} [options.includeStatistics] Specify other statistics to include in the Rankings
+     * @param {number} [options.version] Specify the version of the leaderboard
      * @param {AuthOptions} [authOptions]
      * @return {Promise<Ranking[]>}
      */
     getResultsAroundUser(
-      { limit, selectUserKeys, includeStatistics } = {},
+      { limit, selectUserKeys, includeStatistics, version } = {},
       authOptions
     ) {
       return this._getResults(
-        { limit, selectUserKeys, includeStatistics },
+        { limit, selectUserKeys, includeStatistics, version },
         authOptions,
         true
       );
