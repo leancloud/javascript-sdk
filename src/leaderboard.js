@@ -174,21 +174,25 @@ AV.Leaderboard.getStatistics = (user, { statisticNames } = {}, authOptions) =>
  * Update Statistics for the specified user.
  * @param {AV.User} user The specified AV.User pointer.
  * @param {Object} statistics A name-value pair representing the statistics to update.
- * @param {AuthOptions} [authOptions]
+ * @param {AuthOptions} [options]
  * @return {Promise<Statistic[]>}
  */
-AV.Leaderboard.updateStatistics = (user, statistics, authOptions) =>
+AV.Leaderboard.updateStatistics = (user, statistics, options = {}) =>
   Promise.resolve().then(() => {
     if (!(user && user.id)) throw new Error('user must be an AV.User');
     const data = _.map(statistics, (value, key) => ({
       statisticName: key,
       statisticValue: value,
     }));
+    const { overwrite } = options;
     return request({
       method: 'POST',
       path: `/leaderboard/users/${user.id}/statistics`,
+      query: {
+        overwrite: overwrite ? 1 : undefined,
+      },
       data,
-      authOptions,
+      authOptions: options,
     }).then(({ results }) => results.map(parseStatisticData));
   });
 

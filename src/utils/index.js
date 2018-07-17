@@ -16,28 +16,29 @@ const ajax = ({
   onprogress,
   timeout,
 }) => {
-  const count = requestsCount++;
+  const flattenedQuery = {};
+  if (query) {
+    for (const k in query) {
+      const value = query[k];
+      if (value === undefined) continue;
+      if (typeof value === 'object') {
+        flattenedQuery[k] = JSON.stringify(value);
+      } else {
+        flattenedQuery[k] = value;
+      }
+    }
+  }
 
+  const count = requestsCount++;
   debugRequest(
     'request(%d) %s %s %o %o %o',
     count,
     method,
     url,
-    query,
+    flattenedQuery,
     data,
     headers
   );
-
-  const flattenedQuery = {};
-  if (query) {
-    for (const k in query) {
-      if (typeof query[k] === 'object') {
-        flattenedQuery[k] = JSON.stringify(query[k]);
-      } else {
-        flattenedQuery[k] = query[k];
-      }
-    }
-  }
 
   return new Promise((resolve, reject) => {
     const req = request(method, url)

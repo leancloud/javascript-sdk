@@ -838,6 +838,10 @@ declare interface Ranking {
   includedStatistics?: Statistic[];
 }
 
+declare interface UpdateStatisticsOptions extends AuthOptions {
+  overwrite?: boolean;
+}
+
 export class Leaderboard {
   statisticName: string;
   order?: LeaderboardOrder;
@@ -868,7 +872,7 @@ export class Leaderboard {
   static updateStatistics(
     user: User,
     statistics: { [name: string]: number },
-    authOptions?: AuthOptions
+    options?: UpdateStatisticsOptions
   ): Promise<Statistic[]>;
 
   fetch(authOptions?: AuthOptions): Promise<Leaderboard>;
