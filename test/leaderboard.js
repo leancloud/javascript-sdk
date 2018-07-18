@@ -80,6 +80,11 @@ describe('Leaderboard', () => {
         );
       });
   });
+  it('getArchives', function() {
+    return this.leaderboard.getArchives(undefined, {
+      useMasterKey: true,
+    });
+  });
 
   describe('Statistics', function() {
     let users;

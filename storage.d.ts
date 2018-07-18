@@ -844,6 +844,15 @@ declare interface UpdateStatisticsOptions extends AuthOptions {
   overwrite?: boolean;
 }
 
+declare interface LeaderboardArchive {
+  statisticName: string;
+  version: number;
+  status: string;
+  url: string;
+  activatedAt: Date;
+  deactivatedAt: Date;
+}
+
 export class Leaderboard {
   statisticName: string;
   order?: LeaderboardOrder;
@@ -907,6 +916,13 @@ export class Leaderboard {
   ): Promise<Leaderboard>;
   reset(authOptions?: AuthOptions): Promise<Leaderboard>;
   destroy(authOptions?: AuthOptions): Promise<void>;
+  getArchives(
+    options?: {
+      skip?: number;
+      limit?: number;
+    },
+    authOptions?: AuthOptions
+  ): Promise<LeaderboardArchive>;
 }
 
 export enum LeaderboardOrder {

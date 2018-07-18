@@ -46,6 +46,16 @@ AV.LeaderboardUpdateStrategy = {
  */
 
 /**
+ * @typedef {Object} LeaderboardArchive
+ * @property {string} statisticName
+ * @property {number} version version of the leaderboard
+ * @property {string} status
+ * @property {string} url URL for the downloadable archive
+ * @property {Date} activatedAt time when this version became active
+ * @property {Date} deactivatedAt time when this version was deactivated by a version incrementing
+ */
+
+/**
  * @class
  */
 function Statistic({ name, value, version }) {
@@ -357,6 +367,34 @@ _.extend(
         path: `/leaderboard/leaderboards/${this.statisticName}`,
         authOptions,
       }).then(() => undefined);
+    },
+    /**
+     * (masterKey required) Get archived versions.
+     * @param {Object} [options]
+     * @param {number} [options.skip] The number of results to skip. This is useful for pagination.
+     * @param {number} [options.limit] The limit of the number of results.
+     * @param {AuthOptions} [authOptions]
+     * @return {Promise<LeaderboardArchive[]>}
+     */
+    getArchives({ skip, limit } = {}, authOptions) {
+      return request({
+        method: 'GET',
+        path: `/leaderboard/leaderboards/${this.statisticName}/archives`,
+        query: {
+          skip,
+          limit,
+        },
+        authOptions,
+      }).then(({ results }) =>
+        results.map(({ version, status, url, activatedAt, deactivatedAt }) => ({
+          statisticName: this.statisticName,
+          version,
+          status,
+          url,
+          activatedAt: parseDate(activatedAt.iso),
+          deactivatedAt: parseDate(deactivatedAt.iso),
+        }))
+      );
     },
   }
 );
