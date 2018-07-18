@@ -1,4 +1,5 @@
 const _ = require('underscore');
+const uuid = require('uuid/v4');
 const userAgent = require('./ua');
 const { inherits, parseDate } = require('./utils');
 const Promise = require('./promise');
@@ -47,13 +48,6 @@ AV._getAVPath = function(path) {
   }
   return 'AV/' + AV.applicationId + '/' + path;
 };
-
-const hexOctet = () =>
-  Math.floor((1 + Math.random()) * 0x10000)
-    .toString(16)
-    .substring(1);
-const uuid = () =>
-  `${hexOctet()}${hexOctet()}-${hexOctet()}-${hexOctet()}-${hexOctet()}-${hexOctet()}${hexOctet()}${hexOctet()}`;
 
 /**
  * Returns the unique string for this app on this machine.

@@ -35,7 +35,8 @@
     "localstorage-memory": "^1.0.1",
     "md5": "^2.0.0",
     "superagent": "^3.3.1",
-    "underscore": "^1.8.3"
+    "underscore": "^1.8.3",
+    "uuid": "^3.3.2"
   },
   "devDependencies": {
     "babel-core": "^6.4.0",

@@ -182,22 +182,38 @@ describe('User', function() {
     });
   });
 
-  describe('User logInAnonymously', function() {
-    it('should create anonymous user, and login with AV.User.signUpOrlogInWithAuthData()', function() {
-      var getFixedId = function() {
-        var rawId = 13334230101333423010;
-        var result = rawId.toString(16);
-        return result;
-      };
-      var data = {
-        id: getFixedId(),
-      };
-
-      return AV.User.signUpOrlogInWithAuthData(data, 'anonymous').then(function(
-        user
-      ) {
-        expect(user.id).to.be.ok();
-      });
+  describe('User loginAnonymously', function() {
+    it('create an anonymous user, and then associateWithAuthData', function() {
+      return AV.User.loginAnonymously()
+        .then(function(user) {
+          expect(user.id).to.be.ok();
+          expect(user.isAnonymous()).to.be.ok();
+          return user.associateWithAuthData(
+            {
+              uid: Date.now().toString(36),
+              access_token: 'access_token',
+            },
+            'github'
+          );
+        })
+        .then(user => {
+          expect(user.isAnonymous()).to.be.equal(false);
+          expect(user.dirty()).to.be.equal(false);
+        });
+    });
+    it('create an anonymous user, and then signup', function() {
+      return AV.User.loginAnonymously()
+        .then(function(user) {
+          expect(user.id).to.be.ok();
+          expect(user.isAnonymous()).to.be.ok();
+          const name = Date.now().toString(36);
+          user.setUsername(name).setPassword(name);
+          return user.signUp();
+        })
+        .then(user => {
+          expect(user.isAnonymous()).to.be.equal(false);
+          expect(user.dirty()).to.be.equal(false);
+        });
     });
   });
 

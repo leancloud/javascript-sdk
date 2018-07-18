@@ -1,7 +1,11 @@
 const _ = require('underscore');
+const uuid = require('uuid/v4');
 const AVError = require('./error');
 const { _request: AVRequest, request } = require('./request');
 const Promise = require('./promise');
+
+const PLATFORM_ANONYMOUS = 'anonymous';
+const PLATFORM_WEAPP = 'lc_weapp';
 
 const getWeappLoginCode = () => {
   if (typeof wx === 'undefined' || typeof wx.login !== 'function') {
@@ -249,7 +253,7 @@ module.exports = function(AV) {
        */
       linkWithWeapp() {
         return getWeappLoginCode().then(code =>
-          this._linkWith('lc_weapp', { code })
+          this._linkWith(PLATFORM_WEAPP, { code })
         );
       },
 
@@ -290,6 +294,10 @@ module.exports = function(AV) {
         }
         var authData = this.get('authData') || {};
         return !!authData[authType];
+      },
+
+      isAnonymous() {
+        return this._isLinked(PLATFORM_ANONYMOUS);
       },
 
       logOut: function() {
@@ -365,6 +373,10 @@ module.exports = function(AV) {
         }
 
         return this.save(attrs, options).then(function(model) {
+          if (model.isAnonymous()) {
+            model.unset(`authData.${PLATFORM_ANONYMOUS}`);
+            model._opSetQueue = [{}];
+          }
           return model._handleSaveResult(true).then(function() {
             return model;
           });
@@ -454,7 +466,7 @@ module.exports = function(AV) {
        */
       loginWithWeapp(options) {
         return getWeappLoginCode().then(code =>
-          this.loginWithAuthData({ code }, 'lc_weapp', options)
+          this.loginWithAuthData({ code }, PLATFORM_WEAPP, options)
         );
       },
 
@@ -1018,7 +1030,22 @@ module.exports = function(AV) {
        */
       loginWithWeapp(options) {
         return getWeappLoginCode().then(code =>
-          this.loginWithAuthData({ code }, 'lc_weapp', options)
+          this.loginWithAuthData({ code }, PLATFORM_WEAPP, options)
+        );
+      },
+
+      /**
+       * Creates an anonymous user.
+       *
+       * @since 3.9.0
+       * @return {Promise.<AV.User>}
+       */
+      loginAnonymously() {
+        return this.loginWithAuthData(
+          {
+            id: uuid(),
+          },
+          'anonymous'
         );
       },
 

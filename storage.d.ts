@@ -636,6 +636,7 @@ export class User extends Object {
   static logOut(): Promise<User>;
   static become(sessionToken: string): Promise<User>;
 
+  static loginAnonymously(): Promise<User>;
   static loginWithWeapp(options?: OAuthLoginOptions): Promise<User>;
   static logInWithMobilePhone(
     mobilePhone: string,
@@ -720,6 +721,7 @@ export class User extends Object {
   logIn(): Promise<User>;
   linkWithWeapp(): Promise<User>;
   isAuthenticated(): Promise<boolean>;
+  isAnonymous(): boolean;
   isCurrent(): boolean;
 
   associateWithAuthData(authData: Object, platform: string): Promise<User>;
