@@ -1,3 +1,15 @@
+# 3.9.0 (2018-07-19)
+
+### Features
+
+* 增加了匿名用户登录的支持：
+  * `AV.User.loginAnonymously` 方法用于创建一个匿名用户并登录。
+  * `AV.User#isAnonymous` 方法用于判断用户是否为匿名用户。
+* 排行榜增加了新的功能：
+  * 支持更新数据时，无视排行榜的更新策略，强制更新分数：`AV.Leaderboard#updateStatistics` 方法增加了 `overwrite` 参数。
+  * 支持获取历史版本的排名结果：`AV.Leaderboard#getResults` 与 `AV.Leaderboard#getResultsAroundUser` 方法增加了 `version` 参数。
+  * 增加了获取历史版本存档的方法 `AV.Leaderboard#getArchives`。
+
 ## 3.8.1 (2018-07-13)
 
 ### Bug fixes
