@@ -184,7 +184,8 @@ AV.Leaderboard.getStatistics = (user, { statisticNames } = {}, authOptions) =>
  * Update Statistics for the specified user.
  * @param {AV.User} user The specified AV.User pointer.
  * @param {Object} statistics A name-value pair representing the statistics to update.
- * @param {AuthOptions} [options]
+ * @param {AuthOptions} [options] AuthOptions plus:
+ * @param {boolean} [options.overwrite] Wethere to overwrite these statistics disregarding the updateStrategy of there leaderboards
  * @return {Promise<Statistic[]>}
  */
 AV.Leaderboard.updateStatistics = (user, statistics, options = {}) =>
