@@ -647,23 +647,23 @@ export class User extends Object {
     smsCode: string
   ): Promise<User>;
   static loginWithAuthData(
-    authData: Object,
+    authData: object,
     platform: string,
     options?: OAuthLoginOptions
   ): Promise<User>;
   static signUpOrlogInWithAuthData(
-    authData: Object,
+    authData: object,
     platform: string,
     options?: OAuthLoginOptions
   ): Promise<User>;
   static loginWithAuthDataAndUnionId(
-    authData: Object,
+    authData: object,
     platform: string,
     unionId: string,
     unionLoginOptions?: UnionLoginOptions
   ): Promise<User>;
   static signUpOrlogInWithAuthDataAndUnionId(
-    authData: Object,
+    authData: object,
     platform: string,
     unionId: string,
     unionLoginOptions?: UnionLoginOptions
@@ -706,12 +706,12 @@ export class User extends Object {
 
   loginWithWeapp(options?: OAuthLoginOptions): Promise<User>;
   loginWithAuthData(
-    authData: Object,
+    authData: object,
     platform: string,
     options?: OAuthLoginOptions
   ): Promise<User>;
   loginWithAuthDataAndUnionId(
-    authData: Object,
+    authData: object,
     platform: string,
     unionId: string,
     unionLoginOptions?: UnionLoginOptions
@@ -724,9 +724,9 @@ export class User extends Object {
   isAnonymous(): boolean;
   isCurrent(): boolean;
 
-  associateWithAuthData(authData: Object, platform: string): Promise<User>;
+  associateWithAuthData(authData: object, platform: string): Promise<User>;
   associateWithAuthDataAndUnionId(
-    authData: Object,
+    authData: object,
     platform: string,
     unionId: string,
     unionLoginOptions?: UnionOptions
@@ -750,7 +750,7 @@ export class User extends Object {
 
   follow(user: User | string, authOptions?: AuthOptions): Promise<void>;
   follow(
-    options: { user: User | string; attributes?: Object },
+    options: { user: User | string; attributes?: object },
     authOptions?: AuthOptions
   ): Promise<void>;
   unfollow(user: User | string, authOptions?: AuthOptions): Promise<void>;
