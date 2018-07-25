@@ -241,12 +241,12 @@ _.extend(
     _getResults(
       { skip, limit, selectUserKeys, includeStatistics, version },
       authOptions,
-      self
+      userId
     ) {
       return request({
         method: 'GET',
         path: `/leaderboard/leaderboards/${this.statisticName}/ranks${
-          self ? '/self' : ''
+          userId ? `/${userId}` : ''
         }`,
         query: {
           skip,
@@ -298,7 +298,8 @@ _.extend(
       );
     },
     /**
-     * Retrieve a list of ranked users for this Leaderboard, centered on the current user.
+     * Retrieve a list of ranked users for this Leaderboard, centered on the specified user.
+     * @param {AV.User} user The specified AV.User pointer.
      * @param {Object} [options]
      * @param {number} [options.limit] The limit of the number of results.
      * @param {string[]} [options.selectUserKeys] Specify keys of the users to include
@@ -307,14 +308,16 @@ _.extend(
      * @param {AuthOptions} [authOptions]
      * @return {Promise<Ranking[]>}
      */
-    getResultsAroundUser(
-      { limit, selectUserKeys, includeStatistics, version } = {},
-      authOptions
-    ) {
+    getResultsAroundUser(user, options = {}, authOptions) {
+      // getResultsAroundUser(options, authOptions)
+      if (user && typeof user.id !== 'string') {
+        return this.getResultsAroundUser(undefined, user, options);
+      }
+      const { limit, selectUserKeys, includeStatistics, version } = options;
       return this._getResults(
         { limit, selectUserKeys, includeStatistics, version },
         authOptions,
-        true
+        user ? user.id : 'self'
       );
     },
     _update(data, authOptions) {

@@ -117,13 +117,14 @@ var app = new Vue({
           limit: MAX_RESULTS_COUNT,
           selectUserKeys: ['username'],
         }),
-        Promise.resolve(
-          AV.User.current()
-            ? leaderboard.getResultsAroundUser({
-                limit: 3,
-                selectUserKeys: ['username'],
-              })
-            : []
+        Promise.resolve(AV.User.current()).then(
+          currentUser =>
+            currentUser
+              ? leaderboard.getResultsAroundUser(currentUser, {
+                  limit: 3,
+                  selectUserKeys: ['username'],
+                })
+              : []
         ),
       ])
         .then(([topRankings, [beforeUserRankings, userRanking]]) => {

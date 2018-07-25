@@ -170,7 +170,7 @@ describe('Leaderboard', () => {
         })
         .should.be.rejected();
     });
-    it('getResultsAroundUser', function() {
+    it('get results around user', function() {
       const leaderboard = this.leaderboard;
       return leaderboard
         .getResultsAroundUser({ limit: 3 }, { user: currentUser })
@@ -181,6 +181,19 @@ describe('Leaderboard', () => {
           expect(rankings[1].user.get('username')).to.be(undefined);
           rankings[1].includedStatistics.should.be.an.Array();
           rankings.map(ranking => ranking.rank).should.eql([1, 2, 3]);
+        });
+    });
+    it('get results around a specified user', function() {
+      const leaderboard = this.leaderboard;
+      return leaderboard
+        .getResultsAroundUser(users[1], { limit: 3 }, { user: currentUser })
+        .then(rankings => {
+          rankings.should.be.an.Array();
+          rankings.should.be.length(3);
+          rankings[1].value.should.eql(1);
+          expect(rankings[1].user.get('username')).to.be(undefined);
+          rankings[1].includedStatistics.should.be.an.Array();
+          rankings.map(ranking => ranking.rank).should.eql([0, 1, 2]);
         });
     });
   });

@@ -898,6 +898,16 @@ export class Leaderboard {
     authOptions?: AuthOptions
   ): Promise<Ranking[]>;
   getResultsAroundUser(
+    user: User,
+    options?: {
+      limit?: number;
+      selectUserKeys?: string | string[];
+      includeStatistics?: string | string[];
+      version?: number;
+    },
+    authOptions?: AuthOptions
+  ): Promise<Ranking[]>;
+  getResultsAroundUser(
     options?: {
       limit?: number;
       selectUserKeys?: string | string[];
