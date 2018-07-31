@@ -511,7 +511,7 @@ module.exports = function(AV) {
        * @param {UploadProgressCallback} [options.onprogress] 文件上传进度，在 Node.js 中无效，回调参数说明详见 {@link UploadProgressCallback}。
        * @return {Promise} Promise that is resolved when the save finishes.
        */
-      save(options) {
+      save(options = {}) {
         if (this.id) {
           throw new Error(
             'File already saved. If you want to manipulate a file, use AV.Query to get it.'
@@ -555,14 +555,22 @@ module.exports = function(AV) {
                   throw new TypeError('malformed file data');
                 })
                 .then(data => {
+                  const _options = _.extend({}, options);
+                  // filter out download progress events
+                  if (options.onprogress) {
+                    _options.onprogress = event => {
+                      if (event.direction === 'download') return;
+                      return options.onprogress(event);
+                    };
+                  }
                   switch (uploadInfo.provider) {
                     case 's3':
-                      return s3(uploadInfo, data, this, options);
+                      return s3(uploadInfo, data, this, _options);
                     case 'qcloud':
-                      return cos(uploadInfo, data, this, options);
+                      return cos(uploadInfo, data, this, _options);
                     case 'qiniu':
                     default:
-                      return qiniu(uploadInfo, data, this, options);
+                      return qiniu(uploadInfo, data, this, _options);
                   }
                 })
                 .then(tap(() => this._callback(true)), error => {
