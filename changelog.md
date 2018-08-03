@@ -1,3 +1,14 @@
+# 3.10.0 (2018-08-03)
+
+### Features
+
+* `AV.Leaderboard#getResultsAroundUser` 方法增加了 `user` 参数支持获取指定用户附近的排名结果。
+
+### Bug fixes
+
+* 修复了文件上传进度回调会错误地在上传结束后报告 `direction` 为 `'download'` 的事件的问题。
+* 修复了 TypeScript 定义中与第三方登录相关的多处错误。
+
 # 3.9.0 (2018-07-19)
 
 ### Features
