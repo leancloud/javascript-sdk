@@ -54,7 +54,7 @@ interface FileSaveOptions extends AuthOptions {
       total: number;
       percent: number;
     }
-  ) => void;
+  ) => any;
 }
 
 export interface WaitOption {

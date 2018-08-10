@@ -474,7 +474,7 @@ module.exports = function(AV) {
        * @return {Promise} Resolved with the response
        * @private
        */
-      _fileToken(type, route = 'fileTokens') {
+      _fileToken(type, authOptions) {
         let name = this.attributes.name;
 
         let extName = extname(name);
@@ -498,7 +498,7 @@ module.exports = function(AV) {
           metaData: this.attributes.metaData,
         };
         this._qiniu_key = key;
-        return AVRequest(route, null, null, 'POST', data);
+        return AVRequest('fileTokens', null, null, 'POST', data, authOptions);
       },
 
       /**
@@ -507,7 +507,7 @@ module.exports = function(AV) {
        */
       /**
        * Saves the file to the AV cloud.
-       * @param {Object} [options]
+       * @param {AuthOptions} [options] AuthOptions plus:
        * @param {UploadProgressCallback} [options.onprogress] 文件上传进度，在 Node.js 中无效，回调参数说明详见 {@link UploadProgressCallback}。
        * @return {Promise} Promise that is resolved when the save finishes.
        */
@@ -520,64 +520,66 @@ module.exports = function(AV) {
         if (!this._previousSave) {
           if (this._data) {
             let mimeType = this.get('mime_type');
-            this._previousSave = this._fileToken(mimeType).then(uploadInfo => {
-              if (uploadInfo.mime_type) {
-                mimeType = uploadInfo.mime_type;
-                this.set('mime_type', mimeType);
+            this._previousSave = this._fileToken(mimeType, options).then(
+              uploadInfo => {
+                if (uploadInfo.mime_type) {
+                  mimeType = uploadInfo.mime_type;
+                  this.set('mime_type', mimeType);
+                }
+                this._token = uploadInfo.token;
+                return Promise.resolve()
+                  .then(() => {
+                    const data = this._data;
+                    if (data && data.base64) {
+                      return parseBase64(data.base64, mimeType);
+                    }
+                    if (data && data.blob) {
+                      if (!data.blob.type && mimeType) {
+                        data.blob.type = mimeType;
+                      }
+                      if (!data.blob.name) {
+                        data.blob.name = this.get('name');
+                      }
+                      return data.blob;
+                    }
+                    if (typeof Blob !== 'undefined' && data instanceof Blob) {
+                      return data;
+                    }
+                    /* NODE-ONLY:start */
+                    if (data instanceof require('stream')) {
+                      return data;
+                    }
+                    if (Buffer.isBuffer(data)) {
+                      return data;
+                    }
+                    /* NODE-ONLY:end */
+                    throw new TypeError('malformed file data');
+                  })
+                  .then(data => {
+                    const _options = _.extend({}, options);
+                    // filter out download progress events
+                    if (options.onprogress) {
+                      _options.onprogress = event => {
+                        if (event.direction === 'download') return;
+                        return options.onprogress(event);
+                      };
+                    }
+                    switch (uploadInfo.provider) {
+                      case 's3':
+                        return s3(uploadInfo, data, this, _options);
+                      case 'qcloud':
+                        return cos(uploadInfo, data, this, _options);
+                      case 'qiniu':
+                      default:
+                        return qiniu(uploadInfo, data, this, _options);
+                    }
+                  })
+                  .then(tap(() => this._callback(true)), error => {
+                    this._callback(false);
+                    throw error;
+                  });
               }
-              this._token = uploadInfo.token;
-              return Promise.resolve()
-                .then(() => {
-                  const data = this._data;
-                  if (data && data.base64) {
-                    return parseBase64(data.base64, mimeType);
-                  }
-                  if (data && data.blob) {
-                    if (!data.blob.type && mimeType) {
-                      data.blob.type = mimeType;
-                    }
-                    if (!data.blob.name) {
-                      data.blob.name = this.get('name');
-                    }
-                    return data.blob;
-                  }
-                  if (typeof Blob !== 'undefined' && data instanceof Blob) {
-                    return data;
-                  }
-                  /* NODE-ONLY:start */
-                  if (data instanceof require('stream')) {
-                    return data;
-                  }
-                  if (Buffer.isBuffer(data)) {
-                    return data;
-                  }
-                  /* NODE-ONLY:end */
-                  throw new TypeError('malformed file data');
-                })
-                .then(data => {
-                  const _options = _.extend({}, options);
-                  // filter out download progress events
-                  if (options.onprogress) {
-                    _options.onprogress = event => {
-                      if (event.direction === 'download') return;
-                      return options.onprogress(event);
-                    };
-                  }
-                  switch (uploadInfo.provider) {
-                    case 's3':
-                      return s3(uploadInfo, data, this, _options);
-                    case 'qcloud':
-                      return cos(uploadInfo, data, this, _options);
-                    case 'qiniu':
-                    default:
-                      return qiniu(uploadInfo, data, this, _options);
-                  }
-                })
-                .then(tap(() => this._callback(true)), error => {
-                  this._callback(false);
-                  throw error;
-                });
-            });
+            );
           } else if (
             this.attributes.url &&
             this.attributes.metaData.__source === 'external'
@@ -595,7 +597,8 @@ module.exports = function(AV) {
               this.attributes.name,
               null,
               'post',
-              data
+              data,
+              options
             ).then(response => {
               this.attributes.name = response.name;
               this.attributes.url = response.url;
