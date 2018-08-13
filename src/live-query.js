@@ -15,6 +15,13 @@ const subscribe = (queryJSON, subscriptionId) =>
   });
 
 module.exports = AV => {
+  const requireRealtime = () => {
+    if (!AV._config.realtime) {
+      throw new Error(
+        'LiveQuery not supported. Please use the LiveQuery bundle. https://url.leanapp.cn/enable-live-query'
+      );
+    }
+  };
   /**
    * @class
    * A LiveQuery, created by {@link AV.Query#subscribe} is an EventEmitter notifies changes of the Query.
@@ -105,17 +112,15 @@ module.exports = AV => {
         });
       },
     },
+    /** @lends AV.LiveQuery */
     {
-      init: (
+      init(
         query,
         {
           subscriptionId: userDefinedSubscriptionId = AV._getSubscriptionId(),
         } = {}
-      ) => {
-        if (!AV._config.realtime)
-          throw new Error(
-            'LiveQuery not supported. Please use the LiveQuery bundle. https://url.leanapp.cn/enable-live-query'
-          );
+      ) {
+        requireRealtime();
         if (!(query instanceof AV.Query))
           throw new TypeError('LiveQuery must be inited with a Query');
         return Promise.resolve(userDefinedSubscriptionId).then(subscriptionId =>
@@ -146,6 +151,24 @@ module.exports = AV => {
               return promise;
             })
         );
+      },
+      /**
+       * Pause the LiveQuery connection. This is useful to deactivate the SDK when the app is swtiched to background.
+       * @static
+       * @return void
+       */
+      pause() {
+        requireRealtime();
+        return AV._config.realtime.pause();
+      },
+      /**
+       * Resume the LiveQuery connection. All subscriptions will be restored after reconnection.
+       * @static
+       * @return void
+       */
+      resume() {
+        requireRealtime();
+        return AV._config.realtime.resume();
       },
     }
   );

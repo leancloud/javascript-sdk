@@ -544,7 +544,10 @@ export class Query<T extends Queriable> extends BaseQuery<T> {
   subscribe(options?: { subscriptionId?: string }): Promise<LiveQuery<T>>;
 }
 
-declare class LiveQuery<T> extends EventEmitter<LiveQueryEvent<T>> {
+export class LiveQuery<T> extends EventEmitter<LiveQueryEvent<T>> {
+  static pause(): void;
+  static resume(): void;
+
   unsubscribe(): Promise<void>;
 }
 
