@@ -1,3 +1,13 @@
+# 3.11.0-beta.0 (2018-08-13)
+
+### Features
+
+* 增加了 `AV.LiveQuery.pause` 与 `AV.LiveQuery.resume` 方法。这两个方法可以用于在网络变化或者应用切换后台时主动通知 SDK 断开/恢复 LiveQuery 的连接。
+
+### Bug fixes
+
+* 修复了 `AV.File#save` 方法参数不尊重 AuthOptions 类型参数的问题。
+
 # 3.10.0 (2018-08-03)
 
 ### Features
