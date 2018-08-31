@@ -5,6 +5,8 @@ LeanCloud JavaScript SDK
 [![Build Status](https://img.shields.io/travis/leancloud/javascript-sdk.svg?style=flat-square)](https://travis-ci.org/leancloud/javascript-sdk)
 [![Codecov](https://img.shields.io/codecov/c/github/leancloud/javascript-sdk.svg?style=flat-square)](https://codecov.io/github/leancloud/javascript-sdk)
 [![Known Vulnerabilities](https://snyk.io/test/github/leancloud/javascript-sdk/badge.svg?style=flat-square)](https://snyk.io/test/github/leancloud/javascript-sdk)
+[![Code Quality: Javascript](https://img.shields.io/lgtm/grade/javascript/g/leancloud/javascript-sdk.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/leancloud/javascript-sdk/context:javascript)
+[![Total Alerts](https://img.shields.io/lgtm/alerts/g/leancloud/javascript-sdk.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/leancloud/javascript-sdk/alerts)
 
 
 JavaScript SDK for [LeanCloud](http://leancloud.cn/).
