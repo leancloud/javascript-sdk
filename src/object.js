@@ -462,7 +462,6 @@ module.exports = function(AV) {
        * @private
        */
       _cancelSave: function() {
-        var self = this;
         var failedChanges = _.first(this._opSetQueue);
         this._opSetQueue = _.rest(this._opSetQueue);
         var nextChanges = _.first(this._opSetQueue);
@@ -728,7 +727,6 @@ module.exports = function(AV) {
 
         options.changes = {};
         var escaped = this._escapedAttributes;
-        var prev = this._previousAttributes || {};
 
         // Update attributes.
         AV._arrayEach(_.keys(attrs), function(attr) {
@@ -984,7 +982,7 @@ module.exports = function(AV) {
        * @see AVError
        */
       save: function(arg1, arg2, arg3) {
-        var i, attrs, current, options, saved;
+        var attrs, current, options;
         if (_.isObject(arg1) || isNullOrUndefined(arg1)) {
           attrs = arg1;
           options = arg2;
@@ -1720,7 +1718,6 @@ module.exports = function(AV) {
                     var method = object.id ? 'PUT' : 'POST';
 
                     var json = object._getSaveJSON();
-                    var query = {};
 
                     _.extend(json, object._flags);
 

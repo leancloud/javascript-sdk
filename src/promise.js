@@ -1,4 +1,3 @@
-var _ = require('underscore');
 var Promise = require('es6-promise').Promise;
 
 Promise._continueWhile = function(predicate, asyncFunction) {

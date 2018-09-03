@@ -497,7 +497,7 @@ module.exports = function(AV) {
        * @see AV.Object#save
        */
       save: function(arg1, arg2, arg3) {
-        var i, attrs, current, options, saved;
+        var attrs, options;
         if (_.isObject(arg1) || _.isNull(arg1) || _.isUndefined(arg1)) {
           attrs = arg1;
           options = arg2;

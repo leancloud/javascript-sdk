@@ -244,7 +244,7 @@ module.exports = function(AV) {
        * Returns a JSON version of the object.
        * @return {Object}
        */
-      toJSON: function(key, holder, seenObjects = [this]) {
+      toJSON(key, holder, seenObjects = [this]) {
         return this._toFullJSON(seenObjects, false);
       },
 
@@ -264,7 +264,7 @@ module.exports = function(AV) {
        * Returns the ACL for this file.
        * @returns {AV.ACL} An instance of AV.ACL.
        */
-      getACL: function() {
+      getACL() {
         return this._acl;
       },
 
@@ -272,7 +272,7 @@ module.exports = function(AV) {
        * Sets the ACL to be used for this file.
        * @param {AV.ACL} acl An instance of AV.ACL.
        */
-      setACL: function(acl) {
+      setACL(acl) {
         if (!(acl instanceof AV.ACL)) {
           return new AVError(AVError.OTHER_CAUSE, 'ACL must be a AV.ACL.');
         }
@@ -284,7 +284,7 @@ module.exports = function(AV) {
        * given by the user. After save is called, that name gets prefixed with a
        * unique identifier.
        */
-      name: function() {
+      name() {
         return this.get('name');
       },
 
@@ -293,7 +293,7 @@ module.exports = function(AV) {
        * after you get the file from a AV.Object.
        * @return {String}
        */
-      url: function() {
+      url() {
         return this.get('url');
       },
 
@@ -302,7 +302,7 @@ module.exports = function(AV) {
        * @param {String} The attribute name which want to get.
        * @returns {Any}
        */
-      get: function(attrName) {
+      get(attrName) {
         switch (attrName) {
           case 'objectId':
             return this.id;
@@ -325,7 +325,7 @@ module.exports = function(AV) {
        * @param {Object} value is an optional metadata value.
        * @returns {String|Number|Array|Object}
        */
-      set: function(...args) {
+      set(...args) {
         const set = (attrName, value) => {
           switch (attrName) {
             case 'name':
@@ -380,7 +380,7 @@ module.exports = function(AV) {
        * @param {String} attr an optional metadata key.
        * @param {Object} value an optional metadata value.
        **/
-      metaData: function(attr, value) {
+      metaData(attr, value) {
         if (attr && value) {
           this.attributes.metaData[attr] = value;
           return this;
@@ -401,7 +401,13 @@ module.exports = function(AV) {
        * @param {String} fmt 格式，默认为png，也可以为jpeg,gif等格式。
        */
 
-      thumbnailURL: function(width, height, quality, scaleToFit, fmt) {
+      thumbnailURL(
+        width,
+        height,
+        quality = 100,
+        scaleToFit = true,
+        fmt = 'png'
+      ) {
         const url = this.attributes.url;
         if (!url) {
           throw new Error('Invalid url.');
@@ -409,12 +415,9 @@ module.exports = function(AV) {
         if (!width || !height || width <= 0 || height <= 0) {
           throw new Error('Invalid width or height value.');
         }
-        quality = quality || 100;
-        scaleToFit = !scaleToFit ? true : scaleToFit;
         if (quality <= 0 || quality > 100) {
           throw new Error('Invalid quality value.');
         }
-        fmt = fmt || 'png';
         const mode = scaleToFit ? 2 : 1;
         return (
           url +
@@ -435,7 +438,7 @@ module.exports = function(AV) {
        * Returns the file's size.
        * @return {Number} The file's size in bytes.
        **/
-      size: function() {
+      size() {
         return this.metaData().size;
       },
 
@@ -443,7 +446,7 @@ module.exports = function(AV) {
        * Returns the file's owner.
        * @return {String} The file's owner id.
        */
-      ownerId: function() {
+      ownerId() {
         return this.metaData().owner;
       },
 
@@ -453,7 +456,7 @@ module.exports = function(AV) {
        * @return {Promise} A promise that is fulfilled when the destroy
        *     completes.
        */
-      destroy: function(options) {
+      destroy(options) {
         if (!this.id) {
           return Promise.reject(new Error('The file id does not eixst.'));
         }
@@ -631,7 +634,7 @@ module.exports = function(AV) {
        * @return {Promise} A promise that is fulfilled when the fetch
        *     completes.
        */
-      fetch: function(fetchOptions, options) {
+      fetch(fetchOptions, options) {
         var request = AVRequest(
           'files',
           null,
@@ -642,7 +645,7 @@ module.exports = function(AV) {
         );
         return request.then(this._finishFetch.bind(this));
       },
-      _finishFetch: function(response) {
+      _finishFetch(response) {
         var value = AV.Object.prototype.parse(response);
         value.attributes = {
           name: value.name,

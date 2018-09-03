@@ -1,5 +1,4 @@
 var _ = require('underscore');
-var Promise = require('../promise');
 
 // interface Storage {
 //   readonly attribute boolean async;
