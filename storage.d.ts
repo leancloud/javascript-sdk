@@ -346,7 +346,7 @@ export namespace Object {
       SilentOption,
       WaitOption {
     fetchWhenSave?: boolean;
-    where?: Query<T>;
+    query?: Query<T>;
   }
 
   interface SaveAllOptions extends AuthOptions {}
