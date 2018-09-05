@@ -31,7 +31,7 @@
     "es6-promise": "4.2.3",
     "eventemitter3": "^2.0.3",
     "leancloud-realtime": "^4.2.0",
-    "leancloud-realtime-plugin-live-query": "^1.1.1",
+    "leancloud-realtime-plugin-live-query": "^1.1.2",
     "localstorage-memory": "^1.0.1",
     "md5": "^2.0.0",
     "superagent": "^3.3.1",
