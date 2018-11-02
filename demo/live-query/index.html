@@ -1,0 +1,100 @@
+
+<!doctype html>
+<html data-framework="vue">
+  <head>
+    <meta charset="utf-8">
+    <title>LeanTodo • Vue.js</title>
+    <link rel="stylesheet" href="https://unpkg.com/todomvc-app-css/index.css">
+    <style>
+      [v-cloak] { display: none; }
+      .userinfo {
+        position: absolute;
+        bottom: -46px;
+        width: 100%;
+        font-size: 100%;
+      }
+      #login input {
+        padding: 16px;
+        text-align: center;
+      }
+      #login input:disabled {
+        color: #ddd;
+        cursor: not-allowed;
+      }
+      #login .control {
+        display: flex;
+      }
+      #login-button {
+        background-color: #fafafa;
+      }
+    </style>
+  </head>
+  <body>
+    <section class="todoapp">
+      <h1>LeanTodo</h1>
+      <form action="#" id="login" v-on:submit.prevent="login" v-if="!user" v-cloak>
+        <input v-model="username" autofocus required class="new-todo" placeholder="Username">
+        <input type="password" v-model="password" required class="new-todo" placeholder="Password">
+        <div class="control">
+          <input type="submit" value="Login" class="new-todo" id="login-button">
+          <input type="button" @click="signup" value="Signup" class="new-todo">
+        </div>
+      </form>
+      <template v-if="user" v-cloak>
+        <header class="header">
+          <input class="new-todo"
+            v-if="user"
+            autofocus autocomplete="off"
+            placeholder="What needs to be done?"
+            v-model="newTodo"
+            @keyup.enter="addTodo">
+        </header>
+        <section class="main" v-show="todos.length">
+          <input class="toggle-all" type="checkbox" v-model="allDone">
+          <ul class="todo-list">
+            <li v-for="todo in filteredTodos"
+              class="todo"
+              :key="todo.objectId"
+              :class="{ completed: todo.done, editing: todo == editedTodo }">
+              <div class="view">
+                <input class="toggle" type="checkbox" v-model="todo.done" @change="doneEdit(todo)">
+                <label @dblclick="editTodo(todo)">{{ todo.content }}</label>
+                <button class="destroy" @click="removeTodo(todo)"></button>
+              </div>
+              <input class="edit" type="text"
+                v-model="todo.content"
+                v-todo-focus="todo == editedTodo"
+                @blur="doneEdit(todo)"
+                @keyup.enter="doneEdit(todo)"
+                @keyup.esc="cancelEdit(todo)">
+            </li>
+          </ul>
+        </section>
+        <footer class="footer" v-show="todos.length" v-cloak>
+          <span class="todo-count">
+            <strong>{{ remaining }}</strong> {{ remaining | pluralize }} left
+          </span>
+          <ul class="filters">
+            <li><a href="#/all" :class="{ selected: visibility == 'all' }">All</a></li>
+            <li><a href="#/active" :class="{ selected: visibility == 'active' }">Active</a></li>
+            <li><a href="#/completed" :class="{ selected: visibility == 'completed' }">Completed</a></li>
+          </ul>
+          <button class="clear-completed" @click="removeCompleted" v-show="todos.length > remaining">
+            Clear completed
+          </button>
+        </footer>
+        <p class="info userinfo">
+          Logged in as {{user.username}} (<a @click='logout'>Logout</a>)
+        </p>
+      </template>
+    </section>
+    <footer class="info">
+      <p>Double-click to edit a todo</p>
+      <p>fork from <a href="https://vuejs.org/v2/examples/todomvc.html">Vue.js TodoMVC</a> / Powered by <a href="https://leancloud.cn">LeanCloud</a></p>
+    </footer>
+    <a href="https://github.com/leancloud/leantodo-vue"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/52760788cde945287fbb584134c4cbc2bc36f904/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f77686974655f6666666666662e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_white_ffffff.png"></a>
+    <script src="https://unpkg.com/leancloud-storage@^3.0.0-beta.3/dist/av-live-query-min.js"></script>
+    <script src="https://unpkg.com/vue/dist/vue.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

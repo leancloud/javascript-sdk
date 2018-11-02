@@ -1,6 +1,16 @@
+let configs = {};
+try {
+  configs = JSON.parse(localStorage.getItem('js-sdk-demo/configs')) || {};
+} catch (e) {}
+
+const {
+  appId = 'FNHw86LIu6lnFToIEDemKCQl-gzGzoHsz',
+  appKey = 'NJLcuqnsowO4GEPOwOn2O27C',
+} = configs;
+
 AV.init({
-  appId: 'FNHw86LIu6lnFToIEDemKCQl-gzGzoHsz',
-  appKey: 'DyvpOorH5HK1CVLDqDhb4gNT',
+  appId,
+  appKey,
 });
 
 const MAX_RESULTS_COUNT = 12;

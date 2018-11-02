@@ -1,0 +1,71 @@
+<!doctype html>
+<html>
+  <head>
+    <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/pure-min.css" integrity="sha384-nn4HPE8lTHyVtfCBi5yW9d20FjT8BJwUXyWZT9InLYax14RDjBj46LmSztkmNP9w" crossorigin="anonymous">
+  </head>
+<body>
+  <div id="app">
+    <form class="pure-form" action="#" v-on:submit.prevent="presist">
+      <div class="pure-control-group">
+        <label>APP_ID: </label><input v-model="configs.appId"></label>
+      </div>
+      <div class="pure-control-group">
+        <label>APP_KEY: </label><input v-model="configs.appKey"></label>
+      </div>
+      <div class="pure-controls"><input type="submit" class="pure-button pure-button-primary"></div>
+      Presets:
+      <div class="pure-button-group">
+        <button class="pure-button" v-for="(set, name) in presets" v-on:click="setConfigs(set)">
+          <span v-show="set.appId === configs.appId">✓</span>
+          {{name}}
+        </button>
+      </div>
+    </form>
+  </div>
+  <script src="//unpkg.com/vue/dist/vue.js"></script>
+  <script>
+
+var LOCAL_STORAGE_KEY = 'js-sdk-demo/configs';
+var presets = {
+  "cn-n1(default)": {
+    appId: 'FNHw86LIu6lnFToIEDemKCQl-gzGzoHsz',
+    appKey: 'DyvpOorH5HK1CVLDqDhb4gNT',
+  },
+  "cn-e1": {
+    appId: 'Ugf2ahNIhknfzoirYUx0POpQ-9Nh9j0Va',
+    appKey: 'BlBownlFSWkWGQIkHLrbvmw8',
+  },
+  "us-la1": {
+    appId: 'xCoMNb82GqwCQlEJNEItW5VD-MdYXbMMI',
+    appKey: 'NJLcuqnsowO4GEPOwOn2O27C',
+  },
+};
+
+var app = new Vue({
+  data: () => {
+    let configs = {};
+    try {
+      configs = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)) || {};
+    } catch (e) {}
+    return {
+      configs,
+      presets,
+    };
+  },
+
+  methods: {
+    setConfigs(configs) {
+      this.configs = configs;
+      this.presist();
+    },
+    presist() {
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(this.configs));
+    }
+  },
+});
+
+app.$mount('#app');
+  </script>
+  </body>
+</html>
+
