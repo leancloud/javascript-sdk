@@ -888,6 +888,11 @@ export class Leaderboard {
     statistics: { [name: string]: number },
     options?: UpdateStatisticsOptions
   ): Promise<Statistic[]>;
+  static deleteStatistics(
+    user: User,
+    statisticNames: string[],
+    authOptions?: AuthOptions
+  ): Promise<void>;
 
   fetch(authOptions?: AuthOptions): Promise<Leaderboard>;
   getResults(

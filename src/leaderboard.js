@@ -180,6 +180,7 @@ AV.Leaderboard.getStatistics = (user, { statisticNames } = {}, authOptions) =>
       authOptions,
     }).then(({ results }) => results.map(parseStatisticData));
   });
+
 /**
  * Update Statistics for the specified user.
  * @param {AV.User} user The specified AV.User pointer.
@@ -205,6 +206,26 @@ AV.Leaderboard.updateStatistics = (user, statistics, options = {}) =>
       data,
       authOptions: options,
     }).then(({ results }) => results.map(parseStatisticData));
+  });
+
+/**
+ * Delete Statistics for the specified user.
+ * @param {AV.User} user The specified AV.User pointer.
+ * @param {Object} statistics A name-value pair representing the statistics to delete.
+ * @param {AuthOptions} [options]
+ * @return {Promise<void>}
+ */
+AV.Leaderboard.deleteStatistics = (user, statisticNames, authOptions) =>
+  Promise.resolve().then(() => {
+    if (!(user && user.id)) throw new Error('user must be an AV.User');
+    return request({
+      method: 'DELETE',
+      path: `/leaderboard/users/${user.id}/statistics`,
+      query: {
+        statistics: ensureArray(statisticNames).join(','),
+      },
+      authOptions,
+    }).then(() => undefined);
   });
 
 _.extend(

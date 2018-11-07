@@ -196,6 +196,14 @@ describe('Leaderboard', () => {
           rankings.map(ranking => ranking.rank).should.eql([0, 1, 2]);
         });
     });
+    it('delete statistics', function() {
+      const leaderboard = this.leaderboard;
+      return AV.Leaderboard.deleteStatistics(currentUser, statisticName, {
+        user: currentUser,
+      })
+        .then(() => leaderboard.getResults())
+        .then(rankings => rankings.should.be.length(3));
+    });
   });
 
   after(function() {
