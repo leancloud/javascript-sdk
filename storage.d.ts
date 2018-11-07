@@ -221,26 +221,26 @@ export class GeoPoint extends BaseObject {
  * A class that is used to access all of the children of a many-to-many relationship.
  * Each instance of AV.Relation is associated with a particular parent object and key.
  */
-export class Relation extends BaseObject {
+export class Relation<T extends Queriable> extends BaseObject {
   parent: Object;
   key: string;
   targetClassName: string;
 
   constructor(parent?: Object, key?: string);
-  static reverseQuery(
-    parentClass: string,
+  static reverseQuery<U extends Queriable>(
+    parentClass: string | U,
     relationKey: string,
     child: Object
-  ): Query<any>;
+  ): Query<U>;
 
   //Adds a AV.Object or an array of AV.Objects to the relation.
-  add(object: Object): void;
+  add(object: T): void;
 
   // Returns a AV.Query that is limited to objects in this relation.
-  query(): Query<any>;
+  query(): Query<T>;
 
   // Removes a AV.Object or an array of AV.Objects from this relation.
-  remove(object: Object): void;
+  remove(object: T): void;
 }
 
 /**
@@ -318,7 +318,7 @@ export class Object extends BaseObject {
   op(attr: string): any;
   previous(attr: string): any;
   previousAttributes(): any;
-  relation(attr: string): Relation;
+  relation<T extends Queriable>(attr: string): Relation<T>;
   remove(attr: string, item: any): this;
   save(
     attrs?: object | null,
@@ -600,8 +600,8 @@ export class SearchSortBuilder {
 export class Role extends Object {
   constructor(name: string, acl: ACL);
 
-  getRoles(): Relation;
-  getUsers(): Relation;
+  getRoles(): Relation<Role>;
+  getUsers(): Relation<User>;
   getName(): string;
   setName(name: string): Role;
 }
