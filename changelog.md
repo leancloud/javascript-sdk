@@ -1,4 +1,22 @@
-# 3.11.0-beta.0 (2018-08-13)
+# 3.11.0 (2018-11-08)
+
+### Features
+
+* 增加了 `AV.LiveQuery.pause` 与 `AV.LiveQuery.resume` 方法。这两个方法可以用于在网络变化或者应用切换后台时主动通知 SDK 断开/恢复 LiveQuery 的连接。
+* 排行榜增加了删除用户分数与排名的方法 `AV.Leaderboard.deleteStatistics`。
+
+### Bug fixes
+
+* 修复了 `AV.File#save` 方法参数不尊重 AuthOptions 类型参数的问题。
+* 修复了 LiveQuery 的 `Query#subscribe` 方法在 React Native 中返回 undefined 的问题。
+* 修复了包括 `Relation` 在内的一些 TypeScript 定义文件错误。
+
+<details>
+  <summary>
+Prereleases
+  </summary>
+
+## 3.11.0-beta.0 (2018-08-13)
 
 ### Features
 
@@ -7,6 +25,8 @@
 ### Bug fixes
 
 * 修复了 `AV.File#save` 方法参数不尊重 AuthOptions 类型参数的问题。
+
+</details>
 
 # 3.10.0 (2018-08-03)
 
