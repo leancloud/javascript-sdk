@@ -9,7 +9,7 @@
   },
   "scripts": {
     "precommit": "pretty-quick --staged",
-    "lint": "tsc storage.d.ts",
+    "lint": "tsc storage.d.ts --strict",
     "test": "npm run lint && npm run test:node",
     "test:node":
       "cross-env NODE_ENV=test nyc --reporter lcov --reporter text mocha --timeout 300000 test/index.js",
