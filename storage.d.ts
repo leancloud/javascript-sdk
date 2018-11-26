@@ -961,69 +961,69 @@ export enum LeaderboardVersionChangeInterval {
   MONTH,
 }
 
-export class Error {
-  code: ErrorCode;
+export class Error extends ErrorCode {
+  code: keyof typeof ErrorCode;
   message: string;
 
-  constructor(code: ErrorCode, message: string);
+  constructor(code: keyof typeof ErrorCode, message: string);
 }
 
-export enum ErrorCode {
-  OTHER_CAUSE = -1,
-  INTERNAL_SERVER_ERROR = 1,
-  CONNECTION_FAILED = 100,
-  OBJECT_NOT_FOUND = 101,
-  INVALID_QUERY = 102,
-  INVALID_CLASS_NAME = 103,
-  MISSING_OBJECT_ID = 104,
-  INVALID_KEY_NAME = 105,
-  INVALID_POINTER = 106,
-  INVALID_JSON = 107,
-  COMMAND_UNAVAILABLE = 108,
-  NOT_INITIALIZED = 109,
-  INCORRECT_TYPE = 111,
-  INVALID_CHANNEL_NAME = 112,
-  PUSH_MISCONFIGURED = 115,
-  OBJECT_TOO_LARGE = 116,
-  OPERATION_FORBIDDEN = 119,
-  CACHE_MISS = 120,
-  INVALID_NESTED_KEY = 121,
-  INVALID_FILE_NAME = 122,
-  INVALID_ACL = 123,
-  TIMEOUT = 124,
-  INVALID_EMAIL_ADDRESS = 125,
-  MISSING_CONTENT_TYPE = 126,
-  MISSING_CONTENT_LENGTH = 127,
-  INVALID_CONTENT_LENGTH = 128,
-  FILE_TOO_LARGE = 129,
-  FILE_SAVE_ERROR = 130,
-  DUPLICATE_VALUE = 137,
-  INVALID_ROLE_NAME = 139,
-  EXCEEDED_QUOTA = 140,
-  SCRIPT_FAILED = 141,
-  VALIDATION_ERROR = 142,
-  INVALID_IMAGE_DATA = 150,
-  UNSAVED_FILE_ERROR = 151,
-  INVALID_PUSH_TIME_ERROR = 152,
-  FILE_DELETE_ERROR = 153,
-  REQUEST_LIMIT_EXCEEDED = 155,
-  INVALID_EVENT_NAME = 160,
-  USERNAME_MISSING = 200,
-  PASSWORD_MISSING = 201,
-  USERNAME_TAKEN = 202,
-  EMAIL_TAKEN = 203,
-  EMAIL_MISSING = 204,
-  EMAIL_NOT_FOUND = 205,
-  SESSION_MISSING = 206,
-  MUST_CREATE_USER_THROUGH_SIGNUP = 207,
-  ACCOUNT_ALREADY_LINKED = 208,
-  INVALID_SESSION_TOKEN = 209,
-  LINKED_ID_MISSING = 250,
-  INVALID_LINKED_SESSION = 251,
-  UNSUPPORTED_SERVICE = 252,
-  AGGREGATE_ERROR = 600,
-  FILE_READ_ERROR = 601,
-  X_DOMAIN_REQUEST = 602,
+declare class ErrorCode {
+  static OTHER_CAUSE: number;
+  static INTERNAL_SERVER_ERROR: number;
+  static CONNECTION_FAILED: number;
+  static OBJECT_NOT_FOUND: number;
+  static INVALID_QUERY: number;
+  static INVALID_CLASS_NAME: number;
+  static MISSING_OBJECT_ID: number;
+  static INVALID_KEY_NAME: number;
+  static INVALID_POINTER: number;
+  static INVALID_JSON: number;
+  static COMMAND_UNAVAILABLE: number;
+  static NOT_INITIALIZED: number;
+  static INCORRECT_TYPE: number;
+  static INVALID_CHANNEL_NAME: number;
+  static PUSH_MISCONFIGURED: number;
+  static OBJECT_TOO_LARGE: number;
+  static OPERATION_FORBIDDEN: number;
+  static CACHE_MISS: number;
+  static INVALID_NESTED_KEY: number;
+  static INVALID_FILE_NAME: number;
+  static INVALID_ACL: number;
+  static TIMEOUT: number;
+  static INVALID_EMAIL_ADDRESS: number;
+  static MISSING_CONTENT_TYPE: number;
+  static MISSING_CONTENT_LENGTH: number;
+  static INVALID_CONTENT_LENGTH: number;
+  static FILE_TOO_LARGE: number;
+  static FILE_SAVE_ERROR: number;
+  static DUPLICATE_VALUE: number;
+  static INVALID_ROLE_NAME: number;
+  static EXCEEDED_QUOTA: number;
+  static SCRIPT_FAILED: number;
+  static VALIDATION_ERROR: number;
+  static INVALID_IMAGE_DATA: number;
+  static UNSAVED_FILE_ERROR: number;
+  static INVALID_PUSH_TIME_ERROR: number;
+  static FILE_DELETE_ERROR: number;
+  static REQUEST_LIMIT_EXCEEDED: number;
+  static INVALID_EVENT_NAME: number;
+  static USERNAME_MISSING: number;
+  static PASSWORD_MISSING: number;
+  static USERNAME_TAKEN: number;
+  static EMAIL_TAKEN: number;
+  static EMAIL_MISSING: number;
+  static EMAIL_NOT_FOUND: number;
+  static SESSION_MISSING: number;
+  static MUST_CREATE_USER_THROUGH_SIGNUP: number;
+  static ACCOUNT_ALREADY_LINKED: number;
+  static INVALID_SESSION_TOKEN: number;
+  static LINKED_ID_MISSING: number;
+  static INVALID_LINKED_SESSION: number;
+  static UNSUPPORTED_SERVICE: number;
+  static AGGREGATE_ERROR: number;
+  static FILE_READ_ERROR: number;
+  static X_DOMAIN_REQUEST: number;
 }
 
 /**
