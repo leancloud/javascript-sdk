@@ -5,7 +5,7 @@ try {
 
 const {
   appId = 'FNHw86LIu6lnFToIEDemKCQl-gzGzoHsz',
-  appKey = 'NJLcuqnsowO4GEPOwOn2O27C',
+  appKey = 'DyvpOorH5HK1CVLDqDhb4gNT',
 } = configs;
 
 AV.init({
