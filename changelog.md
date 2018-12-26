@@ -1,3 +1,10 @@
+## 3.11.1 (2018-12-26)
+
+### Bug fixes
+
+* 修复了在初始化时设置了 serverURLs，但仍然会使用缓存的默认配置的问题。
+* 修复了 `AV.Object#clone` 与 `AV.Error` 的 TypeScript 定义中问题。
+
 # 3.11.0 (2018-11-08)
 
 ### Features
