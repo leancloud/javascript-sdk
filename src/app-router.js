@@ -6,6 +6,7 @@ function AppRouter(AV) {
   this.lockedUntil = 0;
   Cache.getAsync('serverURLs')
     .then(data => {
+      if (this.disabled) return;
       if (!data) return this.lock(0);
       const { serverURLs, lockedUntil } = data;
       this.AV._setServerURLs(serverURLs, false);
