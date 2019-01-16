@@ -9,12 +9,27 @@ try {
 
 describe('File', function() {
   describe('Saving base64', function() {
+    var base64 = 'd29ya2luZyBhdCBhdm9zY2xvdWQgaXMgZ3JlYXQh';
+    var fileName = 'base64.txt';
+
     it('should be saved', function() {
-      var base64 = 'd29ya2luZyBhdCBhdm9zY2xvdWQgaXMgZ3JlYXQh';
-      var file = new AV.File('base64.txt', { base64: base64 });
+      var file = new AV.File(fileName, { base64: base64 });
       file.metaData('format', 'txt file');
       file.setACL(new AV.ACL());
       return file.save().then(function() {
+        expect(file.id).to.be.ok();
+        expect(file.metaData('format')).to.be('txt file');
+        expect(file.get('mime_type')).to.be('text/plain');
+        return file.destroy({ useMasterKey: true });
+      });
+    });
+
+    it('with keepFileName', function() {
+      var file = new AV.File(fileName, { base64: base64 });
+      file.metaData('format', 'txt file');
+      file.setACL(new AV.ACL());
+      return file.save().then(function() {
+        expect(file.url()).to.match(new RegExp(fileName + '$'));
         expect(file.ownerId()).to.be.ok();
         expect(file.id).to.be.ok();
         expect(file.metaData('format')).to.be('txt file');
@@ -163,7 +178,7 @@ describe('File', function() {
       var file = AV.File.createWithoutData(fileId);
       expect(function saveFetchedFile() {
         file.save();
-      }).to.throwError(/File already saved\./);
+      }).to.throwError(/File is already saved\./);
     });
     describe('fetch', () => {
       before(function() {

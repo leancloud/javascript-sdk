@@ -14,7 +14,7 @@ module.exports = function upload(uploadInfo, data, file, saveOptions = {}) {
       .set(file._uploadHeaders)
       .attach('file', data, file.attributes.name)
       .field('name', file.attributes.name)
-      .field('key', file._qiniu_key)
+      .field('key', uploadInfo.key || file._qiniu_key)
       .field('token', uptoken);
     if (saveOptions.onprogress) {
       req.on('progress', saveOptions.onprogress);

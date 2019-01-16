@@ -496,6 +496,7 @@ module.exports = function(AV) {
         const data = {
           key,
           name,
+          keep_file_name: true,
           ACL: this._acl,
           mime_type: type,
           metaData: this.attributes.metaData,
@@ -512,13 +513,12 @@ module.exports = function(AV) {
        * Saves the file to the AV cloud.
        * @param {AuthOptions} [options] AuthOptions plus:
        * @param {UploadProgressCallback} [options.onprogress] 文件上传进度，在 Node.js 中无效，回调参数说明详见 {@link UploadProgressCallback}。
+       * @param {boolean} [options.keepFileName = false] 保留下载文件的文件名。
        * @return {Promise} Promise that is resolved when the save finishes.
        */
       save(options = {}) {
         if (this.id) {
-          throw new Error(
-            'File already saved. If you want to manipulate a file, use AV.Query to get it.'
-          );
+          throw new Error('File is already saved.');
         }
         if (!this._previousSave) {
           if (this._data) {
