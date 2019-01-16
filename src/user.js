@@ -296,6 +296,11 @@ module.exports = function(AV) {
         return !!authData[authType];
       },
 
+      /**
+       * Checks whether a user is anonymous.
+       * @since 3.9.0
+       * @return {boolean}
+       */
       isAnonymous() {
         return this._isLinked(PLATFORM_ANONYMOUS);
       },
