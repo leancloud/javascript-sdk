@@ -322,6 +322,40 @@ describe('Objects', function() {
     });
   });
 
+  describe('revert', () => {
+    const data = {
+      name: 'AVOSCloud',
+      age: 0,
+      objectId: '11111111111',
+      className: 'Test',
+      __type: 'Object',
+    };
+
+    it('revert all', () => {
+      const object = AV.parseJSON(data);
+      object.set({
+        name: 'LeanCoud',
+        age: 1,
+      });
+      object.revert();
+      object.dirty().should.eql(false);
+      object.get('name').should.eql('AVOSCloud');
+      object.get('age').should.eql(0);
+      object.toFullJSON().should.eql(data);
+    });
+    it('revert keys', () => {
+      const object = AV.parseJSON(data);
+      object.set({
+        name: 'LeanCoud',
+        age: 1,
+      });
+      object.revert('name');
+      object.dirty().should.eql(true);
+      object.get('name').should.eql('AVOSCloud');
+      object.get('age').should.eql(1);
+    });
+  });
+
   describe('query', () => {
     it('should get AV.Query instance', () => {
       const Foo = AV.Object.extend('Foo');

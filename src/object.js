@@ -898,6 +898,20 @@ module.exports = function(AV) {
       },
 
       /**
+       * Clears any (or specific) changes to the model made since the last save.
+       * @param {string|string[]} [keys] specify keys to revert.
+       */
+      revert(keys) {
+        const lastOp = _.last(this._opSetQueue);
+        const _keys = ensureArray(keys || _.keys(lastOp));
+        _keys.forEach(key => {
+          delete lastOp[key];
+        });
+        this._rebuildAllEstimatedData();
+        return this;
+      },
+
+      /**
        * Returns a JSON-encoded set of operations to be sent with the next save
        * request.
        * @private

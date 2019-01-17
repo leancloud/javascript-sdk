@@ -303,6 +303,7 @@ export class Object extends BaseObject {
   change(options: any): this;
   changedAttributes(diff: any): boolean;
   clear(options: any): any;
+  revert(keys?: string | string[]): this;
   clone(): this;
   destroy(options?: Object.DestroyOptions): Promise<this>;
   dirty(attr: String): boolean;
