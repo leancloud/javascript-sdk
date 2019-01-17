@@ -165,7 +165,7 @@ export class File extends BaseObject {
 
   destroy(options?: AuthOptions): Promise<void>;
   fetch(fetchOptions?: FetchOptions, options?: AuthOptions): Promise<this>;
-  get(attr: string): any;
+  get(key: string): any;
   getACL(): ACL;
   metaData(): any;
   metaData(metaKey: string): any;
@@ -175,6 +175,7 @@ export class File extends BaseObject {
   url(): string;
   save(options?: FileSaveOptions): Promise<this>;
   set(key: string, value: any): this;
+  set(data: { [key: string]: any }): this;
   setACL(acl: ACL): this;
   setUploadHeader(key: string, value: string): this;
   size(): any;
@@ -331,6 +332,7 @@ export class Object extends BaseObject {
     options?: Object.SaveOptions<this>
   ): Promise<this>;
   set(key: string, value: any, options?: Object.SetOptions): this;
+  set(data: { [key: string]: any }, options?: Object.SetOptions): this;
   setACL(acl: ACL, options?: Object.SetOptions): this;
   unset(attr: string, options?: Object.SetOptions): this;
   validate(attrs: any): any;

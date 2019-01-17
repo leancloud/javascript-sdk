@@ -655,17 +655,9 @@ module.exports = function(AV) {
        * gameTurn.set({
        *   player: player1,
        *   diceRoll: 2
-       * }, {
-       *   error: function(gameTurnAgain, error) {
-       *     // The set failed validation.
-       *   }
        * });
        *
-       * game.set("currentPlayer", player2, {
-       *   error: function(gameTurnAgain, error) {
-       *     // The set failed validation.
-       *   }
-       * });
+       * game.set("currentPlayer", player2);
        *
        * game.set("finished", true);
        *
