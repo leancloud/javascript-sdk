@@ -1,9 +1,36 @@
+# 3.12.0 (2019-03-01)
+
+### Features
+
+* `AV.File#save` 方法增加了 `keepFileName` 方法允许保留下载文件的文件名。
+
+  <details>
+    <summary>
+  示例
+    </summary>
+
+  ```js
+  new AV.File('file-name.ext', source).save({ keepFileName: true });
+  // https://your-file-domain/5112b94e0536e995741c/file-name.ext
+
+  new AV.File('file-name.ext', source).save();
+  // https://your-file-domain/5112b94e0536e995741c.ext
+  ```
+
+  </details>
+
+* 增加了 `AV.Object#revert` 方法撤销部分或全部修改了但未保存（save）的改动。
+
+### Bug fixes
+
+* 修复了 `AV.Object#set` 的 TypeScript 定义问题。
+
 ## 3.11.1 (2018-12-26)
 
 ### Bug fixes
 
 * 修复了在初始化时设置了 serverURLs，但仍然会使用缓存的默认配置的问题。
-* 修复了 `AV.Object#clone` 与 `AV.Error` 的 TypeScript 定义中问题。
+* 修复了 `AV.Object#clone` 与 `AV.Error` 的 TypeScript 定义问题。
 
 # 3.11.0 (2018-11-08)
 
