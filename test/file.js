@@ -28,7 +28,7 @@ describe('File', function() {
       var file = new AV.File(fileName, { base64: base64 });
       file.metaData('format', 'txt file');
       file.setACL(new AV.ACL());
-      return file.save().then(function() {
+      return file.save({ keepFileName: true }).then(function() {
         expect(file.url()).to.match(new RegExp(fileName + '$'));
         expect(file.ownerId()).to.be.ok();
         expect(file.id).to.be.ok();

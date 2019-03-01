@@ -496,7 +496,7 @@ module.exports = function(AV) {
         const data = {
           key,
           name,
-          keep_file_name: true,
+          keep_file_name: authOptions.keepFileName,
           ACL: this._acl,
           mime_type: type,
           metaData: this.attributes.metaData,
