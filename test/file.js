@@ -10,7 +10,7 @@ try {
 describe('File', function() {
   describe('Saving base64', function() {
     var base64 = 'd29ya2luZyBhdCBhdm9zY2xvdWQgaXMgZ3JlYXQh';
-    var fileName = 'base64.txt';
+    var fileName = '中文.txt';
 
     it('should be saved', function() {
       var file = new AV.File(fileName, { base64: base64 });
@@ -29,7 +29,9 @@ describe('File', function() {
       file.metaData('format', 'txt file');
       file.setACL(new AV.ACL());
       return file.save({ keepFileName: true }).then(function() {
-        expect(file.url()).to.match(new RegExp(fileName + '$'));
+        expect(file.url()).to.match(
+          new RegExp(encodeURIComponent(fileName) + '$')
+        );
         expect(file.ownerId()).to.be.ok();
         expect(file.id).to.be.ok();
         expect(file.metaData('format')).to.be('txt file');
