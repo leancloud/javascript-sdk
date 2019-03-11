@@ -25,6 +25,18 @@ const getWeappLoginCode = () => {
   });
 };
 
+const getWeappAuthData = (
+  code,
+  { preferUnionId, unionIdPlatform = 'weixin', asMainAccount = true } = {}
+) =>
+  preferUnionId
+    ? {
+        platform: unionIdPlatform,
+        main_account: asMainAccount,
+        code,
+      }
+    : { code };
+
 const mergeUnionDataIntoAuthData = (
   authData,
   unionId,
@@ -237,11 +249,11 @@ module.exports = function(AV) {
         authData,
         platform,
         unionId,
-        unionLoginOptions
+        unionOptions
       ) {
         return this._linkWith(
           platform,
-          mergeUnionDataIntoAuthData(authData, unionId, unionLoginOptions)
+          mergeUnionDataIntoAuthData(authData, unionId, unionOptions)
         );
       },
 
@@ -249,11 +261,47 @@ module.exports = function(AV) {
        * 将用户与小程序用户进行关联。适用于为已经在用户系统中存在的用户关联当前使用小程序的微信帐号。
        * 仅在小程序中可用。
        *
+       * @since 3.13.0
+       * @param {Object} [options]
+       * @param {boolean} [options.preferUnionId] 当用户满足 {@link https://developers.weixin.qq.com/miniprogram/dev/framework/open-ability/union-id.html 获取 UnionId 的条件} 时，是否将 UnionId 保存在用户账号中。
+       * @param {string} [options.unionIdPlatform = 'weixin'] (only take effect when preferUnionId) unionId platform
+       * @param {boolean} [options.asMainAccount = false] (only take effect when preferUnionId) If true, the unionId will be associated with the user.
        * @return {Promise<AV.User>}
        */
-      linkWithWeapp() {
+      associateWithWeapp(options) {
         return getWeappLoginCode().then(code =>
-          this._linkWith(PLATFORM_WEAPP, { code })
+          this._linkWith(PLATFORM_WEAPP, getWeappAuthData(code, options))
+        );
+      },
+
+      /**
+       * @deprecated renamed to {@link AV.User#associateWithWeapp}
+       * @return {Promise<AV.User>}
+       */
+      linkWithWeapp(options) {
+        console.warn(
+          'DEPRECATED: User#linkWithWeapp 已废弃，请使用 User#associateWithWeapp 代替'
+        );
+        return this.associateWithWeapp(options);
+      },
+
+      /**
+       * 将用户与小程序用户进行关联。适用于为已经在用户系统中存在的用户关联当前使用小程序的微信帐号。
+       * 仅在小程序中可用。
+       *
+       * @since 3.13.0
+       * @param {string} unionId
+       * @param {Object} [unionOptions]
+       * @param {string} [unionOptions.unionIdPlatform = 'weixin'] unionId platform
+       * @param {boolean} [unionOptions.asMainAccount = false] If true, the unionId will be associated with the user.
+       * @return {Promise<AV.User>}
+       */
+      associateWithWeappWithUnionId(unionId, unionOptions) {
+        return getWeappLoginCode().then(code =>
+          this._linkWith(
+            PLATFORM_WEAPP,
+            mergeUnionDataIntoAuthData({ code }, unionId, unionOptions)
+          )
         );
       },
 
@@ -468,10 +516,33 @@ module.exports = function(AV) {
       /**
        * The same with {@link AV.User.loginWithWeapp}, except that you can set attributes before login.
        * @since 3.7.0
+       * @param {Object} [options]
+       * @param {boolean} [options.failOnNotExist] If true, the login request will fail when no user matches this authData exists.
+       * @param {boolean} [options.preferUnionId] 当用户满足 {@link https://developers.weixin.qq.com/miniprogram/dev/framework/open-ability/union-id.html 获取 UnionId 的条件} 时，是否使用 UnionId 登录。（since 3.13.0）
+       * @param {string} [options.unionIdPlatform = 'weixin'] (only take effect when preferUnionId) unionId platform
+       * @param {boolean} [options.asMainAccount = false] (only take effect when preferUnionId) If true, the unionId will be associated with the user.
        */
       loginWithWeapp(options) {
         return getWeappLoginCode().then(code =>
-          this.loginWithAuthData({ code }, PLATFORM_WEAPP, options)
+          this.loginWithAuthData(
+            getWeappAuthData(code, options),
+            PLATFORM_WEAPP,
+            options
+          )
+        );
+      },
+
+      /**
+       * The same with {@link AV.User.loginWithWeappWithUnionId}, except that you can set attributes before login.
+       * @since 3.13.0
+       */
+      loginWithWeappWithUnionId(unionId, unionLoginOptions) {
+        return getWeappLoginCode().then(code =>
+          this.loginWithAuthData(
+            mergeUnionDataIntoAuthData({ code }, unionId, unionLoginOptions),
+            PLATFORM_WEAPP,
+            unionLoginOptions
+          )
         );
       },
 
@@ -1030,12 +1101,39 @@ module.exports = function(AV) {
        *
        * @since 2.0.0
        * @param {Object} [options]
+       * @param {boolean} [options.preferUnionId] 当用户满足 {@link https://developers.weixin.qq.com/miniprogram/dev/framework/open-ability/union-id.html 获取 UnionId 的条件} 时，是否使用 UnionId 登录。（since 3.13.0）
+       * @param {string} [options.unionIdPlatform = 'weixin'] (only take effect when preferUnionId) unionId platform
+       * @param {boolean} [options.asMainAccount = false] (only take effect when preferUnionId) If true, the unionId will be associated with the user.
        * @param {boolean} [options.failOnNotExist] If true, the login request will fail when no user matches this authData exists. (since v3.7.0)
        * @return {Promise.<AV.User>}
        */
       loginWithWeapp(options) {
         return getWeappLoginCode().then(code =>
-          this.loginWithAuthData({ code }, PLATFORM_WEAPP, options)
+          this.loginWithAuthData(
+            getWeappAuthData(code, options),
+            PLATFORM_WEAPP,
+            options
+          )
+        );
+      },
+
+      /**
+       * 使用当前使用小程序的微信用户身份注册或登录，
+       * 仅在小程序中可用。
+       *
+       * @since 3.13.0
+       * @param {Object} [unionLoginOptions]
+       * @param {string} [unionLoginOptions.unionIdPlatform = 'weixin'] unionId platform
+       * @param {boolean} [unionLoginOptions.asMainAccount = false] If true, the unionId will be associated with the user.
+       * @param {boolean} [unionLoginOptions.failOnNotExist] If true, the login request will fail when no user matches this authData exists.       * @return {Promise.<AV.User>}
+       */
+      loginWithWeappWithUnionId(unionId, unionLoginOptions) {
+        return getWeappLoginCode().then(code =>
+          this.loginWithAuthData(
+            mergeUnionDataIntoAuthData({ code }, unionId, unionLoginOptions),
+            PLATFORM_WEAPP,
+            unionLoginOptions
+          )
         );
       },
 

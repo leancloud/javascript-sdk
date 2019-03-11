@@ -49,13 +49,11 @@ interface CaptchaOptions {
 
 interface FileSaveOptions extends AuthOptions {
   keepFileName?: boolean;
-  onprogress?: (
-    event: {
-      loaded: number;
-      total: number;
-      percent: number;
-    }
-  ) => any;
+  onprogress?: (event: {
+    loaded: number;
+    total: number;
+    percent: number;
+  }) => any;
 }
 
 export interface WaitOption {
@@ -621,6 +619,12 @@ interface UnionOptions {
 
 interface UnionLoginOptions extends OAuthLoginOptions, UnionOptions {}
 
+interface WeappOptions extends UnionOptions {
+  preferUnion: boolean;
+}
+
+interface WeappLoginOptions extends OAuthLoginOptions, WeappOptions {}
+
 /**
  * @class
  *
@@ -644,7 +648,11 @@ export class User extends Object {
   static become(sessionToken: string): Promise<User>;
 
   static loginAnonymously(): Promise<User>;
-  static loginWithWeapp(options?: OAuthLoginOptions): Promise<User>;
+  static loginWithWeapp(options?: WeappLoginOptions): Promise<User>;
+  static loginWithWeappWithUnionId(
+    unionId: string,
+    unionLoginOptions?: UnionLoginOptions
+  ): Promise<User>;
   static logInWithMobilePhone(
     mobilePhone: string,
     password: string
@@ -711,7 +719,11 @@ export class User extends Object {
   static followerQuery(userObjectId: string): FriendShipQuery;
   static followeeQuery(userObjectId: string): FriendShipQuery;
 
-  loginWithWeapp(options?: OAuthLoginOptions): Promise<User>;
+  loginWithWeapp(options?: WeappLoginOptions): Promise<User>;
+  loginWithWeappWithUnionId(
+    unionId: string,
+    unionLoginOptions?: UnionLoginOptions
+  ): Promise<User>;
   loginWithAuthData(
     authData: object,
     platform: string,
@@ -731,12 +743,18 @@ export class User extends Object {
   isAnonymous(): boolean;
   isCurrent(): boolean;
 
+  associateWithWeapp(options?: WeappOptions): Promise<User>;
+  associateWithWeappWithUnionId(
+    unionId: string,
+    unionOptions?: UnionOptions
+  ): Promise<User>;
+
   associateWithAuthData(authData: object, platform: string): Promise<User>;
   associateWithAuthDataAndUnionId(
     authData: object,
     platform: string,
     unionId: string,
-    unionLoginOptions?: UnionOptions
+    unionOptions?: UnionOptions
   ): Promise<User>;
   dissociateAuthData(platform: string): Promise<User>;
 
