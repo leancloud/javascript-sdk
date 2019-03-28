@@ -311,7 +311,7 @@ module.exports = function(AV) {
   /**
    * Create a status query to find someone's published statuses.
    * @since 0.3.0
-   * @param {Object} source The status source.
+   * @param {Object} source The status source, typically an AV.User.
    * @return {AV.Query} The query object for status.
    * @example
    *   //Find current user's published statuses.
