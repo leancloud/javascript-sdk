@@ -384,7 +384,7 @@ module.exports = function(AV) {
       },
       /**
        * Sets the querying inbox type.default is 'default'.
-       * @param {Object} owner The inbox type.
+       * @param {Object} type The inbox type.
        * @return {AV.InboxQuery} Returns the query, so you can chain this call.
        */
       inboxType: function(type) {
