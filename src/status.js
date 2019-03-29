@@ -235,7 +235,7 @@ module.exports = function(AV) {
   /**
    * Count unread statuses in someone's inbox.
    * @since 0.3.0
-   * @param {Object} owner The status owner.
+   * @param {AV.User} owner The status owner.
    * @param {String} inboxType The inbox type, 'default' by default.
    * @param {AuthOptions} options
    * @return {Promise} A promise that is fulfilled when the count
@@ -273,7 +273,7 @@ module.exports = function(AV) {
   /**
    * reset unread statuses count in someone's inbox.
    * @since 2.1.0
-   * @param {Object} owner The status owner.
+   * @param {AV.User} owner The status owner.
    * @param {String} inboxType The inbox type, 'default' by default.
    * @param {AuthOptions} options
    * @return {Promise} A promise that is fulfilled when the reset
@@ -311,7 +311,7 @@ module.exports = function(AV) {
   /**
    * Create a status query to find someone's published statuses.
    * @since 0.3.0
-   * @param {Object} source The status source, typically an AV.User.
+   * @param {AV.User} source The status source, typically the publisher.
    * @return {AV.Query} The query object for status.
    * @example
    *   //Find current user's published statuses.
@@ -375,7 +375,7 @@ module.exports = function(AV) {
       },
       /**
        * Sets the owner of the querying inbox.
-       * @param {Object} owner The inbox owner.
+       * @param {AV.User} owner The inbox owner.
        * @return {AV.InboxQuery} Returns the query, so you can chain this call.
        */
       owner: function(owner) {
@@ -405,7 +405,7 @@ module.exports = function(AV) {
   /**
    * Create a inbox status query to find someone's inbox statuses.
    * @since 0.3.0
-   * @param {Object} owner The inbox's owner
+   * @param {AV.User} owner The inbox's owner
    * @param {String} inboxType The inbox type,'default' by default.
    * @return {AV.InboxQuery} The inbox query object.
    * @see AV.InboxQuery
