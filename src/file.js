@@ -277,6 +277,7 @@ module.exports = function(AV) {
           return new AVError(AVError.OTHER_CAUSE, 'ACL must be a AV.ACL.');
         }
         this._acl = acl;
+        return this;
       },
 
       /**
@@ -353,6 +354,7 @@ module.exports = function(AV) {
             set(args[0], args[1]);
             break;
         }
+        return this;
       },
 
       /**
