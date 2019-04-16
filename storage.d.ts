@@ -661,6 +661,7 @@ export class User extends Object {
     mobilePhone: string,
     smsCode: string
   ): Promise<User>;
+  static loginWithEmail(email: string, password: string): Promise<User>;
   static loginWithAuthData(
     authData: object,
     platform: string,

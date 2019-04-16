@@ -1011,6 +1011,24 @@ module.exports = function(AV) {
       },
 
       /**
+       * Logs in a user with email and password.
+       *
+       * @since 3.13.0
+       * @param {String} email The user's email.
+       * @param {String} password The password to log in with.
+       * @return {Promise} A promise that is fulfilled with the user when
+       *     the login completes.
+       */
+      loginWithEmail(email, password) {
+        const user = AV.Object._create('_User');
+        user._finishFetch({
+          email,
+          password,
+        });
+        return user.logIn();
+      },
+
+      /**
        * Sign up or logs in a user with a third party auth data(AccessToken).
        * On success, this saves the session to disk, so you can retrieve the currently
        * logged in user using <code>current</code>.

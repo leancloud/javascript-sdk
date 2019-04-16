@@ -52,6 +52,11 @@ describe('User', function() {
         code: 210,
       });
     });
+
+    it('should loginWithEmail', () =>
+      AV.User.loginWithEmail(email, password).then(function(user) {
+        expect(user.get('username')).to.be(username);
+      }));
   });
 
   describe('Current User', function() {
