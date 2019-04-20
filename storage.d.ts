@@ -281,7 +281,7 @@ export class Object extends BaseObject {
 
   constructor(className?: string, options?: any);
   constructor(attributes?: string[], options?: any);
-  static createWithoutData(className: string, objectId: string): Object;
+  static createWithoutData<T extends Object>(className: string, objectId: string): T;
   static extend(className: string, protoProps?: any, classProps?: any): any;
   static fetchAll<T>(list: Object[], options?: AuthOptions): Promise<T>;
   static destroyAll<T>(
@@ -504,6 +504,7 @@ export class Query<T extends Queriable> extends BaseQuery<T> {
   count(options?: AuthOptions): Promise<number>;
   descending(key: string): this;
   descending(key: string[]): this;
+  destroyAll(options?: AuthOptions): Promise<undefined>;                                     
   doesNotExist(key: string): this;
   doesNotMatchKeyInQuery<U extends Queriable>(
     key: string,
