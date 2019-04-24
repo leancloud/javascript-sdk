@@ -281,15 +281,25 @@ export class Object extends BaseObject {
 
   constructor(className?: string, options?: any);
   constructor(attributes?: string[], options?: any);
-  static createWithoutData<T extends Object>(className: string, objectId: string): T;
-  static extend(className: string, protoProps?: any, classProps?: any): any;
-  static fetchAll<T>(list: Object[], options?: AuthOptions): Promise<T>;
-  static destroyAll<T>(
+  static createWithoutData<T extends Object>(
+    className: string,
+    objectId: string
+  ): T;
+  static createWithoutData<T extends Object>(
+    className: new (...args: any[]) => T,
+    objectId: string
+  ): T;
+  static extend(className: string, protoProps?: any, classProps?: any): Object;
+  static fetchAll<T extends Object>(
+    list: T[],
+    options?: AuthOptions
+  ): Promise<T>;
+  static destroyAll(
     list: Object[],
     options?: Object.DestroyAllOptions
-  ): Promise<T>;
-  static saveAll<T>(
-    list: Object[],
+  ): Promise<void>;
+  static saveAll<T extends Object>(
+    list: T[],
     options?: Object.SaveAllOptions
   ): Promise<T>;
   static register(klass: new (...args: any[]) => Object, name?: string): void;
@@ -504,7 +514,7 @@ export class Query<T extends Queriable> extends BaseQuery<T> {
   count(options?: AuthOptions): Promise<number>;
   descending(key: string): this;
   descending(key: string[]): this;
-  destroyAll(options?: AuthOptions): Promise<undefined>;                                     
+  destroyAll(options?: AuthOptions): Promise<void>;
   doesNotExist(key: string): this;
   doesNotMatchKeyInQuery<U extends Queriable>(
     key: string,
