@@ -931,6 +931,12 @@ export class Leaderboard {
   ): Promise<void>;
 
   fetch(authOptions?: AuthOptions): Promise<Leaderboard>;
+  count(
+    options?: {
+      version?: number;
+    },
+    authOptions?: AuthOptions
+  ): Promise<Number>;
   getResults(
     options?: {
       skip?: number;

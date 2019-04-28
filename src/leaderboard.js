@@ -259,6 +259,25 @@ _.extend(
         authOptions,
       }).then(data => this._finishFetch(data));
     },
+    /**
+     * Counts the number of users participated in this leaderboard
+     * @param {Object} [options]
+     * @param {number} [options.version] Specify the version of the leaderboard
+     * @param {AuthOptions} [authOptions]
+     * @return {Promise<number>}
+     */
+    count({ version } = {}, authOptions) {
+      return request({
+        method: 'GET',
+        path: `/leaderboard/leaderboards/${this.statisticName}/ranks`,
+        query: {
+          count: 1,
+          limit: 0,
+          version,
+        },
+        authOptions,
+      }).then(({ count }) => count);
+    },
     _getResults(
       { skip, limit, selectUserKeys, includeStatistics, version },
       authOptions,

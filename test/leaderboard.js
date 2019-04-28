@@ -143,6 +143,10 @@ describe('Leaderboard', () => {
         score.version.should.eql(0);
       }));
 
+    it('count', function() {
+      return this.leaderboard.count().then(count => count.should.be.eql(4));
+    });
+
     it('getResults', function() {
       const leaderboard = this.leaderboard;
       return leaderboard
