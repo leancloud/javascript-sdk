@@ -1,7 +1,7 @@
 language: node_js
 
 node_js:
-- "6"
+  - '10'
 
 sudo: false
 env:
@@ -21,9 +21,9 @@ script:
   - npm run build
 after_success:
   - if [[ "$TRAVIS_BRANCH" == "master" ]] && [[ "${TRAVIS_PULL_REQUEST}" = "false" ]]; then
-      ./script/release.sh;
-      ./script/deploy.sh;
+    ./script/release.sh;
+    ./script/deploy.sh;
     fi
   - if [[ "$TRAVIS_BRANCH" == "next" ]] && [[ "${TRAVIS_PULL_REQUEST}" = "false" ]]; then
-      ./script/release.sh next-dist;
+    ./script/release.sh next-dist;
     fi
