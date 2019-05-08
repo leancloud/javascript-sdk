@@ -1,3 +1,9 @@
+## 3.13.1 (2019-05-08)
+
+### Bug fixes
+
+- 优化了 `AV.Object` 静态方法的 TypeScript 定义。
+
 # 3.13.0 (2019-04-17)
 
 ### Features
