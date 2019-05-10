@@ -1106,6 +1106,7 @@ export namespace Push {
   function send<T>(data: PushData, options?: AuthOptions): Promise<T>;
 
   interface PushData {
+    prod?: "dev" | "prod";
     channels?: string[];
     push_time?: Date;
     expiration_time?: Date;
