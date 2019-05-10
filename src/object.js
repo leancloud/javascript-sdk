@@ -778,6 +778,7 @@ module.exports = function(AV) {
        * Remove an attribute from the model, firing <code>"change"</code> unless
        * you choose to silence it. This is a noop if the attribute doesn't
        * exist.
+       * @param key {String} The key.
        */
       unset: function(attr, options) {
         options = options || {};
@@ -789,7 +790,7 @@ module.exports = function(AV) {
        * Atomically increments the value of the given attribute the next time the
        * object is saved. If no amount is specified, 1 is used by default.
        *
-       * @param attr {String} The key.
+       * @param key {String} The key.
        * @param amount {Number} The amount to increment by.
        */
       increment: function(attr, amount) {
@@ -802,7 +803,7 @@ module.exports = function(AV) {
       /**
        * Atomically add an object to the end of the array associated with a given
        * key.
-       * @param attr {String} The key.
+       * @param key {String} The key.
        * @param item {} The item to add.
        */
       add: function(attr, item) {
@@ -814,7 +815,7 @@ module.exports = function(AV) {
        * if it is not already present in the array. The position of the insert is
        * not guaranteed.
        *
-       * @param attr {String} The key.
+       * @param key {String} The key.
        * @param item {} The object to add.
        */
       addUnique: function(attr, item) {
@@ -825,7 +826,7 @@ module.exports = function(AV) {
        * Atomically remove all instances of an object from the array associated
        * with a given key.
        *
-       * @param attr {String} The key.
+       * @param key {String} The key.
        * @param item {} The object to remove.
        */
       remove: function(attr, item) {
@@ -836,7 +837,7 @@ module.exports = function(AV) {
        * Atomically apply a "bit and" operation on the value associated with a
        * given key.
        *
-       * @param attr {String} The key.
+       * @param key {String} The key.
        * @param value {Number} The value to apply.
        */
       bitAnd(attr, value) {
@@ -847,7 +848,7 @@ module.exports = function(AV) {
        * Atomically apply a "bit or" operation on the value associated with a
        * given key.
        *
-       * @param attr {String} The key.
+       * @param key {String} The key.
        * @param value {Number} The value to apply.
        */
       bitOr(attr, value) {
@@ -858,7 +859,7 @@ module.exports = function(AV) {
        * Atomically apply a "bit xor" operation on the value associated with a
        * given key.
        *
-       * @param attr {String} The key.
+       * @param key {String} The key.
        * @param value {Number} The value to apply.
        */
       bitXor(attr, value) {
@@ -871,7 +872,7 @@ module.exports = function(AV) {
        * saved. For example, after calling object.increment("x"), calling
        * object.op("x") would return an instance of AV.Op.Increment.
        *
-       * @param attr {String} The key.
+       * @param key {String} The key.
        * @returns {AV.Op} The operation, or undefined if none.
        */
       op: function(attr) {
