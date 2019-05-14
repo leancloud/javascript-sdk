@@ -572,8 +572,6 @@ declare interface LiveQueryEvent<T> {
   delete: (target?: T) => any;
 }
 
-declare class FriendShipQuery extends Query<User> {}
-
 export class SearchQuery<T extends Queriable> extends BaseQuery<T> {
   sid(sid: string): this;
   queryString(q: string): this;
@@ -1106,7 +1104,7 @@ export namespace Push {
   function send<T>(data: PushData, options?: AuthOptions): Promise<T>;
 
   interface PushData {
-    prod?: "dev" | "prod";
+    prod?: 'dev' | 'prod';
     channels?: string[];
     push_time?: Date;
     expiration_time?: Date;
