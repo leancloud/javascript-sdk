@@ -289,7 +289,11 @@ export class Object extends BaseObject {
     className: new (...args: any[]) => T,
     objectId: string
   ): T;
-  static extend(className: string, protoProps?: any, classProps?: any): Object;
+  static extend(
+    className: string,
+    protoProps?: any,
+    classProps?: any
+  ): typeof Object;
   static fetchAll<T extends Object>(
     list: T[],
     options?: AuthOptions
