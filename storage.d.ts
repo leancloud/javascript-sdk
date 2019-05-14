@@ -1106,7 +1106,7 @@ export namespace Push {
   function send<T>(data: PushData, options?: AuthOptions): Promise<T>;
 
   interface PushData {
-    prod?: "dev" | "prod";
+    prod?: 'dev' | 'prod';
     channels?: string[];
     push_time?: Date;
     expiration_time?: Date;
@@ -1136,6 +1136,7 @@ export namespace Cloud {
     authOptions?: AuthOptions
   ): Promise<Captcha>;
   function verifyCaptcha(code: string, captchaToken: string): Promise<void>;
+  function getServerDate(): Promise<Date>;
 }
 
 interface ServerURLs {
