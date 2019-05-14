@@ -576,8 +576,6 @@ declare interface LiveQueryEvent<T> {
   delete: (target?: T) => any;
 }
 
-declare class FriendShipQuery extends Query<User> {}
-
 export class SearchQuery<T extends Queriable> extends BaseQuery<T> {
   sid(sid: string): this;
   queryString(q: string): this;
@@ -732,8 +730,8 @@ export class User extends Object {
   ): Promise<User>;
   static verifyMobilePhone(code: string, options?: AuthOptions): Promise<User>;
 
-  static followerQuery(userObjectId: string): FriendShipQuery;
-  static followeeQuery(userObjectId: string): FriendShipQuery;
+  static followerQuery<T extends User>(userObjectId: string): Query<T>;
+  static followeeQuery<T extends User>(userObjectId: string): Query<T>;
 
   loginWithWeapp(options?: WeappLoginOptions): Promise<User>;
   loginWithWeappWithUnionId(
@@ -799,8 +797,8 @@ export class User extends Object {
     options: { user: User | string },
     authOptions?: AuthOptions
   ): Promise<void>;
-  followerQuery(): FriendShipQuery;
-  followeeQuery(): FriendShipQuery;
+  followerQuery(): Query<this>;
+  followeeQuery(): Query<this>;
 }
 
 export class Captcha {

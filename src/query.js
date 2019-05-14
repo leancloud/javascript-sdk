@@ -1066,9 +1066,9 @@ module.exports = function(AV) {
   );
 
   AV.FriendShipQuery = AV.Query._extend({
-    _objectClass: AV.User,
     _newObject: function() {
-      return new AV.User();
+      const UserClass = AV.Object._getSubclass('_User');
+      return new UserClass();
     },
     _processResult: function(json) {
       if (json && json[this._friendshipTag]) {
