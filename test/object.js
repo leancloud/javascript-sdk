@@ -49,7 +49,8 @@ describe('Objects', function() {
       for (var i = 100000; i > 0; i--) {
         Test = AV.Object.extend('Test');
       }
-      new Test();
+      const test = new Test();
+      expect(test.className).to.eql('Test');
     });
 
     it('ES6 extend syntex', () => {
@@ -59,6 +60,15 @@ describe('Objects', function() {
       es6Person.set('name', 'leeyeh');
       expect(backbonePerson.toJSON()).to.eql(es6Person.toJSON());
       expect(backbonePerson._toFullJSON()).to.eql(es6Person._toFullJSON());
+    });
+
+    it('createWithoutData', () => {
+      expect(AV.Object.createWithoutData(Person, 'id') instanceof Person).to.be(
+        true
+      );
+      expect(
+        AV.Object.createWithoutData('Person', 'id') instanceof BackbonePerson
+      ).to.be(true);
     });
 
     it('#register an ES6 class', () => {

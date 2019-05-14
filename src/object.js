@@ -1387,15 +1387,23 @@ module.exports = function(AV) {
   /**
    * Creates an instance of a subclass of AV.Object for the give classname
    * and id.
-   * @param  {String} className The name of the AV class backing this model.
+   * @param  {String|Function} class the className or a subclass of AV.Object.
    * @param {String} id The object id of this model.
    * @return {AV.Object} A new subclass instance of AV.Object.
    */
-  AV.Object.createWithoutData = function(className, id, hasData) {
-    var result = new AV.Object(className);
-    result.id = id;
-    result._hasData = hasData;
-    return result;
+  AV.Object.createWithoutData = (klass, id, hasData) => {
+    let _klass;
+    if (_.isString(klass)) {
+      _klass = AV.Object._getSubclass(klass);
+    } else if (klass.prototype && klass.prototype instanceof AV.Object) {
+      _klass = klass;
+    } else {
+      throw new Error('class must be a string or a subclass of AV.Object.');
+    }
+    const object = new _klass();
+    object.id = id;
+    object._hasData = hasData;
+    return object;
   };
   /**
    * Delete objects in batch.
