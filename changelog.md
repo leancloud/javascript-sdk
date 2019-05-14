@@ -1,3 +1,10 @@
+## 3.13.2 (2019-05-14)
+
+### Bug fixes
+
+- 修复了 `AV.Object.createWithoutData` 方法返回对象类型始终是 `AV.Object` 的问题。
+- 修复了多处 TypeScript 定义问题。
+
 ## 3.13.1 (2019-05-08)
 
 ### Bug fixes
