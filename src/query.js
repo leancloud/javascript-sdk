@@ -183,12 +183,13 @@ module.exports = function(AV) {
        * @return {Promise.<AV.Object>}
        */
       get: function(objectId, options) {
-        if (!objectId) {
-          var errorObject = new AVError(
-            AVError.OBJECT_NOT_FOUND,
-            'Object not found.'
+        if (!_.isString(objectId)) {
+          throw new Error('objectId must be a string');
+        }
+        if (objectId === '') {
+          return Promise.reject(
+            new AVError(AVError.OBJECT_NOT_FOUND, 'Object not found.')
           );
-          throw errorObject;
         }
 
         var obj = this._newObject();
