@@ -228,7 +228,7 @@ module.exports = function(AV) {
        * @return {Date}
        */
       getCreatedAt: function() {
-        return this.createdAt || this.get('createdAt');
+        return this.createdAt;
       },
 
       /**
@@ -236,7 +236,7 @@ module.exports = function(AV) {
        * @return {Date}
        */
       getUpdatedAt: function() {
-        return this.updatedAt || this.get('updatedAt');
+        return this.updatedAt;
       },
 
       /**
