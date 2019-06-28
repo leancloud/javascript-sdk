@@ -1146,6 +1146,7 @@ interface ServerURLs {
   engine?: string;
   stats?: string;
   push?: string;
+  rtm?: string;
 }
 
 export function init(options: {

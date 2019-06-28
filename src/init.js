@@ -8,6 +8,7 @@ const fillServerURLs = url => ({
   stats: url,
   engine: url,
   api: url,
+  rtm: url,
 });
 
 function getDefaultServerURLs(appId) {
@@ -30,6 +31,7 @@ function getDefaultServerURLs(appId) {
     stats: `https://${id}.stats.${domain}`,
     engine: `https://${id}.engine.${domain}`,
     api: `https://${id}.api.${domain}`,
+    rtm: `https://${id}.rtm.${domain}`,
   };
 }
 
@@ -38,10 +40,11 @@ let _disableAppRouter = false;
 /**
  * URLs for services
  * @typedef {Object} ServerURLs
- * @property {String} [api] serverURL for api service
+ * @property {String} [api] serverURL for API service
  * @property {String} [engine] serverURL for engine service
  * @property {String} [stats] serverURL for stats service
  * @property {String} [push] serverURL for push service
+ * @property {String} [rtm] serverURL for LiveQuery service
  */
 
 /**
@@ -102,9 +105,14 @@ AV.init = function init(options, ...params) {
   if (realtime) {
     AV._config.realtime = realtime;
   } else if (AV._sharedConfig.liveQueryRealtime) {
+    const { api, rtm } = AV._config.serverURLs;
     AV._config.realtime = new AV._sharedConfig.liveQueryRealtime({
       appId,
       appKey,
+      server: {
+        api,
+        RTMRouter: rtm,
+      },
     });
   }
 };
