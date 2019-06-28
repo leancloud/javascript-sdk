@@ -109,12 +109,23 @@ describe('Objects', function() {
       });
     });
 
-    it('toJSON and parse', () => {
+    it('toJSON and parseJSON', () => {
       const json = gameScore.toJSON();
       json.objectId.should.eql(gameScore.id);
       json.id.should.eql(gameScore.get('id'));
       json.score.should.eql(gameScore.get('score'));
       const parsedGameScore = new GameScore(json, { parse: true });
+      parsedGameScore.id.should.eql(gameScore.id);
+      parsedGameScore.get('id').should.eql(gameScore.get('id'));
+      parsedGameScore.get('score').should.eql(gameScore.get('score'));
+    });
+
+    it('stringify and parse', () => {
+      const text = AV.stringify(gameScore);
+      console.log(text);
+      const parsedGameScore = AV.parse(text);
+      console.log(parsedGameScore);
+      parsedGameScore.should.be.instanceof(GameScore);
       parsedGameScore.id.should.eql(gameScore.id);
       parsedGameScore.get('id').should.eql(gameScore.get('id'));
       parsedGameScore.get('score').should.eql(gameScore.get('score'));

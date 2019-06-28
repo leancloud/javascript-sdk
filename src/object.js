@@ -250,7 +250,7 @@ module.exports = function(AV) {
       /**
        * Returns a JSON version of the object with meta data.
        * Inverse to {@link AV.parseJSON}
-       * @since 2.0.0
+       * @since 3.0.0
        * @return {Object}
        */
       toFullJSON(seenObjects = []) {

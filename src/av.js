@@ -250,12 +250,28 @@ AV._decode = function(value, key) {
 
 /**
  * The inverse function of {@link AV.Object#toFullJSON}.
- * @since 2.0.0
+ * @since 3.0.0
  * @method
  * @param {Object}
  * return {AV.Object|AV.File|any}
  */
 AV.parseJSON = AV._decode;
+
+/**
+ * Similar to JSON.parse, except that AV internal types will be used if possible.
+ * Inverse to {@link AV.stringify}
+ * @since 3.14.0
+ * @param {string} text the string to parse.
+ * @return {AV.Object|AV.File|any}
+ */
+AV.parse = text => AV.parseJSON(JSON.parse(text));
+/**
+ * Serialize a target containing AV.Object, similar to JSON.stringify.
+ * Inverse to {@link AV.parse}
+ * @since 3.14.0
+ * @return {string}
+ */
+AV.stringify = target => JSON.stringify(AV._encode(target, [], false, true));
 
 AV._encodeObjectOrArray = function(value) {
   var encodeAVObject = function(object) {
