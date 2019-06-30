@@ -350,6 +350,17 @@ export class Object extends BaseObject {
   unset(attr: string, options?: Object.SetOptions): this;
   validate(attrs: any): any;
   toFullJSON(): any;
+  ignoreHook(
+    hookName:
+      | 'beforeSave'
+      | 'afterSave'
+      | 'beforeUpdate'
+      | 'afterUpdate'
+      | 'beforeDelete'
+      | 'afterDelete'
+  ): void;
+  disableBeforeHook(): void;
+  disableAfterHook(): void;
 }
 
 export namespace Object {
