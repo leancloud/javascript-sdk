@@ -1,5 +1,6 @@
 const _ = require('underscore');
 const uuid = require('uuid/v4');
+const debug = require('debug');
 const userAgent = require('./ua');
 const { inherits, parseDate } = require('./utils');
 const Promise = require('./promise');
@@ -355,6 +356,20 @@ AV._objectEach = AV._each = function(obj, callback) {
   } else {
     _.each(obj, callback);
   }
+};
+
+/**
+ * @namespace
+ */
+AV.debug = {
+  /**
+   * Enable debug
+   */
+  enable: (namespaces = 'leancloud*') => debug.enable(namespaces),
+  /**
+   * Disable debug
+   */
+  disable: debug.disable,
 };
 
 module.exports = AV;

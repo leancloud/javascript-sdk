@@ -1173,3 +1173,9 @@ export function request(options: {
   service?: string;
   version?: string;
 }): Promise<any>;
+
+export namespace debug {
+  function enable(): void;
+  function enable(namespaces: string): void;
+  function disable(): string;
+}
