@@ -1,3 +1,26 @@
+# 3.14.0 (2019-06-30)
+
+### Features
+
+- 增加了一组序列化与反序列化方法 `AV.parse` 与 `AV.stringify`。
+- 排行榜增加了 `AV.Leaderboard#count` 方法用于获取参与排行的用户总数。
+- 增加了手动启用、停用调试模式的开关：
+
+  ```js
+  AV.debug.enable();
+  AV.debug.disable();
+  ```
+
+  原有在浏览器中使用 localStorage，在 Node.js 中使用环境变量启用调试模式的方式仍然可用。
+
+- 扩展了初始化时的 serverURLs 参数，现在允许指定 LiveQuery 服务的 server。
+
+### Bug fixes
+
+- 修正了 LiveQuery 的默认 server。
+- `AV.Query#get` 方法传入 falsy objectId 时现在有了更准确与一致的异常信息。
+- 修复了多处 TypeScript 定义问题。
+
 ## 3.13.2 (2019-05-14)
 
 ### Bug fixes
