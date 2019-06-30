@@ -441,6 +441,8 @@ declare class BaseQuery<T extends Queriable> extends BaseObject {
   ascending(key: string[]): this;
   include(...keys: string[]): this;
   include(keys: string[]): this;
+  select(...keys: string[]): this;
+  select(keys: string[]): this;
   limit(n: number): this;
   skip(n: number): this;
 
@@ -547,8 +549,6 @@ export class Query<T extends Queriable> extends BaseQuery<T> {
   near(key: string, point: GeoPoint): this;
   notContainedIn(key: string, values: any[]): this;
   notEqualTo(key: string, value: any): this;
-  select(...keys: string[]): this;
-  select(keys: string[]): this;
   startsWith(key: string, prefix: string): this;
   withinGeoBox(key: string, southwest: GeoPoint, northeast: GeoPoint): this;
   withinKilometers(key: string, point: GeoPoint, maxDistance: number): this;
