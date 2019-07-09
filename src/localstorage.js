@@ -1,4 +1,3 @@
-var _ = require('underscore');
 var Promise = require('./promise');
 var localStorage = require('./utils/localstorage');
 
@@ -6,7 +5,7 @@ var syncApiNames = ['getItem', 'setItem', 'removeItem', 'clear'];
 
 if (!localStorage.async) {
   // wrap sync apis with async ones.
-  _(syncApiNames).each(function(apiName) {
+  syncApiNames.forEach(function(apiName) {
     if (typeof localStorage[apiName] === 'function') {
       localStorage[apiName + 'Async'] = function() {
         return Promise.resolve(
@@ -16,7 +15,7 @@ if (!localStorage.async) {
     }
   });
 } else {
-  _(syncApiNames).each(function(apiName) {
+  syncApiNames.forEach(function(apiName) {
     if (typeof localStorage[apiName] !== 'function') {
       localStorage[apiName] = function() {
         const error = new Error(

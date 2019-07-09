@@ -1,5 +1,3 @@
-var _ = require('underscore');
-
 // interface Storage {
 //   readonly attribute boolean async;
 //   string getItem(string key);
@@ -28,7 +26,7 @@ try {
 }
 
 // in browser, `localStorage.async = false` will excute `localStorage.setItem('async', false)`
-_(apiNames).each(function(apiName) {
+apiNames.forEach(function(apiName) {
   Storage[apiName] = function() {
     return localStorage[apiName].apply(localStorage, arguments);
   };
