@@ -1180,7 +1180,7 @@ export function setProduction(production: boolean): void;
 export function setRequestTimeout(ms: number): void;
 export function parseJSON(json: any): Object | File | any;
 export function parse(text: string): Object | File | any;
-export function stringify(target: Object | File | any): string;
+export function stringify(target: Object | File | any): string | undefined;
 export function request(options: {
   method: string;
   path: string;
