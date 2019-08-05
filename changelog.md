@@ -1,3 +1,14 @@
+# 3.15.0 (2019-08-05)
+
+### Features
+
+- 排行榜在获取排名结果时可以通过 `includeUserKeys` 选项同时返回 Pointer 类型的用户属性。
+
+### Bug fixes
+
+- 修复了一处导致在 Taro 中引入 SDK 抛异常的问题
+- 修复了多处 TypeScript 定义问题。
+
 ## 3.14.1 (2019-07-04)
 
 ### Bug fixes
