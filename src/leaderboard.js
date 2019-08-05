@@ -279,7 +279,14 @@ _.extend(
       }).then(({ count }) => count);
     },
     _getResults(
-      { skip, limit, selectUserKeys, includeStatistics, version },
+      {
+        skip,
+        limit,
+        selectUserKeys,
+        includeUserKeys,
+        includeStatistics,
+        version,
+      },
       authOptions,
       userId
     ) {
@@ -291,8 +298,13 @@ _.extend(
         query: {
           skip,
           limit,
-          includeUser: selectUserKeys
-            ? ensureArray(selectUserKeys).join(',')
+          selectUserKeys:
+            _.union(
+              ensureArray(selectUserKeys),
+              ensureArray(includeUserKeys)
+            ).join(',') || undefined,
+          includeUser: includeUserKeys
+            ? ensureArray(includeUserKeys).join(',')
             : undefined,
           includeStatistics: includeStatistics
             ? ensureArray(includeStatistics).join(',')
@@ -322,18 +334,33 @@ _.extend(
      * @param {Object} [options]
      * @param {number} [options.skip] The number of results to skip. This is useful for pagination.
      * @param {number} [options.limit] The limit of the number of results.
-     * @param {string[]} [options.selectUserKeys] Specify keys of the users to include
+     * @param {string[]} [options.selectUserKeys] Specify keys of the users to include in the Rankings
+     * @param {string[]} [options.includeUserKeys] If the value of a selected user keys is a Pointer, use this options to include its value.
      * @param {string[]} [options.includeStatistics] Specify other statistics to include in the Rankings
      * @param {number} [options.version] Specify the version of the leaderboard
      * @param {AuthOptions} [authOptions]
      * @return {Promise<Ranking[]>}
      */
     getResults(
-      { skip, limit, selectUserKeys, includeStatistics, version } = {},
+      {
+        skip,
+        limit,
+        selectUserKeys,
+        includeUserKeys,
+        includeStatistics,
+        version,
+      } = {},
       authOptions
     ) {
       return this._getResults(
-        { skip, limit, selectUserKeys, includeStatistics, version },
+        {
+          skip,
+          limit,
+          selectUserKeys,
+          includeUserKeys,
+          includeStatistics,
+          version,
+        },
         authOptions
       );
     },
@@ -342,7 +369,8 @@ _.extend(
      * @param {AV.User} user The specified AV.User pointer.
      * @param {Object} [options]
      * @param {number} [options.limit] The limit of the number of results.
-     * @param {string[]} [options.selectUserKeys] Specify keys of the users to include
+     * @param {string[]} [options.selectUserKeys] Specify keys of the users to include in the Rankings
+     * @param {string[]} [options.includeUserKeys] If the value of a selected user keys is a Pointer, use this options to include its value.
      * @param {string[]} [options.includeStatistics] Specify other statistics to include in the Rankings
      * @param {number} [options.version] Specify the version of the leaderboard
      * @param {AuthOptions} [authOptions]
@@ -353,9 +381,15 @@ _.extend(
       if (user && typeof user.id !== 'string') {
         return this.getResultsAroundUser(undefined, user, options);
       }
-      const { limit, selectUserKeys, includeStatistics, version } = options;
+      const {
+        limit,
+        selectUserKeys,
+        includeUserKeys,
+        includeStatistics,
+        version,
+      } = options;
       return this._getResults(
-        { limit, selectUserKeys, includeStatistics, version },
+        { limit, selectUserKeys, includeUserKeys, includeStatistics, version },
         authOptions,
         user ? user.id : 'self'
       );

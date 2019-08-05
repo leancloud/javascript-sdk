@@ -953,6 +953,7 @@ export class Leaderboard {
       skip?: number;
       limit?: number;
       selectUserKeys?: string | string[];
+      includeUserKeys?: string | string[];
       includeStatistics?: string | string[];
       version?: number;
     },
@@ -963,6 +964,7 @@ export class Leaderboard {
     options?: {
       limit?: number;
       selectUserKeys?: string | string[];
+      includeUserKeys?: string | string[];
       includeStatistics?: string | string[];
       version?: number;
     },
@@ -972,6 +974,7 @@ export class Leaderboard {
     options?: {
       limit?: number;
       selectUserKeys?: string | string[];
+      includeUserKeys?: string | string[];
       includeStatistics?: string | string[];
       version?: number;
     },

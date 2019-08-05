@@ -1,9 +1,11 @@
 const statisticName = `score_${Date.now()}`;
 const statisticName2 = `score_${Date.now()}_2`;
 
+const Company = AV.Object.extend('Company');
+
 describe('Leaderboard', () => {
-  before(function setUpLeaderboard() {
-    return Promise.all([
+  before(async function setUpLeaderboard() {
+    const [leaderboard, leaderboard2] = await Promise.all([
       AV.Leaderboard.createLeaderboard(
         {
           statisticName,
@@ -26,10 +28,9 @@ describe('Leaderboard', () => {
           useMasterKey: true,
         }
       ),
-    ]).then(([leaderboard, leaderboard2]) => {
-      this.leaderboard = leaderboard;
-      this.leaderboard2 = leaderboard2;
-    });
+    ]);
+    this.leaderboard = leaderboard;
+    this.leaderboard2 = leaderboard2;
   });
 
   function validateLeaderboard(leaderboard) {
@@ -90,31 +91,29 @@ describe('Leaderboard', () => {
     let users;
     let currentUser;
     let stats;
-    before(() =>
-      Promise.all(
+    before(async () => {
+      const company = await new Company({ name: 'LeanCloud' }).save();
+      users = await Promise.all(
         ['0', '1', '2', '3'].map(value =>
-          AV.User.signUp(Date.now() + value, Date.now() + value)
+          new AV.User({ company })
+            .setUsername(Date.now() + value)
+            .setPassword(Date.now() + value)
+            .signUp()
         )
-      )
-        .then(result => {
-          users = result;
-          currentUser = users[2];
-          return Promise.all(
-            users.map((user, index) =>
-              AV.Leaderboard.updateStatistics(
-                user,
-                { [statisticName]: index, [statisticName2]: -index },
-                {
-                  user,
-                }
-              )
-            )
-          );
-        })
-        .then(result => {
-          stats = result[2];
-        })
-    );
+      );
+      currentUser = users[2];
+      stats = (await Promise.all(
+        users.map((user, index) =>
+          AV.Leaderboard.updateStatistics(
+            user,
+            { [statisticName]: index, [statisticName2]: -index },
+            {
+              user,
+            }
+          )
+        )
+      ))[2];
+    });
 
     after(() =>
       Promise.all(users.map(user => user.destroy({ useMasterKey: true })))
@@ -152,6 +151,7 @@ describe('Leaderboard', () => {
       return leaderboard
         .getResults({
           selectUserKeys: ['username'],
+          includeUserKeys: 'company',
           includeStatistics: [statisticName2],
         })
         .then(rankings => {
@@ -162,6 +162,9 @@ describe('Leaderboard', () => {
           rankings[2].user
             .get('username')
             .should.be.eql(currentUser.get('username'));
+          const company = rankings[2].user.get('company');
+          company.should.be.instanceof(Company);
+          company.get('name').should.be.eql('LeanCloud');
           rankings[2].includedStatistics.should.be.an.Array();
           rankings[2].includedStatistics[0].name.should.be.eql(statisticName2);
         });
