@@ -644,7 +644,7 @@ interface UnionOptions {
 interface UnionLoginOptions extends OAuthLoginOptions, UnionOptions {}
 
 interface WeappOptions extends UnionOptions {
-  preferUnion: boolean;
+  preferUnionId: boolean;
 }
 
 interface WeappLoginOptions extends OAuthLoginOptions, WeappOptions {}
