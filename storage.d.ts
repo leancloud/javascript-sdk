@@ -209,7 +209,14 @@ export class GeoPoint extends BaseObject {
   latitude: number;
   longitude: number;
 
-  constructor(arg1?: any, arg2?: any);
+  constructor(other: GeoPoint);
+  // -90.0 <= latitude <= 90.0, and -180.0 <= longitude <= 180.0,
+  // but TypeScript does not support refinement types yet (Microsoft/TypeScript#7599),
+  // so we just specify number here.
+  constructor(lat: number, lon: number);
+  constructor(latLon: [number, number]);
+  constructor(latLonObj: { latitude: number; longitude: number });
+  constructor();
 
   static current(options?: AuthOptions): Promise<GeoPoint>;
   radiansTo(point: GeoPoint): number;
