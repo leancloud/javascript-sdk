@@ -87,7 +87,7 @@ AV.init = function init(options, ...params) {
   AV._config.masterKey = masterKey;
   if (!process.env.CLIENT_PLATFORM)
     AV._config.hookKey = hookKey || process.env.LEANCLOUD_APP_HOOK_KEY;
-  if (typeof production !== 'undefined') AV._config.production = production;
+  AV.setProduction(production);
   if (typeof disableCurrentUser !== 'undefined')
     AV._config.disableCurrentUser = disableCurrentUser;
   AV._appRouter = new AppRouter(AV);
