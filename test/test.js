@@ -17,5 +17,6 @@ AV.init({
   appKey: process.env.APPKEY || 'gNAE1iHowdQvV7cqpfCMGaGN',
   masterKey: process.env.MASTERKEY || 'ue9M9nqwD4MQNXD3oiN5rAOv',
   hookKey: process.env.HOOKKEY || '2iCbUZDgEF0siKxmCn2kVQXV',
+  serverURLs: process.env.SERVER_URL,
 });
 AV.setProduction(true);
