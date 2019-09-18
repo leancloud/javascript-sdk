@@ -1,5 +1,7 @@
 'use strict';
 
+import { setupPolly } from './polly';
+
 var GameScore = AV.Object.extend('GameScore');
 
 var Post = AV.Object.extend('Post');
@@ -10,6 +12,8 @@ class UglifiedClass extends AV.Object {}
 var BackbonePerson = AV.Object.extend('Person');
 
 describe('Objects', function() {
+  setupPolly();
+
   var objId;
   var gameScore = GameScore.new();
   after(function() {
@@ -298,6 +302,7 @@ describe('Objects', function() {
       });
     });
 
+    // TODO: rewrite this to use deterministic data, and clean up saved data.
     it('should create a User', function() {
       var User = AV.Object.extend('User');
       var u = new User();

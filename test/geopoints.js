@@ -1,14 +1,13 @@
+import { setupPolly } from './polly';
+
 var Post = AV.Object.extend('Post');
 describe('Geopoints', () => {
-  before(function() {
-    // Make a new post
-    const user = AV.User.current();
+  setupPolly();
 
+  before(function() {
     const post = new Post();
     post.set('title', 'Post Geopoints');
     post.set('body', ' Geopoints content.');
-    post.set('user', user);
-
     this.post = post;
   });
 

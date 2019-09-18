@@ -1,11 +1,15 @@
 'use strict';
 
+import { setupPolly } from './polly';
+
 var GameScore = AV.Object.extend('GameScore');
 var ES5Person = AV.Object.extend('Person');
 var TestClass = AV.Object.extend('TestClass');
 var query = new AV.Query(GameScore);
 
 describe('Queries', function() {
+  setupPolly();
+
   describe('#Basic Queries', function() {
     it('should return Class Array', function() {
       query = new AV.Query(GameScore);

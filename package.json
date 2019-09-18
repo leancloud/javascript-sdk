@@ -34,6 +34,9 @@
     "uuid": "^3.3.2"
   },
   "devDependencies": {
+    "@pollyjs/adapter-node-http": "^2.6.2",
+    "@pollyjs/core": "^2.6.2",
+    "@pollyjs/persister-fs": "^2.6.2",
     "babel-core": "^6.4.0",
     "babel-loader": "^7.0.0",
     "babel-plugin-istanbul": "^2.0.0",

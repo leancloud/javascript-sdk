@@ -1,6 +1,10 @@
 'use strict';
 
+import { setupPolly } from './polly';
+
 describe('AV.Cloud', function() {
+  setupPolly();
+
   var originalServerURLs, originalAppId, originalAppKey, originalUseMasterKey;
 
   before(function() {
