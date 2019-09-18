@@ -11,20 +11,8 @@ const pollyOpt = {
   recordFailedRequests: true,
   matchRequestsBy: {
     headers: {
-      exclude: ['x-lc-sign'],
+      exclude: ['x-lc-sign', 'accept-encoding', 'user-agent', 'content-type'],
     },
-    // headers => {
-    //   delete headers['x-lc-sign'];
-    //   //console.log(headers);
-    //   return headers;
-    // },
-    // body: body => {
-    //   console.log(body);
-    //   return body;
-    // },
-    // {
-    //   exclude: ['x-lc-sign', 'x-lc-session'],
-    // },
   },
 };
 
