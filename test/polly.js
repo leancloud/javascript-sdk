@@ -10,9 +10,7 @@ const pollyOpt = {
   persister: 'fs',
   recordFailedRequests: true,
   matchRequestsBy: {
-    headers: {
-      exclude: ['x-lc-sign', 'accept-encoding', 'user-agent', 'content-type'],
-    },
+    headers: false,
   },
 };
 
