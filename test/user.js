@@ -1,9 +1,31 @@
 'use strict';
 
-var username = 'u' + Date.now();
-var email = 'u' + Date.now() + '@test.com';
+import { forceDeleteUser } from './util';
+import { setupPolly } from './polly';
+
+var username = 'tester1';
+var email = 'tester1@example.com';
 var password = 'password1';
+
+const createTestUser = async () => {
+  await forceDeleteUser(username);
+  var user = new AV.User();
+  user.set('username', username);
+  user.set('password', password);
+  user.set('email', email);
+  user.set('gender', 'female');
+  user.set('phone', '415-392-0202');
+
+  await user.signUp();
+};
+
 describe('User', function() {
+  setupPolly();
+
+  beforeEach(async () => {
+    await forceDeleteUser(username);
+  });
+
   describe('User.signUp', function() {
     it('should sign up', function() {
       var user = new AV.User();
@@ -11,7 +33,6 @@ describe('User', function() {
       user.set('password', password);
       user.set('email', email);
       user.set('gender', 'female');
-      // other fields can be set just like with Parse.Object
       user.set('phone', '415-392-0202');
 
       return user.signUp().then(function(user) {
@@ -35,6 +56,7 @@ describe('User', function() {
   });
 
   describe('User.logIn and User.become', function() {
+    beforeEach(createTestUser);
     it('should login', function() {
       return AV.User.logIn(username, password)
         .then(function(user) {
@@ -71,6 +93,10 @@ describe('User', function() {
   });
 
   describe('authenticated', () => {
+    beforeEach(async () => {
+      await createTestUser();
+      await AV.User.logIn(username, password);
+    });
     it('authenticated()', () => {
       AV.User.current()
         .authenticated()
@@ -93,44 +119,49 @@ describe('User', function() {
     });
   });
 
-  describe('fetch User', function() {
-    it('should resolve promise', function() {
-      var currentUser = AV.User.current();
-      return currentUser.fetch().then(function(user) {
-        expect(user).to.be.ok();
-      });
-    });
-  });
+  describe('existing user', () => {
+    beforeEach(createTestUser);
 
-  describe('User update', function() {
-    it('shoud update name', function() {
-      return AV.User.logIn(username, password).then(function(user) {
-        user.set('username', username); // attempt to change username
-        return user.save();
-      });
-    });
-  });
-
-  describe('Update user password', function() {
-    it('should update password', function() {
-      return AV.User.logIn(username, password)
-        .then(function(user) {
-          return user.updatePassword(password, 'new pass');
-        })
-        .then(function() {
-          return AV.User.logIn(username, 'new pass');
-        })
-        .then(function(user) {
-          return user.updatePassword('new pass', password);
+    describe('fetch User', function() {
+      it('should resolve promise', async function() {
+        await AV.User.logIn(username, password);
+        var currentUser = AV.User.current();
+        return currentUser.fetch().then(function(user) {
+          expect(user).to.be.ok();
         });
+      });
     });
-  });
 
-  describe('User query', function() {
-    it('should return conditoinal users', function() {
-      var query = new AV.Query(AV.User);
-      query.equalTo('gender', 'female'); // find all the women
-      return query.find({ useMasterKey: true });
+    describe('User update', function() {
+      it('shoud update name', function() {
+        return AV.User.logIn(username, password).then(function(user) {
+          user.set('username', username); // attempt to change username
+          return user.save();
+        });
+      });
+    });
+
+    describe('Update user password', function() {
+      it('should update password', function() {
+        return AV.User.logIn(username, password)
+          .then(function(user) {
+            return user.updatePassword(password, 'new pass');
+          })
+          .then(function() {
+            return AV.User.logIn(username, 'new pass');
+          })
+          .then(function(user) {
+            return user.updatePassword('new pass', password);
+          });
+      });
+    });
+
+    describe('User query', function() {
+      it('should return conditoinal users', function() {
+        var query = new AV.Query(AV.User);
+        query.equalTo('gender', 'female'); // find all the women
+        return query.find({ useMasterKey: true });
+      });
     });
   });
 
@@ -188,6 +219,19 @@ describe('User', function() {
   });
 
   describe('User loginAnonymously', function() {
+    const name = 'justsomeuniquename';
+    let originalGenId = AV.User._genId;
+    beforeEach(() => {
+      let value = 0;
+      originalGenId = AV.User._genId;
+      AV.User._genId = () => '1b671a64-40d5-491e-99b0-da01ff1f3341';
+    });
+
+    afterEach(async () => {
+      AV.User._genId = originalGenId;
+      await forceDeleteUser(name);
+    });
+
     it('create an anonymous user, and then associateWithAuthData', function() {
       return AV.User.loginAnonymously()
         .then(function(user) {
@@ -195,7 +239,7 @@ describe('User', function() {
           expect(user.isAnonymous()).to.be.ok();
           return user.associateWithAuthData(
             {
-              uid: Date.now().toString(36),
+              uid: 'justsomerandomstring',
               access_token: 'access_token',
             },
             'github'
@@ -204,14 +248,14 @@ describe('User', function() {
         .then(user => {
           expect(user.isAnonymous()).to.be.equal(false);
           expect(user.dirty()).to.be.equal(false);
+          return user.destroy();
         });
     });
-    it('create an anonymous user, and then signup', function() {
+    it('create an anonymous user, and then signup', async function() {
       return AV.User.loginAnonymously()
         .then(function(user) {
           expect(user.id).to.be.ok();
           expect(user.isAnonymous()).to.be.ok();
-          const name = Date.now().toString(36);
           user.setUsername(name).setPassword(name);
           return user.signUp();
         })
@@ -223,10 +267,19 @@ describe('User', function() {
   });
 
   describe('authData and unionId', () => {
-    const now = Date.now();
+    const now = 1568871659834;
     const username = now.toString(36);
-    it('failOnNotExist', () =>
-      AV.User.signUpOrlogInWithAuthData(
+
+    beforeEach(async () => {
+      await forceDeleteUser(username);
+    });
+
+    afterEach(async () => {
+      await forceDeleteUser(username);
+    });
+
+    it('failOnNotExist', async () => {
+      return AV.User.signUpOrlogInWithAuthData(
         {
           uid: 'openid1' + now,
           access_token: 'access_token',
@@ -236,7 +289,9 @@ describe('User', function() {
         {
           failOnNotExist: true,
         }
-      ).should.be.rejectedWith(/Could not find user/));
+      ).should.be.rejectedWith(/Could not find user/);
+    });
+
     it('should login as the same user', () => {
       return new AV.User()
         .setUsername(username)
@@ -271,7 +326,7 @@ describe('User', function() {
 
   describe('associate with authData', function() {
     it('logIn an user, and associate with authData', function() {
-      var username = Date.now().toString(36);
+      var username = 'usesomedeterministicstringplz';
 
       return AV.User.signUpOrlogInWithAuthData(
         {
@@ -319,19 +374,19 @@ describe('User', function() {
 
   describe('currentUser disabled', function() {
     var user, originalUser;
+    var username = 'imauser';
+    var email = 'imauser@test.com';
+    var password = 'password1';
 
-    before(function() {
+    beforeEach(async function() {
       originalUser = AV.User._currentUser;
       AV.User._currentUser = null;
       AV._config.disableCurrentUser = true;
       AV._useMasterKey = false;
+      await forceDeleteUser(username);
     });
 
-    var username = 'u' + Date.now();
-    var email = 'u' + Date.now() + '@test.com';
-    var password = 'password1';
-
-    it('User#signUp', function() {
+    it('User', async function() {
       user = new AV.User();
 
       user.set('username', username);
@@ -343,46 +398,31 @@ describe('User', function() {
         expect(AV.User._currentUser).to.be.equal(null);
         expect(user._sessionToken).to.be.ok();
       });
-    });
 
-    it('User#getSessionToken', function() {
       expect(user.getSessionToken()).to.be.ok();
-    });
 
-    it('User.current', function() {
       expect(AV.User.current()).to.be.equal(null);
-    });
 
-    it('User.currentAsync', function() {
-      AV.User.currentAsync().then(function(user) {
-        expect(user).to.be.equal(null);
-      });
-    });
+      const currentUser = await AV.User.currentAsync();
+      expect(currentUser).to.be.equal(null);
 
-    it('User#save without token', function() {
-      return user
+      await user
         .save({ username: username + 'changed' })
         .should.be.rejectedWith({
           code: 206,
         });
+
+      await user.save(
+        {
+          username: username + 'changed',
+        },
+        { sessionToken: user.getSessionToken() }
+      );
+      const fetchedUser = await user.fetch();
+      expect(fetchedUser.get('username')).to.be.equal(username + 'changed');
     });
 
-    it('User#save with token', function() {
-      return user
-        .save(
-          {
-            username: username + 'changed',
-          },
-          { sessionToken: user.getSessionToken() }
-        )
-        .then(function() {
-          return user.fetch().then(function() {
-            expect(user.get('username')).to.be.equal(username + 'changed');
-          });
-        });
-    });
-
-    after(function() {
+    afterEach(function() {
       AV._config.disableCurrentUser = false;
       AV._useMasterKey = true;
       AV.User._currentUser = originalUser;

@@ -1156,6 +1156,13 @@ module.exports = function(AV) {
       },
 
       /**
+       * Only use for DI in tests to produce deterministic IDs.
+       */
+      _genId() {
+        return uuid();
+      },
+
+      /**
        * Creates an anonymous user.
        *
        * @since 3.9.0
@@ -1164,7 +1171,7 @@ module.exports = function(AV) {
       loginAnonymously() {
         return this.loginWithAuthData(
           {
-            id: uuid(),
+            id: AV.User._genId(),
           },
           'anonymous'
         );
