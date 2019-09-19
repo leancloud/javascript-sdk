@@ -1,5 +1,6 @@
 'use strict';
 
+import { forceDeleteUser } from './util';
 import { setupPolly } from './polly';
 
 var GameScore = AV.Object.extend('GameScore');
@@ -303,14 +304,16 @@ describe('Objects', function() {
     });
 
     // TODO: rewrite this to use deterministic data, and clean up saved data.
-    it('should create a User', function() {
+    it('should create a User', async function() {
       var User = AV.Object.extend('User');
       var u = new User();
       var r = Math.random();
-      u.set('username', 'u' + r);
+      u.set('username', 'unique_name');
       u.set('password', '11111111');
-      u.set('email', 'u' + r + '@test.com');
-      return u.save();
+      u.set('email', 'uique_name@test.com');
+      await forceDeleteUser('unique_name');
+      await u.save();
+      await u.destroy({ useMasterKey: true });
     });
 
     it('should validate failed.', function() {
