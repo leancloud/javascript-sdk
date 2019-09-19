@@ -12,6 +12,7 @@
     "lint": "tsc storage.d.ts --strict",
     "test": "npm run lint && npm run test:node",
     "test:node": "cross-env NODE_ENV=test nyc --reporter lcov --reporter text mocha --timeout 300000 test/index.js",
+    "test:real": "cross-env NODE_ENV=test REAL_BACKEND=1 nyc --reporter lcov --reporter text mocha --timeout 300000 test/index.js",
     "docs": "jsdoc src README.md package.json -d docs -c .jsdocrc.json",
     "build:node": "gulp babel-node",
     "build:browser": "cross-env CLIENT_PLATFORM=Browser webpack --config webpack/browser.js",

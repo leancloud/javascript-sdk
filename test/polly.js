@@ -24,16 +24,26 @@ const pollyOpt = {
   },
 };
 
+const pollyEnabled = () => {
+  return (
+    typeof process !== 'undefined' &&
+    process &&
+    process.env &&
+    process.env.REAL_BACKEND === undefined &&
+    process.env.NODE_ENV !== undefined
+  );
+};
+
 export const setupPolly = () => {
-  setupMocha(pollyOpt);
+  return pollyEnabled() && setupMocha(pollyOpt);
 };
 
 const beforeEach = () => {
-  setupMocha.beforeEach(pollyOpt);
+  return pollyEnabled() && setupMocha.beforeEach(pollyOpt);
 };
 
 const afterEach = () => {
-  setupMocha.afterEach();
+  return pollyEnabled() && setupMocha.afterEach();
 };
 
 export default { beforeEach, afterEach };
