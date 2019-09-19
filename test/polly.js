@@ -11,6 +11,16 @@ const pollyOpt = {
   recordFailedRequests: true,
   matchRequestsBy: {
     headers: false,
+    url: {
+      protocol: false,
+      username: false,
+      password: false,
+      hostname: false,
+      port: false,
+      pathname: true,
+      query: true,
+      hash: false,
+    },
   },
 };
 
