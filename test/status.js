@@ -1,16 +1,25 @@
 'use strict';
 
+import polly from './polly';
+import { forceDeleteUser } from './util';
+
 describe('AV.Status', function() {
   var targetUser =
     process.env.STATUS_TARGET_USER_ID || '5627906060b22ef9c464cc99';
-  before(function() {
-    var userName = (this.userName = 'StatusTest' + Date.now());
-    return AV.User.signUp(userName, userName).then(user => {
-      this.user = user;
-    });
+  const userName = 'StatusTest';
+  let testUser;
+
+  polly.beforeEach();
+  beforeEach(async () => {
+    await forceDeleteUser(userName);
+    testUser = await AV.User.signUp(userName, userName);
   });
 
-  after(() => AV.User.logOut());
+  afterEach(async () => {
+    await AV.User.logOut();
+    await forceDeleteUser(userName);
+  });
+  polly.afterEach();
 
   describe('Send status.', function() {
     it('should send status to followers.', function() {
