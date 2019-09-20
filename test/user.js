@@ -248,7 +248,7 @@ describe('User', function() {
         .then(user => {
           expect(user.isAnonymous()).to.be.equal(false);
           expect(user.dirty()).to.be.equal(false);
-          return user.destroy();
+          return user.destroy({ useMasterKey: true });
         });
     });
     it('create an anonymous user, and then signup', async function() {
