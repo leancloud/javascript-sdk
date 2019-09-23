@@ -1,6 +1,10 @@
+import { setupPolly } from './polly';
+
 var IgnoreHookTest = AV.Object.extend('IgnoreHookTest');
 
 describe('hooks', function() {
+  setupPolly();
+
   it('Object#save (new object)', function() {
     var object = new IgnoreHookTest();
     object.set('title', 'test');

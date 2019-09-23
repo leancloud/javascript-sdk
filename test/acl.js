@@ -1,7 +1,11 @@
 'use strict';
 
+import { setupPolly } from './polly';
+
 var GameScore = AV.Object.extend('GameScore');
 describe('ObjectACL', function() {
+  setupPolly();
+
   it('set and fetch acl', function() {
     var gameScore = new GameScore();
     gameScore.set('score', 2);

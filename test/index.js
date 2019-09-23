@@ -1,20 +1,25 @@
 require('should');
 require('./test.js');
 require('./av.js');
-require('./cache');
-require('./file.js');
-require('./error.js');
-// require('./captcha.js');
-require('./object.js');
-require('./user.js');
-require('./query.js');
-require('./geopoints.js');
+
 require('./acl.js');
-require('./role.js');
-require('./status.js');
-require('./sms.js');
-require('./search.js');
+require('./cache');
 require('./cloud.js');
-require('./hooks.js');
 require('./conversation.js');
+require('./error.js');
+require('./geopoints.js');
+require('./hooks.js');
 require('./leaderboard.js');
+require('./object.js');
+require('./query.js');
+require('./role.js');
+require('./search.js');
+require('./sms.js');
+require('./status.js');
+require('./user.js');
+
+if (process.env.REAL_BACKEND !== undefined) {
+  require('./file.js');
+}
+
+// require('./captcha.js');

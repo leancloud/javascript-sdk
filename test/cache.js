@@ -14,11 +14,11 @@ describe('Cache async', function() {
       .then(getValue)
       .then(function(value) {
         expect(value).to.be(1);
-        return Cache.setAsync('__test', '1', 100).then(getValue);
+        return Cache.setAsync('__test', '1', 10).then(getValue);
       })
       .then(function(value) {
         expect(value).to.be('1');
-        return wait(110).then(getValue);
+        return wait(11).then(getValue);
       })
       .then(function(value) {
         expect(value).to.be(null);

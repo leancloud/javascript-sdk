@@ -4,15 +4,6 @@ node_js:
   - '10'
 
 sudo: false
-env:
-  global:
-    - S3=true
-    - APPID=QvNM6AG2khJtBQo6WRMWqfLV-gzGzoHsz
-    - APPKEY=be2YmUduiuEnCB2VR9bLRnnV
-    - MASTERKEY=1AqFJWElESSui6JKqHiKnLTY
-    - HOOKKEY=Y7RVPi20qOKQg4Lp8CyY35Lq
-    - STATUS_TARGET_USER_ID=57d7b3c28a51a2004eb9b31d
-    - FILE_ID=577258d732070000567dea7e
 install:
   - npm install -g codecov
   - npm install

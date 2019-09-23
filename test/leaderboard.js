@@ -1,37 +1,45 @@
-const statisticName = `score_${Date.now()}`;
-const statisticName2 = `score_${Date.now()}_2`;
+import polly from './polly';
+
+const statisticName = `score_board`;
+const statisticName2 = `score_board_2`;
 
 const Company = AV.Object.extend('Company');
 
 describe('Leaderboard', () => {
-  before(async function setUpLeaderboard() {
-    const [leaderboard, leaderboard2] = await Promise.all([
-      AV.Leaderboard.createLeaderboard(
-        {
-          statisticName,
-          updateStrategy: AV.LeaderboardUpdateStrategy.BETTER,
-          order: AV.LeaderboardOrder.ASCENDING,
-          versionChangeInterval: AV.LeaderboardVersionChangeInterval.WEEK,
-        },
-        {
-          useMasterKey: true,
-        }
-      ),
-      AV.Leaderboard.createLeaderboard(
-        {
-          statisticName: statisticName2,
-          updateStrategy: AV.LeaderboardUpdateStrategy.BETTER,
-          order: AV.LeaderboardOrder.ASCENDING,
-          versionChangeInterval: AV.LeaderboardVersionChangeInterval.NEVER,
-        },
-        {
-          useMasterKey: true,
-        }
-      ),
-    ]);
-    this.leaderboard = leaderboard;
-    this.leaderboard2 = leaderboard2;
+  polly.beforeEach();
+
+  let leaderboard, leaderboard2;
+  beforeEach(async () => {
+    leaderboard = await AV.Leaderboard.createLeaderboard(
+      {
+        statisticName,
+        updateStrategy: AV.LeaderboardUpdateStrategy.BETTER,
+        order: AV.LeaderboardOrder.ASCENDING,
+        versionChangeInterval: AV.LeaderboardVersionChangeInterval.WEEK,
+      },
+      {
+        useMasterKey: true,
+      }
+    );
+    leaderboard2 = await AV.Leaderboard.createLeaderboard(
+      {
+        statisticName: statisticName2,
+        updateStrategy: AV.LeaderboardUpdateStrategy.BETTER,
+        order: AV.LeaderboardOrder.ASCENDING,
+        versionChangeInterval: AV.LeaderboardVersionChangeInterval.NEVER,
+      },
+      {
+        useMasterKey: true,
+      }
+    );
   });
+
+  afterEach(async () => {
+    await leaderboard.destroy({ useMasterKey: true });
+    await leaderboard2.destroy({ useMasterKey: true });
+  });
+
+  polly.afterEach();
 
   function validateLeaderboard(leaderboard) {
     leaderboard.should.be.instanceof(AV.Leaderboard);
@@ -48,19 +56,19 @@ describe('Leaderboard', () => {
   }
 
   it('shoud have properties', function() {
-    validateLeaderboard(this.leaderboard);
+    validateLeaderboard(leaderboard);
   });
 
   it('query', () =>
     AV.Leaderboard.getLeaderboard(statisticName).then(validateLeaderboard));
 
   it('mutation by client should be rejected', function() {
-    return this.leaderboard
+    return leaderboard
       .updateVersionChangeInterval(AV.LeaderboardVersionChangeInterval.NEVER)
       .should.be.rejected();
   });
-  it('mutation with masterKey', function() {
-    return this.leaderboard
+  it('mutation 1 with masterKey', function() {
+    return leaderboard
       .updateVersionChangeInterval(AV.LeaderboardVersionChangeInterval.DAY, {
         useMasterKey: true,
       })
@@ -70,8 +78,8 @@ describe('Leaderboard', () => {
         );
       });
   });
-  it('mutation with masterKey', function() {
-    return this.leaderboard
+  it('mutation 2 with masterKey', function() {
+    return leaderboard
       .updateUpdateStrategy(AV.LeaderboardUpdateStrategy.LAST, {
         useMasterKey: true,
       })
@@ -82,7 +90,7 @@ describe('Leaderboard', () => {
       });
   });
   it('getArchives', function() {
-    return this.leaderboard.getArchives(undefined, {
+    return leaderboard.getArchives(undefined, {
       useMasterKey: true,
     });
   });
@@ -91,13 +99,13 @@ describe('Leaderboard', () => {
     let users;
     let currentUser;
     let stats;
-    before(async () => {
+    beforeEach(async () => {
       const company = await new Company({ name: 'LeanCloud' }).save();
       users = await Promise.all(
         ['0', '1', '2', '3'].map(value =>
           new AV.User({ company })
-            .setUsername(Date.now() + value)
-            .setPassword(Date.now() + value)
+            .setUsername('iamunique' + value)
+            .setPassword('mypasswd' + value)
             .signUp()
         )
       );
@@ -115,7 +123,7 @@ describe('Leaderboard', () => {
       ))[2];
     });
 
-    after(() =>
+    afterEach(() =>
       Promise.all(users.map(user => user.destroy({ useMasterKey: true })))
     );
 
@@ -143,11 +151,10 @@ describe('Leaderboard', () => {
       }));
 
     it('count', function() {
-      return this.leaderboard.count().then(count => count.should.be.eql(4));
+      return leaderboard.count().then(count => count.should.be.eql(4));
     });
 
     it('getResults', function() {
-      const leaderboard = this.leaderboard;
       return leaderboard
         .getResults({
           selectUserKeys: ['username'],
@@ -170,7 +177,6 @@ describe('Leaderboard', () => {
         });
     });
     it('include a non-exist statistic should throw', function() {
-      const leaderboard = this.leaderboard;
       return leaderboard
         .getResults({
           includeStatistics: ['fake'],
@@ -178,7 +184,6 @@ describe('Leaderboard', () => {
         .should.be.rejected();
     });
     it('get results around user', function() {
-      const leaderboard = this.leaderboard;
       return leaderboard
         .getResultsAroundUser({ limit: 3 }, { user: currentUser })
         .then(rankings => {
@@ -191,7 +196,6 @@ describe('Leaderboard', () => {
         });
     });
     it('get results around a specified user', function() {
-      const leaderboard = this.leaderboard;
       return leaderboard
         .getResultsAroundUser(users[1], { limit: 3 }, { user: currentUser })
         .then(rankings => {
@@ -204,19 +208,11 @@ describe('Leaderboard', () => {
         });
     });
     it('delete statistics', function() {
-      const leaderboard = this.leaderboard;
       return AV.Leaderboard.deleteStatistics(currentUser, statisticName, {
         user: currentUser,
       })
         .then(() => leaderboard.getResults())
         .then(rankings => rankings.should.be.length(3));
     });
-  });
-
-  after(function() {
-    return Promise.all([
-      this.leaderboard.destroy({ useMasterKey: true }),
-      this.leaderboard2.destroy({ useMasterKey: true }),
-    ]);
   });
 });

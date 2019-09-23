@@ -1,11 +1,15 @@
 'use strict';
 
+import { setupPolly } from './polly';
+
 var GameScore = AV.Object.extend('GameScore');
 var ES5Person = AV.Object.extend('Person');
 var TestClass = AV.Object.extend('TestClass');
 var query = new AV.Query(GameScore);
 
 describe('Queries', function() {
+  setupPolly();
+
   describe('#Basic Queries', function() {
     it('should return Class Array', function() {
       query = new AV.Query(GameScore);
@@ -144,7 +148,7 @@ describe('Queries', function() {
   });
 
   describe('Query Constraints', function() {
-    before(function() {
+    beforeEach(function() {
       return new GameScore({
         playerName: 'testname',
         score: 1000,
@@ -155,7 +159,7 @@ describe('Queries', function() {
         .then(gameScore => (this.gameScore = gameScore));
     });
 
-    after(function() {
+    afterEach(function() {
       return this.gameScore.destroy();
     });
 
@@ -409,7 +413,7 @@ describe('Queries', function() {
   });
 
   describe('scan', () => {
-    const now = Date.now();
+    const now = 1568867865073;
     before(function() {
       this.savePromise = AV.Object.saveAll(
         new Array(4).fill(now).map(ts => new TestClass().set('timestamp', ts))

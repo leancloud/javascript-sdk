@@ -1,6 +1,9 @@
 'use strict';
 
+import { setupPolly } from './polly';
+
 describe('Role', function() {
+  setupPolly();
   describe('constructor', function() {
     it('normal usage', function() {
       var acl = new AV.ACL();
