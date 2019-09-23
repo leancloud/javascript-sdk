@@ -1,6 +1,10 @@
 'use strict';
 
+import { setupPolly } from './polly';
+
 describe('Conversation', () => {
+  setupPolly();
+
   describe('.constructor', () => {
     const conv = new AV.Conversation('test', {
       isSystem: true,
@@ -53,13 +57,10 @@ describe('Conversation', () => {
     it('should broadcast a message to all clients with current conversation', () => {
       const conv = new AV.Conversation('test', { isSystem: true });
       return conv.save().then(() => {
-        const options = {
-          validTill: new Date().getTime() / 1000 + 1000,
-        };
         const authOptions = {
           useMasterKey: true,
         };
-        return conv.broadcast('admin', 'test broadcast!', options, authOptions);
+        return conv.broadcast('admin', 'test broadcast!', {}, authOptions);
       });
     });
   });
