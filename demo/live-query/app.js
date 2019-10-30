@@ -1,17 +1,13 @@
-let configs = {};
+let configs;
 try {
-  configs = JSON.parse(localStorage.getItem('js-sdk-demo/configs')) || {};
+  configs = JSON.parse(localStorage.getItem('js-sdk-demo/configs')) || {
+    appId: 'FNHw86LIu6lnFToIEDemKCQl-gzGzoHsz',
+    appKey: 'DyvpOorH5HK1CVLDqDhb4gNT',
+    serverURLs: 'https://fnhw86li.lc-cn-n1-shared.com',
+  };
 } catch (e) {}
 
-const {
-  appId = 'FNHw86LIu6lnFToIEDemKCQl-gzGzoHsz',
-  appKey = 'DyvpOorH5HK1CVLDqDhb4gNT',
-} = configs;
-
-AV.init({
-  appId,
-  appKey,
-});
+AV.init(configs);
 
 var Todo = AV.Object.extend('Todo');
 
@@ -40,8 +36,8 @@ var bind = (subscription, initialStats, onChange) => {
   };
   const upsert = value => {
     let existed = false;
-    stats = stats.map(
-      target => (target.id === value.id ? ((existed = true), value) : target)
+    stats = stats.map(target =>
+      target.id === value.id ? ((existed = true), value) : target
     );
     if (!existed) stats = [value, ...stats];
     return onChange(stats);

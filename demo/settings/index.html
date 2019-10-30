@@ -12,6 +12,9 @@
       <div class="pure-control-group">
         <label>APP_KEY: </label><input v-model="configs.appKey"></label>
       </div>
+      <div class="pure-control-group">
+        <label>SERVER_URL: </label><input v-model="configs.serverURLs"></label>
+      </div>
       <div class="pure-controls"><input type="submit" class="pure-button pure-button-primary"></div>
       Presets:
       <div class="pure-button-group">
@@ -30,10 +33,12 @@ var presets = {
   "cn-n1(default)": {
     appId: 'FNHw86LIu6lnFToIEDemKCQl-gzGzoHsz',
     appKey: 'DyvpOorH5HK1CVLDqDhb4gNT',
+    serverURLs: 'https://fnhw86li.lc-cn-n1-shared.com',
   },
   "cn-e1": {
     appId: 'Ugf2ahNIhknfzoirYUx0POpQ-9Nh9j0Va',
     appKey: 'BlBownlFSWkWGQIkHLrbvmw8',
+    serverURLs: 'https://ugf2ahni.lc-cn-e1-shared.com',
   },
   "us-la1": {
     appId: 'xCoMNb82GqwCQlEJNEItW5VD-MdYXbMMI',

@@ -3,6 +3,8 @@ const AppRouter = require('./app-router');
 const { isNullOrUndefined } = require('./utils');
 const { extend, isObject } = require('underscore');
 
+const isCNApp = appId => appId.slice(-9) !== '-MdYXbMMI';
+
 const fillServerURLs = url => ({
   push: url,
   stats: url,
@@ -12,20 +14,11 @@ const fillServerURLs = url => ({
 });
 
 function getDefaultServerURLs(appId) {
-  let domain;
-  const id = appId.slice(0, 8).toLowerCase();
-  switch (appId.slice(-9)) {
-    case '-9Nh9j0Va':
-      // TAB
-      domain = 'lncldapi.com';
-      break;
-    case '-MdYXbMMI':
-      // US
-      domain = 'lncldglobal.com';
-      break;
-    default:
-      domain = 'lncld.net';
+  if (isCNApp(appId)) {
+    return {};
   }
+  const id = appId.slice(0, 8).toLowerCase();
+  const domain = 'lncldglobal.com';
   return {
     push: `https://${id}.push.${domain}`,
     stats: `https://${id}.stats.${domain}`,
@@ -82,6 +75,13 @@ AV.init = function init(options, ...params) {
   if (!appKey) throw new TypeError('appKey must be a string');
   if (process.env.CLIENT_PLATFORM && masterKey)
     console.warn('MasterKey is not supposed to be used in browser.');
+  if (isCNApp(appId)) {
+    if (!serverURLs) {
+      throw new TypeError(
+        `serverURLs option is required for apps from CN region`
+      );
+    }
+  }
   AV._config.applicationId = appId;
   AV._config.applicationKey = appKey;
   AV._config.masterKey = masterKey;

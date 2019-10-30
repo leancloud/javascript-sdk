@@ -1,17 +1,13 @@
-let configs = {};
+let configs;
 try {
-  configs = JSON.parse(localStorage.getItem('js-sdk-demo/configs')) || {};
+  configs = JSON.parse(localStorage.getItem('js-sdk-demo/configs')) || {
+    appId: 'FNHw86LIu6lnFToIEDemKCQl-gzGzoHsz',
+    appKey: 'DyvpOorH5HK1CVLDqDhb4gNT',
+    serverURLs: 'https://fnhw86li.lc-cn-n1-shared.com',
+  };
 } catch (e) {}
 
-const {
-  appId = 'FNHw86LIu6lnFToIEDemKCQl-gzGzoHsz',
-  appKey = 'DyvpOorH5HK1CVLDqDhb4gNT',
-} = configs;
-
-AV.init({
-  appId,
-  appKey,
-});
+AV.init(configs);
 
 const MAX_RESULTS_COUNT = 12;
 
@@ -127,14 +123,13 @@ var app = new Vue({
           limit: MAX_RESULTS_COUNT,
           selectUserKeys: ['username'],
         }),
-        Promise.resolve(AV.User.current()).then(
-          currentUser =>
-            currentUser
-              ? leaderboard.getResultsAroundUser(currentUser, {
-                  limit: 3,
-                  selectUserKeys: ['username'],
-                })
-              : []
+        Promise.resolve(AV.User.current()).then(currentUser =>
+          currentUser
+            ? leaderboard.getResultsAroundUser(currentUser, {
+                limit: 3,
+                selectUserKeys: ['username'],
+              })
+            : []
         ),
       ])
         .then(([topRankings, [beforeUserRankings, userRanking]]) => {
