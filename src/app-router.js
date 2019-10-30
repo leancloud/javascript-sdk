@@ -25,7 +25,7 @@ AppRouter.prototype.refresh = function refresh() {
   if (this.disabled) return;
   if (Date.now() < this.lockedUntil) return;
   this.lock(10);
-  const url = 'https://app-router.leancloud.cn/2/route';
+  const url = 'https://app-router.com/2/route';
   return ajax({
     method: 'get',
     url,
