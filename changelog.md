@@ -1,3 +1,21 @@
+# 4.0.0 (2019-10-31)
+
+### BREAKING CHANGES
+
+- 对于中国节点应用，初始化 SDK 时必须通过 `serverURLs` 参数指定服务器地址。中国节点的应用必须要绑定自有域名后才能使用，这个改动是为让没有指定服务器地址时的异常更加明确。国际版应用不受影响。
+- SDK 使用的域名更新。国际版应用新增 `app-router.com`，中国节点应用不受影响。`app-router.leancloud.cn` 均不再使用。如果国际版应用在微信小程序等需要域名白名单的平台上运行，需要更新白名单配置，开发者可以访问应用的 LeanCloud 控制台获取最新的域名列表。
+- `AV.Query#toJSON` 方法现在返回完整的信息，可以通过新增的 `AV.Query.fromJSON` 方法反序列化为 `AV.Query`。原 `AV.Query#toJSON` 方法已被重命名为一个内部方法 `AV.Query#_getParams`。
+- 移除了 Bower 支持。
+
+### Features
+
+- 新增了 `AV.Query.fromJSON` 方法可以通过一个 JSON 构造一个 `AV.Query`。与 `AV.Query#toJSON` 结合可以实现在服务端与客户端之间传输 `AV.Query`。
+
+### Bug fixes
+
+- 修复了在 `AV.init` 时指定 `production` 不生效的问题。
+- 修复了多处 TypeScript 定义问题。
+
 # 3.15.0 (2019-08-05)
 
 ### Features
