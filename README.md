@@ -68,4 +68,3 @@ npm install leancloud-storage@2 --save
 5. 使用 GitHub 基于 dist 分支发布一个 release
 6. Fetch and checkout remote `dist` branch 并确认该提交的内容是即将发布的版本
 7. npm publish（`npm publish`，需 npm 协作者身份），如果是 pre-release 版本需要带 next tag
-8. 发布到 CDN，需要七牛权限（执行 `gulp upload`）
