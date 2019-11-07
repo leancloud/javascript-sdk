@@ -51,11 +51,11 @@ module.exports = function(AV) {
       },
 
       /**
-       * 监听 Insight 任务事件，目前仅支持 end 事件，表示任务完成。
+       * 监听 Insight 任务事件（未来推出独立部署的离线分析服务后开放）
        *  <p><strong><em>
        *     仅在云引擎运行环境下有效。
        *  </em></strong></p>
-       * @param {String} event 监听的事件，目前仅支持 'end' ，表示任务完成
+       * @param {String} event 监听的事件，目前尚不支持。
        * @param {Function} 监听回调函数，接收 (err, id) 两个参数，err 表示错误信息，
        *                   id 表示任务 id。接下来你可以拿这个 id 使用AV.Insight.JobQuery 查询任务状态和结果。
        *
