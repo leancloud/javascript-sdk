@@ -1154,6 +1154,7 @@ export namespace Push {
 export namespace Cloud {
   function run(name: string, data?: any, options?: AuthOptions): Promise<any>;
   function rpc(name: string, data?: any, options?: AuthOptions): Promise<any>;
+  function useMasterKey(): void;
   function requestSmsCode(
     data:
       | string
