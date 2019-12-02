@@ -947,14 +947,21 @@ module.exports = function(AV) {
         );
         return request.then(function(response) {
           const fetchedAttrs = self.parse(response);
-          if (!fetchOptions.keys) self._cleanupUnsetKeys(fetchedAttrs);
+          self._cleanupUnsetKeys(
+            fetchedAttrs,
+            fetchOptions.keys
+              ? ensureArray(fetchOptions.keys)
+                  .join(',')
+                  .split(',')
+              : undefined
+          );
           self._finishFetch(fetchedAttrs, true);
           return self;
         });
       },
 
-      _cleanupUnsetKeys(fetchedAttrs) {
-        AV._objectEach(this._serverData, (value, key) => {
+      _cleanupUnsetKeys(fetchedAttrs, fetchedKeys = _.keys(this._serverData)) {
+        _.forEach(fetchedKeys, key => {
           if (fetchedAttrs[key] === undefined) delete this._serverData[key];
         });
       },
