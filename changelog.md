@@ -1,3 +1,10 @@
+## 4.0.1 (2019-12-02)
+
+### Bug fixes
+
+- 修复了指定 key fetch 时，服务端已删除的 key 没有被正确清理的问题。
+- 补充了 `AV.Cloud.useMasterKey` 的 TypeScript 定义。
+
 # 4.0.0 (2019-10-31)
 
 ### BREAKING CHANGES
