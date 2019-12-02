@@ -16,6 +16,7 @@ module.exports = function(AV) {
    * @param {Date} [data.expiration_time]  A Date object for when to expire
    *         the push.
    * @param {Number} [data.expiration_interval] The seconds from now to expire the push.
+   * @param {Number} [data.flow_control] The clients to notify per second
    * @param {AV.Query} [data.where] An AV.Query over AV.Installation that is used to match
    *         a set of installations to push to.
    * @param {String} [data.cql] A CQL statement over AV.Installation that is used to match
