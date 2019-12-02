@@ -1141,6 +1141,7 @@ export namespace Push {
     push_time?: Date;
     expiration_time?: Date;
     expiration_interval?: number;
+    flow_control?: number;
     where?: Query<Installation>;
     cql?: string;
     data?: any;
