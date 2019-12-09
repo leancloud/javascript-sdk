@@ -321,9 +321,9 @@ export class Object extends BaseObject {
   bitAnd(attributeName: string, item: number): this;
   bitOr(attributeName: string, item: number): this;
   bitXor(attributeName: string, item: number): this;
-  change(options: any): this;
+  change(options?: any): this;
   changedAttributes(diff?: { [key: string]: any }): boolean;
-  clear(options: any): any;
+  clear(options?: any): any;
   revert(keys?: string | string[]): this;
   clone(): this;
   destroy(options?: Object.DestroyOptions): Promise<this>;
