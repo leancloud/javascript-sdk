@@ -322,7 +322,9 @@ export class Object extends BaseObject {
   bitOr(attributeName: string, item: number): this;
   bitXor(attributeName: string, item: number): this;
   change(options?: any): this;
-  changedAttributes(diff?: { [key: string]: any }): boolean;
+  changedAttributes(diff?: {
+    [key: string]: any;
+  }): { [key: string]: any } | false;
   clear(options?: any): any;
   revert(keys?: string | string[]): this;
   clone(): this;
