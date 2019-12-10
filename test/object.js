@@ -127,9 +127,7 @@ describe('Objects', function() {
 
     it('stringify and parse', () => {
       const text = AV.stringify(gameScore);
-      console.log(text);
       const parsedGameScore = AV.parse(text);
-      console.log(parsedGameScore);
       parsedGameScore.should.be.instanceof(GameScore);
       parsedGameScore.id.should.eql(gameScore.id);
       parsedGameScore.get('id').should.eql(gameScore.get('id'));
@@ -368,6 +366,7 @@ describe('Objects', function() {
       });
       object.revert();
       object.dirty().should.eql(false);
+      object.dirtyKeys().should.eql([]);
       object.get('name').should.eql('AVOSCloud');
       object.get('age').should.eql(0);
       object.toFullJSON().should.eql(data);
@@ -380,6 +379,7 @@ describe('Objects', function() {
       });
       object.revert('name');
       object.dirty().should.eql(true);
+      object.dirtyKeys().should.eql(['age']);
       object.get('name').should.eql('AVOSCloud');
       object.get('age').should.eql(1);
     });

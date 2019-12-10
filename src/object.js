@@ -335,6 +335,16 @@ module.exports = function(AV) {
       },
 
       /**
+       * Returns the keys of the modified attribute since its last save/refresh.
+       * @return {String[]}
+       */
+      dirtyKeys: function() {
+        this._refreshCache();
+        var currentChanges = _.last(this._opSetQueue);
+        return _.keys(currentChanges);
+      },
+
+      /**
        * Gets a Pointer referencing this Object.
        * @private
        */
@@ -1225,42 +1235,6 @@ module.exports = function(AV) {
 
         this._changing = false;
         return this;
-      },
-
-      /**
-       * Determine if the model has changed since the last <code>"change"</code>
-       * event.  If you specify an attribute name, determine if that attribute
-       * has changed.
-       * @param {String} attr Optional attribute name
-       * @return {Boolean}
-       */
-      hasChanged: function(attr) {
-        if (!arguments.length) {
-          return !_.isEmpty(this.changed);
-        }
-        return this.changed && _.has(this.changed, attr);
-      },
-
-      /**
-       * Returns an object containing all the attributes that have changed, or
-       * false if there are no changed attributes. Useful for determining what
-       * parts of a view need to be updated and/or what attributes need to be
-       * persisted to the server. Unset attributes will be set to undefined.
-       * You can also pass an attributes object to diff against the model,
-       * determining if there *would be* a change.
-       */
-      changedAttributes: function(diff) {
-        if (!diff) {
-          return this.hasChanged() ? _.clone(this.changed) : false;
-        }
-        var changed = {};
-        var old = this._previousAttributes;
-        AV._objectEach(diff, function(diffVal, attr) {
-          if (!_.isEqual(old[attr], diffVal)) {
-            changed[attr] = diffVal;
-          }
-        });
-        return changed;
       },
 
       /**
