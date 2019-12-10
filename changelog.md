@@ -1,3 +1,13 @@
+# 4.1.0 (2019-12-10)
+
+### Features
+
+- 新增了 `AV.Object#dirtyKeys` 方法获取本地修改过的属性名。`Object#hasChanged` 与 `Object#changedAttributes` 方法已被移除，请使用 `AV.Object#dirty` 与 `AV.Object#dirtyKeys` 代替。
+
+### Bug fixes
+
+- 修复了云引擎中初始化依然要求指定服务器地址的问题。
+
 ## 4.0.1 (2019-12-02)
 
 ### Bug fixes
