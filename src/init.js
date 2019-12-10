@@ -1,7 +1,7 @@
 const AV = require('./av');
 const AppRouter = require('./app-router');
 const { isNullOrUndefined } = require('./utils');
-const { extend, isObject } = require('underscore');
+const { extend, isObject, isEmpty } = require('underscore');
 
 const isCNApp = appId => appId.slice(-9) !== '-MdYXbMMI';
 
@@ -76,7 +76,7 @@ AV.init = function init(options, ...params) {
   if (process.env.CLIENT_PLATFORM && masterKey)
     console.warn('MasterKey is not supposed to be used in browser.');
   if (isCNApp(appId)) {
-    if (!serverURLs) {
+    if (!serverURLs && isEmpty(AV._config.serverURLs)) {
       throw new TypeError(
         `serverURLs option is required for apps from CN region`
       );
