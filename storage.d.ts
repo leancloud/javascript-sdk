@@ -304,15 +304,15 @@ export class Object extends BaseObject {
   static fetchAll<T extends Object>(
     list: T[],
     options?: AuthOptions
-  ): Promise<T>;
+  ): Promise<Array<T | Error>>;
   static destroyAll(
     list: Object[],
     options?: Object.DestroyAllOptions
-  ): Promise<void>;
+  ): Promise<Array<void | Error>>;
   static saveAll<T extends Object>(
     list: T[],
     options?: Object.SaveAllOptions
-  ): Promise<T>;
+  ): Promise<Array<T | Error>>;
   static register(klass: new (...args: any[]) => Object, name?: string): void;
 
   initialize(): void;
