@@ -326,7 +326,7 @@ export class Object extends BaseObject {
   revert(keys?: string | string[]): this;
   clone(): this;
   destroy(options?: Object.DestroyOptions): Promise<this>;
-  dirty(attr: String): boolean;
+  dirty(key?: string): boolean;
   dirtyKeys(): string[];
   escape(attr: string): string;
   fetch(fetchOptions?: FetchOptions, options?: AuthOptions): Promise<this>;
