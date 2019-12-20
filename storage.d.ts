@@ -304,7 +304,7 @@ export class Object extends BaseObject {
   static fetchAll<T extends Object>(
     list: T[],
     options?: AuthOptions
-  ): Promise<T>;
+  ): Promise<T[]>;
   static destroyAll(
     list: Object[],
     options?: Object.DestroyAllOptions
@@ -312,7 +312,7 @@ export class Object extends BaseObject {
   static saveAll<T extends Object>(
     list: T[],
     options?: Object.SaveAllOptions
-  ): Promise<T>;
+  ): Promise<T[]>;
   static register(klass: new (...args: any[]) => Object, name?: string): void;
 
   initialize(): void;
