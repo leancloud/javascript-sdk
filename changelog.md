@@ -489,7 +489,7 @@ Prereleases
     <details>
 
     ```javascript
-    const child = new Child().set('birthday', new Data());
+    const child = new Child().set('birthday', new Date());
     console.log(child.toJSON().birthday);
     /*
     v3: "2011-11-11T03:11:11.000Z"
@@ -664,7 +664,7 @@ Prereleases
   <details>
 
   ```javascript
-  const child = new Child().set('birthday', new Data());
+  const child = new Child().set('birthday', new Date());
   console.log(child.toJSON().birthday);
   /*
   v3: "2011-11-11T03:11:11.000Z"
