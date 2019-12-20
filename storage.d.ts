@@ -650,11 +650,11 @@ interface UnionOptions {
 
 interface UnionLoginOptions extends OAuthLoginOptions, UnionOptions {}
 
-interface WeappOptions extends UnionOptions {
+interface MiniappOptions extends UnionOptions {
   preferUnionId: boolean;
 }
 
-interface WeappLoginOptions extends OAuthLoginOptions, WeappOptions {}
+interface MiniappLoginOptions extends OAuthLoginOptions, MiniappOptions {}
 
 /**
  * @class
@@ -679,8 +679,13 @@ export class User extends Object {
   static become(sessionToken: string): Promise<User>;
 
   static loginAnonymously(): Promise<User>;
-  static loginWithWeapp(options?: WeappLoginOptions): Promise<User>;
+  static loginWithWeapp(options?: MiniappLoginOptions): Promise<User>;
   static loginWithWeappWithUnionId(
+    unionId: string,
+    unionLoginOptions?: UnionLoginOptions
+  ): Promise<User>;
+  static loginWithQQApp(options?: MiniappLoginOptions): Promise<User>;
+  static loginWithQQAppWithUnionId(
     unionId: string,
     unionLoginOptions?: UnionLoginOptions
   ): Promise<User>;
@@ -751,8 +756,13 @@ export class User extends Object {
   static followerQuery<T extends User>(userObjectId: string): Query<T>;
   static followeeQuery<T extends User>(userObjectId: string): Query<T>;
 
-  loginWithWeapp(options?: WeappLoginOptions): Promise<User>;
+  loginWithWeapp(options?: MiniappLoginOptions): Promise<User>;
   loginWithWeappWithUnionId(
+    unionId: string,
+    unionLoginOptions?: UnionLoginOptions
+  ): Promise<User>;
+  loginWithQQApp(options?: MiniappLoginOptions): Promise<User>;
+  loginWithQQAppWithUnionId(
     unionId: string,
     unionLoginOptions?: UnionLoginOptions
   ): Promise<User>;
@@ -775,8 +785,13 @@ export class User extends Object {
   isAnonymous(): boolean;
   isCurrent(): boolean;
 
-  associateWithWeapp(options?: WeappOptions): Promise<User>;
+  associateWithWeapp(options?: MiniappOptions): Promise<User>;
   associateWithWeappWithUnionId(
+    unionId: string,
+    unionOptions?: UnionOptions
+  ): Promise<User>;
+  associateWithQQApp(options?: MiniappOptions): Promise<User>;
+  associateWithQQAppWithUnionId(
     unionId: string,
     unionOptions?: UnionOptions
   ): Promise<User>;
