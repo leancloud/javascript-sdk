@@ -1459,14 +1459,14 @@ module.exports = function(AV) {
       /**
        *Create a follower query for special user to query the user's followers.
        * @param {String} userObjectId The user object id.
-       * @return {AV.FriendShipQuery}
+       * @return {AV.FollowshipQuery}
        * @since 0.3.0
        */
       followerQuery: function(userObjectId) {
         if (!userObjectId || !_.isString(userObjectId)) {
           throw new Error('Invalid user object id.');
         }
-        var query = new AV.FriendShipQuery('_Follower');
+        var query = new AV.FollowshipQuery('_Follower');
         query._friendshipTag = 'follower';
         query.equalTo(
           'user',
@@ -1478,14 +1478,14 @@ module.exports = function(AV) {
       /**
        *Create a followee query for special user to query the user's followees.
        * @param {String} userObjectId The user object id.
-       * @return {AV.FriendShipQuery}
+       * @return {AV.FollowshipQuery}
        * @since 0.3.0
        */
       followeeQuery: function(userObjectId) {
         if (!userObjectId || !_.isString(userObjectId)) {
           throw new Error('Invalid user object id.');
         }
-        var query = new AV.FriendShipQuery('_Followee');
+        var query = new AV.FollowshipQuery('_Followee');
         query._friendshipTag = 'followee';
         query.equalTo(
           'user',

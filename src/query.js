@@ -1121,7 +1121,7 @@ module.exports = function(AV) {
     }
   );
 
-  AV.FriendShipQuery = AV.Query._extend({
+  AV.FollowshipQuery = AV.Query._extend({
     _newObject: function() {
       const UserClass = AV.Object._getSubclass('_User');
       return new UserClass();
