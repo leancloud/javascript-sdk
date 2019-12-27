@@ -17,6 +17,7 @@ require('./search.js');
 require('./sms.js');
 require('./status.js');
 require('./user.js');
+require('./friendship.js');
 
 if (process.env.REAL_BACKEND !== undefined) {
   require('./file.js');
