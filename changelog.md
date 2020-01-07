@@ -1,3 +1,21 @@
+# 4.2.0 (2020-01-07)
+
+### Features
+
+支持 QQ 小程序。
+
+- 微信小程序 SDK 现已兼容 QQ 小程序，并新增了以下登录相关的方法：
+  - `AV.User.loginWithQQApp`
+  - `AV.User.loginWithQQAppWithUnionId`
+  - `AV.User#loginWithQQApp`
+  - `AV.User#loginWithQQAppWithUnionId`
+  - `AV.User#associateWithQQApp`
+  - `AV.User#associateWithQQAppWithUnionId`
+
+### Bug fixes
+
+- 修复了多处 TypeScript 定义文件的错误，SDK 要求的 TypeScript 最低版本现在为 3.0。
+
 # 4.1.0 (2019-12-10)
 
 ### Features
