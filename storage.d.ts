@@ -1,3 +1,5 @@
+import { Realtime } from 'leancloud-realtime';
+
 export as namespace AV;
 
 interface IteratorResult<T> {
@@ -907,7 +909,7 @@ declare class Statistic {
 
 declare interface Ranking {
   value: number;
-  user: AV.User;
+  user: User;
   rank: number;
   includedStatistics?: Statistic[];
 }
@@ -1202,6 +1204,7 @@ export function init(options: {
   production?: boolean;
   serverURLs?: string | ServerURLs;
   disableCurrentUser?: boolean;
+  realtime?: Realtime;
 }): void;
 export function setServerURLs(urls: string | ServerURLs): void;
 export function setProduction(production: boolean): void;
