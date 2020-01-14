@@ -71,6 +71,28 @@ export interface SilentOption {
   silent?: boolean;
 }
 
+export interface AnonymousAuthData {
+  /**
+   * random UUID with lowercase hexadecimal digits
+   */
+  id: string;
+  [extraAttribute: string]: any;
+}
+
+export interface AuthDataWithUID {
+  uid: string;
+  access_token: string;
+  [extraAttribute: string]: any;
+}
+
+export interface AuthDataWithOpenID {
+  openid: string;
+  access_token: string;
+  [extraAttribute: string]: any;
+}
+
+export type AuthData = AnonymousAuthData | AuthDataWithUID | AuthDataWithOpenID;
+
 export interface IBaseObject {
   toJSON(): any;
 }
@@ -694,23 +716,23 @@ export class User extends Object {
   ): Promise<User>;
   static loginWithEmail(email: string, password: string): Promise<User>;
   static loginWithAuthData(
-    authData: object,
+    authData: AuthData,
     platform: string,
     options?: OAuthLoginOptions
   ): Promise<User>;
   static signUpOrlogInWithAuthData(
-    authData: object,
+    authData: AuthData,
     platform: string,
     options?: OAuthLoginOptions
   ): Promise<User>;
   static loginWithAuthDataAndUnionId(
-    authData: object,
+    authData: AuthData,
     platform: string,
     unionId: string,
     unionLoginOptions?: UnionLoginOptions
   ): Promise<User>;
   static signUpOrlogInWithAuthDataAndUnionId(
-    authData: object,
+    authData: AuthData,
     platform: string,
     unionId: string,
     unionLoginOptions?: UnionLoginOptions
@@ -757,12 +779,12 @@ export class User extends Object {
     unionLoginOptions?: UnionLoginOptions
   ): Promise<User>;
   loginWithAuthData(
-    authData: object,
+    authData: AuthData,
     platform: string,
     options?: OAuthLoginOptions
   ): Promise<User>;
   loginWithAuthDataAndUnionId(
-    authData: object,
+    authData: AuthData,
     platform: string,
     unionId: string,
     unionLoginOptions?: UnionLoginOptions
@@ -781,9 +803,9 @@ export class User extends Object {
     unionOptions?: UnionOptions
   ): Promise<User>;
 
-  associateWithAuthData(authData: object, platform: string): Promise<User>;
+  associateWithAuthData(authData: AuthData, platform: string): Promise<User>;
   associateWithAuthDataAndUnionId(
-    authData: object,
+    authData: AuthData,
     platform: string,
     unionId: string,
     unionOptions?: UnionOptions
