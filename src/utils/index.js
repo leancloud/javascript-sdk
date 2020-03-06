@@ -1,9 +1,9 @@
 const _ = require('underscore');
-const request = require('superagent');
+const { timeout } = require('promise-timeout');
 const debug = require('debug');
 const debugRequest = debug('leancloud:request');
 const debugRequestError = debug('leancloud:request:error');
-const Promise = require('../promise');
+const { getAdaptor } = require('../adaptor');
 
 let requestsCount = 0;
 
@@ -13,20 +13,20 @@ const ajax = ({
   query,
   data,
   headers = {},
+  timeout: time,
   onprogress,
-  timeout,
 }) => {
-  const flattenedQuery = {};
   if (query) {
-    for (const k in query) {
-      const value = query[k];
-      if (value === undefined) continue;
-      if (typeof value === 'object') {
-        flattenedQuery[k] = JSON.stringify(value);
-      } else {
-        flattenedQuery[k] = value;
-      }
-    }
+    const queryString = Object.keys(query)
+      .map(key => {
+        const value = query[key];
+        if (value === undefined) return undefined;
+        const v = typeof value === 'object' ? JSON.stringify(value) : value;
+        return `${encodeURIComponent(key)}=${encodeURIComponent(v)}`;
+      })
+      .filter(qs => qs)
+      .join('&');
+    url = `${url}?${queryString}`;
   }
 
   const count = requestsCount++;
@@ -35,59 +35,55 @@ const ajax = ({
     count,
     method,
     url,
-    flattenedQuery,
+    query,
     data,
     headers
   );
 
-  return new Promise((resolve, reject) => {
-    const req = request(method, url)
-      .set(headers)
-      .query(flattenedQuery)
-      .send(data);
-    if (onprogress) {
-      req.on('progress', onprogress);
-    }
-    if (timeout) {
-      req.timeout(timeout);
-    }
-    req.end((err, res) => {
-      if (err) {
-        if (res) {
-          if (!debug.enabled('leancloud:request')) {
-            debugRequestError(
-              'request(%d) %s %s %o %o %o',
-              count,
-              method,
-              url,
-              query,
-              data,
-              headers
-            );
-          }
-          debugRequestError(
-            'response(%d) %d %O %o',
-            count,
-            res.status,
-            res.body || res.text,
-            res.header
-          );
-          err.statusCode = res.status;
-          err.responseText = res.text;
-          err.response = res.body;
-        }
-        return reject(err);
-      }
+  const request = getAdaptor('request');
+  const promise = request(url, { method, headers, data, onprogress })
+    .then(response => {
       debugRequest(
         'response(%d) %d %O %o',
         count,
-        res.status,
-        res.body || res.text,
-        res.header
+        response.status,
+        response.data || response.text,
+        response.header
       );
-      return resolve(res.body);
+      if (response.ok === false) {
+        const error = new Error();
+        error.response = response;
+        throw error;
+      }
+      return response.data;
+    })
+    .catch(error => {
+      if (error.response) {
+        if (!debug.enabled('leancloud:request')) {
+          debugRequestError(
+            'request(%d) %s %s %o %o %o',
+            count,
+            method,
+            url,
+            query,
+            data,
+            headers
+          );
+        }
+        debugRequestError(
+          'response(%d) %d %O %o',
+          count,
+          error.response.status,
+          error.response.data || error.response.text,
+          error.response.header
+        );
+        error.statusCode = error.response.status;
+        error.responseText = error.response.text;
+        error.response = error.response.data;
+      }
+      throw error;
     });
-  });
+  return time ? timeout(promise, time) : promise;
 };
 
 // Helper function to check null or undefined.

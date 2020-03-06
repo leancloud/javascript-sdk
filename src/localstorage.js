@@ -1,31 +1,32 @@
 var Promise = require('./promise');
-var localStorage = require('./utils/localstorage');
+var { getAdaptor } = require('./adaptor');
 
 var syncApiNames = ['getItem', 'setItem', 'removeItem', 'clear'];
 
-if (!localStorage.async) {
-  // wrap sync apis with async ones.
-  syncApiNames.forEach(function(apiName) {
-    if (typeof localStorage[apiName] === 'function') {
-      localStorage[apiName + 'Async'] = function() {
-        return Promise.resolve(
-          localStorage[apiName].apply(localStorage, arguments)
-        );
-      };
+const localStorage = {
+  get async() {
+    return getAdaptor('storage').async;
+  },
+};
+
+// wrap sync apis with async ones.
+syncApiNames.forEach(function(apiName) {
+  localStorage[apiName + 'Async'] = function() {
+    const storage = getAdaptor('storage');
+    return Promise.resolve(storage[apiName].apply(storage, arguments));
+  };
+
+  localStorage[apiName] = function() {
+    const storage = getAdaptor('storage');
+    if (!storage.async) {
+      return storage[apiName].apply(storage, arguments);
     }
-  });
-} else {
-  syncApiNames.forEach(function(apiName) {
-    if (typeof localStorage[apiName] !== 'function') {
-      localStorage[apiName] = function() {
-        const error = new Error(
-          'Synchronous API [' + apiName + '] is not available in this runtime.'
-        );
-        error.code = 'SYNC_API_NOT_AVAILABLE';
-        throw error;
-      };
-    }
-  });
-}
+    const error = new Error(
+      'Synchronous API [' + apiName + '] is not available in this runtime.'
+    );
+    error.code = 'SYNC_API_NOT_AVAILABLE';
+    throw error;
+  };
+});
 
 module.exports = localStorage;

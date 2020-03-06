@@ -1,35 +1,39 @@
-const request = require('superagent');
+const { getAdaptor } = require('../adaptor');
 const debug = require('debug')('cos');
-const Promise = require('../promise');
 
-module.exports = function upload(uploadInfo, data, file, saveOptions = {}) {
+module.exports = function(uploadInfo, data, file, saveOptions = {}) {
   file.attributes.url = uploadInfo.url;
   file._bucket = uploadInfo.bucket;
   file.id = uploadInfo.objectId;
-  const uploadUrl =
+  const url =
     uploadInfo.upload_url + '?sign=' + encodeURIComponent(uploadInfo.token);
-
-  return new Promise((resolve, reject) => {
-    const req = request('POST', uploadUrl)
-      .set(file._uploadHeaders)
-      .attach('fileContent', data, file.attributes.name)
-      .field('op', 'upload');
-    if (saveOptions.onprogress) {
-      req.on('progress', saveOptions.onprogress);
+  const fileFormData = {
+    field: 'fileContent',
+    data,
+    name: file.attributes.name,
+  };
+  const options = {
+    headers: file._uploadHeaders,
+    data: {
+      op: 'upload',
+    },
+    onprogress: saveOptions.onprogress,
+  };
+  debug('url: %s, file: %o, options: %o', url, fileFormData, options);
+  const upload = getAdaptor('upload');
+  return upload(url, fileFormData, options).then(
+    response => {
+      debug(response.status, response.data);
+      return file;
+    },
+    error => {
+      const { response } = error;
+      if (response) {
+        debug(response.status, response.data);
+        error.statusCode = response.status;
+        error.response = response.data;
+      }
+      throw error;
     }
-    req.end((err, res) => {
-      if (res) {
-        debug(res.status, res.body, res.text);
-      }
-      if (err) {
-        if (res) {
-          err.statusCode = res.status;
-          err.responseText = res.text;
-          err.response = res.body;
-        }
-        return reject(err);
-      }
-      resolve(file);
-    });
-  });
+  );
 };

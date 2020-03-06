@@ -10,6 +10,9 @@ const _ = require('underscore');
 
 const AV = require('./av');
 
+const adaptors = require('./builtin-adaptors');
+AV.setAdaptors(adaptors);
+
 AV._ = _;
 AV.version = require('./version');
 AV.Promise = require('./promise');

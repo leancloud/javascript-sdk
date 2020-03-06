@@ -1591,6 +1591,14 @@ module.exports = function(AV) {
           return null;
         }
 
+        if (AV.localStorage.async) {
+          const error = new Error(
+            'Synchronous API User.current() is not available in this runtime. Use User.currentAsync() instead.'
+          );
+          error.code = 'SYNC_API_NOT_AVAILABLE';
+          throw error;
+        }
+
         if (AV.User._currentUser) {
           return AV.User._currentUser;
         }
