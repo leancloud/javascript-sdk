@@ -138,7 +138,10 @@ var app = new Vue({
             this.unbind = bind(subscription, todos, updateTodos);
           }.bind(this)
         )
-        .catch(alert);
+        .catch(error => {
+          console.error(error);
+          alert(error.message);
+        });
     },
 
     login: function() {
@@ -149,7 +152,10 @@ var app = new Vue({
             this.username = this.password = '';
           }.bind(this)
         )
-        .catch(alert);
+        .catch(error => {
+          console.error(error);
+          alert(error.message);
+        });
     },
 
     signup: function() {
@@ -160,7 +166,10 @@ var app = new Vue({
             this.username = this.password = '';
           }.bind(this)
         )
-        .catch(alert);
+        .catch(error => {
+          console.error(error);
+          alert(error.message);
+        });
     },
 
     logout: function() {
@@ -199,7 +208,10 @@ var app = new Vue({
             this.todos.push(todo.toJSON());
           }.bind(this)
         )
-        .catch(alert);
+        .catch(error => {
+          console.error(error);
+          alert(error.message);
+        });
       this.newTodo = '';
     },
 
@@ -211,7 +223,10 @@ var app = new Vue({
             this.todos.splice(this.todos.indexOf(todo), 1);
           }.bind(this)
         )
-        .catch(alert);
+        .catch(error => {
+          console.error(error);
+          alert(error.message);
+        });
     },
 
     editTodo: function(todo) {
@@ -227,7 +242,10 @@ var app = new Vue({
           content: todo.content,
           done: todo.done,
         })
-        .catch(alert);
+        .catch(error => {
+          console.error(error);
+          alert(error.message);
+        });
       if (!todo.content) {
         this.removeTodo(todo);
       }
@@ -249,7 +267,10 @@ var app = new Vue({
             this.todos = filters.active(this.todos);
           }.bind(this)
         )
-        .catch(alert);
+        .catch(error => {
+          console.error(error);
+          alert(error.message);
+        });
     },
   },
 
