@@ -1229,10 +1229,12 @@ export function init(options: {
   hookKey?: string;
   region?: string;
   production?: boolean;
+  serverURL?: string | ServerURLs;
   serverURLs?: string | ServerURLs;
   disableCurrentUser?: boolean;
   realtime?: Realtime;
 }): void;
+export function setServerURL(urls: string | ServerURLs): void;
 export function setServerURLs(urls: string | ServerURLs): void;
 export function setProduction(production: boolean): void;
 export function setRequestTimeout(ms: number): void;

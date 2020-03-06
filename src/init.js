@@ -49,7 +49,7 @@ let _disableAppRouter = false;
  * @param {String} options.appKey application key
  * @param {String} [options.masterKey] application master key
  * @param {Boolean} [options.production]
- * @param {String|ServerURLs} [options.serverURLs] URLs for services. if a string was given, it will be applied for all services.
+ * @param {String|ServerURLs} [options.serverURL] URLs for services. if a string was given, it will be applied for all services.
  * @param {Boolean} [options.disableCurrentUser]
  */
 AV.init = function init(options, ...params) {
@@ -65,7 +65,8 @@ AV.init = function init(options, ...params) {
     appKey,
     masterKey,
     hookKey,
-    serverURLs,
+    serverURL,
+    serverURLs = serverURL,
     disableCurrentUser,
     production,
     realtime,
@@ -78,7 +79,7 @@ AV.init = function init(options, ...params) {
   if (isCNApp(appId)) {
     if (!serverURLs && isEmpty(AV._config.serverURLs)) {
       throw new TypeError(
-        `serverURLs option is required for apps from CN region`
+        `serverURL option is required for apps from CN region`
       );
     }
   }
@@ -163,12 +164,13 @@ AV._setServerURLs = (urls, disableAppRouter = true) => {
 };
 /**
  * Set server URLs for services.
- * @function AV.setServerURLs
- * @since 3.0.0
+ * @function AV.setServerURL
+ * @since 4.3.0
  * @param {String|ServerURLs} urls URLs for services. if a string was given, it will be applied for all services.
- * You can also set them when initializing SDK with `options.serverURLs`
+ * You can also set them when initializing SDK with `options.serverURL`
  */
-AV.setServerURLs = urls => AV._setServerURLs(urls);
+AV.setServerURL = urls => AV._setServerURLs(urls);
+AV.setServerURLs = AV.setServerURL;
 
 AV.keepErrorRawMessage = value => {
   AV._sharedConfig.keepErrorRawMessage = value;
