@@ -1,4 +1,4 @@
-const { getAdaptor } = require('../adaptor');
+const { getAdapter } = require('../adapter');
 const debug = require('debug')('leancloud:qiniu');
 
 module.exports = function(uploadInfo, data, file, saveOptions = {}) {
@@ -23,7 +23,7 @@ module.exports = function(uploadInfo, data, file, saveOptions = {}) {
     onprogress: saveOptions.onprogress,
   };
   debug('url: %s, file: %o, options: %o', url, fileFormData, options);
-  const upload = getAdaptor('upload');
+  const upload = getAdapter('upload');
   return upload(url, fileFormData, options).then(
     response => {
       debug(response.status, response.data);

@@ -1,9 +1,5 @@
-import {
-  Realtime,
-  Adaptors as RTMAdaptors,
-  Response,
-} from 'leancloud-realtime';
-import { ProgressEvent } from 'superagent';
+import { Realtime } from 'leancloud-realtime';
+import { Adapters } from '@leancloud/adapter-types';
 
 export as namespace AV;
 
@@ -1257,42 +1253,4 @@ export namespace debug {
   function disable(): string;
 }
 
-interface UploadOptions {
-  headers?: object;
-  data?: object;
-  onprogress?: (event: ProgressEvent) => void;
-}
-
-type SyncStorage = {
-  async?: false;
-  getItem: (key: string) => string;
-  setItem: (key: string, value: string) => any;
-  removeItem: (key: string) => any;
-  clear: () => any;
-};
-
-type AsyncStorage = {
-  async: true;
-  getItem: (key: string) => Promise<string>;
-  setItem: (key: string, value: string) => Promise<any>;
-  removeItem: (key: string) => Promise<any>;
-  clear: () => Promise<any>;
-};
-
-declare interface Adaptors extends RTMAdaptors {
-  upload: (
-    url: string,
-    file: {
-      field: string;
-      data: any;
-      name: string;
-    },
-    options?: UploadOptions
-  ) => Promise<Response>;
-  storage: SyncStorage | AsyncStorage;
-}
-export function setAdaptors(adaptors: Adaptors): void;
-export function setAdaptor<K extends keyof Adaptors>(
-  name: K,
-  adaptor: Adaptors[K]
-): void;
+export function setAdapters(adapters: Partial<Adapters>): void;

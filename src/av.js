@@ -4,7 +4,7 @@ const debug = require('debug');
 const userAgent = require('./ua');
 const { inherits, parseDate } = require('./utils');
 const Promise = require('./promise');
-const { setAdaptor, setAdaptors } = require('./adaptor');
+const { setAdapters } = require('./adapter');
 
 const AV = global.AV || {};
 
@@ -373,7 +373,6 @@ AV.debug = {
   disable: debug.disable,
 };
 
-AV.setAdaptors = setAdaptors;
-AV.setAdaptor = setAdaptor;
+AV.setAdapters = setAdapters;
 
 module.exports = AV;

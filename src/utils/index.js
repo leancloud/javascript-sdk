@@ -3,7 +3,7 @@ const { timeout } = require('promise-timeout');
 const debug = require('debug');
 const debugRequest = debug('leancloud:request');
 const debugRequestError = debug('leancloud:request:error');
-const { getAdaptor } = require('../adaptor');
+const { getAdapter } = require('../adapter');
 
 let requestsCount = 0;
 
@@ -40,7 +40,7 @@ const ajax = ({
     headers
   );
 
-  const request = getAdaptor('request');
+  const request = getAdapter('request');
   const promise = request(url, { method, headers, data, onprogress })
     .then(response => {
       debugRequest(

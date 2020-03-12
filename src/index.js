@@ -5,13 +5,12 @@
  * Copyright 2016 LeanCloud.cn, Inc.
  * The LeanCloud JavaScript SDK is freely distributable under the MIT license.
  */
-require('./polyfills');
 const _ = require('underscore');
 
 const AV = require('./av');
 
-const adaptors = require('./builtin-adaptors');
-AV.setAdaptors(adaptors);
+const adapters = require('@leancloud/runtime-adapters-node');
+AV.setAdapters(adapters);
 
 AV._ = _;
 AV.version = require('./version');
