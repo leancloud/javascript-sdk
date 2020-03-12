@@ -1,10 +1,19 @@
+## 4.3.1 (2020-03-12)
+
+这个版本继续了对「更多运行环境支持」的探索，将 SDK 内置的多平台支持使用新的 `Adapter` 模式进行了重构。SDK 支持的运行平台、使用方法都没有变化。
+
+### Bug Fixes
+
+- 修复了进行 Relation 查询时抛 `_extraOptions is undefined` 异常的问题。这个问题是 v4.0.0 中引入的。
+- `setAdaptors` 接口被重命名为 `setAdapters`。
+
 # 4.3.0 (2020-03-09)
 
 ### Features
 
-- 增加了 `AV.setAdaptors` 方法用于配置运行环境适配器。
+- 增加了 `AV.setAdaptors`（已在 v4.3.1 中重命名为 `setAdapters`） 方法用于配置运行环境适配器。
 
-  作为正在进行的对「更多运行环境支持」探索的第一步，这个版本的 SDK 所以对平台提供的 API 的依赖被抽象为可替换的 `Adaptor`。开发者可以配置全部或一部分 `Adaptor` 以支持包括小程序在内的各类平台。
+  作为正在进行的对「更多运行环境支持」探索的第一步，这个版本的 SDK 所以对平台提供的 API 的依赖被抽象为可替换的 `Adapter`。开发者可以配置全部或一部分 `Adapter` 以支持包括小程序在内的各类平台。
 
 - 为 `AV.init` 的 `serverURLs` 参数增加了一个同义参数 `serverURL`。
 
