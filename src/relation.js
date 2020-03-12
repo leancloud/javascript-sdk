@@ -107,7 +107,7 @@ module.exports = function(AV) {
         if (!this.targetClassName) {
           targetClass = AV.Object._getSubclass(this.parent.className);
           query = new AV.Query(targetClass);
-          query._extraOptions.redirectClassNameForKey = this.key;
+          query._defaultParams.redirectClassNameForKey = this.key;
         } else {
           targetClass = AV.Object._getSubclass(this.targetClassName);
           query = new AV.Query(targetClass);

@@ -70,6 +70,7 @@ module.exports = function(AV) {
     this._select = [];
     this._limit = -1; // negative limit means, do not send a limit
     this._skip = 0;
+    this._defaultParams = {};
   };
 
   /**
@@ -278,9 +279,9 @@ module.exports = function(AV) {
       },
 
       _getParams: function() {
-        var params = {
+        var params = _.extend({}, this._defaultParams, {
           where: this._where,
-        };
+        });
 
         if (this._include.length > 0) {
           params.include = this._include.join(',');
