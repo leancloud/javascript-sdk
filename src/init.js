@@ -75,7 +75,7 @@ AV.init = function init(options, ...params) {
   if (!appId) throw new TypeError('appId must be a string');
   if (!appKey) throw new TypeError('appKey must be a string');
   if (process.env.CLIENT_PLATFORM && masterKey)
-    console.warn('MasterKey is not supposed to be used in browser.');
+    console.warn('MasterKey is not supposed to be used at client side.');
   if (isCNApp(appId)) {
     if (!serverURLs && isEmpty(AV._config.serverURLs)) {
       throw new TypeError(
@@ -86,8 +86,7 @@ AV.init = function init(options, ...params) {
   AV._config.applicationId = appId;
   AV._config.applicationKey = appKey;
   AV._config.masterKey = masterKey;
-  if (!process.env.CLIENT_PLATFORM)
-    AV._config.hookKey = hookKey || process.env.LEANCLOUD_APP_HOOK_KEY;
+  AV._config.hookKey = hookKey;
   AV.setProduction(production);
   if (typeof disableCurrentUser !== 'undefined')
     AV._config.disableCurrentUser = disableCurrentUser;

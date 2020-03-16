@@ -1,7 +1,7 @@
 {
   "name": "leancloud-storage",
   "version": "4.3.1",
-  "main": "./dist/node/index.js",
+  "main": "./dist/cjs/entry/index.js",
   "description": "LeanCloud JavaScript SDK.",
   "repository": {
     "type": "git",
@@ -12,14 +12,13 @@
     "lint": "tsc storage.d.ts --strict",
     "test": "npm run lint && npm run test:node",
     "test:node": "cross-env NODE_ENV=test nyc --reporter lcov --reporter text mocha --timeout 300000 test/index.js",
-    "test:real": "cross-env NODE_ENV=test REAL_BACKEND=1 nyc --reporter lcov --reporter text mocha --timeout 300000 test/index.js",
+    "test:real": "cross-env REAL_BACKEND=1 npm run test:node",
     "docs": "jsdoc src README.md package.json -d docs -c .jsdocrc.json",
-    "build:node": "gulp babel-node",
+    "build:cjs": "gulp babel-cjs",
     "build:browser": "cross-env CLIENT_PLATFORM=Browser webpack --config webpack/browser.js",
-    "build:rn": "cross-env CLIENT_PLATFORM=ReactNative webpack --config webpack/rn.js",
     "build:weapp": "cross-env CLIENT_PLATFORM=Weapp webpack --config webpack/weapp.js",
     "build": "gulp build && npm run build:live-query",
-    "build:live-query": "export LIVE_QUERY=1 && npm run build:browser && npm run build:rn && npm run build:weapp",
+    "build:live-query": "export LIVE_QUERY=1 && npm run build:browser && npm run build:weapp",
     "prepublishOnly": "./script/check-version.js"
   },
   "dependencies": {
@@ -78,14 +77,14 @@
     "@leancloud/runtime-adapters-node": "@leancloud/runtime-adapters-browser",
     "./src/utils/parse-base64.js": "./src/utils/parse-base64-browser.js",
     "./src/ua/comments.js": "./src/ua/comments-browser.js",
-    "./dist/node/index.js": "./dist/av-min.js"
+    "./dist/cjs/entry/index.js": "./dist/av-min.js"
   },
   "react-native": {
-    "./dist/node/index.js": "./dist/av-rn-min.js"
+    "./dist/cjs/entry/index.js": "./dist/av-rn-min.js"
   },
   "weapp": {
     "@leancloud/runtime-adapters-node": "@leancloud/runtime-adapters-weapp",
-    "./dist/node/index.js": "./dist/av-weapp-min.js"
+    "./dist/cjs/entry/index.js": "./dist/av-weapp-min.js"
   },
   "typings": "./storage.d.ts",
   "types": "./storage.d.ts",

@@ -26,18 +26,17 @@ gulp.task('bundle-rn', ['clean-dist'], shell.task('npm run build:rn'));
 gulp.task('bundle-weapp', ['clean-dist'], shell.task('npm run build:weapp'));
 
 // 编译出 Node 版本
-gulp.task('babel-node', ['clean-dist'], () => {
+gulp.task('babel-cjs', ['clean-dist'], () => {
   return gulp
     .src('src/**/*.js')
     .pipe(babel())
-    .pipe(gulp.dest('dist/node/'));
+    .pipe(gulp.dest('dist/cjs/'));
 });
 
 // 生成 release 文件
 gulp.task('build', [
   'clean-dist',
   'bundle-browser',
-  'bundle-rn',
   'bundle-weapp',
-  'babel-node',
+  'babel-cjs',
 ]);

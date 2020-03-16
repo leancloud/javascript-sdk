@@ -3,7 +3,7 @@ if (typeof process === 'undefined') process = { env: {} };
 if (typeof require !== 'undefined') {
   global.debug = require('debug')('test');
   global.expect = require('expect.js');
-  global.AV = require('../src');
+  global.AV = require('../src/entry');
 }
 
 // AV.init({

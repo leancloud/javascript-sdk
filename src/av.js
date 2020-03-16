@@ -1,7 +1,7 @@
 const _ = require('underscore');
 const uuid = require('uuid/v4');
 const debug = require('debug');
-const userAgent = require('./ua');
+const getUA = require('./ua');
 const { inherits, parseDate } = require('./utils');
 const Promise = require('./promise');
 const { setAdapters } = require('./adapter');
@@ -19,7 +19,7 @@ AV._config = {
 
 // configs shared by all AV instances
 AV._sharedConfig = {
-  userAgent,
+  userAgent: getUA(),
   liveQueryRealtime: null,
 };
 

@@ -117,13 +117,8 @@ module.exports = function(AV) {
     this._data = data;
     this._uploadHeaders = {};
 
-    if (
-      process.env.CLIENT_PLATFORM === 'ReactNative' ||
-      process.env.CLIENT_PLATFORM === 'Weapp'
-    ) {
-      if (data && data.blob) {
-        this._extName = extname(data.blob.uri);
-      }
+    if (data && data.blob && typeof data.blob.uri === 'string') {
+      this._extName = extname(data.blob.uri);
     }
 
     if (typeof Blob !== 'undefined' && data instanceof Blob) {

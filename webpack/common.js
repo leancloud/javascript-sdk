@@ -2,8 +2,8 @@ const path = require('path');
 const webpack = require('webpack');
 
 const entry = (exports.entry = process.env.LIVE_QUERY
-  ? './src/index-live-query.js'
-  : './src/index.js');
+  ? './src/entry/index-live-query.js'
+  : './src/entry/index.js');
 exports.name = process.env.LIVE_QUERY ? 'av-live-query' : 'av';
 
 exports.create = () => ({

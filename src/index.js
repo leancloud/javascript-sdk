@@ -9,9 +9,6 @@ const _ = require('underscore');
 
 const AV = require('./av');
 
-const adapters = require('@leancloud/runtime-adapters-node');
-AV.setAdapters(adapters);
-
 AV._ = _;
 AV.version = require('./version');
 AV.Promise = require('./promise');

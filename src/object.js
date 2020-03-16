@@ -1349,11 +1349,11 @@ module.exports = function(AV) {
             hookName
           )
         ) {
-          console.trace('Unsupported hookName: ' + hookName);
+          throw new Error('Unsupported hookName: ' + hookName);
         }
 
         if (!AV.hookKey) {
-          console.trace('ignoreHook required hookKey');
+          throw new Error('ignoreHook required hookKey');
         }
 
         if (!this._flags.__ignore_hooks) {
