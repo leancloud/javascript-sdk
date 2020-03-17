@@ -361,6 +361,7 @@ AV._objectEach = AV._each = function(obj, callback) {
 
 /**
  * @namespace
+ * @since 3.14.0
  */
 AV.debug = {
   /**
@@ -373,6 +374,12 @@ AV.debug = {
   disable: debug.disable,
 };
 
+/**
+ * Specify Adapters
+ * @since 4.4.0
+ * @function
+ * @param {Adapters} newAdapters See {@link https://url.leanapp.cn/adapter-type-definitions @leancloud/adapter-types} for detailed definitions.
+ */
 AV.setAdapters = setAdapters;
 
 module.exports = AV;
