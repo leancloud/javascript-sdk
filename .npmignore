@@ -4,7 +4,7 @@ node_modules
 src
 test
 script
-tools
+recordings
 .babelrc
 .gitignore
 .travis.yml
