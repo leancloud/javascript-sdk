@@ -46,7 +46,6 @@ npm install leancloud-storage@2 --save
 ├── dist                               // 编译之后生成的文件将会在此目录下
 │   ├── av.js                          // 浏览器版本
 │   ├── av-min.js
-│   ├── av-rn.js                       // React Native 版本
 │   ├── av-weapp.js                    // 小程序版本
 │   ├── av-weapp-min.js
 │   ├── node                           // 目录中为生成的 nodejs 版本代码

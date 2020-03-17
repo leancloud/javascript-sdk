@@ -1,3 +1,33 @@
+# 4.4.0 (2020-03-17)
+
+这个版本中 SDK 新增了运行环境无关的版本，开发者可以在此基础上应用目标运行环境的 Adapters 来适配相应的运行平台。
+
+同时从这个版本开始 SDK 对各类平台的适配策略从之前的内置支持转为通过独立的第三方 Adapters 库支持。各个平台的 Adapters 将由 LeanCloud 与社区共同维护、独立演进、拥有独立的版本号。对于目前已经内置支持的平台，新版的 SDK 依然保留内置了对应的预编译版本，因此这些平台可以沿用之前的使用方式（React Native 除外，因为目前内置的适配实现使用的 API 已经被标记为「不赞成使用」）。
+
+### Features
+
+- 增加 `/core` 与 `/core-live-query` 入口，通过这种方式引入的 SDK 不包含运行环境相关的逻辑，需要配置 Adapters 后才能运行。
+- React Native 的适配现在通过独立的 Adapters 库（`@leancloud/runtime-adapters-react-native`）支持，因此这个版本的 SDK 中去掉了内置的预编译的 React Native 版本。
+
+  <details>
+      <summary>
+  适配 React Native 示例
+    </summary>
+
+  ```js
+  const AV = require('leancloud-storage/core');
+  const reactNativeAdapters = require('@leancloud/runtime-adapters-react-native');
+  AV.setAdapters(reactNativeAdapters);
+  ```
+
+### Bug Fixes
+
+- 修复了在浏览器中通过引入预编译的 `av-live-query.js` 引入的 SDK 抛异常的问题。这个问题是 v4.3.1 中引入的。
+
+### Internal Changes
+
+- hookKey 现在需要在初始化时传入，SDK 不再自动从环境变量获取其可能的值。
+
 ## 4.3.1 (2020-03-12)
 
 这个版本继续了对「更多运行环境支持」的探索，将 SDK 内置的多平台支持使用新的 `Adapter` 模式进行了重构。SDK 支持的运行平台、使用方法都没有变化。
