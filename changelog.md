@@ -7,7 +7,7 @@
 ### Features
 
 - 增加 `/core` 与 `/core-live-query` 入口，通过这种方式引入的 SDK 不包含运行环境相关的逻辑，需要配置 Adapters 后才能运行。
-- React Native 的适配现在通过独立的 Adapters 库（`@leancloud/runtime-adapters-react-native`）支持，因此这个版本的 SDK 中去掉了内置的预编译的 React Native 版本。
+- React Native 的适配现在通过独立的 Adapters 库（`@leancloud/platform-adapters-react-native`）支持，因此这个版本的 SDK 中去掉了内置的预编译的 React Native 版本。
 
   <details>
       <summary>
@@ -16,7 +16,7 @@
 
   ```js
   const AV = require('leancloud-storage/core');
-  const reactNativeAdapters = require('@leancloud/runtime-adapters-react-native');
+  const reactNativeAdapters = require('@leancloud/platform-adapters-react-native');
   AV.setAdapters(reactNativeAdapters);
   ```
 
