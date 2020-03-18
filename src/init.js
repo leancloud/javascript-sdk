@@ -90,9 +90,11 @@ AV.init = function init(options, ...params) {
   AV.setProduction(production);
   if (typeof disableCurrentUser !== 'undefined')
     AV._config.disableCurrentUser = disableCurrentUser;
-  AV._appRouter = new AppRouter(AV);
   const disableAppRouter =
     _disableAppRouter || typeof serverURLs !== 'undefined';
+  if (!disableAppRouter) {
+    AV._appRouter = new AppRouter(AV);
+  }
   AV._setServerURLs(
     extend(
       {},

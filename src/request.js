@@ -123,7 +123,9 @@ const request = ({
   if (!(AV.applicationId && (AV.applicationKey || AV.masterKey))) {
     throw new Error('Not initialized');
   }
-  AV._appRouter.refresh();
+  if (AV._appRouter) {
+    AV._appRouter.refresh();
+  }
   const { requestTimeout: timeout } = AV._config;
   const url = createApiUrl({ service, path, version });
   return setHeaders(authOptions, signKey).then(headers =>
