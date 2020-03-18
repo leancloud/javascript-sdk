@@ -29,6 +29,7 @@ function getDefaultServerURLs(appId) {
 }
 
 let _disableAppRouter = false;
+let _initialized = false;
 
 /**
  * URLs for services
@@ -71,7 +72,10 @@ AV.init = function init(options, ...params) {
     production,
     realtime,
   } = options;
-  if (AV.applicationId) throw new Error('SDK is already initialized.');
+  if (_initialized)
+    console.warn(
+      'Initializing LeanCloud Storage SDK which has already been initialized. Reinitializing the SDK might cause problems like unexpected cross-app data writing and invalid relations.'
+    );
   if (!appId) throw new TypeError('appId must be a string');
   if (!appKey) throw new TypeError('appKey must be a string');
   if (process.env.CLIENT_PLATFORM && masterKey)
@@ -117,6 +121,7 @@ AV.init = function init(options, ...params) {
       },
     });
   }
+  _initialized = true;
 };
 
 // If we're running in node.js, allow using the master key.
