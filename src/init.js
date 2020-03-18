@@ -87,10 +87,16 @@ AV.init = function init(options, ...params) {
       );
     }
   }
+  if (appId !== AV._config.applicationId) {
+    // overwrite all keys when reinitializing as a new app
+    AV._config.masterKey = masterKey;
+    AV._config.hookKey = hookKey;
+  } else {
+    if (masterKey) AV._config.masterKey = masterKey;
+    if (hookKey) AV._config.hookKey = hookKey;
+  }
   AV._config.applicationId = appId;
   AV._config.applicationKey = appKey;
-  AV._config.masterKey = masterKey;
-  AV._config.hookKey = hookKey;
   AV.setProduction(production);
   if (typeof disableCurrentUser !== 'undefined')
     AV._config.disableCurrentUser = disableCurrentUser;
