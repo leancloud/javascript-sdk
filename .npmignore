@@ -1,8 +1,10 @@
 coverage
 demo
+docs
 node_modules
 src
 test
+webpack
 script
 recordings
 .babelrc
