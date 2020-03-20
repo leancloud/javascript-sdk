@@ -22,6 +22,7 @@
     "prepublishOnly": "./script/check-version.js"
   },
   "dependencies": {
+    "@leancloud/adapter-types": "^1.0.1",
     "@leancloud/runtime-adapters-browser": "^1.0.1",
     "@leancloud/runtime-adapters-node": "^1.0.1",
     "@leancloud/runtime-adapters-weapp": "^1.0.2",
@@ -36,7 +37,6 @@
     "uuid": "^3.3.2"
   },
   "devDependencies": {
-    "@leancloud/adapter-types": "^1.0.1",
     "@pollyjs/adapter-node-http": "^2.6.2",
     "@pollyjs/core": "^2.6.2",
     "@pollyjs/persister-fs": "^2.6.2",
