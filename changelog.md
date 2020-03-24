@@ -1,3 +1,14 @@
+## 4.5.1 (2020-03-24)
+
+### Bug Fixes
+
+- 修复了不兼容 IE 11 等不支持 Promise 的运行环境的问题。
+- 修复了 TypeScript 找不到 `@leancloud/adapter-types` 模块的问题。
+
+### Internal Changes
+
+- `AV.Promise` 现在使用 `core-js` 的实现代替了 `es6-promise`。
+
 # 4.5.0 (2020-03-18)
 
 SDK [计划](https://github.com/leancloud/javascript-sdk/wiki/Roadmap)在 5.0 中支持同时访问多个应用。在此之前，尽管当前版本中重复初始化 SDK 存在导致预期之外且难以追查的问题的风险，改变当前访问的应用的能力在很多场景下依然是有价值的。因此在这个版本中 SDK 允许通过多次调用 `init` 方法进行重新初始化。
