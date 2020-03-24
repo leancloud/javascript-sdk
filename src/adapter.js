@@ -1,3 +1,4 @@
+const _ = require('underscore');
 const adapters = {};
 
 const getAdapter = name => {
@@ -8,7 +9,7 @@ const getAdapter = name => {
   return adapter;
 };
 const setAdapters = newAdapters => {
-  Object.assign(adapters, newAdapters);
+  _.extend(adapters, newAdapters);
 };
 
 module.exports = {
