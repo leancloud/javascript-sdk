@@ -3,7 +3,6 @@ const uuid = require('uuid/v4');
 const debug = require('debug');
 const getUA = require('./ua');
 const { inherits, parseDate } = require('./utils');
-const Promise = require('./promise');
 const { setAdapters } = require('./adapter');
 
 const AV = global.AV || {};

@@ -11,7 +11,7 @@ const AV = require('./av');
 
 AV._ = _;
 AV.version = require('./version');
-AV.Promise = require('./promise');
+AV.Promise = Promise;
 AV.localStorage = require('./localstorage');
 AV.Cache = require('./cache');
 AV.Error = require('./error');

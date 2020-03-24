@@ -1,6 +1,5 @@
 const _ = require('underscore');
 const { _request, request } = require('./request');
-const Promise = require('./promise');
 
 module.exports = function(AV) {
   /**

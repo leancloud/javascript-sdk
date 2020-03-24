@@ -1,5 +1,4 @@
 const _ = require('underscore');
-const Promise = require('./promise');
 const { request } = require('./request');
 const { ensureArray, parseDate } = require('./utils');
 const AV = require('./av');
@@ -428,9 +427,7 @@ _.extend(
     reset(authOptions) {
       return request({
         method: 'PUT',
-        path: `/leaderboard/leaderboards/${
-          this.statisticName
-        }/incrementVersion`,
+        path: `/leaderboard/leaderboards/${this.statisticName}/incrementVersion`,
         authOptions,
       }).then(data => this._finishFetch(data));
     },

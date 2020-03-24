@@ -30,11 +30,14 @@ exports.create = () => ({
         test: /\.js$/,
         include: [
           path.resolve(__dirname, '../src'),
+          /node_modules\/leancloud-realtime/,
           /node_modules\/event-target-shim/,
+          /node_modules\/superagent/,
         ],
         loader: 'babel-loader',
         query: {
           presets: ['es2015'],
+          plugins: ['transform-runtime'],
         },
       },
       {

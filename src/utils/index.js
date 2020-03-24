@@ -210,6 +210,15 @@ const findValue = (target, key) => {
 const isPlainObject = obj =>
   _.isObject(obj) && Object.getPrototypeOf(obj) === Object.prototype;
 
+const continueWhile = function(predicate, asyncFunction) {
+  if (predicate()) {
+    return asyncFunction().then(function() {
+      return continueWhile(predicate, asyncFunction);
+    });
+  }
+  return Promise.resolve();
+};
+
 module.exports = {
   ajax,
   isNullOrUndefined,
@@ -222,4 +231,5 @@ module.exports = {
   setValue,
   findValue,
   isPlainObject,
+  continueWhile,
 };

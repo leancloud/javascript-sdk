@@ -1,9 +1,12 @@
 const _ = require('underscore');
 const debug = require('debug')('leancloud:query');
-const Promise = require('./promise');
 const AVError = require('./error');
 const { _request, request } = require('./request');
-const { ensureArray, transformFetchOptions } = require('./utils');
+const {
+  ensureArray,
+  transformFetchOptions,
+  continueWhile,
+} = require('./utils');
 
 const requires = (value, message) => {
   if (value === undefined) {
@@ -1079,7 +1082,7 @@ module.exports = function(AV) {
         query.ascending('objectId');
 
         var finished = false;
-        return Promise._continueWhile(
+        return continueWhile(
           function() {
             return !finished;
           },

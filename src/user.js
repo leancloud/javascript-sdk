@@ -2,7 +2,6 @@ const _ = require('underscore');
 const uuid = require('uuid/v4');
 const AVError = require('./error');
 const { _request: AVRequest, request } = require('./request');
-const Promise = require('./promise');
 
 const PLATFORM_ANONYMOUS = 'anonymous';
 const PLATFORM_WEAPP = 'lc_weapp';

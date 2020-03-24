@@ -1,5 +1,4 @@
 const _ = require('underscore');
-const Promise = require('./promise');
 const AVRequest = require('./request')._request;
 const { getSessionToken } = require('./utils');
 

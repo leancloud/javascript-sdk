@@ -2,6 +2,7 @@
   "presets": [
     "es2015"
   ],
+  "plugins": ["transform-runtime"],
   "env": {
     "test": {
       "plugins": ["istanbul"]

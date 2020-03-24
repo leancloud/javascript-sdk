@@ -1,7 +1,6 @@
 const _ = require('underscore');
 const md5 = require('md5');
 const { extend } = require('underscore');
-const Promise = require('./promise');
 const AV = require('./av');
 const { getSessionToken, ajax } = require('./utils');
 
