@@ -1,4 +1,4 @@
-const adapters = require('@leancloud/runtime-adapters-node');
+const adapters = require('@leancloud/platform-adapters-node');
 const getUA = require('../ua');
 const comments = (process.env.CLIENT_PLATFORM
   ? [process.env.CLIENT_PLATFORM]

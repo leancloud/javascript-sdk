@@ -22,14 +22,14 @@
     "prepublishOnly": "./script/check-version.js"
   },
   "dependencies": {
-    "@leancloud/adapter-types": "^1.0.1",
-    "@leancloud/runtime-adapters-browser": "^1.0.1",
-    "@leancloud/runtime-adapters-node": "^1.0.1",
-    "@leancloud/runtime-adapters-weapp": "^1.0.2",
+    "@leancloud/adapter-types": "^1.0.2",
+    "@leancloud/platform-adapters-browser": "^1.0.2",
+    "@leancloud/platform-adapters-node": "^1.0.2",
+    "@leancloud/platform-adapters-weapp": "^1.0.3",
     "babel-runtime": "^6.26.0",
     "debug": "^3.1.0",
     "eventemitter3": "^2.0.3",
-    "leancloud-realtime": "^5.0.0-rc.1",
+    "leancloud-realtime": "^5.0.0-rc.2",
     "leancloud-realtime-plugin-live-query": "^1.2.0",
     "md5": "^2.0.0",
     "promise-timeout": "^1.3.0",
@@ -75,7 +75,7 @@
     "email": "support@leancloud.rocks"
   },
   "browser": {
-    "@leancloud/runtime-adapters-node": "@leancloud/runtime-adapters-browser",
+    "@leancloud/platform-adapters-node": "@leancloud/platform-adapters-browser",
     "./src/utils/parse-base64.js": "./src/utils/parse-base64-browser.js",
     "./src/ua/comments.js": "./src/ua/comments-browser.js",
     "./dist/cjs/entry/index.js": "./dist/av-min.js"
@@ -84,7 +84,7 @@
     "./dist/cjs/entry/index.js": "./dist/av-rn-min.js"
   },
   "weapp": {
-    "@leancloud/runtime-adapters-node": "@leancloud/runtime-adapters-weapp",
+    "@leancloud/platform-adapters-node": "@leancloud/platform-adapters-weapp",
     "./dist/cjs/entry/index.js": "./dist/av-weapp-min.js"
   },
   "typings": "./storage.d.ts",
