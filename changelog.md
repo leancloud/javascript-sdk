@@ -1,3 +1,9 @@
+## 4.5.2 (2020-03-27)
+
+### Bug Fixes
+
+- 修复了微信小程序中引入 SDK 抛异常 `Cannot read property 'core-js_shared' of undefined` 的问题。
+
 ## 4.5.1 (2020-03-24)
 
 ### Bug Fixes
