@@ -15,10 +15,11 @@
     "test:real": "cross-env REAL_BACKEND=1 npm run test:node",
     "docs": "jsdoc src README.md package.json -d docs -c .jsdocrc.json",
     "build:cjs": "babel src --out-dir dist/cjs",
+    "build:core": "cross-env webpack --config webpack/core.js",
     "build:browser": "cross-env CLIENT_PLATFORM=Browser webpack --config webpack/browser.js",
     "build:weapp": "cross-env CLIENT_PLATFORM=Weapp webpack --config webpack/weapp.js",
-    "build": "rimraf dist && npm run build:cjs && npm run build:browser && npm run build:weapp && npm run build:live-query",
-    "build:live-query": "export LIVE_QUERY=1 && npm run build:browser && npm run build:weapp",
+    "build:platforms": "npm run build:core && npm run build:browser && npm run build:weapp",
+    "build": "rimraf dist && npm run build:cjs && npm run build:platforms && cross-env LIVE_QUERY=1 npm run build:platforms",
     "prepublishOnly": "./script/check-version.js"
   },
   "dependencies": {
