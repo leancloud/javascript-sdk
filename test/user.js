@@ -79,10 +79,6 @@ describe('User', function() {
       AV.User.loginWithEmail(email, password).then(function(user) {
         expect(user.get('username')).to.be(username);
       }));
-
-    it('should fail when sessionToken is undefined', function() {
-      return AV.User.become().should.be.rejected();
-    });
   });
 
   describe('Current User', function() {
@@ -431,5 +427,11 @@ describe('User', function() {
       AV._useMasterKey = true;
       AV.User._currentUser = originalUser;
     });
+  });
+});
+
+describe('User.become', function() {
+  it('should fail when sessionToken is undefined', function() {
+    return AV.User.become().should.be.rejected();
   });
 });
