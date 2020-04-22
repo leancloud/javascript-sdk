@@ -147,6 +147,9 @@ describe('User', function() {
           .then(function(user) {
             return user.updatePassword(password, 'new pass').then(resp => {
               user.getSessionToken().should.be.eql(resp.sessionToken);
+              AV.User.current()
+                .getSessionToken()
+                .should.be.eql(resp.sessionToken);
               return resp;
             });
           })
