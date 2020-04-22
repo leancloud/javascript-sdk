@@ -782,8 +782,8 @@ module.exports = function(AV) {
         };
         var request = AVRequest(route, null, null, 'PUT', params, options);
         return request.then(resp => {
-          this._sessionToken = resp.sessionToken;
-          return resp;
+          this._finishFetch(this.parse(resp));
+          return this._handleSaveResult(true).then(() => resp);
         });
       },
 

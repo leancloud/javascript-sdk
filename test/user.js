@@ -146,10 +146,26 @@ describe('User', function() {
         return AV.User.logIn(username, password)
           .then(function(user) {
             return user.updatePassword(password, 'new pass').then(resp => {
+              let getStoredUser = function() {
+                let origin = {
+                  _currentUser: AV.User._currentUser,
+                  _currentUserMatchesDisk: AV.User._currentUserMatchesDisk,
+                };
+                AV.User._currentUser = undefined;
+                AV.User._currentUserMatchesDisk = false;
+                let storedUser = AV.User.current();
+                Object.assign(AV.User, origin);
+                return storedUser;
+              };
+
               user.getSessionToken().should.be.eql(resp.sessionToken);
               AV.User.current()
                 .getSessionToken()
                 .should.be.eql(resp.sessionToken);
+              getStoredUser()
+                .getSessionToken()
+                .should.be.eql(resp.sessionToken);
+
               return resp;
             });
           })
