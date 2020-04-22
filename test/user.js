@@ -145,7 +145,10 @@ describe('User', function() {
       it('should update password', function() {
         return AV.User.logIn(username, password)
           .then(function(user) {
-            return user.updatePassword(password, 'new pass');
+            return user.updatePassword(password, 'new pass').then(resp => {
+              user.getSessionToken().should.be.eql(resp.sessionToken);
+              return resp;
+            });
           })
           .then(function() {
             return AV.User.logIn(username, 'new pass');

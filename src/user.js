@@ -781,7 +781,10 @@ module.exports = function(AV) {
           new_password: newPassword,
         };
         var request = AVRequest(route, null, null, 'PUT', params, options);
-        return request;
+        return request.then(resp => {
+          this._sessionToken = resp.sessionToken;
+          return resp;
+        });
       },
 
       /**
