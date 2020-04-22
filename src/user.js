@@ -1012,6 +1012,12 @@ module.exports = function(AV) {
       },
 
       _fetchUserBySessionToken: function(sessionToken) {
+        if (sessionToken === undefined) {
+          return Promise.reject(
+            new Error('The sessionToken cannot be undefined')
+          );
+        }
+
         var user = AV.Object._create('_User');
         return request({
           method: 'GET',
