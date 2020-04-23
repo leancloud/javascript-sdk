@@ -158,13 +158,9 @@ describe('User', function() {
                 return storedUser;
               };
 
-              user.getSessionToken().should.be.eql(resp.sessionToken);
-              AV.User.current()
-                .getSessionToken()
-                .should.be.eql(resp.sessionToken);
-              getStoredUser()
-                .getSessionToken()
-                .should.be.eql(resp.sessionToken);
+              [user, AV.User.current(), getStoredUser()].forEach(user =>
+                user.getSessionToken().should.be.eql(resp.sessionToken)
+              );
 
               return resp;
             });
