@@ -82,7 +82,6 @@
     "./dist/cjs/entry/index.js": "./dist/av-rn-min.js"
   },
   "weapp": {
-    "@leancloud/platform-adapters-node": "@leancloud/platform-adapters-weapp",
     "./dist/cjs/entry/index.js": "./dist/av-weapp-min.js"
   },
   "typings": "./storage.d.ts",
