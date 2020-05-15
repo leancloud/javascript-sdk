@@ -1,6 +1,7 @@
-const { create, entry, name } = require('./common');
+const { create, name } = require('./common');
 
 const config = create();
+const entry = './src/entry/index-weapp.js';
 
 config.entry = {
   [`${name}-weapp`]: entry,
