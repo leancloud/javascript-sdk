@@ -681,6 +681,12 @@ interface MiniappOptions extends UnionOptions {
 
 interface MiniappLoginOptions extends OAuthLoginOptions, MiniappOptions {}
 
+interface AuthInfo {
+  authData: { [key: string]: any };
+  provider: string;
+  platform?: string;
+}
+
 /**
  * @class
  *
@@ -704,6 +710,10 @@ export class User extends Object {
   static become(sessionToken: string): Promise<User>;
 
   static loginAnonymously(): Promise<User>;
+  static loginWithMiniApp(
+    authInfo?: AuthInfo,
+    options?: OAuthLoginOptions
+  ): Promise<User>;
   static loginWithWeapp(options?: MiniappLoginOptions): Promise<User>;
   static loginWithWeappWithUnionId(
     unionId: string,
