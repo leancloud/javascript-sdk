@@ -57,7 +57,7 @@ exports.create = () => ({
     ],
   },
   plugins: [
-    new webpack.EnvironmentPlugin(['CLIENT_PLATFORM']),
+    new webpack.EnvironmentPlugin(['PLATFORM']),
     new webpack.optimize.UglifyJsPlugin({
       include: /-min\.js$/,
       sourceMap: true,
