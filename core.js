@@ -1,1 +1,1 @@
-module.exports = require('./dist/cjs/entry/core');
+module.exports = require('./dist/av-core');

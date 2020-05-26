@@ -1,1 +1,1 @@
-module.exports = require('./dist/cjs/entry/index-live-query');
+module.exports = require('./dist/node/entry/index-live-query');
