@@ -76,14 +76,14 @@
     "@leancloud/platform-adapters-node": "@leancloud/platform-adapters-browser",
     "./src/utils/parse-base64.js": "./src/utils/parse-base64-browser.js",
     "./src/ua/comments.js": "./src/ua/comments-browser.js",
-    "./dist/node/entry/index.js": "./dist/av-min.js"
+    "./dist/node/entry/index.js": "./dist/av.js"
   },
   "react-native": {
     "./dist/node/entry/index.js": "./dist/av-core.js"
   },
   "weapp": {
     "@leancloud/platform-adapters-node": "@leancloud/platform-adapters-weapp",
-    "./dist/node/entry/index.js": "./dist/av-weapp-min.js"
+    "./dist/node/entry/index.js": "./dist/av-weapp.js"
   },
   "typings": "./storage.d.ts",
   "types": "./storage.d.ts",
