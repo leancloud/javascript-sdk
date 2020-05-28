@@ -2,9 +2,16 @@
 
 ### Features
 
+- 增加了以下平台无关的小程序登录方法，通过各平台 Adapters 生成的 `authInfo` 进行登录：
+  - `AV.User.loginWithMiniApp`
+  - `AV.User#loginWithMiniApp`
+- 增加了 `AV.User.mergeUnionId` 方法用于合并 `authInfo` 与 `unionId`。
+
 ### Bug Fixes
 
 - 修复了 React Native 上导入 SDK 抛异常的问题。详细的安装步骤参见 [《JavaScript SDK 安装指南 · React Native》](https://url.leanapp.cn/react-native-setup)。
+- 修复了通过 `AV.User.updatePassword` 更新密码后，未能同步更新当前用户的 `sessionToken` 的问题。
+- 修复了调用 `AV.User.become` 时，传递空 `sessionToken` 未抛异常的问题。
 
 ## 4.5.3 (2020-04-03)
 
