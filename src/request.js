@@ -2,7 +2,8 @@ const _ = require('underscore');
 const md5 = require('md5');
 const { extend } = require('underscore');
 const AV = require('./av');
-const { getSessionToken, ajax } = require('./utils');
+const { getSessionToken } = require('./utils');
+const ajax = require('./utils/ajax');
 
 // 计算 X-LC-Sign 的签名方法
 const sign = (key, isMasterKey) => {

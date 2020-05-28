@@ -33,6 +33,7 @@ exports.create = () => ({
           /node_modules\/leancloud-realtime/,
           /node_modules\/event-target-shim/,
           /node_modules\/superagent/,
+          /node_modules\/@leancloud\/platform-adapters-/,
         ],
         loader: 'babel-loader',
         query: {
