@@ -1,3 +1,11 @@
+# 4.6.0 (2020-03-18)
+
+### Features
+
+### Bug Fixes
+
+- 修复了 React Native 上导入 SDK 抛异常的问题。详细的安装步骤参见 [《JavaScript SDK 安装指南 · React Native》](https://url.leanapp.cn/react-native-setup)。
+
 ## 4.5.3 (2020-04-03)
 
 ### Bug Fixes
@@ -24,7 +32,7 @@
 
 # 4.5.0 (2020-03-18)
 
-SDK [计划](https://github.com/leancloud/javascript-sdk/wiki/Roadmap)在 5.0 中支持同时访问多个应用。在此之前，尽管当前版本中重复初始化 SDK 存在导致预期之外且难以追查的问题的风险，改变当前访问的应用的能力在很多场景下依然是有价值的。因此在这个版本中 SDK 允许通过多次调用 `init` 方法进行重新初始化。
+SDK [计划](https://github.com/leancloud/javascript-sdk/wiki/Roadmap) 在 5.0 中支持同时访问多个应用。在此之前，尽管当前版本中重复初始化 SDK 存在导致预期之外且难以追查的问题的风险，改变当前访问的应用的能力在很多场景下依然是有价值的。因此在这个版本中 SDK 允许通过多次调用 `init` 方法进行重新初始化。
 
 ### Features
 
