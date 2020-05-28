@@ -1,5 +1,5 @@
 const _ = require('underscore');
-const { ajax } = require('../utils');
+const ajax = require('../utils/ajax');
 
 module.exports = function upload(uploadInfo, data, file, saveOptions = {}) {
   file.attributes.url = uploadInfo.url;

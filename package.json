@@ -11,7 +11,7 @@
     "precommit": "pretty-quick --staged",
     "lint": "tsc storage.d.ts --strict",
     "test": "npm run lint && npm run test:node",
-    "test:node": "cross-env NODE_ENV=test nyc --reporter lcov --reporter text mocha --timeout 300000 test/index.js",
+    "test:node": "cross-env NODE_ENV=test PLATFORM=NODE_JS nyc --reporter lcov --reporter text mocha --timeout 300000 test/index.js",
     "test:real": "cross-env REAL_BACKEND=1 npm run test:node",
     "docs": "jsdoc src README.md package.json -d docs -c .jsdocrc.json",
     "build:node": "cross-env PLATFORM=NODE_JS babel src --out-dir dist/node",
@@ -23,10 +23,10 @@
     "prepublishOnly": "./script/check-version.js"
   },
   "dependencies": {
-    "@leancloud/adapter-types": "^1.0.2",
-    "@leancloud/platform-adapters-browser": "^1.0.2",
-    "@leancloud/platform-adapters-node": "^1.0.2",
-    "@leancloud/platform-adapters-weapp": "^1.0.3",
+    "@leancloud/adapter-types": "^3.0.0",
+    "@leancloud/platform-adapters-browser": "^1.1.0",
+    "@leancloud/platform-adapters-node": "^1.1.0",
+    "@leancloud/platform-adapters-weapp": "^1.2.0",
     "babel-runtime": "^6.26.0",
     "debug": "^3.1.0",
     "eventemitter3": "^2.0.3",
@@ -75,7 +75,6 @@
   "browser": {
     "@leancloud/platform-adapters-node": "@leancloud/platform-adapters-browser",
     "./src/utils/parse-base64.js": "./src/utils/parse-base64-browser.js",
-    "./src/ua/comments.js": "./src/ua/comments-browser.js",
     "./dist/node/entry/index.js": "./dist/av.js"
   },
   "react-native": {

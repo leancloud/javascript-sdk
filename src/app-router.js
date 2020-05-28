@@ -1,4 +1,4 @@
-const { ajax } = require('./utils');
+const ajax = require('./utils/ajax');
 const Cache = require('./cache');
 
 function AppRouter(AV) {

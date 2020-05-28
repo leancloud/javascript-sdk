@@ -1,9 +1,9 @@
 const _ = require('underscore');
 const uuid = require('uuid/v4');
 const debug = require('debug');
-const getUA = require('./ua');
 const { inherits, parseDate } = require('./utils');
-const { setAdapters } = require('./adapter');
+const version = require('./version');
+const { setAdapters, adapterManager } = require('./adapter');
 
 const AV = global.AV || {};
 
@@ -16,11 +16,32 @@ AV._config = {
   requestTimeout: null,
 };
 
+const initialUserAgent = `LeanCloud-JS-SDK/${version}`;
+
 // configs shared by all AV instances
 AV._sharedConfig = {
-  userAgent: getUA(),
+  userAgent: initialUserAgent,
   liveQueryRealtime: null,
 };
+
+adapterManager.on('platformInfo', platformInfo => {
+  let ua = initialUserAgent;
+  if (platformInfo) {
+    if (platformInfo.userAgent) {
+      ua = platformInfo.userAgent;
+    } else {
+      let comments = platformInfo.name;
+      if (platformInfo.version) {
+        comments += `/${platformInfo.version}`;
+      }
+      if (platformInfo.extra) {
+        comments += `; ${platformInfo.extra}`;
+      }
+      ua += ` (${comments})`;
+    }
+  }
+  AV._sharedConfig.userAgent = ua;
+});
 
 /**
  * Contains all AV API classes and functions.
