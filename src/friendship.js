@@ -1,5 +1,4 @@
 const _ = require('underscore');
-const Promise = require('./promise');
 const { request } = require('./request');
 const { getSessionToken } = require('./utils');
 const AV = require('./av');
@@ -20,13 +19,17 @@ AV.FriendshipRequest = AV.Object.extend(
     decline() {},
   },
   {
-    getQuery(userId) {
-      return new AV.Query(AV.FriendshipRequest)
-        .equalTo('friend', AV.Object.createWithoutData(AV.User, userId))
-        .include('friend,user');
+    getFriendQuery(friendObjectId) {
+      return this.query
+        .include('user')
+        .equalTo(
+          'friend',
+          AV.Object.createWithoutData(AV.User, friendObjectId)
+        );
     },
   }
 );
+AV.Object.register(AV.FriendshipRequest);
 
 const requireUserLogin = authOptions => {
   const sessionToken = getSessionToken(authOptions);
@@ -41,30 +44,41 @@ const requireUserLogin = authOptions => {
   );
 };
 
-const Followee = AV.Object.extend('_Followee');
 AV.Friendship = AV.Object.extend(
   '_Followee',
   /** @lends AV.Friendship.prototype */ {},
   {
-    request(userId, options = {}) {
-      return requireUserLogin(options).then(() => {
-        if (!_.isString(userId)) {
-          throw new TypeError('userId must be a valid objectId');
+    request(id, options = {}) {
+      return requireUserLogin(options).then(currentUser => {
+        if (!_.isString(id)) {
+          throw new TypeError(
+            'The ID of the requested user must be a valid objectId'
+          );
         }
         const friendshipReq = new AV.FriendshipRequest();
-        options._makeRequest = (route, className, id, method, json) =>
+        const _makeRequest = (route, className, _id, method, payload) =>
           request({
-            path: `/users/self/friendship/${encodeURIComponent(
-              userId
-            )}/request`,
+            path: '/users/friendshipRequests',
             method: 'POST',
-            data: json,
+            data: {
+              // TODO: to be removed
+              user: currentUser._toPointer(),
+              friend: AV.Object.createWithoutData(AV.User, id)._toPointer(),
+              friendship: payload,
+            },
           });
         return friendshipReq
-          .save(options.attributes, options)
+          .save(options.attributes, _.extend({ _makeRequest }, options))
           .then(() => undefined);
       });
     },
+
+    getQuery(friendObjectId) {
+      return this.query
+        .include('friend')
+        .equalTo('friendStatus', true)
+        .equalTo('user', AV.Object.createWithoutData(AV.User, friendObjectId));
+    },
   }
 );
-AV.Object.register(Followee);
+// AV.Object.register(AV.Friendship);

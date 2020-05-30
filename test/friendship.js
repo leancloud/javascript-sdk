@@ -18,23 +18,30 @@ describe('Friendship', () => {
       const result = await AV.Friendship.request(this.targetUser.id);
       expect(result).to.equal(undefined);
     });
-    it('requires objectId', function() {
+    it('requires target user ID', function() {
       AV.Friendship.request().should.be.rejected();
     });
   });
 
   describe('query', () => {
     before(function() {
-      return AV.Friendship.request(this.targetUser.id);
+      return AV.Friendship.request(this.targetUser.id, {
+        attributes: {
+          group: 'closed',
+        },
+      });
     });
 
     it('should get result', async function() {
-      const requests = await AV.FriendshipRequest.getQuery(
+      const requests = await AV.FriendshipRequest.getFriendQuery(
         this.targetUser.id
       ).find({
         user: this.targetUser,
       });
-      console.log(requests.map(r => r.toJSON()));
+      requests.should.be.length(1);
+      requests[0]
+        .get('status')
+        .should.be.eql(AV.FriendshipRequestStatus.PENDING);
     });
   });
 });
