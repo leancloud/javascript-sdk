@@ -880,7 +880,7 @@ module.exports = function(AV) {
       },
 
       /**
-       * 检查该用户的登录状态是否有效，请注意该方法会校验 sessionToken 的有效性，是个异步方法。
+       * Detects if current sessionToken is valid.
        *
        * @since 2.0.0
        * @return Promise.<Boolean>
@@ -1046,7 +1046,7 @@ module.exports = function(AV) {
       },
 
       /**
-       * Sign up or logs in a user with a mobilePhoneNumber and smsCode.
+       * Signs up or logs in a user with a mobilePhoneNumber and smsCode.
        * On success, this saves the session to disk, so you can retrieve the currently
        * logged in user using <code>current</code>.
        *
@@ -1111,7 +1111,7 @@ module.exports = function(AV) {
       },
 
       /**
-       * Sign up or logs in a user with a third party auth data(AccessToken).
+       * Signs up or logs in a user with a third party auth data(AccessToken).
        * On success, this saves the session to disk, so you can retrieve the currently
        * logged in user using <code>current</code>.
        *
@@ -1148,7 +1148,7 @@ module.exports = function(AV) {
       },
 
       /**
-       * Sign up or logs in a user with a third party authData and unionId.
+       * Signs up or logs in a user with a third party authData and unionId.
        * @since 3.7.0
        * @param {Object} authData The response json data returned from third party token, maybe like { openid: 'abc123', access_token: '123abc', expires_in: 1382686496 }
        * @param {string} platform Available platform for sign up.
