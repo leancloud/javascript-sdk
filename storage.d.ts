@@ -358,6 +358,9 @@ export class Object extends BaseObject {
   fetchWhenSave(enable: boolean): void;
   get(attr: string): any;
   getACL(): ACL;
+  getCreatedAt(): Date;
+  getObjectId(): String;
+  getUpdatedAt(): Date;
   has(attr: string): boolean;
   increment(attr: string, amount?: number): this;
   isValid(): boolean;
