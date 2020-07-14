@@ -83,8 +83,7 @@ module.exports = function(AV) {
        * @param {String} data.mobilePhoneNumber
        * @param {String} [data.template] sms template name
        * @param {String} [data.sign] sms signature name
-       * @param {AuthOptions} [options] AuthOptions plus:
-       * @param {String} [options.validateToken] a validate token returned by {@link AV.Cloud.verifyCaptcha}
+       * @param {SMSAuthOptions} [options]
        * @return {Promise} A promise that will be resolved if the request succeed
        */
       requestSmsCode(data, options = {}) {

@@ -1537,8 +1537,7 @@ module.exports = function(AV) {
        *
        * @param {String} mobilePhoneNumber The mobile phone number associated with the
        *                  user that doesn't verify their mobile phone number.
-       * @param {AuthOptions} [options] AuthOptions plus:
-       * @param {String} [options.validateToken] a validate token returned by {@link AV.Cloud.verifyCaptcha}
+       * @param {SMSAuthOptions} [options]
        * @return {Promise}
        */
       requestMobilePhoneVerify: function(mobilePhoneNumber, options = {}) {
@@ -1566,8 +1565,7 @@ module.exports = function(AV) {
        *
        * @param {String} mobilePhoneNumber The mobile phone number  associated with the
        *                  user that doesn't verify their mobile phone number.
-       * @param {AuthOptions} [options] AuthOptions plus:
-       * @param {String} [options.validateToken] a validate token returned by {@link AV.Cloud.verifyCaptcha}
+       * @param {SMSAuthOptions} [options]
        * @return {Promise}
        */
       requestPasswordResetBySmsCode: function(mobilePhoneNumber, options = {}) {
@@ -1594,8 +1592,7 @@ module.exports = function(AV) {
        * calling {@link AV.User.changePhoneNumber}
        * @param {String} mobilePhoneNumber
        * @param {Number} [ttl] ttl of sms code (default is 6 minutes)
-       * @param {AuthOptions} [options] AuthOptions plus:
-       * @param {String} [options.validateToken] a validate token returned by {@link AV.Cloud.verifyCaptcha}
+       * @param {SMSAuthOptions} [options]
        * @return {Promise}
        */
       requestChangePhoneNumber(mobilePhoneNumber, ttl, options) {
@@ -1667,8 +1664,7 @@ module.exports = function(AV) {
        *
        * @param {String} mobilePhoneNumber The mobile phone number  associated with the
        *           user that want to login by AV.User.logInWithMobilePhoneSmsCode
-       * @param {AuthOptions} [options] AuthOptions plus:
-       * @param {String} [options.validateToken] a validate token returned by {@link AV.Cloud.verifyCaptcha}
+       * @param {SMSAuthOptions} [options]
        * @return {Promise}
        */
       requestLoginSmsCode: function(mobilePhoneNumber, options = {}) {
