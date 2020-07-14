@@ -787,6 +787,15 @@ export class User extends Object {
     options?: AuthOptions
   ): Promise<User>;
   static verifyMobilePhone(code: string, options?: AuthOptions): Promise<User>;
+  static requestChangePhoneNumber(
+    mobilePhoneNumber: string,
+    ttl?: number,
+    options?: SMSAuthOptions
+  ): Promise<void>;
+  static changePhoneNumber(
+    mobilePhoneNumber: string,
+    code: string
+  ): Promise<void>;
 
   static followerQuery<T extends User>(userObjectId: string): Query<T>;
   static followeeQuery<T extends User>(userObjectId: string): Query<T>;
