@@ -1590,6 +1590,7 @@ module.exports = function(AV) {
        * Requests a change mobile phone number sms code to be sent to the mobilePhoneNumber.
        * This sms code allows current user to reset it's mobilePhoneNumber by
        * calling {@link AV.User.changePhoneNumber}
+       * @since 4.7.0
        * @param {String} mobilePhoneNumber
        * @param {Number} [ttl] ttl of sms code (default is 6 minutes)
        * @param {SMSAuthOptions} [options]
@@ -1616,6 +1617,7 @@ module.exports = function(AV) {
       /**
        * Makes a call to reset user's account mobilePhoneNumber by sms code.
        * The sms code is sent by {@link AV.User.requestChangePhoneNumber}
+       * @since 4.7.0
        * @param {String} mobilePhoneNumber
        * @param {String} code The sms code.
        * @return {Promise}
