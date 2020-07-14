@@ -1,3 +1,11 @@
+# 4.7.0（2020-07-14）
+
+### Features
+
+- 增加下列方法以支持在修改手机号之前进行验证：
+  - `AV.User.requestChangePhoneNumber`
+  - `AV.User.changePhoneNumber`
+
 ## 4.6.1 (2020-06-05)
 
 ### Bug Fixes
