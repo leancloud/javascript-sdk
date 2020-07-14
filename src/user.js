@@ -990,34 +990,6 @@ module.exports = function(AV) {
       getRoles(options) {
         return AV.Relation.reverseQuery('_Role', 'users', this).find(options);
       },
-
-      /**
-       * Requests a change mobile phone number sms code to be sent to the mobilePhoneNumber.
-       * This sms code allows current user to reset it's mobilePhoneNumber.
-       * by calling {@link AV.User.changePhoneNumber}
-       * @param {String} mobilePhoneNumber
-       * @param {Number} [ttl] ttl of sms code (default is 6 minutes)
-       * @param {AuthOptions} [options] AuthOptions plus:
-       * @param {String} [options.validateToken] a validate token returned by {@link AV.Cloud.verifyCaptcha}
-       * @return {Promise}
-       */
-      requestChangePhoneNumber(mobilePhoneNumber, ttl, options) {
-        const data = { mobilePhoneNumber };
-        if (ttl) {
-          data.ttl = options.ttl;
-        }
-        if (options && options.validateToken) {
-          data.validate_token = options.validateToken;
-        }
-        return AVRequest(
-          'requestChangePhoneNumber',
-          null,
-          null,
-          'POST',
-          data,
-          options
-        );
-      },
     },
     /** @lends AV.User */ {
       // Class Variables
@@ -1614,6 +1586,34 @@ module.exports = function(AV) {
           options
         );
         return request;
+      },
+
+      /**
+       * Requests a change mobile phone number sms code to be sent to the mobilePhoneNumber.
+       * This sms code allows current user to reset it's mobilePhoneNumber.
+       * by calling {@link AV.User.changePhoneNumber}
+       * @param {String} mobilePhoneNumber
+       * @param {Number} [ttl] ttl of sms code (default is 6 minutes)
+       * @param {AuthOptions} [options] AuthOptions plus:
+       * @param {String} [options.validateToken] a validate token returned by {@link AV.Cloud.verifyCaptcha}
+       * @return {Promise}
+       */
+      requestChangePhoneNumber(mobilePhoneNumber, ttl, options) {
+        const data = { mobilePhoneNumber };
+        if (ttl) {
+          data.ttl = options.ttl;
+        }
+        if (options && options.validateToken) {
+          data.validate_token = options.validateToken;
+        }
+        return AVRequest(
+          'requestChangePhoneNumber',
+          null,
+          null,
+          'POST',
+          data,
+          options
+        );
       },
 
       /**
