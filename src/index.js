@@ -11,7 +11,7 @@ const AV = require('./av');
 
 AV._ = _;
 AV.version = require('./version');
-AV.Promise = require('./promise');
+AV.Promise = Promise;
 AV.localStorage = require('./localstorage');
 AV.Cache = require('./cache');
 AV.Error = require('./error');
@@ -45,4 +45,13 @@ module.exports = AV;
  * @property {String} [sessionToken] Specify a user to excute the operation as.
  * @property {AV.User} [user] Specify a user to excute the operation as. The user must have _sessionToken. This option will be ignored if sessionToken option provided.
  * @property {Boolean} [useMasterKey] Indicates whether masterKey is used for this operation. Only valid when masterKey is set.
+ */
+
+/**
+ * Options to controll the authentication for an SMS operation
+ * @typedef {Object} SMSAuthOptions
+ * @property {String} [sessionToken] Specify a user to excute the operation as.
+ * @property {AV.User} [user] Specify a user to excute the operation as. The user must have _sessionToken. This option will be ignored if sessionToken option provided.
+ * @property {Boolean} [useMasterKey] Indicates whether masterKey is used for this operation. Only valid when masterKey is set.
+ * @property {String} [validateToken] a validate token returned by {@link AV.Cloud.verifyCaptcha}
  */

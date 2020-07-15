@@ -27,6 +27,19 @@ module.exports = function(uploadInfo, data, file, saveOptions = {}) {
   return upload(url, fileFormData, options).then(
     response => {
       debug(response.status, response.data);
+      if (response.ok === false) {
+        let message = response.status;
+        if (response.data) {
+          if (response.data.error) {
+            message = response.data.error;
+          } else {
+            message = JSON.stringify(response.data);
+          }
+        }
+        const error = new Error(message);
+        error.response = response;
+        throw error;
+      }
       return file;
     },
     error => {

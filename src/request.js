@@ -1,9 +1,9 @@
 const _ = require('underscore');
 const md5 = require('md5');
 const { extend } = require('underscore');
-const Promise = require('./promise');
 const AV = require('./av');
-const { getSessionToken, ajax } = require('./utils');
+const { getSessionToken } = require('./utils');
+const ajax = require('./utils/ajax');
 
 // 计算 X-LC-Sign 的签名方法
 const sign = (key, isMasterKey) => {
@@ -54,7 +54,7 @@ const setHeaders = (authOptions = {}, signKey) => {
   if (AV._config.production !== null) {
     headers['X-LC-Prod'] = String(AV._config.production);
   }
-  headers[!process.env.CLIENT_PLATFORM ? 'User-Agent' : 'X-LC-UA'] =
+  headers[process.env.PLATFORM === 'NODE_JS' ? 'User-Agent' : 'X-LC-UA'] =
     AV._sharedConfig.userAgent;
 
   return Promise.resolve().then(() => {

@@ -4,7 +4,6 @@ const qiniu = require('./uploader/qiniu');
 const s3 = require('./uploader/s3');
 const AVError = require('./error');
 const AVRequest = require('./request')._request;
-const Promise = require('./promise');
 const { tap, transformFetchOptions } = require('./utils');
 const debug = require('debug')('leancloud:file');
 const parseBase64 = require('./utils/parse-base64');

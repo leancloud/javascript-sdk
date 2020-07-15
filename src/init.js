@@ -78,7 +78,7 @@ AV.init = function init(options, ...params) {
     );
   if (!appId) throw new TypeError('appId must be a string');
   if (!appKey) throw new TypeError('appKey must be a string');
-  if (process.env.CLIENT_PLATFORM && masterKey)
+  if (process.env.PLATFORM !== 'NODE_JS' && masterKey)
     console.warn('MasterKey is not supposed to be used at client side.');
   if (isCNApp(appId)) {
     if (!serverURLs && isEmpty(AV._config.serverURLs)) {
@@ -131,7 +131,7 @@ AV.init = function init(options, ...params) {
 };
 
 // If we're running in node.js, allow using the master key.
-if (!process.env.CLIENT_PLATFORM) {
+if (process.env.PLATFORM === 'NODE_JS') {
   AV.Cloud = AV.Cloud || {};
   /**
    * Switches the LeanCloud SDK to using the Master key.  The Master key grants

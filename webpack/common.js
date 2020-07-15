@@ -30,11 +30,15 @@ exports.create = () => ({
         test: /\.js$/,
         include: [
           path.resolve(__dirname, '../src'),
+          /node_modules\/leancloud-realtime/,
           /node_modules\/event-target-shim/,
+          /node_modules\/superagent/,
+          /node_modules\/@leancloud\/platform-adapters-/,
         ],
         loader: 'babel-loader',
         query: {
           presets: ['es2015'],
+          plugins: ['transform-runtime'],
         },
       },
       {
@@ -54,7 +58,7 @@ exports.create = () => ({
     ],
   },
   plugins: [
-    new webpack.EnvironmentPlugin(['CLIENT_PLATFORM']),
+    new webpack.EnvironmentPlugin(['PLATFORM']),
     new webpack.optimize.UglifyJsPlugin({
       include: /-min\.js$/,
       sourceMap: true,

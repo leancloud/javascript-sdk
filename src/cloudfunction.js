@@ -1,6 +1,5 @@
 const _ = require('underscore');
 const { _request, request } = require('./request');
-const Promise = require('./promise');
 
 module.exports = function(AV) {
   /**
@@ -85,8 +84,7 @@ module.exports = function(AV) {
        * @param {String} [data.template] sms template name
        * @param {String} [data.sign] sms signature name
        * @param {String} [data.smsType] sending code by `sms` (default) or `voice` call
-       * @param {AuthOptions} [options] AuthOptions plus:
-       * @param {String} [options.validateToken] a validate token returned by {@link AV.Cloud.verifyCaptcha}
+       * @param {SMSAuthOptions} [options]
        * @return {Promise} A promise that will be resolved if the request succeed
        */
       requestSmsCode(data, options = {}) {

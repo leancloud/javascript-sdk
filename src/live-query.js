@@ -1,6 +1,5 @@
 const _ = require('underscore');
 const EventEmitter = require('eventemitter3');
-const Promise = require('./promise');
 const { inherits } = require('./utils');
 const { request } = require('./request');
 

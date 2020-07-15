@@ -1,4 +1,5 @@
-const { ajax } = require('../utils');
+const _ = require('underscore');
+const ajax = require('../utils/ajax');
 
 module.exports = function upload(uploadInfo, data, file, saveOptions = {}) {
   file.attributes.url = uploadInfo.url;
@@ -18,7 +19,7 @@ module.exports = function upload(uploadInfo, data, file, saveOptions = {}) {
     url: uploadInfo.upload_url,
     method: 'PUT',
     data,
-    headers: Object.assign(
+    headers: _.extend(
       {
         'Content-Type': file.get('mime_type'),
         'Cache-Control': 'public, max-age=31536000',

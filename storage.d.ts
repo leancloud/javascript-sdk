@@ -358,6 +358,9 @@ export class Object extends BaseObject {
   fetchWhenSave(enable: boolean): void;
   get(attr: string): any;
   getACL(): ACL;
+  getCreatedAt(): Date;
+  getObjectId(): String;
+  getUpdatedAt(): Date;
   has(attr: string): boolean;
   increment(attr: string, amount?: number): this;
   isValid(): boolean;
@@ -681,6 +684,12 @@ interface MiniappOptions extends UnionOptions {
 
 interface MiniappLoginOptions extends OAuthLoginOptions, MiniappOptions {}
 
+interface AuthInfo {
+  authData: { [key: string]: any };
+  provider: string;
+  platform?: string;
+}
+
 /**
  * @class
  *
@@ -704,6 +713,10 @@ export class User extends Object {
   static become(sessionToken: string): Promise<User>;
 
   static loginAnonymously(): Promise<User>;
+  static loginWithMiniApp(
+    authInfo?: AuthInfo,
+    options?: OAuthLoginOptions
+  ): Promise<User>;
   static loginWithWeapp(options?: MiniappLoginOptions): Promise<User>;
   static loginWithWeappWithUnionId(
     unionId: string,
@@ -777,6 +790,15 @@ export class User extends Object {
     options?: AuthOptions
   ): Promise<User>;
   static verifyMobilePhone(code: string, options?: AuthOptions): Promise<User>;
+  static requestChangePhoneNumber(
+    mobilePhoneNumber: string,
+    ttl?: number,
+    options?: SMSAuthOptions
+  ): Promise<void>;
+  static changePhoneNumber(
+    mobilePhoneNumber: string,
+    code: string
+  ): Promise<void>;
 
   static followerQuery<T extends User>(userObjectId: string): Query<T>;
   static followeeQuery<T extends User>(userObjectId: string): Query<T>;

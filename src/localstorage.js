@@ -1,4 +1,3 @@
-var Promise = require('./promise');
 var { getAdapter } = require('./adapter');
 
 var syncApiNames = ['getItem', 'setItem', 'removeItem', 'clear'];

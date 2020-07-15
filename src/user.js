@@ -2,45 +2,10 @@ const _ = require('underscore');
 const uuid = require('uuid/v4');
 const AVError = require('./error');
 const { _request: AVRequest, request } = require('./request');
-const Promise = require('./promise');
+const { getAdapter } = require('./adapter');
 
 const PLATFORM_ANONYMOUS = 'anonymous';
-const PLATFORM_WEAPP = 'lc_weapp';
 const PLATFORM_QQAPP = 'lc_qqapp';
-
-const getMiniappLoginCode = () => {
-  if (typeof wx === 'undefined' || typeof wx.login !== 'function') {
-    throw new Error('wx.login is not a function（当前平台不支持一键登录）');
-  }
-  return new Promise((resolve, reject) => {
-    wx.login({
-      success: ({ code, errMsg }) => {
-        if (code) {
-          resolve(code);
-        } else {
-          reject(new Error(errMsg));
-        }
-      },
-      fail: () => reject(new Error('login 失败')),
-    });
-  });
-};
-
-const getMiniappAuthData = (defaultUnionIdPlatform = 'weixin') => (
-  code,
-  {
-    preferUnionId,
-    unionIdPlatform = defaultUnionIdPlatform,
-    asMainAccount = true,
-  } = {}
-) =>
-  preferUnionId
-    ? {
-        platform: unionIdPlatform,
-        main_account: asMainAccount,
-        code,
-      }
-    : { code };
 
 const mergeUnionDataIntoAuthData = (defaultUnionIdPlatform = 'weixin') => (
   authData,
@@ -263,40 +228,74 @@ module.exports = function(AV) {
       },
 
       /**
+       * Associate the user with the identity of the current mini-app.
+       * @since 4.6.0
+       * @param {Object} authInfo
+       * @param {Object} [option]
+       * @param {Boolean} [option.failOnNotExist] If true, the login request will fail when no user matches this authInfo.authData exists.
+       * @return {Promise<AV.User>}
+       */
+      associateWithMiniApp(authInfo, option) {
+        if (authInfo === undefined) {
+          const getAuthInfo = getAdapter('getAuthInfo');
+          return getAuthInfo().then(authInfo =>
+            this._linkWith(authInfo.provider, authInfo.authData, option)
+          );
+        }
+        return this._linkWith(authInfo.provider, authInfo.authData, option);
+      },
+
+      /**
        * 将用户与 QQ 小程序用户进行关联。适用于为已经在用户系统中存在的用户关联当前使用 QQ 小程序的微信帐号。
        * 仅在 QQ 小程序中可用。
        *
+       * @deprecated Please use {@link AV.User#associateWithMiniApp}
        * @since 4.2.0
        * @param {Object} [options]
-       * @param {boolean} [options.preferUnionId] 如果服务端在登录时获取到了用户的 UnionId，是否将 UnionId 保存在用户账号中。
+       * @param {boolean} [options.preferUnionId = false] 如果服务端在登录时获取到了用户的 UnionId，是否将 UnionId 保存在用户账号中。
        * @param {string} [options.unionIdPlatform = 'qq'] (only take effect when preferUnionId) unionId platform
-       * @param {boolean} [options.asMainAccount = false] (only take effect when preferUnionId) If true, the unionId will be associated with the user.
+       * @param {boolean} [options.asMainAccount = true] (only take effect when preferUnionId) If true, the unionId will be associated with the user.
        * @return {Promise<AV.User>}
        */
-      associateWithQQApp(options) {
-        return getMiniappLoginCode().then(code =>
-          this._linkWith(
-            PLATFORM_QQAPP,
-            getMiniappAuthData('qq')(code, options)
-          )
-        );
+      associateWithQQApp({
+        preferUnionId = false,
+        unionIdPlatform = 'qq',
+        asMainAccount = true,
+      } = {}) {
+        const getAuthInfo = getAdapter('getAuthInfo');
+        return getAuthInfo({
+          preferUnionId,
+          asMainAccount,
+          platform: unionIdPlatform,
+        }).then(authInfo => {
+          authInfo.provider = PLATFORM_QQAPP;
+          return this.associateWithMiniApp(authInfo);
+        });
       },
 
       /**
        * 将用户与微信小程序用户进行关联。适用于为已经在用户系统中存在的用户关联当前使用微信小程序的微信帐号。
        * 仅在微信小程序中可用。
        *
+       * @deprecated Please use {@link AV.User#associateWithMiniApp}
        * @since 3.13.0
        * @param {Object} [options]
-       * @param {boolean} [options.preferUnionId] 当用户满足 {@link https://developers.weixin.qq.com/miniprogram/dev/framework/open-ability/union-id.html 获取 UnionId 的条件} 时，是否将 UnionId 保存在用户账号中。
+       * @param {boolean} [options.preferUnionId = false] 当用户满足 {@link https://developers.weixin.qq.com/miniprogram/dev/framework/open-ability/union-id.html 获取 UnionId 的条件} 时，是否将 UnionId 保存在用户账号中。
        * @param {string} [options.unionIdPlatform = 'weixin'] (only take effect when preferUnionId) unionId platform
-       * @param {boolean} [options.asMainAccount = false] (only take effect when preferUnionId) If true, the unionId will be associated with the user.
+       * @param {boolean} [options.asMainAccount = true] (only take effect when preferUnionId) If true, the unionId will be associated with the user.
        * @return {Promise<AV.User>}
        */
-      associateWithWeapp(options) {
-        return getMiniappLoginCode().then(code =>
-          this._linkWith(PLATFORM_WEAPP, getMiniappAuthData()(code, options))
-        );
+      associateWithWeapp({
+        preferUnionId = false,
+        unionIdPlatform = 'weixin',
+        asMainAccount = true,
+      } = {}) {
+        const getAuthInfo = getAdapter('getAuthInfo');
+        return getAuthInfo({
+          preferUnionId,
+          asMainAccount,
+          platform: unionIdPlatform,
+        }).then(authInfo => this.associateWithMiniApp(authInfo));
       },
 
       /**
@@ -314,6 +313,7 @@ module.exports = function(AV) {
        * 将用户与 QQ 小程序用户进行关联。适用于为已经在用户系统中存在的用户关联当前使用 QQ 小程序的 QQ 帐号。
        * 仅在 QQ 小程序中可用。
        *
+       * @deprecated Please use {@link AV.User#associateWithMiniApp}
        * @since 4.2.0
        * @param {string} unionId
        * @param {Object} [unionOptions]
@@ -321,19 +321,23 @@ module.exports = function(AV) {
        * @param {boolean} [unionOptions.asMainAccount = false] If true, the unionId will be associated with the user.
        * @return {Promise<AV.User>}
        */
-      associateWithQQAppWithUnionId(unionId, unionOptions) {
-        return getMiniappLoginCode().then(code =>
-          this._linkWith(
-            PLATFORM_QQAPP,
-            mergeUnionDataIntoAuthData('qq')({ code }, unionId, unionOptions)
-          )
-        );
+      associateWithQQAppWithUnionId(
+        unionId,
+        { unionIdPlatform = 'qq', asMainAccount = false } = {}
+      ) {
+        const getAuthInfo = getAdapter('getAuthInfo');
+        return getAuthInfo({ platform: unionIdPlatform }).then(authInfo => {
+          authInfo = AV.User.mergeUnionId(authInfo, unionId, { asMainAccount });
+          authInfo.provider = PLATFORM_QQAPP;
+          return this.associateWithMiniApp(authInfo);
+        });
       },
 
       /**
        * 将用户与微信小程序用户进行关联。适用于为已经在用户系统中存在的用户关联当前使用微信小程序的微信帐号。
        * 仅在微信小程序中可用。
        *
+       * @deprecated Please use {@link AV.User#associateWithMiniApp}
        * @since 3.13.0
        * @param {string} unionId
        * @param {Object} [unionOptions]
@@ -341,13 +345,15 @@ module.exports = function(AV) {
        * @param {boolean} [unionOptions.asMainAccount = false] If true, the unionId will be associated with the user.
        * @return {Promise<AV.User>}
        */
-      associateWithWeappWithUnionId(unionId, unionOptions) {
-        return getMiniappLoginCode().then(code =>
-          this._linkWith(
-            PLATFORM_WEAPP,
-            mergeUnionDataIntoAuthData()({ code }, unionId, unionOptions)
-          )
-        );
+      associateWithWeappWithUnionId(
+        unionId,
+        { unionIdPlatform = 'weixin', asMainAccount = false } = {}
+      ) {
+        const getAuthInfo = getAdapter('getAuthInfo');
+        return getAuthInfo({ platform: unionIdPlatform }).then(authInfo => {
+          authInfo = AV.User.mergeUnionId(authInfo, unionId, { asMainAccount });
+          return this.associateWithMiniApp(authInfo);
+        });
       },
 
       /**
@@ -560,71 +566,114 @@ module.exports = function(AV) {
 
       /**
        * The same with {@link AV.User.loginWithWeapp}, except that you can set attributes before login.
+       * @deprecated please use {@link AV.User#loginWithMiniApp}
        * @since 3.7.0
        * @param {Object} [options]
        * @param {boolean} [options.failOnNotExist] If true, the login request will fail when no user matches this authData exists.
        * @param {boolean} [options.preferUnionId] 当用户满足 {@link https://developers.weixin.qq.com/miniprogram/dev/framework/open-ability/union-id.html 获取 UnionId 的条件} 时，是否使用 UnionId 登录。（since 3.13.0）
        * @param {string} [options.unionIdPlatform = 'weixin'] (only take effect when preferUnionId) unionId platform
-       * @param {boolean} [options.asMainAccount = false] (only take effect when preferUnionId) If true, the unionId will be associated with the user.
+       * @param {boolean} [options.asMainAccount = true] (only take effect when preferUnionId) If true, the unionId will be associated with the user.
+       * @return {Promise<AV.User>}
        */
-      loginWithWeapp(options) {
-        return getMiniappLoginCode().then(code =>
-          this.loginWithAuthData(
-            getMiniappAuthData()(code, options),
-            PLATFORM_WEAPP,
-            options
-          )
+      loginWithWeapp({
+        preferUnionId = false,
+        unionIdPlatform = 'weixin',
+        asMainAccount = true,
+        failOnNotExist = false,
+      } = {}) {
+        const getAuthInfo = getAdapter('getAuthInfo');
+        return getAuthInfo({
+          preferUnionId,
+          asMainAccount,
+          platform: unionIdPlatform,
+        }).then(authInfo =>
+          this.loginWithMiniApp(authInfo, { failOnNotExist })
         );
       },
 
       /**
        * The same with {@link AV.User.loginWithWeappWithUnionId}, except that you can set attributes before login.
+       * @deprecated please use {@link AV.User#loginWithMiniApp}
        * @since 3.13.0
        */
-      loginWithWeappWithUnionId(unionId, unionLoginOptions) {
-        return getMiniappLoginCode().then(code =>
-          this.loginWithAuthData(
-            mergeUnionDataIntoAuthData()({ code }, unionId, unionLoginOptions),
-            PLATFORM_WEAPP,
-            unionLoginOptions
-          )
-        );
+      loginWithWeappWithUnionId(
+        unionId,
+        {
+          unionIdPlatform = 'weixin',
+          asMainAccount = false,
+          failOnNotExist = false,
+        } = {}
+      ) {
+        const getAuthInfo = getAdapter('getAuthInfo');
+        return getAuthInfo({ platform: unionIdPlatform }).then(authInfo => {
+          authInfo = AV.User.mergeUnionId(authInfo, unionId, { asMainAccount });
+          return this.loginWithMiniApp(authInfo, { failOnNotExist });
+        });
       },
 
       /**
        * The same with {@link AV.User.loginWithQQApp}, except that you can set attributes before login.
+       * @deprecated please use {@link AV.User#loginWithMiniApp}
        * @since 4.2.0
        * @param {Object} [options]
        * @param {boolean} [options.failOnNotExist] If true, the login request will fail when no user matches this authData exists.
        * @param {boolean} [options.preferUnionId] 如果服务端在登录时获取到了用户的 UnionId，是否将 UnionId 保存在用户账号中。
        * @param {string} [options.unionIdPlatform = 'qq'] (only take effect when preferUnionId) unionId platform
-       * @param {boolean} [options.asMainAccount = false] (only take effect when preferUnionId) If true, the unionId will be associated with the user.
+       * @param {boolean} [options.asMainAccount = true] (only take effect when preferUnionId) If true, the unionId will be associated with the user.
        */
-      loginWithQQApp(options) {
-        return getMiniappLoginCode().then(code =>
-          this.loginWithAuthData(
-            getMiniappAuthData('qq')(code, options),
-            PLATFORM_WEAPP,
-            options
-          )
-        );
+      loginWithQQApp({
+        preferUnionId = false,
+        unionIdPlatform = 'qq',
+        asMainAccount = true,
+        failOnNotExist = false,
+      } = {}) {
+        const getAuthInfo = getAdapter('getAuthInfo');
+        return getAuthInfo({
+          preferUnionId,
+          asMainAccount,
+          platform: unionIdPlatform,
+        }).then(authInfo => {
+          authInfo.provider = PLATFORM_QQAPP;
+          return this.loginWithMiniApp(authInfo, { failOnNotExist });
+        });
       },
 
       /**
        * The same with {@link AV.User.loginWithQQAppWithUnionId}, except that you can set attributes before login.
+       * @deprecated please use {@link AV.User#loginWithMiniApp}
        * @since 4.2.0
        */
-      loginWithQQAppWithUnionId(unionId, unionLoginOptions) {
-        return getMiniappLoginCode().then(code =>
-          this.loginWithAuthData(
-            mergeUnionDataIntoAuthData('qq')(
-              { code },
-              unionId,
-              unionLoginOptions
-            ),
-            PLATFORM_WEAPP,
-            unionLoginOptions
-          )
+      loginWithQQAppWithUnionId(
+        unionId,
+        {
+          unionIdPlatform = 'qq',
+          asMainAccount = false,
+          failOnNotExist = false,
+        } = {}
+      ) {
+        const getAuthInfo = getAdapter('getAuthInfo');
+        return getAuthInfo({ platform: unionIdPlatform }).then(authInfo => {
+          authInfo = AV.User.mergeUnionId(authInfo, unionId, { asMainAccount });
+          authInfo.provider = PLATFORM_QQAPP;
+          return this.loginWithMiniApp(authInfo, { failOnNotExist });
+        });
+      },
+
+      /**
+       * The same with {@link AV.User.loginWithMiniApp}, except that you can set attributes before login.
+       * @since 4.6.0
+       */
+      loginWithMiniApp(authInfo, option) {
+        if (authInfo === undefined) {
+          const getAuthInfo = getAdapter('getAuthInfo');
+          return getAuthInfo().then(authInfo =>
+            this.loginWithAuthData(authInfo.authData, authInfo.provider, option)
+          );
+        }
+        return this.loginWithAuthData(
+          authInfo.authData,
+          authInfo.provider,
+          option
         );
       },
 
@@ -782,7 +831,10 @@ module.exports = function(AV) {
           new_password: newPassword,
         };
         var request = AVRequest(route, null, null, 'PUT', params, options);
-        return request;
+        return request.then(resp => {
+          this._finishFetch(this.parse(resp));
+          return this._handleSaveResult(true).then(() => resp);
+        });
       },
 
       /**
@@ -1013,6 +1065,12 @@ module.exports = function(AV) {
       },
 
       _fetchUserBySessionToken: function(sessionToken) {
+        if (sessionToken === undefined) {
+          return Promise.reject(
+            new Error('The sessionToken cannot be undefined')
+          );
+        }
+
         var user = AV.Object._create('_User');
         return request({
           method: 'GET',
@@ -1196,24 +1254,48 @@ module.exports = function(AV) {
       },
 
       /**
+       * Merge unionId into authInfo.
+       * @since 4.6.0
+       * @param {Object} authInfo
+       * @param {String} unionId
+       * @param {Object} [unionIdOption]
+       * @param {Boolean} [unionIdOption.asMainAccount] If true, the unionId will be associated with the user.
+       */
+      mergeUnionId(authInfo, unionId, { asMainAccount = false } = {}) {
+        authInfo = JSON.parse(JSON.stringify(authInfo));
+        const { authData, platform } = authInfo;
+        authData.platform = platform;
+        authData.main_account = asMainAccount;
+        authData.unionid = unionId;
+        return authInfo;
+      },
+
+      /**
        * 使用当前使用微信小程序的微信用户身份注册或登录，成功后用户的 session 会在设备上持久化保存，之后可以使用 AV.User.current() 获取当前登录用户。
        * 仅在微信小程序中可用。
        *
+       * @deprecated please use {@link AV.User.loginWithMiniApp}
        * @since 2.0.0
        * @param {Object} [options]
        * @param {boolean} [options.preferUnionId] 当用户满足 {@link https://developers.weixin.qq.com/miniprogram/dev/framework/open-ability/union-id.html 获取 UnionId 的条件} 时，是否使用 UnionId 登录。（since 3.13.0）
        * @param {string} [options.unionIdPlatform = 'weixin'] (only take effect when preferUnionId) unionId platform
-       * @param {boolean} [options.asMainAccount = false] (only take effect when preferUnionId) If true, the unionId will be associated with the user.
+       * @param {boolean} [options.asMainAccount = true] (only take effect when preferUnionId) If true, the unionId will be associated with the user.
        * @param {boolean} [options.failOnNotExist] If true, the login request will fail when no user matches this authData exists. (since v3.7.0)
        * @return {Promise.<AV.User>}
        */
-      loginWithWeapp(options) {
-        return getMiniappLoginCode().then(code =>
-          this.loginWithAuthData(
-            getMiniappAuthData()(code, options),
-            PLATFORM_WEAPP,
-            options
-          )
+      loginWithWeapp({
+        preferUnionId = false,
+        unionIdPlatform = 'weixin',
+        asMainAccount = true,
+        failOnNotExist = false,
+      } = {}) {
+        const getAuthInfo = getAdapter('getAuthInfo');
+        return getAuthInfo({
+          preferUnionId,
+          asMainAccount,
+          platform: unionIdPlatform,
+        }).then(authInfo =>
+          this.loginWithMiniApp(authInfo, { failOnNotExist })
         );
       },
 
@@ -1221,65 +1303,103 @@ module.exports = function(AV) {
        * 使用当前使用微信小程序的微信用户身份注册或登录，
        * 仅在微信小程序中可用。
        *
+       * @deprecated please use {@link AV.User.loginWithMiniApp}
        * @since 3.13.0
        * @param {Object} [unionLoginOptions]
        * @param {string} [unionLoginOptions.unionIdPlatform = 'weixin'] unionId platform
        * @param {boolean} [unionLoginOptions.asMainAccount = false] If true, the unionId will be associated with the user.
        * @param {boolean} [unionLoginOptions.failOnNotExist] If true, the login request will fail when no user matches this authData exists.       * @return {Promise.<AV.User>}
        */
-      loginWithWeappWithUnionId(unionId, unionLoginOptions) {
-        return getMiniappLoginCode().then(code =>
-          this.loginWithAuthData(
-            mergeUnionDataIntoAuthData()({ code }, unionId, unionLoginOptions),
-            PLATFORM_WEAPP,
-            unionLoginOptions
-          )
-        );
+      loginWithWeappWithUnionId(
+        unionId,
+        {
+          unionIdPlatform = 'weixin',
+          asMainAccount = false,
+          failOnNotExist = false,
+        } = {}
+      ) {
+        const getAuthInfo = getAdapter('getAuthInfo');
+        return getAuthInfo({ platform: unionIdPlatform }).then(authInfo => {
+          authInfo = AV.User.mergeUnionId(authInfo, unionId, { asMainAccount });
+          return this.loginWithMiniApp(authInfo, { failOnNotExist });
+        });
       },
 
       /**
        * 使用当前使用 QQ 小程序的 QQ 用户身份注册或登录，成功后用户的 session 会在设备上持久化保存，之后可以使用 AV.User.current() 获取当前登录用户。
        * 仅在 QQ 小程序中可用。
        *
+       * @deprecated please use {@link AV.User.loginWithMiniApp}
        * @since 4.2.0
        * @param {Object} [options]
        * @param {boolean} [options.preferUnionId] 如果服务端在登录时获取到了用户的 UnionId，是否将 UnionId 保存在用户账号中。
        * @param {string} [options.unionIdPlatform = 'qq'] (only take effect when preferUnionId) unionId platform
-       * @param {boolean} [options.asMainAccount = false] (only take effect when preferUnionId) If true, the unionId will be associated with the user.
+       * @param {boolean} [options.asMainAccount = true] (only take effect when preferUnionId) If true, the unionId will be associated with the user.
        * @param {boolean} [options.failOnNotExist] If true, the login request will fail when no user matches this authData exists. (since v3.7.0)
        * @return {Promise.<AV.User>}
        */
-      loginWithQQApp(options) {
-        return getMiniappLoginCode().then(code =>
-          this.loginWithAuthData(
-            getMiniappAuthData('qq')(code, options),
-            PLATFORM_QQAPP,
-            options
-          )
-        );
+      loginWithQQApp({
+        preferUnionId = false,
+        unionIdPlatform = 'qq',
+        asMainAccount = true,
+        failOnNotExist = false,
+      } = {}) {
+        const getAuthInfo = getAdapter('getAuthInfo');
+        return getAuthInfo({
+          preferUnionId,
+          asMainAccount,
+          platform: unionIdPlatform,
+        }).then(authInfo => {
+          authInfo.provider = PLATFORM_QQAPP;
+          return this.loginWithMiniApp(authInfo, { failOnNotExist });
+        });
       },
 
       /**
        * 使用当前使用 QQ 小程序的 QQ 用户身份注册或登录，
        * 仅在 QQ 小程序中可用。
        *
+       * @deprecated please use {@link AV.User.loginWithMiniApp}
        * @since 4.2.0
        * @param {Object} [unionLoginOptions]
        * @param {string} [unionLoginOptions.unionIdPlatform = 'qq'] unionId platform
        * @param {boolean} [unionLoginOptions.asMainAccount = false] If true, the unionId will be associated with the user.
-       * @param {boolean} [unionLoginOptions.failOnNotExist] If true, the login request will fail when no user matches this authData exists.       * @return {Promise.<AV.User>}
+       * @param {boolean} [unionLoginOptions.failOnNotExist] If true, the login request will fail when no user matches this authData exists.
+       * @return {Promise.<AV.User>}
        */
-      loginWithQQAppWithUnionId(unionId, unionLoginOptions) {
-        return getMiniappLoginCode().then(code =>
-          this.loginWithAuthData(
-            mergeUnionDataIntoAuthData('qq')(
-              { code },
-              unionId,
-              unionLoginOptions
-            ),
-            PLATFORM_QQAPP,
-            unionLoginOptions
-          )
+      loginWithQQAppWithUnionId(
+        unionId,
+        {
+          unionIdPlatform = 'qq',
+          asMainAccount = false,
+          failOnNotExist = false,
+        } = {}
+      ) {
+        const getAuthInfo = getAdapter('getAuthInfo');
+        return getAuthInfo({ platform: unionIdPlatform }).then(authInfo => {
+          authInfo = AV.User.mergeUnionId(authInfo, unionId, { asMainAccount });
+          authInfo.provider = PLATFORM_QQAPP;
+          return this.loginWithMiniApp(authInfo, { failOnNotExist });
+        });
+      },
+
+      /**
+       * Register or login using the identity of the current mini-app.
+       * @param {Object} authInfo
+       * @param {Object} [option]
+       * @param {Boolean} [option.failOnNotExist] If true, the login request will fail when no user matches this authInfo.authData exists.
+       */
+      loginWithMiniApp(authInfo, option) {
+        if (authInfo === undefined) {
+          const getAuthInfo = getAdapter('getAuthInfo');
+          return getAuthInfo().then(authInfo =>
+            this.loginWithAuthData(authInfo.authData, authInfo.provider, option)
+          );
+        }
+        return this.loginWithAuthData(
+          authInfo.authData,
+          authInfo.provider,
+          option
         );
       },
 
@@ -1417,8 +1537,7 @@ module.exports = function(AV) {
        *
        * @param {String} mobilePhoneNumber The mobile phone number associated with the
        *                  user that doesn't verify their mobile phone number.
-       * @param {AuthOptions} [options] AuthOptions plus:
-       * @param {String} [options.validateToken] a validate token returned by {@link AV.Cloud.verifyCaptcha}
+       * @param {SMSAuthOptions} [options]
        * @return {Promise}
        */
       requestMobilePhoneVerify: function(mobilePhoneNumber, options = {}) {
@@ -1446,8 +1565,7 @@ module.exports = function(AV) {
        *
        * @param {String} mobilePhoneNumber The mobile phone number  associated with the
        *                  user that doesn't verify their mobile phone number.
-       * @param {AuthOptions} [options] AuthOptions plus:
-       * @param {String} [options.validateToken] a validate token returned by {@link AV.Cloud.verifyCaptcha}
+       * @param {SMSAuthOptions} [options]
        * @return {Promise}
        */
       requestPasswordResetBySmsCode: function(mobilePhoneNumber, options = {}) {
@@ -1466,6 +1584,47 @@ module.exports = function(AV) {
           options
         );
         return request;
+      },
+
+      /**
+       * Requests a change mobile phone number sms code to be sent to the mobilePhoneNumber.
+       * This sms code allows current user to reset it's mobilePhoneNumber by
+       * calling {@link AV.User.changePhoneNumber}
+       * @since 4.7.0
+       * @param {String} mobilePhoneNumber
+       * @param {Number} [ttl] ttl of sms code (default is 6 minutes)
+       * @param {SMSAuthOptions} [options]
+       * @return {Promise}
+       */
+      requestChangePhoneNumber(mobilePhoneNumber, ttl, options) {
+        const data = { mobilePhoneNumber };
+        if (ttl) {
+          data.ttl = options.ttl;
+        }
+        if (options && options.validateToken) {
+          data.validate_token = options.validateToken;
+        }
+        return AVRequest(
+          'requestChangePhoneNumber',
+          null,
+          null,
+          'POST',
+          data,
+          options
+        );
+      },
+
+      /**
+       * Makes a call to reset user's account mobilePhoneNumber by sms code.
+       * The sms code is sent by {@link AV.User.requestChangePhoneNumber}
+       * @since 4.7.0
+       * @param {String} mobilePhoneNumber
+       * @param {String} code The sms code.
+       * @return {Promise}
+       */
+      changePhoneNumber(mobilePhoneNumber, code) {
+        const data = { mobilePhoneNumber, code };
+        return AVRequest('changePhoneNumber', null, null, 'POST', data);
       },
 
       /**
@@ -1507,8 +1666,7 @@ module.exports = function(AV) {
        *
        * @param {String} mobilePhoneNumber The mobile phone number  associated with the
        *           user that want to login by AV.User.logInWithMobilePhoneSmsCode
-       * @param {AuthOptions} [options] AuthOptions plus:
-       * @param {String} [options.validateToken] a validate token returned by {@link AV.Cloud.verifyCaptcha}
+       * @param {SMSAuthOptions} [options]
        * @return {Promise}
        */
       requestLoginSmsCode: function(mobilePhoneNumber, options = {}) {

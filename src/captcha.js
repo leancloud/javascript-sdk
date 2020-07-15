@@ -60,7 +60,7 @@ module.exports = AV => {
     );
   };
 
-  if (process.env.CLIENT_PLATFORM === 'Browser') {
+  if (process.env.PLATFORM === 'Browser') {
     /**
      * Bind the captcha to HTMLElements. <b>ONLY AVAILABLE in browsers</b>.
      * @param [elements]

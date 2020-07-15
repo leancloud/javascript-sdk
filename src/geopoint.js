@@ -1,5 +1,4 @@
 var _ = require('underscore');
-const Promise = require('./promise');
 
 /*global navigator: false */
 module.exports = function(AV) {

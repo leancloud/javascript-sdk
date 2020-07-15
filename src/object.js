@@ -1,6 +1,5 @@
 const _ = require('underscore');
 const AVError = require('./error');
-const Promise = require('./promise');
 const { _request } = require('./request');
 const {
   isNullOrUndefined,
@@ -9,6 +8,7 @@ const {
   setValue,
   findValue,
   isPlainObject,
+  continueWhile,
 } = require('./utils');
 
 const recursiveToPointer = value => {
@@ -1662,7 +1662,7 @@ module.exports = function(AV) {
 
     return promise
       .then(function() {
-        return Promise._continueWhile(
+        return continueWhile(
           function() {
             return remaining.length > 0;
           },
