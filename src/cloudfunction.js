@@ -77,12 +77,13 @@ module.exports = function(AV) {
       },
 
       /**
-       * Makes a call to request a sms code for operation verification.
+       * Makes a call to request an sms code for operation verification.
        * @param {String|Object} data The mobile phone number string or a JSON
        *    object that contains mobilePhoneNumber,template,sign,op,ttl,name etc.
        * @param {String} data.mobilePhoneNumber
        * @param {String} [data.template] sms template name
        * @param {String} [data.sign] sms signature name
+       * @param {String} [data.smsType] sending code by `sms` (default) or `voice` call
        * @param {SMSAuthOptions} [options]
        * @return {Promise} A promise that will be resolved if the request succeed
        */

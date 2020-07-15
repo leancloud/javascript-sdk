@@ -1220,7 +1220,7 @@ export namespace Cloud {
   function requestSmsCode(
     data:
       | string
-      | { mobilePhoneNumber: string; template?: string; sign?: string },
+      | { mobilePhoneNumber: string; template?: string; sign?: string; smsType?: 'sms' | 'voice' },
     options?: SMSAuthOptions
   ): Promise<void>;
   function verifySmsCode(code: string, phone: string): Promise<void>;
