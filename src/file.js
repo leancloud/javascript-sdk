@@ -71,9 +71,11 @@ module.exports = function(AV) {
    * @param data {Array} The data for the file, as either:
    *     1. an Array of byte value Numbers, or
    *     2. an Object like { base64: "..." } with a base64-encoded String.
-   *     3. a Blob(File) { blob: {uri: "..."} } selected with a file upload control.
-   *     4. a Buffer in Node.js runtime.
-   *     5. a Stream in Node.js runtime.
+   *     3. a Blob(File) selected with a file upload control in a browser.
+   *     4. an Object like { blob: {uri: "..."} } that mimics Blob
+   *        in some non-browser environments such as React Native.
+   *     5. a Buffer in Node.js runtime.
+   *     6. a Stream in Node.js runtime.
    *
    *        For example:<pre>
    * var fileUploadControl = $("#profilePhotoFileUpload")[0];
