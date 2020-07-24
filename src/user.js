@@ -230,7 +230,7 @@ module.exports = function(AV) {
       /**
        * Associate the user with the identity of the current mini-app.
        * @since 4.6.0
-       * @param {Object} authInfo
+       * @param {Object} [authInfo]
        * @param {Object} [option]
        * @param {Boolean} [option.failOnNotExist] If true, the login request will fail when no user matches this authInfo.authData exists.
        * @return {Promise<AV.User>}
