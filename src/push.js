@@ -43,9 +43,9 @@ module.exports = function(AV) {
       data.expiration_time = data.expiration_time.toJSON();
     }
 
-    if (data.expiration_time && data.expiration_time_interval) {
+    if (data.expiration_time && data.expiration_interval) {
       throw new Error(
-        "Both expiration_time and expiration_time_interval can't be set"
+        "Both expiration_time and expiration_interval can't be set"
       );
     }
 

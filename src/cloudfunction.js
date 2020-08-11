@@ -19,8 +19,8 @@ module.exports = function(AV) {
       /**
        * Makes a call to a cloud function.
        * @param {String} name The function name.
-       * @param {Object} data The parameters to send to the cloud function.
-       * @param {AuthOptions} options
+       * @param {Object} [data] The parameters to send to the cloud function.
+       * @param {AuthOptions} [options]
        * @return {Promise} A promise that will be resolved with the result
        * of the function.
        */
@@ -40,8 +40,8 @@ module.exports = function(AV) {
        * Makes a call to a cloud function, you can send {AV.Object} as param or a field of param; the response
        * from server will also be parsed as an {AV.Object}, array of {AV.Object}, or object includes {AV.Object}
        * @param {String} name The function name.
-       * @param {Object} data The parameters to send to the cloud function.
-       * @param {AuthOptions} options
+       * @param {Object} [data] The parameters to send to the cloud function.
+       * @param {AuthOptions} [options]
        * @return {Promise} A promise that will be resolved with the result of the function.
        */
       rpc(name, data, options) {
@@ -105,7 +105,7 @@ module.exports = function(AV) {
       /**
        * Makes a call to verify sms code that sent by AV.Cloud.requestSmsCode
        * @param {String} code The sms code sent by AV.Cloud.requestSmsCode
-       * @param {phone} phone The mobile phoner number(optional).
+       * @param {phone} phone The mobile phoner number.
        * @return {Promise} A promise that will be resolved with the result
        * of the function.
        */
