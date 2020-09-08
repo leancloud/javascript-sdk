@@ -484,6 +484,8 @@ declare class BaseQuery<T extends Queriable> extends BaseObject {
   addDescending(key: string[]): this;
   ascending(key: string): this;
   ascending(key: string[]): this;
+  descending(key: string): this;
+  descending(key: string[]): this;
   include(...keys: string[]): this;
   include(keys: string[]): this;
   select(...keys: string[]): this;
