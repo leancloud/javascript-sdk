@@ -1,6 +1,6 @@
 {
-  "name": "open-leancloud-storage",
-  "version": "5.0.0-dev",
+  "name": "leancloud-storage",
+  "version": "5.0.0-beta.0",
   "description": "LeanCloud JavaScript SDK.",
   "keywords": [
     "leancloud",
