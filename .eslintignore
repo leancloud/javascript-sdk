@@ -1,0 +1,7 @@
+/node_modules
+/dist
+/tools
+/test
+/docs
+/test-legacy
+/live-query

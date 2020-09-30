@@ -1,0 +1,8 @@
+/.github
+/.nyc_output
+/coverage
+dist
+/*.json
+/env.ts
+/docs
+/.vscode

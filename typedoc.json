@@ -1,0 +1,13 @@
+{
+  "inputFiles": [
+    "src/app/app.ts",
+    "src/storage/object.ts"
+  ],
+  "excludePrivate": true,
+  "excludeProtected": true,
+  "stripInternal": true,
+  "excludeNotExported": true,
+  "includeVersion": true,
+  "mode": "file",
+  "out": "docs"
+}

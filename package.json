@@ -1,0 +1,70 @@
+{
+  "name": "open-leancloud-storage",
+  "version": "5.0.0-dev",
+  "description": "LeanCloud JavaScript SDK.",
+  "keywords": [
+    "leancloud",
+    "storage"
+  ],
+  "author": {
+    "name": "LeanCloud",
+    "email": "support@leancloud.rocks"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/leancloud/javascript-sdk"
+  },
+  "scripts": {
+    "clean": "rm -rf dist live-query/dist",
+    "compile": "rollup -c rollup/rollup.config.js",
+    "build": "npm run clean && npm run compile",
+    "doc": "typedoc --options typedoc.json",
+    "test": "mocha",
+    "coverage": "nyc npm run test",
+    "repl": "ts-node ./tools/repl",
+    "lint": "eslint --ext=ts,js --max-warnings=0 .",
+    "fmt": "prettier -w ."
+  },
+  "dependencies": {
+    "@leancloud/adapter-types": "^4.0.0",
+    "@types/uuid": "^8.3.0",
+    "base64-arraybuffer": "^0.2.0",
+    "debug": "^4.1.1",
+    "eventemitter3": "^4.0.7",
+    "leancloud-realtime": "^5.0.0-rc.3",
+    "leancloud-realtime-plugin-live-query": "^1.2.0",
+    "uuid": "^8.3.0"
+  },
+  "devDependencies": {
+    "@leancloud/platform-adapters-browser": "^1.3.0",
+    "@leancloud/platform-adapters-node": "^1.3.0",
+    "@rollup/plugin-commonjs": "^15.0.0",
+    "@rollup/plugin-json": "^4.1.0",
+    "@rollup/plugin-node-resolve": "^9.0.0",
+    "@rollup/plugin-replace": "^2.3.3",
+    "@rollup/plugin-typescript": "^5.0.2",
+    "@types/mocha": "^8.0.3",
+    "@typescript-eslint/eslint-plugin": "^3.10.1",
+    "@typescript-eslint/parser": "^3.10.1",
+    "eslint": "^7.8.1",
+    "mocha": "^8.1.3",
+    "nyc": "^15.1.0",
+    "prettier": "2.1.1",
+    "rollup": "^2.26.9",
+    "rollup-plugin-analyzer": "^3.3.0",
+    "rollup-plugin-terser": "^7.0.1",
+    "rollup-plugin-visualizer": "^4.1.1",
+    "should": "^13.2.3",
+    "ts-node": "^9.0.0",
+    "tslib": "^2.0.1",
+    "typedoc": "^0.19.0",
+    "typescript": "^4.0.2"
+  },
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/_entry/all.d.ts",
+  "files": [
+    "**/dist/"
+  ]
+}
