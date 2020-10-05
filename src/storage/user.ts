@@ -64,7 +64,7 @@ export class CurrentUserManager {
         app.currentUser = Encoder.decode(app, JSON.parse(encodedUser)) as UserObject;
       }
     }
-    return app.currentUser;
+    return app.currentUser || null;
   }
 
   static async getAsync(app: App): Promise<UserObject> {
@@ -74,7 +74,7 @@ export class CurrentUserManager {
         app.currentUser = Encoder.decode(app, JSON.parse(encodedUser)) as UserObject;
       }
     }
-    return app.currentUser;
+    return app.currentUser || null;
   }
 
   static remove(app: App): void {
