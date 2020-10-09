@@ -1,4 +1,4 @@
-export const SDK_VERSION = '5.0.0-dev';
+export const SDK_VERSION = '5.0.0-beta.1';
 export const API_VERSION = '1.1';
 
 export const LOCAL_STORAGE_NAMESPACE = 'LC';
