@@ -29,5 +29,6 @@
   "includeVersion": true,
   "stripInternal": true,
   "mode": "file",
-  "out": "docs"
+  "out": "docs",
+  "sourcefile-url-prefix": "https://github.com/leancloud/javascript-sdk/blob/v5/"
 }
