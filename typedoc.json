@@ -19,13 +19,15 @@
     "src/storage/operation.ts",
     "src/storage/captcha.ts",
     "src/cloud/cloud.ts",
-    "src/push/push.ts"
+    "src/push/push.ts",
+    "src/live-query/live-query.ts"
   ],
   "excludePrivate": true,
   "excludeProtected": true,
-  "stripInternal": true,
   "excludeNotExported": true,
+  "excludeExternals": true,
   "includeVersion": true,
+  "stripInternal": true,
   "mode": "file",
   "out": "docs"
 }

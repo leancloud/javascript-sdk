@@ -12,8 +12,14 @@ import type { UserObject } from '../storage/user';
 import type { PluginManager } from '../app/plugin';
 import type { Logger } from '../app/log';
 
+/**
+ * @internal
+ */
 let logger: typeof Logger;
 
+/**
+ * @internal
+ */
 export function install(pluginManager: typeof PluginManager): void {
   pluginManager.register('LiveQuery', LiveQuery);
   pluginManager.requestAdapters().then(setAdapters);
@@ -26,6 +32,9 @@ export function install(pluginManager: typeof PluginManager): void {
   }
 }
 
+/**
+ * @internal
+ */
 enum LiveQueryState {
   READY,
   CONNECTING,
@@ -149,6 +158,9 @@ export class LiveQuery extends EventEmitter {
   }
 }
 
+/**
+ * @internal
+ */
 function getRealtimeInstance(app: App): any {
   if (!app.realtimeInstance) {
     app.realtimeInstance = new Realtime({
@@ -161,6 +173,9 @@ function getRealtimeInstance(app: App): any {
   return app.realtimeInstance;
 }
 
+/**
+ * @internal
+ */
 function createLiveQueryClient(app: App, subscriptionId: string): Promise<any> {
   return getRealtimeInstance(app).createLiveQueryClient(subscriptionId);
 }
