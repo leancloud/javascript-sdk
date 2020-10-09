@@ -45,15 +45,17 @@ npm install leancloud-storage@4 --save
 ```
 ├── dist                               // 编译之后生成的文件将会在此目录下
 │   ├── browser
-│   │   └── lc.min.js                  // 包含 adapters 的浏览器版本
-│   ├── av-min.js
-│   ├── av-weapp.js                    // 小程序版本
-│   ├── av-weapp-min.js
-│   ├── node                           // 目录中为生成的 nodejs 版本代码
+│   │   └── lc.min.js                  // UMD 格式, 包含 browser adapters
+│   ├── lc.min.js                      // UMD 格式
+│   ├── index.cjs.js                   // CommonJS 格式
+│   ├── index.esm.js                   // ES Module 格式
 │   └── ...
-├── src
-│   ├── index.js                       // node.js 环境入口文件
-│   └── ...
+├── live-query                         // LiveQuery 插件
+│   ├── dist
+│   │   ├── index.cjs.js               // CommonJS 格式
+│   │   ├── index.esm.js               // ES Module 格式
+│   │   └── live-query.min.js          // UMD 格式
+│   └── package.json
 └── test                               // 测试
 ```
 
