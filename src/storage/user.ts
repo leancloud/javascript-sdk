@@ -44,6 +44,9 @@ interface AssociateUnionIdOptions extends UpdateObjectOptions {
   asMainAccount?: boolean;
 }
 
+/**
+ * @internal
+ */
 export class CurrentUserManager {
   static set(app: App, user: UserObject): void {
     const encodedUser = Encoder.encode(user, true);

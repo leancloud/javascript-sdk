@@ -4,6 +4,9 @@ import { isEmptyObject, isObject, assert, isDate, mapObject, deleteObjectKey } f
 import { ACL } from './acl';
 import { API_VERSION } from '../const';
 
+/**
+ * @internal
+ */
 export function removeReservedKeys(data: Record<string, unknown>): Record<string, unknown> {
   const removed: Record<string, unknown> = { ...data };
   ['objectId', 'createdAt', 'updatedAt'].forEach((key) => delete removed[key]);
@@ -93,6 +96,9 @@ export class LCObject {
     this._ref = new LCObjectRef(app, className, objectId);
   }
 
+  /**
+   * @internal
+   */
   static extractData(data: unknown): unknown {
     if (!data) return data;
 

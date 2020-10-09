@@ -1,5 +1,8 @@
 import { Adapters } from '@leancloud/adapter-types';
 
+/**
+ * @internal
+ */
 export class AdapterManager {
   private static _adapters: Partial<Adapters>;
   private static _onSet: ((adapters?: Partial<Adapters>) => void)[] = [];

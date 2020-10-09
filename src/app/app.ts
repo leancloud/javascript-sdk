@@ -22,7 +22,9 @@ export interface AuthOptions extends RequestOptions {
   useMasterKey?: boolean;
 }
 
-/** @internal */
+/**
+ * @internal
+ */
 export interface AdvancedHTTPRequest extends HTTPRequest {
   service?: Service;
   options?: AuthOptions;

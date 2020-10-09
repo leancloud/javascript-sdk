@@ -14,6 +14,9 @@ interface RoleDataToAdd extends LCObjectData {
   roles?: Array<RoleObject | RoleObjectRef>;
 }
 
+/**
+ * @alias Role
+ */
 export class RoleClass extends Class {
   constructor(app: App) {
     super(app, '_Role');

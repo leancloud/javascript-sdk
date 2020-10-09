@@ -1,5 +1,8 @@
 import debug from 'debug';
 
+/**
+ * @alias debug
+ */
 export class Logger {
   private static _enabled = false;
   private static _filter: string;

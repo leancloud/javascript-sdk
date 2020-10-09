@@ -528,30 +528,51 @@ export class Query {
   }
 }
 
+/**
+ * @internal
+ */
 function quote(s: string): string {
   return '\\Q' + s.replace('\\E', '\\E\\\\E\\Q') + '\\E';
 }
 
+/**
+ * @internal
+ */
 function assertIsString(value: unknown): asserts value is string {
   assert(typeof value === 'string', `Need string, got ${value}`);
 }
 
+/**
+ * @internal
+ */
 function assertIsNumber(value: unknown): asserts value is number {
   assert(typeof value === 'number', `Need number, got ${value}`);
 }
 
+/**
+ * @internal
+ */
 function assertIsArray(value: unknown): asserts value is unknown[] {
   assert(Array.isArray(value), `Need array, got ${value}`);
 }
 
+/**
+ * @internal
+ */
 function assertIsGeoPoint(value: unknown): asserts value is GeoPoint {
   assert(value instanceof GeoPoint, `Need GeoPoint, got ${value}`);
 }
 
+/**
+ * @internal
+ */
 function assertIsQuery(value: unknown): asserts value is Query {
   assert(value instanceof Query, `Need Query, got ${value}`);
 }
 
+/**
+ * @internal
+ */
 function assertIsGeoBox(value: unknown): asserts value is GeoBox {
   const box = value as GeoBox;
   if (typeof box === 'object') {
@@ -562,6 +583,9 @@ function assertIsGeoBox(value: unknown): asserts value is GeoBox {
   throw new TypeError(`Need GeoBox, got ${value}`);
 }
 
+/**
+ * @internal
+ */
 function assertIsGeoDistance(value: unknown): asserts value is GeoDistance {
   const geo = value as GeoDistance;
   if (typeof geo === 'object') {

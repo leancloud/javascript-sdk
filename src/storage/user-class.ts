@@ -32,6 +32,9 @@ export interface MiniAppAuthOptions extends LoginWithAuthDataOptions {
   [key: string]: unknown;
 }
 
+/**
+ * @alias User
+ */
 export class UserClass extends Class {
   constructor(app: App) {
     super(app, '_User');

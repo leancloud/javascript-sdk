@@ -14,8 +14,6 @@ interface RequestSMSCodeOptions extends AuthOptions {
 }
 
 export class Cloud {
-  static App: typeof App;
-
   constructor(public app: App) {}
 
   static requestSMSCode(mobilePhoneNumber: string, options?: RequestSMSCodeOptions): Promise<void> {

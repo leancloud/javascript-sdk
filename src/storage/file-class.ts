@@ -61,6 +61,9 @@ function base64InDataURLs(urls: string): string {
   return urls;
 }
 
+/**
+ * @alias File
+ */
 export class FileClass extends Class {
   constructor(app: App) {
     super(app, '_File');

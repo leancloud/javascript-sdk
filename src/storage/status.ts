@@ -100,6 +100,9 @@ export class StatusQuery extends Query {
   }
 }
 
+/**
+ * @alias Status
+ */
 export class StatusClass extends StatusQuery {
   static async sendToFollowers(
     data: Record<string, unknown>,

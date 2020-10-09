@@ -90,6 +90,9 @@ export class Captcha {
   }
 }
 
+/**
+ * @internal
+ */
 class CaptchaDomBinder {
   captcha: Captcha;
   image: HTMLImageElement;

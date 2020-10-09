@@ -1,5 +1,8 @@
 import type { LCObject, LCObjectRef } from './object';
 
+/**
+ * @alias Op
+ */
 export class Operation {
   static unset(): unknown {
     return { __op: 'Delete' };

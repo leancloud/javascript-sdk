@@ -15,6 +15,9 @@ interface SearchSortNearOptions {
   unit?: 'cm' | 'm' | 'km';
 }
 
+/**
+ * @internal
+ */
 interface SearchResultRaw {
   sid: number;
   hits: number;

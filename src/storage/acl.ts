@@ -11,10 +11,16 @@ interface Privilege {
 
 type Operation = keyof Privilege;
 
+/**
+ * @internal
+ */
 function getACLKey(subject: Subject): string {
   return typeof subject === 'string' ? subject : subject.aclKey;
 }
 
+/**
+ * @internal
+ */
 function getRoleACLKey(role: RoleObject | string): string {
   if (typeof role === 'string') {
     if (role.startsWith('role:')) {

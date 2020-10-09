@@ -4,7 +4,9 @@ interface Point {
 }
 
 export class GeoPoint {
+  /** @internal */
   __type = 'GeoPoint';
+
   latitude: number;
   longitude: number;
 
