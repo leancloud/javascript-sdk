@@ -38,13 +38,13 @@ export class Logger {
     this._logger[tag](...args);
   }
 
-  static on(event: 'enable' | 'disable', h: (filter?: string) => void): void {
+  static on(event: 'enable' | 'disable', listener: (filter?: string) => void): void {
     switch (event) {
       case 'enable':
-        this._onEnable.push(h);
+        this._onEnable.push(listener);
         break;
       case 'disable':
-        this._onDisable.push(h);
+        this._onDisable.push(listener);
         break;
     }
   }
