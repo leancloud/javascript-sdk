@@ -2,6 +2,7 @@ import 'should';
 import { ACL } from '../../src/storage/acl';
 import { UserObjectRef, UserObject } from '../../src/storage/user';
 import { RoleObject } from '../../src/storage/role';
+import { use } from '../../src/app/plugin';
 
 describe('ACL', function () {
   describe('.fromJSON', function () {
@@ -10,10 +11,10 @@ describe('ACL', function () {
         key1: { read: true, write: false },
         key2: { read: false, write: true },
       });
-      acl.data.should.eql({
-        key1: { read: true },
-        key2: { write: true },
-      });
+      acl.can('key1', 'read').should.true();
+      acl.can('key1', 'write').should.false();
+      acl.can('key2', 'read').should.false();
+      acl.can('key2', 'write').should.true();
     });
   });
 
@@ -22,9 +23,8 @@ describe('ACL', function () {
       const acl = new ACL();
       acl.allow('key', 'read');
       acl.allow('key', 'write');
-      acl.data.should.eql({
-        key: { read: true, write: true },
-      });
+      acl.can('key', 'read').should.true();
+      acl.can('key', 'write').should.true();
     });
 
     it('should allow user reference to read/write', function () {
@@ -32,9 +32,8 @@ describe('ACL', function () {
       const userRef = new UserObjectRef(null, 'user-id');
       acl.allow(userRef, 'read');
       acl.allow(userRef, 'write');
-      acl.data.should.eql({
-        'user-id': { read: true, write: true },
-      });
+      acl.can(userRef, 'read').should.true();
+      acl.can(userRef, 'write').should.true();
     });
 
     it('should allow user to read/write', function () {
@@ -42,9 +41,8 @@ describe('ACL', function () {
       const user = new UserObject(null, 'user-id');
       acl.allow(user, 'read');
       acl.allow(user, 'write');
-      acl.data.should.eql({
-        'user-id': { read: true, write: true },
-      });
+      acl.can(user, 'read').should.true();
+      acl.can(user, 'write').should.true();
     });
 
     it('should allow role to read/write', function () {
@@ -53,9 +51,8 @@ describe('ACL', function () {
       role.data = { name: 'role-name', ACL: null };
       acl.allow(role, 'read');
       acl.allow(role, 'write');
-      acl.data.should.eql({
-        'role:role-name': { read: true, write: true },
-      });
+      acl.can(role, 'read').should.true();
+      acl.can(role, 'write').should.true();
     });
   });
 
@@ -65,11 +62,9 @@ describe('ACL', function () {
       acl.allow('key', 'read');
       acl.allow('key', 'write');
       acl.deny('key', 'read');
-      acl.data.should.eql({
-        key: { write: true },
-      });
+      acl.can('key', 'read').should.false();
       acl.deny('key', 'write');
-      acl.data.should.empty();
+      acl.can('key', 'write').should.false();
     });
 
     it('should deny user reference to read/write', function () {
@@ -78,11 +73,9 @@ describe('ACL', function () {
       acl.allow(userRef, 'read');
       acl.allow(userRef, 'write');
       acl.deny(userRef, 'read');
-      acl.data.should.eql({
-        'user-id': { write: true },
-      });
+      acl.can(userRef, 'read').should.false();
       acl.deny(userRef, 'write');
-      acl.data.should.empty();
+      acl.can(userRef, 'write').should.false();
     });
 
     it('should deny user to read/write', function () {
@@ -91,11 +84,9 @@ describe('ACL', function () {
       acl.allow(user, 'read');
       acl.allow(user, 'write');
       acl.deny(user, 'read');
-      acl.data.should.eql({
-        'user-id': { write: true },
-      });
+      acl.can(user, 'read').should.false();
       acl.deny(user, 'write');
-      acl.data.should.empty();
+      acl.can(user, 'write').should.false();
     });
 
     it('should deny role to read/write', function () {
@@ -105,11 +96,9 @@ describe('ACL', function () {
       acl.allow(role, 'read');
       acl.allow(role, 'write');
       acl.deny(role, 'read');
-      acl.data.should.eql({
-        'role:role-name': { write: true },
-      });
+      acl.can(role, 'read').should.false();
       acl.deny(role, 'write');
-      acl.data.should.empty();
+      acl.can(role, 'write').should.false();
     });
   });
 

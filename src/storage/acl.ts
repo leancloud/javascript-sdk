@@ -1,6 +1,5 @@
 import type { UserObject, UserObjectRef } from './user';
 import type { RoleObject } from './role';
-import { isEmptyObject } from '../utils';
 
 type Subject = '*' | UserObject | UserObjectRef | RoleObject | string;
 
@@ -11,30 +10,25 @@ interface Privilege {
 
 type Operation = keyof Privilege;
 
-/**
- * @internal
- */
-function getACLKey(subject: Subject): string {
-  return typeof subject === 'string' ? subject : subject.aclKey;
-}
-
-/**
- * @internal
- */
-function getRoleACLKey(role: RoleObject | string): string {
-  if (typeof role === 'string') {
-    if (role.startsWith('role:')) {
-      return role;
-    } else {
-      return 'role:' + role;
-    }
-  } else {
-    return role.aclKey;
-  }
-}
-
 export class ACL {
-  data: Record<string, Privilege> = {};
+  private _canRead = new Set<string>();
+  private _canWrite = new Set<string>();
+
+  private static _getSubjectKey(subject: Subject): string {
+    return typeof subject === 'string' ? subject : subject.aclKey;
+  }
+
+  private static _getRoleSubectKey(role: RoleObject | string): string {
+    if (typeof role === 'string') {
+      if (role.startsWith('role:')) {
+        return role;
+      } else {
+        return 'role:' + role;
+      }
+    } else {
+      return role.aclKey;
+    }
+  }
 
   static fromJSON(data: unknown): ACL {
     const acl = new ACL();
@@ -54,32 +48,64 @@ export class ACL {
   }
 
   toJSON(): Record<string, Privilege> {
-    return this.data;
+    const json: Record<string, Privilege> = {};
+    this._canRead.forEach((key) => {
+      if (json[key]) {
+        json[key].read = true;
+      } else {
+        json[key] = { read: true };
+      }
+    });
+    this._canWrite.forEach((key) => {
+      if (json[key]) {
+        json[key].write = true;
+      } else {
+        json[key] = { write: true };
+      }
+    });
+    return json;
   }
 
   allow(subject: Subject, operation: Operation): this {
-    const key = getACLKey(subject);
-    if (!this.data[key]) {
-      this.data[key] = {};
+    const key = ACL._getSubjectKey(subject);
+    switch (operation) {
+      case 'read':
+        this._canRead.add(key);
+        break;
+      case 'write':
+        this._canWrite.add(key);
+        break;
+      default:
+        throw new Error('Unknown operation: ' + operation);
     }
-    this.data[key][operation] = true;
     return this;
   }
 
   deny(subject: Subject, operation: Operation): this {
-    const key = getACLKey(subject);
-    if (this.data[key]) {
-      delete this.data[key][operation];
-      if (isEmptyObject(this.data[key])) {
-        delete this.data[key];
-      }
+    const key = ACL._getSubjectKey(subject);
+    switch (operation) {
+      case 'read':
+        this._canRead.delete(key);
+        break;
+      case 'write':
+        this._canWrite.delete(key);
+        break;
+      default:
+        throw new Error('Unknown operation: ' + operation);
     }
     return this;
   }
 
   can(subject: Subject, operation: Operation): boolean {
-    const key = getACLKey(subject);
-    return Boolean(this.data[key] && this.data[key][operation]);
+    const key = ACL._getSubjectKey(subject);
+    switch (operation) {
+      case 'read':
+        return this._canRead.has(key);
+      case 'write':
+        return this._canWrite.has(key);
+      default:
+        throw new Error('Unknown operation: ' + operation);
+    }
   }
 
   setPublicReadAccess(allowed: boolean): this {
@@ -115,16 +141,16 @@ export class ACL {
   }
 
   setRoleReadAccess(role: RoleObject | string, allowed: boolean): this {
-    const roleKey = getRoleACLKey(role);
+    const roleKey = ACL._getRoleSubectKey(role);
     return allowed ? this.allow(roleKey, 'read') : this.deny(roleKey, 'read');
   }
 
   getRoleReadAccess(role: RoleObject | string): boolean {
-    return this.can(getRoleACLKey(role), 'read');
+    return this.can(ACL._getRoleSubectKey(role), 'read');
   }
 
   setRoleWriteAccess(role: RoleObject | string, allowed: boolean): this {
-    const roleKey = getRoleACLKey(role);
+    const roleKey = ACL._getRoleSubectKey(role);
     return allowed ? this.allow(roleKey, 'write') : this.deny(roleKey, 'write');
   }
 
