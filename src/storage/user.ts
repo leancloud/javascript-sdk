@@ -160,7 +160,7 @@ export class UserObjectRef extends LCObjectRef {
   }
 
   getRoles(): Promise<RoleObject[]> {
-    return new Query(this.app, '_Role').where('users', '==', this).find() as Promise<RoleObject[]>;
+    return new Query('_Role', this.app).where('users', '==', this).find() as Promise<RoleObject[]>;
   }
 }
 

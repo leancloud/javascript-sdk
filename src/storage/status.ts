@@ -1,5 +1,5 @@
 import { CurrentUserManager, UserObject, UserObjectRef } from './user';
-import { AuthOptions, App, AdvancedHTTPRequest } from '../app/app';
+import type { AuthOptions, App, AdvancedHTTPRequest } from '../app/app';
 import { Query } from './query';
 import { assert } from '../utils';
 import { Pointer, LCObject, Encoder } from './object';
@@ -24,10 +24,7 @@ export class StatusQuery extends Query {
   private _maxId: number;
 
   constructor(app?: App) {
-    if (app === undefined) {
-      app = App.default;
-    }
-    super(app, '_Status');
+    super('_Status', app);
   }
 
   whereStatusOwner(owner: UserObject | UserObjectRef | string): StatusQuery {
@@ -108,7 +105,7 @@ export class StatusClass extends StatusQuery {
     data: Record<string, unknown>,
     options?: StatusOptions
   ): Promise<LCObject> {
-    return new StatusClass(App.default).sendToFollowers(data, options);
+    return new StatusClass().sendToFollowers(data, options);
   }
 
   static async sendToUser(
@@ -116,19 +113,19 @@ export class StatusClass extends StatusQuery {
     data: Record<string, unknown>,
     options?: StatusOptions
   ): Promise<LCObject> {
-    return new StatusClass(App.default).sendToUser(target, data, options);
+    return new StatusClass().sendToUser(target, data, options);
   }
 
   static async deleteInboxStatus(messageId: number, options?: StatusOptions): Promise<void> {
-    return new StatusClass(App.default).deleteInboxStatus(messageId, options);
+    return new StatusClass().deleteInboxStatus(messageId, options);
   }
 
   static async getUnreadCount(options?: StatusOptions): Promise<StatusCount> {
-    return new StatusClass(App.default).getUnreadCount(options);
+    return new StatusClass().getUnreadCount(options);
   }
 
   static async resetUnreadCount(options?: StatusOptions): Promise<void> {
-    return new StatusClass(App.default).resetUnreadCount(options);
+    return new StatusClass().resetUnreadCount(options);
   }
 
   async sendToFollowers(data: Record<string, unknown>, options?: StatusOptions): Promise<LCObject> {

@@ -27,7 +27,7 @@ describe('Push', function () {
       await push.send(
         { key: 'value' },
         {
-          query: new Query(app, '').where('key', '==', 'value'),
+          query: new Query('', app).where('key', '==', 'value'),
           channels: ['channel1', 'channel2'],
           pushTime,
           expirationTime,

@@ -65,8 +65,8 @@ function base64InDataURLs(urls: string): string {
  * @alias File
  */
 export class FileClass extends Class {
-  constructor(app: App) {
-    super(app, '_File');
+  constructor(app?: App) {
+    super('_File', app);
   }
 
   static object(id: string): FileObjectRef {
@@ -74,11 +74,11 @@ export class FileClass extends Class {
   }
 
   static upload(name: string, data: unknown, options?: UploadOptions): Promise<FileObject> {
-    return new FileClass(App.default).upload(name, data, options);
+    return new FileClass().upload(name, data, options);
   }
 
   static uploadWithURL(name: string, url: string, options?: UploadOptions): Promise<FileObject> {
-    return new FileClass(App.default).uploadWithURL(name, url, options);
+    return new FileClass().uploadWithURL(name, url, options);
   }
 
   object(id: string): FileObjectRef {

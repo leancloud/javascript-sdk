@@ -73,11 +73,11 @@ export class RoleObjectRef extends LCObjectRef {
   }
 
   getUsersQuery(): Query {
-    return new Query(this.app, '_User').where('$relatedTo', '==', { key: 'users', object: this });
+    return new Query('_User', this.app).where('$relatedTo', '==', { key: 'users', object: this });
   }
 
   getRolesQuery(): Query {
-    return new Query(this.app, '_Role').where('$relatedTo', '==', { key: 'roles', object: this });
+    return new Query('_Role', this.app).where('$relatedTo', '==', { key: 'roles', object: this });
   }
 
   async getUsers(options?: AuthOptions): Promise<UserObject[]> {

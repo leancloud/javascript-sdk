@@ -36,8 +36,8 @@ export interface MiniAppAuthOptions extends LoginWithAuthDataOptions {
  * @alias User
  */
 export class UserClass extends Class {
-  constructor(app: App) {
-    super(app, '_User');
+  constructor(app?: App) {
+    super('_User', app);
   }
 
   protected get _apiPath(): string {

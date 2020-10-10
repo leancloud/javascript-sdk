@@ -10,7 +10,7 @@ describe('Query', function () {
     appKey: 'test-app-key',
     serverURL: 'test-server-url',
   });
-  const Test = new Query(app, 'Test');
+  const Test = new Query('Test', app);
 
   it('#select', async function () {
     await Test.select('key1', 'key2').find();

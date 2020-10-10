@@ -2,11 +2,6 @@ import { Query } from './query';
 import { LCObject, LCObjectRef, AddObjectOptions, removeReservedKeys } from './object';
 import { Encoder } from './object';
 import { API_VERSION } from '../const';
-import { App } from '../app/app';
-
-export function CLASS(className: string): Class {
-  return new Class(App.default, className);
-}
 
 export class Class extends Query {
   protected get _apiPath(): string {

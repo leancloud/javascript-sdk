@@ -6,7 +6,7 @@ import {
   UpdateObjectOptions,
   Encoder,
 } from './object';
-import { App } from '../app/app';
+import type { App } from '../app/app';
 
 Encoder.setCreator('_File', (app, id) => new FileObject(app, id));
 

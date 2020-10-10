@@ -11,7 +11,7 @@ describe('Class', function () {
     appKey: 'test-app-key',
     serverURL: 'test-server-url',
   });
-  const Test = new Class(app, 'Test');
+  const Test = new Class('Test', app);
 
   describe('#object', function () {
     it('should return a LCObjectRef', function () {

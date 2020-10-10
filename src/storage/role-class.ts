@@ -18,8 +18,8 @@ interface RoleDataToAdd extends LCObjectData {
  * @alias Role
  */
 export class RoleClass extends Class {
-  constructor(app: App) {
-    super(app, '_Role');
+  constructor(app?: App) {
+    super('_Role', app);
   }
 
   static object(id: string): RoleObjectRef {
@@ -27,7 +27,7 @@ export class RoleClass extends Class {
   }
 
   static add(data: RoleDataToAdd, options?: AddObjectOptions): Promise<RoleObject> {
-    return new RoleClass(App.default).add(data, options);
+    return new RoleClass().add(data, options);
   }
 
   object(id: string): RoleObjectRef {

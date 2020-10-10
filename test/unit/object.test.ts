@@ -81,7 +81,7 @@ describe('LCObjectRef', function () {
         {},
         {
           fetch: true,
-          query: new Query(null, '').where('key', '==', 'value'),
+          query: new Query('', null).where('key', '==', 'value'),
         }
       );
       const req = adapters.requests.pop();

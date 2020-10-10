@@ -1,4 +1,4 @@
-import { App } from '../app/app';
+import type { App } from '../app/app';
 import { API_VERSION, KEY_INSTALLATION } from '../const';
 import { Class } from '../storage/class';
 import { Encoder, LCObject, LCObjectData, UpdateObjectOptions } from '../storage/object';
@@ -15,8 +15,8 @@ interface InstallationData extends LCObjectData {
 }
 
 export class InstallationClass extends Class {
-  constructor(app: App) {
-    super(app, '_Installation');
+  constructor(app?: App) {
+    super('_Installation', app);
   }
 
   protected get _apiPath(): string {
@@ -27,7 +27,7 @@ export class InstallationClass extends Class {
     data: InstallationData,
     options?: UpdateObjectOptions
   ): Promise<LCObject> {
-    return new InstallationClass(App.default).addOrUpdateCurrent(data, options);
+    return new InstallationClass().addOrUpdateCurrent(data, options);
   }
 
   async addOrUpdateCurrent(

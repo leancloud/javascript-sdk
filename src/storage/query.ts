@@ -42,7 +42,7 @@ export class Query {
   private _returnACL: boolean;
   private _danglingOr: Query;
 
-  constructor(public app: App, public className: string) {}
+  constructor(public className: string, public app = App.default) {}
 
   static and(...queries: Query[]): Query {
     assert(queries.length > 1, 'The and method require at least 2 queries');
@@ -54,7 +54,7 @@ export class Query {
       assert(queries[i].app.appId === queries[0].app.appId, 'All queries must belongs to same App');
     }
 
-    const query = new Query(queries[0].app, queries[0].className);
+    const query = new Query(queries[0].className, queries[0].app);
     query._where = { $and: queries.map((query) => query.toJSON()) };
     return query;
   }
@@ -71,7 +71,7 @@ export class Query {
     if (isEmptyObject(this._where)) {
       return this;
     }
-    const query = new Query(this.app, this.className);
+    const query = new Query(this.className, this.app);
     query._danglingOr = this;
     return query;
   }
@@ -296,7 +296,7 @@ export class Query {
 
   protected _clone(query?: Query): Query {
     if (!query) {
-      query = new Query(this.app, this.className);
+      query = new Query(this.className, this.app);
     }
     Object.entries(this._where).forEach(([key, value]) => {
       if (Array.isArray(value)) {
