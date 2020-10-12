@@ -43,15 +43,24 @@ enum LiveQueryState {
   CLOSED,
 }
 
-export class LiveQuery extends EventEmitter {
+interface LiveQueryListeners {
+  create(object?: LCObject): any;
+  update(object?: LCObject, updatedKeys?: string[]): any;
+  delete(object?: LCObject): any;
+  enter(object?: LCObject): any;
+  leave(object?: LCObject): any;
+  login(user?: UserObject): any;
+}
+
+type LiveQueryEvents = keyof LiveQueryListeners;
+
+export class LiveQuery extends EventEmitter<LiveQueryListeners> {
   private _app: App;
   private _query: Query;
   private _client: any;
   private _id: string;
   private _queryId: string;
   private _subReq: HTTPRequest;
-  private _onMessageHandler = this._onMessage.bind(this);
-  private _onReconnectHandler = this._onReconnect.bind(this);
   private _state = LiveQueryState.READY;
 
   static install = install;
@@ -101,8 +110,8 @@ export class LiveQuery extends EventEmitter {
     this._subReq.body['id'] = id;
     this._client = await createLiveQueryClient(this._app, id);
 
-    this._client.on('message', this._onMessageHandler);
-    this._client.on('reconnect', this._onReconnectHandler);
+    this._client.on('message', this._onMessage);
+    this._client.on('reconnect', this._onReconnect);
     this._state = LiveQueryState.CONNECTED;
     return this;
   }
@@ -116,46 +125,40 @@ export class LiveQuery extends EventEmitter {
     }
     this._state = LiveQueryState.CLOSING;
 
-    this._client.off('message', this._onMessageHandler);
-    this._client.off('reconnect', this._onReconnectHandler);
-    this._client.close();
-    await this._app.request({
-      method: 'POST',
-      path: `${API_VERSION}/LiveQuery/unsubscribe`,
-      body: { id: this._id, query_id: this._queryId },
-    });
-    this._state = LiveQueryState.CLOSED;
-  }
-
-  private _onMessage(messages: Record<string, unknown>[]): void {
-    messages.forEach((msg) => {
-      if (msg.query_id !== this._queryId) return;
-      const obj = this._app.decodeObject(msg.object);
-      const event = msg.op as string;
-      const updatedKeys = msg.updatedKeys as string[];
-      this.emit(event, obj, updatedKeys);
-    });
-  }
-
-  private _onReconnect(): void {
-    this._app
-      .request(this._subReq)
-      .then(() => logger?.log('LC:LiveQuery:reconnect', 'ok'))
-      .catch((err) => {
-        logger?.log('LC:LiveQuery:reconnect', 'failed: %o', err);
-        throw new Error('LiveQuery resubscribe error: ' + err.message);
+    try {
+      this._client.off('message', this._onMessage);
+      this._client.off('reconnect', this._onReconnect);
+      this._client.close();
+      await this._app.request({
+        method: 'POST',
+        path: `${API_VERSION}/LiveQuery/unsubscribe`,
+        body: { id: this._id, query_id: this._queryId },
       });
+    } finally {
+      this._state = LiveQueryState.CLOSED;
+    }
   }
 
-  on(event: 'create', listener: (obj?: LCObject) => void): this;
-  on(event: 'update', listener: (obj?: LCObject, updatedKeys?: string[]) => void): this;
-  on(event: 'enter', listener: (obj?: LCObject) => void): this;
-  on(event: 'leave', listener: (obj?: LCObject) => void): this;
-  on(event: 'delete', listener: (obj?: LCObject) => void): this;
-  on(event: 'login', listener: (user?: UserObject) => void): this;
-  on(event: string, listener: (...args: any[]) => void): this {
-    return super.on(event, listener);
-  }
+  private _onMessage = (messages: Record<string, unknown>[]) => {
+    messages.forEach((msg) => {
+      if (msg.query_id === this._queryId) {
+        const obj = this._app.decodeObject(msg.object);
+        const event = msg.op as string;
+        const updatedKeys = msg.updatedKeys as string[];
+        this.emit(event as LiveQueryEvents, obj, updatedKeys);
+      }
+    });
+  };
+
+  private _onReconnect = async () => {
+    try {
+      await this._app.request(this._subReq);
+      logger?.log('LC:LiveQuery:reconnect', 'ok');
+    } catch (err) {
+      logger?.log('LC:LiveQuery:reconnect', 'failed: ' + err.message);
+      throw err;
+    }
+  };
 }
 
 /**
