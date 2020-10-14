@@ -1,3 +1,9 @@
+# Master
+
+### Internal Changes
+
+- 现在保存通过 `AV.File.withURL` 方法创建的文件等同于直接在 \_File 中添加一行数据，不再自动生成 `mime_type`。
+
 # 4.7.0（2020-07-14）
 
 ### Features
