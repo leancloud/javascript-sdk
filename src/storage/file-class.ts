@@ -6,7 +6,7 @@ import { HTTPResponse } from '../app/http';
 import { Qiniu } from './file-provider/qiniu';
 import { ACL } from './acl';
 import { AWSS3 } from './file-provider/s3';
-import { FileObjectRef, FileObject, FileData } from './file';
+import { FileObjectRef, FileObject } from './file';
 
 /**
  * @internal
@@ -65,6 +65,10 @@ function base64InDataURLs(urls: string): string {
  * @alias File
  */
 export class FileClass extends Class {
+  protected get _apiPath(): string {
+    return `${API_VERSION}/files`;
+  }
+
   constructor(app?: App) {
     super('_File', app);
   }
@@ -138,27 +142,16 @@ export class FileClass extends Class {
       metaData.owner = 'unknown';
     }
 
-    const res = await this.app.request({
-      method: 'POST',
-      path: `${API_VERSION}/files/${name}`,
-      body: {
+    return this.add(
+      {
         name,
         url,
         ACL: options?.ACL,
         mime_type: options?.mime,
         metaData,
       },
-    });
-
-    const file = new FileObject(this.app, res.body['objectId']);
-    file.data = {
-      ...(res.body as FileData),
-      metaData,
-    };
-    file.createdAt = new Date(file.data['createdAt'] as string);
-    file.updatedAt = file.createdAt;
-    delete file.data.createdAt;
-    return file;
+      { fetch: true }
+    ) as Promise<FileObject>;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
