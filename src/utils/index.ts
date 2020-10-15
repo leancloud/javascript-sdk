@@ -1,5 +1,9 @@
+export function getObjectTag(obj: unknown): string {
+  return Object.prototype.toString.call(obj);
+}
+
 export function checkObjectTag(obj: unknown, name: string): boolean {
-  return Object.prototype.toString.call(obj) === '[object ' + name + ']';
+  return getObjectTag(obj) === '[object ' + name + ']';
 }
 
 export function isDate(obj: unknown): obj is Date {

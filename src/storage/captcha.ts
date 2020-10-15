@@ -9,24 +9,73 @@ export interface RefreshCaptchaOptions extends AuthOptions {
 }
 
 interface BindCaptchaOptions {
+  /**
+   * An input element typed text, or the id for the element.
+   */
   textInput?: string | HTMLInputElement;
+
+  /**
+   * An image element, or the id for the element.
+   */
   image?: string | HTMLImageElement;
+
+  /**
+   * A button element, or the id for the element.
+   */
   verifyButton?: string | HTMLElement;
-  success?: (validateToken?: string) => void;
-  error?: (error?: Error) => void;
+
+  /**
+   * Success callback will be called if the code is verified. The param `validateToken` can be used
+   * for further SMS request.
+   */
+  success?: (validateToken: string) => void;
+
+  /**
+   * Error callback will be called if something goes wrong, detailed in param `error.message`.
+   */
+  error?: (error: Error) => void;
 }
 
 export class Captcha {
+  /**
+   * The captchaToken of the captcha.
+   *
+   * @since 5.0.0
+   */
   token: string;
+
+  /**
+   * The image url of the captcha.
+   *
+   * @since 5.0.0
+   */
   url: string;
+
+  /**
+   * The validateToken of the captcha.
+   *
+   * @since 5.0.0
+   */
   validateToken: string;
 
   private _binder: CaptchaDomBinder;
 
   constructor(public app: App) {}
 
+  /**
+   * Request a captcha.
+   *
+   * @since 5.0.0
+   */
   static async request(app: App, options?: RefreshCaptchaOptions): Promise<Captcha>;
+
+  /**
+   * Request a captcha from the default App.
+   *
+   * @since 5.0.0
+   */
   static async request(options?: RefreshCaptchaOptions): Promise<Captcha>;
+
   static async request(
     arg1: App | RefreshCaptchaOptions,
     options?: RefreshCaptchaOptions
@@ -42,6 +91,11 @@ export class Captcha {
     }
   }
 
+  /**
+   * Refresh the captcha. The `url` of the current Captcha will be updated.
+   *
+   * @since 5.0.0
+   */
   async refresh(options?: RefreshCaptchaOptions): Promise<void> {
     this.validateToken = null;
     const res = await this.app.request({
@@ -59,6 +113,12 @@ export class Captcha {
     this.url = res.body['captcha_url'];
   }
 
+  /**
+   * Verify the captcha.
+   *
+   * @since 5.0.0
+   * @param code The code from user input.
+   */
   async verify(code: string, options?: AuthOptions): Promise<string> {
     if (!this.token) {
       throw new Error('The captcha token is empty, you should call refresh first');
@@ -76,6 +136,11 @@ export class Captcha {
     return this.validateToken;
   }
 
+  /**
+   * Bind the captcha to HTMLElements. **ONLY AVAILABLE in browsers**.
+   *
+   * @since 5.0.0
+   */
   bind(options: BindCaptchaOptions): void {
     if (!this._binder) {
       this._binder = new CaptchaDomBinder(this, options);
@@ -83,6 +148,11 @@ export class Captcha {
     this._binder.bind();
   }
 
+  /**
+   * Unbind the captcha from HTMLElements. **ONLY AVAILABLE in browsers**.
+   *
+   * @since 5.0.0
+   */
   unbind(): void {
     if (this._binder) {
       this._binder.unbind();

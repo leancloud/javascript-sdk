@@ -44,8 +44,19 @@ export class Query {
 
   constructor(public className: string, public app = App.default) {}
 
+  /**
+   * Constructs a {@link Query} that is the AND of the passed in queries.
+   *
+   * For example:
+   * ```js
+   * // will create a compoundQuery that is an 'and' of the query1, query2, and query3.
+   * const compoundQuery = Query.and(query1, query2, query3);
+   * ```
+   *
+   * @since 5.0.0
+   */
   static and(...queries: Query[]): Query {
-    assert(queries.length > 1, 'The and method require at least 2 queries');
+    assert(queries.length > 1, 'Query.and require at least 2 queries');
     for (let i = 1; i < queries.length; ++i) {
       assert(
         queries[i].className === queries[0].className,
@@ -59,8 +70,19 @@ export class Query {
     return query;
   }
 
+  /**
+   * Constructs a {@link Query} that is the OR of the passed in queries.
+   *
+   * For example:
+   * ```js
+   * // will create a compoundQuery that is an or of the query1, query2, and query3.
+   * const compoundQuery = Query.or(query1, query2, query3);
+   * ```
+   *
+   * @since 5.0.0
+   */
   static or(...queries: Query[]): Query {
-    assert(queries.length > 1, 'The or method require at least 2 queries');
+    assert(queries.length > 1, 'Query.or require at least 2 queries');
     const query = Query.and(...queries);
     query._where.$or = query._where.$and;
     delete query._where.$and;
@@ -141,17 +163,128 @@ export class Query {
     return (res.body as { count: number }).count;
   }
 
-  where(key: string, cond: '==' | '!=' | '>' | '>=' | '<' | '<=', value: unknown): Query;
-  where(key: string, cond: 'exists' | 'not-exists'): Query;
-  where(key: string, cond: 'size-is', value: number): Query;
-  where(key: string, cond: 'in' | 'not-in', value: Query): Query;
-  where(key: string, cond: 'matches', value: string | RegExpWithString | RegExp): Query;
-  where(key: string, cond: 'starts-with' | 'ends-with' | 'contains', value: string): Query;
-  where(
-    key: string,
-    cond: 'contains' | 'contained-in' | 'not-contained-in',
-    values: unknown[]
-  ): Query;
+  /**
+   * Add a constraint to the query that requires a particular key's value to be equal to the provided value.
+   *
+   * @since 5.0.0
+   */
+  where(key: string, condition: '==', value: unknown): Query;
+
+  /**
+   * Add a constraint to the query that requires a particular key's value to be not equal to the provided value.
+   *
+   * @since 5.0.0
+   */
+  where(key: string, condition: '!=', value: unknown): Query;
+
+  /**
+   * Add a constraint to the query that requires a particular key's value to be greater than the provided value.
+   *
+   * @since 5.0.0
+   */
+  where(key: string, condition: '>', value: unknown): Query;
+
+  /**
+   * Add a constraint to the query that requires a particular key's value to be greater than or equal to the provided value.
+   *
+   * @since 5.0.0
+   */
+  where(key: string, condition: '>=', value: unknown): Query;
+
+  /**
+   * Add a constraint to the query that requires a particular key's value to be less than the provided value.
+   *
+   * @since 5.0.0
+   */
+  where(key: string, condition: '<', value: unknown): Query;
+
+  /**
+   * Add a constraint to the query that requires a particular key's value to be less than or equal to the provided value.
+   *
+   * @since 5.0.0
+   */
+  where(key: string, condition: '<=', value: unknown): Query;
+
+  /**
+   * Add a constraint for finding objects that contain the given key.
+   *
+   * @since 5.0.0
+   */
+  where(key: string, condition: 'exists'): Query;
+
+  /**
+   * Add a constraint for finding objects that do not contain a given key.
+   *
+   * @since 5.0.0
+   */
+  where(key: string, condition: 'not-exists'): Query;
+
+  /**
+   * Add a constraint to the query that requires a particular **array** key's length to be equal to the provided value.
+   *
+   * @since 5.0.0
+   */
+  where(key: string, condition: 'size-is', value: number): Query;
+
+  /**
+   * Add a constraint that requires that a key's value matches a {@link Query} constraint. If `query`
+   * specified {@link Query.select selected} keys, add a constraint that requires that a key's value
+   * matches a value in an object returned by a different {@link Query}.
+   *
+   * @since 5.0.0
+   */
+  where(key: string, condition: 'in', query: Query): Query;
+
+  /**
+   * Add a constraint that requires that a key's value not matches a {@link Query} constraint. If `query`
+   * specified {@link Query.select selected} keys, add a constraint that requires that a key's value
+   * not match a value in an object returned by a different {@link Query}.
+   *
+   * @since 5.0.0
+   */
+  where(key: string, condition: 'not-in', query: Query): Query;
+
+  /**
+   * Add a regular expression constraint for finding string values that match the provided regular
+   * expression. This may be slow for large datasets.
+   *
+   * @since 5.0.0
+   */
+  where(key: string, condition: 'matches', value: string | RegExp | RegExpWithString): Query;
+
+  /**
+   * Add a constraint for finding string values that start with a provided string. This query will
+   * use the backend index, so it will be fast even for large datasets.
+   *
+   * @since 5.0.0
+   */
+  where(key: string, condition: 'starts-with', value: string): Query;
+
+  /**
+   * Add a constraint for finding string values that end with a provided string. This will be slow for large datasets.
+   *
+   * @since 5.0.0
+   */
+  where(key: string, condition: 'ends-with', value: string): Query;
+
+  /**
+   * Add a constraint for finding string values that contain a provided string. This may be slow for large datasets.
+   *
+   * @since 5.0.0
+   */
+  where(key: string, condition: 'contains', value: string): Query;
+
+  /**
+   * Add a constraint to the query that requires a particular key's value to contain each one of the provided list of values.
+   *
+   * @since 5.0.0
+   */
+  where(key: string, condition: 'contains-all', values: unknown[]): Query;
+
+  where(key: string, condition: 'contained-in', values: unknown[]): Query;
+
+  where(key: string, condition: 'not-contained-in', values: unknown[]): Query;
+
   where(key: string, cond: 'near', point: GeoPoint): Query;
   where(key: string, cond: 'within', box: GeoBox): Query;
   where(
@@ -220,13 +353,12 @@ export class Query {
         query._whereEndsWith(key, value);
         break;
       case 'contains':
-        if (typeof value === 'string') {
-          query._whereContains(key, value);
-        } else if (Array.isArray(value)) {
-          query._whereContainsAll(key, value);
-        } else {
-          throw new TypeError(`Condition '${cond}' accepts only string or array value`);
-        }
+        assertIsString(value);
+        query._whereContains(key, value);
+        break;
+      case 'contains-all':
+        assertIsArray(value);
+        query._whereContainsAll(key, value);
         break;
       case 'contained-in':
         assertIsArray(value);
@@ -290,7 +422,7 @@ export class Query {
 
   subscribe(): Promise<LiveQuery> {
     const liveQuery = PluginManager.plugins['LiveQuery'] as typeof LiveQuery;
-    assert(liveQuery, 'Query#subscribe need the LiveQuery plugin');
+    assert(liveQuery, 'Query#subscribe needs the LiveQuery plugin');
     return liveQuery.subscribe(this);
   }
 

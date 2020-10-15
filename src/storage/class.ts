@@ -8,10 +8,20 @@ export class Class extends Query {
     return `${API_VERSION}/classes/${this.className}`;
   }
 
+  /**
+   * Create an object reference.
+   *
+   * @since 5.0.0
+   */
   object(id: string): LCObjectRef {
     return new LCObjectRef(this.app, this.className, id);
   }
 
+  /**
+   * Add an Object to the server.
+   *
+   * @since 5.0.0
+   */
   async add(data: Record<string, unknown>, options?: AddObjectOptions): Promise<LCObject> {
     const res = await this.app.request({
       method: 'POST',

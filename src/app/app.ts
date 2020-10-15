@@ -31,7 +31,8 @@ export interface AdvancedHTTPRequest extends HTTPRequest {
 }
 
 /**
- * 初始化默认应用. 如果需要使用多个应用, 请实例化 {@link App}.
+ * Initialize the default App. If multiple App is needed, instantiate {@link App}.
+ *
  * @since 5.0.0
  */
 export function init(config: AppConfig): void {
@@ -45,13 +46,20 @@ export class App {
   masterKey: string;
 
   /**
-   * 是否使用 masterKey, 默认为 `false`.
+   * Switches the SDK to using the `masterKey`. The `masterKey` grants privileged access to the data
+   * in LeanCloud and can be used to bypass ACLs and other restrictions that are applied to the client SDKs.
+   *
+   * The default value is `false`.
+   *
    * @since 5.0.0
    */
   useMasterKey: boolean;
 
   /**
-   * 是否使用生成环境, 默认为 `true`.
+   * Use the production environment
+   *
+   * The default value is `true`.
+   *
    * @since 5.0.0
    */
   production: boolean;
@@ -98,7 +106,8 @@ export class App {
   }
 
   /**
-   * 获取默认应用, 在默认应用未{@link init | 初始化}时将抛出异常.
+   * Getter of the default App, throw an error if the default App is not {@link init initialized}.
+   *
    * @since 5.0.0
    */
   static get default(): App {
@@ -150,37 +159,48 @@ export class App {
     return res;
   }
 
+  /**
+   * @since 5.0.0
+   */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   decode(data: unknown): any {
     return Encoder.decode(this, data);
   }
 
+  /**
+   * Decode data, assert the data can be decoded to an LCObject.
+   *
+   * @param className Preferred className.
+   *
+   * @since 5.0.0
+   */
   decodeObject(data: unknown, className?: string): LCObject {
     return Encoder.decodeObject(this, data, className);
   }
 
   /**
-   * 暂停当前应用的即时通讯连接, 通常在将应用切换到后台之前调用.
+   * Pause the real-time connection of the current App. This is useful to deactivate the SDK when the
+   * program is switched to the background.
+   *
    * @since 5.0.0
    */
   pause(): void {
-    if (this.realtimeInstance) {
-      this.realtimeInstance.pause();
-    }
+    this.realtimeInstance?.pause();
   }
 
   /**
-   * 恢复当前应用的即时通讯连接.
+   * Resume the real-time connection of the current App. All LiveQuery subscriptions will be restored
+   * after reconnection.
+   *
    * @since 5.0.0
    */
   resume(): void {
-    if (this.realtimeInstance) {
-      this.realtimeInstance.resume();
-    }
+    this.realtimeInstance?.resume();
   }
 
   /**
-   * 同步获取当前登录用户的 sessionToken.
+   * Get the current user's `sessionToken`, returns `null` if no user is logged in the current App.
+   *
    * @since 5.0.0
    */
   getSessionToken(): string {
@@ -195,7 +215,8 @@ export class App {
   }
 
   /**
-   * 异步获取当前登录用户的 sessionToken.
+   * Get the current user's `sessionToken` asynchronously.
+   *
    * @since 5.0.0
    */
   async getSessionTokenAsync(): Promise<string> {

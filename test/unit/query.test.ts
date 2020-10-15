@@ -243,13 +243,13 @@ describe('Query', function () {
           key: { $regex: '\\Qvalue\\E' },
         });
       });
+    });
 
-      it('value is an array', async function () {
-        await Test.where('key', 'contains', ['item']).find();
-        const req = adapters.requests.pop();
-        JSON.parse(req.query.where as string).should.eql({
-          key: { $all: ['item'] },
-        });
+    it('#where(key, "contains-all", items)', async function () {
+      await Test.where('key', 'contains-all', ['item']).find();
+      const req = adapters.requests.pop();
+      JSON.parse(req.query.where as string).should.eql({
+        key: { $all: ['item'] },
       });
     });
 
