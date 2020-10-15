@@ -420,10 +420,10 @@ export class Query {
     return JSON.stringify(this);
   }
 
-  subscribe(): Promise<LiveQuery> {
+  subscribe(options?: AuthOptions): Promise<LiveQuery> {
     const liveQuery = PluginManager.plugins['LiveQuery'] as typeof LiveQuery;
     assert(liveQuery, 'Query#subscribe needs the LiveQuery plugin');
-    return liveQuery.subscribe(this);
+    return liveQuery.subscribe(this, options);
   }
 
   protected _clone(query?: Query): Query {

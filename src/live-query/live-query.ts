@@ -4,7 +4,7 @@ import { Realtime, setAdapters, debug } from 'leancloud-realtime/core';
 import { LiveQueryPlugin } from 'leancloud-realtime-plugin-live-query';
 import { EventEmitter } from 'eventemitter3';
 import { API_VERSION, KEY_SUBSCRIPTION_ID } from '../const';
-import type { App } from '../app/app';
+import type { App, AuthOptions } from '../app/app';
 import type { Query } from '../storage/query';
 import type { HTTPRequest } from '../app/http';
 import type { LCObject } from '../storage/object';
@@ -65,8 +65,8 @@ export class LiveQuery extends EventEmitter<LiveQueryListeners> {
 
   static install = install;
 
-  static subscribe(query: Query): Promise<LiveQuery> {
-    return new LiveQuery(query)._subscribe();
+  static subscribe(query: Query, options?: AuthOptions): Promise<LiveQuery> {
+    return new LiveQuery(query)._subscribe(options);
   }
 
   constructor(query: Query) {
@@ -90,7 +90,7 @@ export class LiveQuery extends EventEmitter<LiveQueryListeners> {
     };
   }
 
-  private async _subscribe(): Promise<this> {
+  private async _subscribe(options?: AuthOptions): Promise<this> {
     if (this._state !== LiveQueryState.READY) {
       throw new Error('You should call subscribe only once');
     }
@@ -99,7 +99,7 @@ export class LiveQuery extends EventEmitter<LiveQueryListeners> {
     const subscriptionId = await this._app.storage.getAsync(KEY_SUBSCRIPTION_ID);
     this._subReq = this._makeSubscribeRequest(subscriptionId || undefined);
 
-    const res = await this._app.request(this._subReq);
+    const res = await this._app.request({ ...this._subReq, options });
     const { id, query_id } = res.body as { id: string; query_id: string };
     if (id !== subscriptionId) {
       await this._app.storage.setAsync(KEY_SUBSCRIPTION_ID, id);
