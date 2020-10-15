@@ -41,6 +41,10 @@ export interface Pointer {
 export class LCObjectRef {
   constructor(public app: App, public className: string, public objectId: string) {}
 
+  get id(): string {
+    return this.objectId;
+  }
+
   toPointer(): Pointer {
     return { __type: 'Pointer', className: this.className, objectId: this.objectId };
   }
