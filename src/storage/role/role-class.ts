@@ -1,11 +1,11 @@
-import { Class } from './class';
-import { App } from '../app/app';
-import { RoleObjectRef, RoleObject } from './role';
-import { AddObjectOptions, Encoder, LCObjectData } from './object';
-import { Operation } from './operation';
-import type { UserObject, UserObjectRef } from './user';
-import type { ACL } from './acl';
-import { API_VERSION } from '../const';
+import { Class } from '../class';
+import { App } from '../../app/app';
+import { RoleObjectRef, RoleObject } from './role-object';
+import { AddObjectOptions, Encoder, LCObjectData } from '../object';
+import { Operation } from '../operation';
+import type { UserObject, UserObjectRef } from '../user';
+import type { ACL } from '../acl';
+import { API_VERSION } from '../../const';
 
 interface RoleDataToAdd extends LCObjectData {
   ACL: ACL;

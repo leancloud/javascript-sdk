@@ -1,9 +1,8 @@
 import 'should';
-import { adapters } from '../../src/utils/test-adapters';
-import { App } from '../../src/app/app';
-import { RoleObjectRef } from '../../src/storage/role';
-import { RoleClass } from '../../src/storage/role-class';
-import { API_VERSION } from '../../src/const';
+import { adapters } from '../../../src/utils/test-adapters';
+import { App } from '../../../src/app/app';
+import { RoleClass, RoleObjectRef } from '../../../src/storage/role';
+import { API_VERSION } from '../../../src/const';
 
 describe('RoleClass', function () {
   const app = new App({

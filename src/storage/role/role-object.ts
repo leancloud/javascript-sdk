@@ -1,17 +1,17 @@
-import type { UserObject, UserObjectRef } from './user';
+import type { UserObject, UserObjectRef } from '../user';
 import {
   LCObject,
   LCObjectData,
   LCObjectRef,
   GetObjectOptions,
   UpdateObjectOptions,
-} from '../storage/object';
-import type { ACL } from '../storage/acl';
-import { AuthOptions, App } from '../app/app';
-import { Query } from './query';
-import { Encoder } from './object';
-import { Operation } from './operation';
-import { API_VERSION } from '../const';
+} from '../../storage/object';
+import type { ACL } from '../../storage/acl';
+import { AuthOptions, App } from '../../app/app';
+import { Query } from '../query';
+import { Encoder } from '../object';
+import { Operation } from '../operation';
+import { API_VERSION } from '../../const';
 
 Encoder.setCreator('_Role', (app, id) => new RoleObject(app, id));
 
