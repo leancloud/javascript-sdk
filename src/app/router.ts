@@ -58,7 +58,9 @@ export class Router {
   }
 
   async refresh(): Promise<void> {
-    if (this._refreshing) return;
+    if (this._refreshing) {
+      return;
+    }
     this._refreshing = true;
 
     try {
