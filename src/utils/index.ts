@@ -48,3 +48,14 @@ export function isEmptyObject(obj: unknown): boolean {
 export function assert(cond: unknown, msg?: string): asserts cond {
   if (!cond) throw new Error(msg || 'Assertion failed');
 }
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function getGlobalObject(childName?: string): any {
+  if (typeof globalThis !== 'undefined') {
+    return globalThis[childName];
+  } else if (typeof global !== 'undefined') {
+    return global[childName];
+  } else if (typeof window !== 'undefined') {
+    return window[childName];
+  }
+}

@@ -5,7 +5,7 @@ import { isEmptyObject, assert, isRegExp } from '../utils';
 import { Encoder } from './object';
 import { API_VERSION } from '../const';
 import { PluginManager } from '../app/plugin';
-import type { LiveQuery } from '../live-query/live-query';
+import type { LiveQuery } from '../live-query';
 
 interface RegExpWithString {
   regexp: string;
