@@ -6,7 +6,7 @@ import { Logger } from './log';
  * @internal
  */
 export interface Plugin {
-  install(app: typeof PluginManager): void;
+  install(pluginManager: typeof PluginManager): void;
 }
 
 export function use(plugin: Plugin): void {
