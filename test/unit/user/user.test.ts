@@ -1,9 +1,9 @@
 import 'should';
-import { adapters } from '../../src/utils/test-adapters';
-import { App } from '../../src/app/app';
-import { UserObject, UserObjectRef, CurrentUserManager } from '../../src/storage/user';
-import { API_VERSION, KEY_CURRENT_USER } from '../../src/const';
-import { Encoder } from '../../src/storage/object';
+import { adapters } from '../../../src/utils/test-adapters';
+import { App } from '../../../src/app/app';
+import { UserObject, UserObjectRef, CurrentUserManager } from '../../../src/storage/user';
+import { API_VERSION, KEY_CURRENT_USER } from '../../../src/const';
+import { Encoder } from '../../../src/storage/object';
 
 const app = new App({
   appId: 'test-app-id',

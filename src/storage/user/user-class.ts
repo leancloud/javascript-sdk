@@ -1,10 +1,16 @@
-import { App, AuthOptions } from '../app/app';
-import { UserObject, UserObjectRef, CurrentUserManager, UserData, UserDataForAdd } from './user';
+import { App, AuthOptions } from '../../app/app';
+import {
+  UserObject,
+  UserObjectRef,
+  CurrentUserManager,
+  UserData,
+  UserDataForAdd,
+} from './user-object';
 import { v4 as uuid_v4 } from 'uuid';
-import { Class } from './class';
-import { Encoder, removeReservedKeys } from './object';
-import { API_VERSION } from '../const';
-import { AdapterManager } from '../app/adapters';
+import { Class } from '../class';
+import { Encoder, removeReservedKeys } from '../object';
+import { API_VERSION } from '../../const';
+import { AdapterManager } from '../../app/adapters';
 
 interface SignUpDataWithMobile extends UserDataForAdd {
   mobilePhoneNumber: string;

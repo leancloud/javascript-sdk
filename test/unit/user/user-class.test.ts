@@ -1,9 +1,8 @@
 import 'should';
-import { adapters } from '../../src/utils/test-adapters';
-import { App } from '../../src/app/app';
-import { UserObject, UserObjectRef } from '../../src/storage/user';
-import { UserClass } from '../../src/storage/user-class';
-import { API_VERSION } from '../../src/const';
+import { adapters } from '../../../src/utils/test-adapters';
+import { App } from '../../../src/app/app';
+import { UserClass, UserObject, UserObjectRef } from '../../../src/storage/user';
+import { API_VERSION } from '../../../src/const';
 
 describe('UserClass', function () {
   const app = new App({

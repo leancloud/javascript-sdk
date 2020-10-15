@@ -4,16 +4,16 @@ import {
   LCObjectData,
   LCObjectRef,
   LCObject,
-} from '../storage/object';
-import type { App, AuthOptions } from '../app/app';
+} from '../object';
+import type { App, AuthOptions } from '../../app/app';
 import type { MiniAppAuthOptions } from './user-class';
-import type { RoleObject } from './role';
-import { Operation } from './operation';
-import { assert } from '../utils';
-import { Encoder } from './object';
-import { KEY_CURRENT_USER, API_VERSION } from '../const';
-import { Query } from './query';
-import { AdapterManager } from '../app/adapters';
+import type { RoleObject } from '../role';
+import { Operation } from '../operation';
+import { assert } from '../../utils';
+import { Encoder } from '../object';
+import { KEY_CURRENT_USER, API_VERSION } from '../../const';
+import { Query } from '../query';
+import { AdapterManager } from '../../app/adapters';
 
 Encoder.setCreator('_User', (app, id) => new UserObject(app, id));
 
