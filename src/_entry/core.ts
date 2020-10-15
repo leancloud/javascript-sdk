@@ -6,7 +6,7 @@ export { setAdapters } from '../app/adapters';
 export { Class } from '../storage/class';
 export { UserClass as User } from '../storage/user-class';
 export { RoleClass as Role } from '../storage/role-class';
-export { FileClass as File } from '../storage/file-class';
+export { FileClass as File } from '../storage/file';
 export { StatusClass as Status } from '../storage/status';
 
 export type { LCObject, LCObjectRef } from '../storage/object';

@@ -1,12 +1,11 @@
 import { decode as base64ToArrayBuffer } from 'base64-arraybuffer';
-import { Class } from './class';
-import { App, AuthOptions } from '../app/app';
-import { API_VERSION } from '../const';
-import { HTTPResponse } from '../app/http';
-import { Qiniu } from './file-provider/qiniu';
-import { ACL } from './acl';
-import { AWSS3 } from './file-provider/s3';
-import { FileObjectRef, FileObject } from './file';
+import { Class } from '../class';
+import { App, AuthOptions } from '../../app/app';
+import { API_VERSION } from '../../const';
+import { HTTPResponse } from '../../app/http';
+import { ACL } from '../acl';
+import { FileObjectRef, FileObject } from './file-object';
+import { getFileProvider } from './file-provider';
 
 /**
  * @internal
@@ -62,6 +61,18 @@ function base64InDataURLs(urls: string): string {
 }
 
 /**
+ * @internal
+ */
+function getFileSize(data: unknown): number | undefined {
+  if (typeof Blob !== 'undefined' && data instanceof Blob) {
+    return data.size;
+  }
+  if (typeof Buffer !== 'undefined' && Buffer.isBuffer(data)) {
+    return data.length;
+  }
+}
+
+/**
  * @alias File
  */
 export class FileClass extends Class {
@@ -102,13 +113,12 @@ export class FileClass extends Class {
       metaData.owner = 'unknown';
     }
     if (!metaData.size) {
-      metaData.size = this._getFileSize(data);
+      metaData.size = getFileSize(data);
     }
 
     const tokens = await this._getFileTokens(name, options?.mime, options?.ACL, metaData);
-    const provider = this._getFileProvider(tokens.provider);
     try {
-      await provider.upload(name, data, tokens, options);
+      await getFileProvider(tokens.provider).upload(name, data, tokens, options);
       await this._invokeFileCallback(tokens.token, true);
     } catch (err) {
       await this._invokeFileCallback(tokens.token, false);
@@ -185,15 +195,6 @@ export class FileClass extends Class {
     return data;
   }
 
-  private _getFileSize(data: unknown): number {
-    if (typeof Blob !== 'undefined' && data instanceof Blob) {
-      return data.size;
-    }
-    if (typeof Buffer !== 'undefined' && Buffer.isBuffer(data)) {
-      return data.length;
-    }
-  }
-
   private async _getFileTokens(
     name: string,
     mime?: string,
@@ -211,17 +212,6 @@ export class FileClass extends Class {
       },
     });
     return res.body as FileTokens;
-  }
-
-  private _getFileProvider(name: string): FileProvider {
-    switch (name) {
-      case 'qiniu':
-        return Qiniu;
-      case 's3':
-        return AWSS3;
-      default:
-        throw new Error('Unsupported file provider: ' + name);
-    }
   }
 
   private _invokeFileCallback(token: string, success: boolean): Promise<HTTPResponse> {

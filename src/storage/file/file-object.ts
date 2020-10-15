@@ -5,8 +5,8 @@ import {
   GetObjectOptions,
   UpdateObjectOptions,
   Encoder,
-} from './object';
-import type { App } from '../app/app';
+} from '../object';
+import type { App } from '../../app/app';
 
 Encoder.setCreator('_File', (app, id) => new FileObject(app, id));
 

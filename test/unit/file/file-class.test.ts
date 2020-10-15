@@ -1,9 +1,8 @@
 import 'should';
-import { App } from '../../src/app/app';
-import { adapters } from '../../src/utils/test-adapters';
-import { FileClass } from '../../src/storage/file-class';
-import { FileObjectRef } from '../../src/storage/file';
-import { API_VERSION } from '../../src/const';
+import { App } from '../../../src/app/app';
+import { adapters } from '../../../src/utils/test-adapters';
+import { FileClass, FileObjectRef } from '../../../src/storage/file';
+import { API_VERSION } from '../../../src/const';
 
 describe('FileClass', function () {
   const app = new App({

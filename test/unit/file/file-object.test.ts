@@ -1,7 +1,7 @@
 import 'should';
-import { App } from '../../src/app/app';
-import { FileObjectRef, FileObject } from '../../src/storage/file';
-import { adapters } from '../../src/utils/test-adapters';
+import { App } from '../../../src/app/app';
+import { FileObjectRef, FileObject } from '../../../src/storage/file';
+import { adapters } from '../../../src/utils/test-adapters';
 
 const app = new App({
   appId: 'test-app-id',
