@@ -8,7 +8,6 @@ import type { App, AuthOptions } from '../app/app';
 import type { Query } from '../storage/query';
 import type { HTTPRequest } from '../app/http';
 import type { LCObject } from '../storage/object';
-import type { UserObject } from '../storage/user';
 import type { PluginManager } from '../app/plugin';
 import type { Logger } from '../app/log';
 
@@ -44,12 +43,11 @@ enum LiveQueryState {
 }
 
 interface LiveQueryListeners {
-  create(object?: LCObject): any;
-  update(object?: LCObject, updatedKeys?: string[]): any;
-  delete(object?: LCObject): any;
-  enter(object?: LCObject): any;
-  leave(object?: LCObject): any;
-  login(user?: UserObject): any;
+  create(object: LCObject): void;
+  update(object: LCObject, updatedKeys: string[]): void;
+  delete(object: LCObject): void;
+  enter(object: LCObject): void;
+  leave(object: LCObject): void;
 }
 
 type LiveQueryEvents = keyof LiveQueryListeners;
