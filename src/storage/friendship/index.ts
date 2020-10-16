@@ -157,7 +157,7 @@ export class Friendship {
   }
 
   private async _mustGetCurrentUserAsnyc(): Promise<UserObject> {
-    const currentUser = CurrentUserManager.getAsync(this.app);
+    const currentUser = await CurrentUserManager.getAsync(this.app);
     if (!currentUser) {
       throw new Error('No user is logged in');
     }
