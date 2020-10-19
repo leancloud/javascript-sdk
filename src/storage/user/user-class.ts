@@ -5,11 +5,11 @@ import {
   CurrentUserManager,
   UserData,
   UserDataForAdd,
+  AuthedUser,
 } from './user-object';
 import { v4 as uuid_v4 } from 'uuid';
 import { Class } from '../class';
 import { Encoder, removeReservedKeys } from '../object';
-import { API_VERSION } from '../../const';
 import { AdapterManager } from '../../app/adapters';
 
 interface SignUpDataWithMobile extends UserDataForAdd {
@@ -47,7 +47,7 @@ export class UserClass extends Class {
   }
 
   protected get _apiPath(): string {
-    return `${API_VERSION}/users`;
+    return `/users`;
   }
 
   static object(id: string): UserObjectRef {
@@ -219,9 +219,9 @@ export class UserClass extends Class {
     return CurrentUserManager.getAsync(this.app);
   }
 
-  async become(sessionToken: string, options?: AuthOptions): Promise<UserObject> {
+  async become(sessionToken: string, options?: AuthOptions): Promise<AuthedUser> {
     const res = await this.app.request({
-      path: `${API_VERSION}/users/me`,
+      path: `/users/me`,
       options: { ...options, sessionToken },
     });
     return this._decodeAndSetToCurrent(res.body);
@@ -230,7 +230,7 @@ export class UserClass extends Class {
   async signUp(data: UserDataForAdd, options?: AuthOptions): Promise<UserObject> {
     const res = await this.app.request({
       method: 'POST',
-      path: `${API_VERSION}/users`,
+      path: `/users`,
       body: removeReservedKeys(data),
       options,
     });
@@ -243,7 +243,7 @@ export class UserClass extends Class {
   ): Promise<UserObject> {
     const res = await this.app.request({
       method: 'POST',
-      path: `${API_VERSION}/usersByMobilePhone`,
+      path: `/usersByMobilePhone`,
       body: removeReservedKeys(data),
       options,
     });
@@ -253,7 +253,7 @@ export class UserClass extends Class {
   async loginWithData(data: UserData, options?: AuthOptions): Promise<UserObject> {
     const res = await this.app.request({
       method: 'POST',
-      path: `${API_VERSION}/login`,
+      path: `/login`,
       body: removeReservedKeys(data),
       options,
     });
@@ -271,7 +271,7 @@ export class UserClass extends Class {
   ): Promise<UserObject> {
     const res = await this.app.request({
       method: 'POST',
-      path: `${API_VERSION}/users`,
+      path: `/users`,
       body: { authData: { [platform]: authData } },
       query: { failOnNotExist: options?.failOnNotExist },
       options,
@@ -334,7 +334,7 @@ export class UserClass extends Class {
   async requestEmailVerify(email: string, options?: AuthOptions): Promise<void> {
     await this.app.request({
       method: 'POST',
-      path: `${API_VERSION}/requestEmailVerify`,
+      path: `/requestEmailVerify`,
       body: { email },
       options,
     });
@@ -346,7 +346,7 @@ export class UserClass extends Class {
   ): Promise<void> {
     await this.app.request({
       method: 'POST',
-      path: `${API_VERSION}/requestLoginSmsCode`,
+      path: `/requestLoginSmsCode`,
       body: {
         mobilePhoneNumber,
         validate_token: options?.validateToken,
@@ -361,7 +361,7 @@ export class UserClass extends Class {
   ): Promise<void> {
     await this.app.request({
       method: 'POST',
-      path: `${API_VERSION}/requestMobilePhoneVerify`,
+      path: `/requestMobilePhoneVerify`,
       body: {
         mobilePhoneNumber,
         validate_token: options?.validateToken,
@@ -373,7 +373,7 @@ export class UserClass extends Class {
   async requestPasswordReset(email: string, options?: AuthOptions): Promise<void> {
     await this.app.request({
       method: 'POST',
-      path: `${API_VERSION}/requestPasswordReset`,
+      path: `/requestPasswordReset`,
       body: { email },
       options,
     });
@@ -385,7 +385,7 @@ export class UserClass extends Class {
   ): Promise<void> {
     await this.app.request({
       method: 'POST',
-      path: `${API_VERSION}/requestPasswordResetBySmsCode`,
+      path: `/requestPasswordResetBySmsCode`,
       body: {
         mobilePhoneNumber,
         validate_token: options?.validateToken,
@@ -401,7 +401,7 @@ export class UserClass extends Class {
   ): Promise<void> {
     await this.app.request({
       method: 'PUT',
-      path: `${API_VERSION}/resetPasswordBySmsCode/${code}`,
+      path: `/resetPasswordBySmsCode/${code}`,
       body: { password },
       options,
     });
@@ -410,7 +410,7 @@ export class UserClass extends Class {
   async verifyMobilePhone(code: string, options?: AuthOptions): Promise<void> {
     await this.app.request({
       method: 'POST',
-      path: `${API_VERSION}/verifyMobilePhone/${code}`,
+      path: `/verifyMobilePhone/${code}`,
       options,
     });
   }
@@ -421,7 +421,7 @@ export class UserClass extends Class {
   ): Promise<void> {
     await this.app.request({
       method: 'POST',
-      path: `${API_VERSION}/requestChangePhoneNumber`,
+      path: `/requestChangePhoneNumber`,
       body: {
         mobilePhoneNumber,
         ttl: options?.ttl,
@@ -437,15 +437,16 @@ export class UserClass extends Class {
   ): Promise<void> {
     await this.app.request({
       method: 'POST',
-      path: `${API_VERSION}/changePhoneNumber`,
+      path: `/changePhoneNumber`,
       body: { mobilePhoneNumber, code },
       options,
     });
   }
 
-  private async _decodeAndSetToCurrent(data: unknown): Promise<UserObject> {
+  private async _decodeAndSetToCurrent(data: unknown): Promise<AuthedUser> {
     const user = Encoder.decodeObject(this.app, data, this.className) as UserObject;
-    await CurrentUserManager.setAsync(this.app, user);
-    return user;
+    const authedUser = AuthedUser.from(user);
+    await CurrentUserManager.setAsync(this.app, authedUser);
+    return authedUser;
   }
 }

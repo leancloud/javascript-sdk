@@ -1,8 +1,8 @@
+import { merge, omit } from 'lodash';
 import type { Query } from './query';
 import type { AuthOptions, App } from '../app/app';
 import { isEmptyObject, isObject, assert, isDate, mapObject, deleteObjectKey } from '../utils';
 import { ACL } from './acl';
-import { API_VERSION } from '../const';
 
 /**
  * @internal
@@ -52,7 +52,7 @@ export class LCObjectRef {
   async get(options?: GetObjectOptions): Promise<LCObject> {
     const res = await this.app.request({
       method: 'GET',
-      path: `${API_VERSION}/classes/${this.className}/${this.objectId}`,
+      path: `/classes/${this.className}/${this.objectId}`,
       query: {
         keys: options?.keys?.join(','),
         include: options?.include?.join(','),
@@ -69,7 +69,7 @@ export class LCObjectRef {
   async update(data: LCObjectData, options?: UpdateObjectOptions): Promise<LCObject> {
     const res = await this.app.request({
       method: 'PUT',
-      path: `${API_VERSION}/classes/${this.className}/${this.objectId}`,
+      path: `/classes/${this.className}/${this.objectId}`,
       body: Encoder.encode(removeReservedKeys(data)),
       query: {
         fetchWhenSave: options?.fetch,
@@ -83,7 +83,7 @@ export class LCObjectRef {
   async delete(options?: AuthOptions): Promise<void> {
     await this.app.request({
       method: 'DELETE',
-      path: `${API_VERSION}/classes/${this.className}/${this.objectId}`,
+      path: `/classes/${this.className}/${this.objectId}`,
       options,
     });
   }
@@ -144,8 +144,22 @@ export class LCObject {
     return this._ref.toPointer();
   }
 
-  get(options?: GetObjectOptions): Promise<LCObject> {
-    return this._ref.get(options);
+  async get(options?: GetObjectOptions): Promise<LCObject> {
+    const res = await this.app.request({
+      method: 'GET',
+      path: `/classes/${this.className}/${this.objectId}`,
+      query: {
+        keys: options?.keys?.join(','),
+        include: options?.include?.join(','),
+        returnACL: options?.returnACL,
+      },
+      options,
+    });
+    if (isEmptyObject(res.body)) {
+      throw new Error(`The objectId '${this.objectId}' is not exists`);
+    }
+    return Encoder.decodeObject3(this, res.body);
+    // return this._ref.get(options);
   }
 
   update(data: LCObjectData, options?: UpdateObjectOptions): Promise<LCObject> {
@@ -173,10 +187,27 @@ export class LCObject {
   toFullJSON(): Record<string, any> {
     return Encoder.encodeObject(this, true);
   }
+
+  merge(data: LCObjectData): this {
+    merge(this.data, omit(data, ['objectId', 'createdAt', 'updatedAt']));
+    if (data.updatedAt) {
+      this.updatedAt = new Date(data.updatedAt);
+    }
+    return this;
+  }
 }
 
 interface ObjectCreator {
   (app: App, objectId: string, className?: string): LCObject;
+}
+
+interface LCClass<T extends LCObject> {
+  new (app: App, className: string, objectId: string): T;
+}
+
+interface MetaInfo {
+  app: App;
+  className: string;
 }
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -286,6 +317,54 @@ export class Encoder {
     if (data.createdAt) {
       obj.createdAt = new Date(data.createdAt);
     }
+    if (data.updatedAt) {
+      obj.updatedAt = new Date(data.updatedAt);
+    }
+
+    if (data.ACL) {
+      obj.data.ACL = ACL.fromJSON(data.ACL);
+    }
+
+    return obj;
+  }
+
+  static decodeObject2<T extends LCObject>(clazz: LCClass<T>, info: MetaInfo, data: any): T {
+    console.log('decode2');
+    assert(data.objectId, 'Decode failed: the objectId is empty');
+    const obj = new clazz(info.app, data.className, data.objectId);
+    obj.data = { ...data };
+    deleteObjectKey(obj.data, ['className', 'objectId', 'ACL', '__type', 'createdAt', 'updatedAt']);
+
+    if (data.createdAt) {
+      obj.createdAt = new Date(data.createdAt);
+    }
+
+    if (data.updatedAt) {
+      obj.updatedAt = new Date(data.updatedAt);
+    }
+
+    if (data.ACL) {
+      obj.data.ACL = ACL.fromJSON(data.ACL);
+    }
+
+    return obj;
+  }
+
+  static decodeObject3<T extends LCObject>(mirror: T, data: any): T {
+    console.log('decode3');
+    assert(data.objectId, 'Decode failed: the objectId is empty');
+    const obj = Object.create(Object.getPrototypeOf(mirror), {
+      app: {
+        value: mirror.app,
+      },
+    }) as T;
+    obj.data = { ...data };
+    deleteObjectKey(obj.data, ['className', 'objectId', 'ACL', '__type', 'createdAt', 'updatedAt']);
+
+    if (data.createdAt) {
+      obj.createdAt = new Date(data.createdAt);
+    }
+
     if (data.updatedAt) {
       obj.updatedAt = new Date(data.updatedAt);
     }

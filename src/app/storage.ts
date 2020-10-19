@@ -1,13 +1,7 @@
 import { Storage as AdapterStorage, SyncStorage } from '@leancloud/adapter-types';
-import { Logger } from './log';
 import { LOCAL_STORAGE_NAMESPACE } from '../const';
 import { AdapterManager } from './adapters';
-
-function assertIsSyncStorage(storage: AdapterStorage): asserts storage is SyncStorage {
-  if (storage.async) {
-    throw new TypeError('The adapters provides an async storage, please use async method instead');
-  }
-}
+import { Log } from '../log';
 
 export class LocalStorage {
   static keyWithNamespace(key: string): string {
@@ -15,58 +9,65 @@ export class LocalStorage {
   }
 
   static set(key: string, value: string): void {
-    const { storage } = AdapterManager.get();
-    assertIsSyncStorage(storage);
     key = this.keyWithNamespace(key);
-    storage.setItem(key, value);
-    Logger.log('LC:LocalStorage:set', key, value);
+    this._mustGetSyncStorage().setItem(key, value);
+    Log.localStorageSet(key, value);
   }
 
   static get(key: string): string {
-    const { storage } = AdapterManager.get();
-    assertIsSyncStorage(storage);
     key = this.keyWithNamespace(key);
-    const value = storage.getItem(key) ?? null;
-    Logger.log('LC:LocalStorage:get', key, value);
+    const value = this._mustGetSyncStorage().getItem(key) ?? null;
+    Log.localStorageGet(key, value);
     return value;
   }
 
   static delete(key: string): void {
-    const { storage } = AdapterManager.get();
-    assertIsSyncStorage(storage);
     key = this.keyWithNamespace(key);
-    storage.removeItem(key);
-    Logger.log('LC:LocalStorage:delete', key);
+    this._mustGetSyncStorage().removeItem(key);
+    Log.localStorageDelete(key);
   }
 
   static async setAsync(key: string, value: string): Promise<void> {
-    const { storage } = AdapterManager.get();
     key = this.keyWithNamespace(key);
-    await storage.setItem(key, value);
-    Logger.log('LC:LocalStorage:set', key, value);
+    await this._mustGetStorage().setItem(key, value);
+    Log.localStorageSet(key, value);
   }
 
   static async getAsync(key: string): Promise<string> {
-    const { storage } = AdapterManager.get();
     key = this.keyWithNamespace(key);
-    const value = (await storage.getItem(key)) ?? null;
-    Logger.log('LC:LocalStorage:get', key, value);
+    const value = (await this._mustGetStorage().getItem(key)) ?? null;
+    Log.localStorageGet(key, value);
     return value;
   }
 
   static async deleteAsync(key: string): Promise<void> {
-    const { storage } = AdapterManager.get();
     key = this.keyWithNamespace(key);
-    await storage.removeItem(key);
-    Logger.log('LC:LocalStorage:delete', key);
+    await this._mustGetStorage().removeItem(key);
+    Log.localStorageDelete(key);
+  }
+
+  private static _mustGetStorage(): AdapterStorage {
+    const { storage } = AdapterManager.get();
+    if (!storage) {
+      throw new Error('The storage adapter is not set');
+    }
+    return storage;
+  }
+
+  private static _mustGetSyncStorage(): SyncStorage {
+    const storage = this._mustGetStorage();
+    if (storage.async) {
+      throw new Error('The adapters provides an async storage, please use async method instead');
+    }
+    return storage as SyncStorage;
   }
 }
 
 export class NSStorage {
-  constructor(private _ns: string) {}
+  constructor(private _namespace: string) {}
 
   keyWithNamespace(key: string): string {
-    return this._ns + ':' + key;
+    return this._namespace + ':' + key;
   }
 
   set(key: string, value: string): void {

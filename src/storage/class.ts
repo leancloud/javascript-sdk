@@ -1,11 +1,10 @@
 import { Query } from './query';
 import { LCObject, LCObjectRef, AddObjectOptions, removeReservedKeys } from './object';
 import { Encoder } from './object';
-import { API_VERSION } from '../const';
 
 export class Class extends Query {
   protected get _apiPath(): string {
-    return `${API_VERSION}/classes/${this.className}`;
+    return `/classes/${this.className}`;
   }
 
   /**

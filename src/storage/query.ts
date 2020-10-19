@@ -1,9 +1,8 @@
-import { App, AuthOptions, AdvancedHTTPRequest } from '../app/app';
+import { App, AppRequest, AuthOptions } from '../app/app';
 import { GeoPoint } from './geo-point';
 import { LCObject } from './object';
 import { isEmptyObject, assert, isRegExp } from '../utils';
 import { Encoder } from './object';
-import { API_VERSION } from '../const';
 import { PluginManager } from '../app/plugin';
 import type { LiveQuery } from '../live-query';
 
@@ -447,9 +446,9 @@ export class Query {
     return query;
   }
 
-  protected _makeRequest(options?: AuthOptions): AdvancedHTTPRequest {
-    const req: AdvancedHTTPRequest = {
-      path: `${API_VERSION}/classes/${this.className}`,
+  protected _makeRequest(options?: AuthOptions): AppRequest {
+    const req: AppRequest = {
+      path: `/classes/${this.className}`,
       query: {
         limit: this._limit,
         skip: this._skip,

@@ -1,4 +1,5 @@
 import { KEY_SERVER_URLS } from '../const';
+import { HTTP } from '../http';
 import type { App } from './app';
 
 export type Service = 'engine' | 'api' | 'push';
@@ -44,7 +45,7 @@ export class Router {
     return this._urls;
   }
 
-  async getServiceURL(service: Service = 'api'): Promise<string> {
+  async getServiceURL(service: Service): Promise<string> {
     const urls = await this.getURLs();
     const schema = 'https://';
     switch (service) {
@@ -64,13 +65,12 @@ export class Router {
     this._refreshing = true;
 
     try {
-      const res = await this._app.request({
+      const res = await HTTP.request({
         method: 'GET',
-        baseURL: 'https://app-router.com',
-        path: '2/route',
+        baseURL: 'https://app-router.com/2/route',
         query: { appId: this._app.appId },
       });
-      this._urls = res.body as ServerURLs;
+      this._urls = res.body;
       this._urls.expire_at = Date.now() + this._urls.ttl * 1000;
       await this._app.storage.setAsync(KEY_SERVER_URLS, JSON.stringify(this._urls));
     } finally {

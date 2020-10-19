@@ -1,2 +1,2 @@
 export { UserClass } from './user-class';
-export { UserObject, UserObjectRef, CurrentUserManager } from './user-object';
+export { UserObject, UserObjectRef, CurrentUserManager, AuthedUser } from './user-object';

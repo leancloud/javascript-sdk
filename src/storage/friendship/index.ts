@@ -1,5 +1,4 @@
 import { App, AuthOptions } from '../../app/app';
-import { API_VERSION } from '../../const';
 import type { LiveQuery } from '../../_entry/live-query';
 import { ACL } from '../acl';
 import { Encoder, LCObject } from '../object';
@@ -8,7 +7,7 @@ import { CurrentUserManager, UserObject, UserObjectRef } from '../user';
 
 Encoder.setCreator('_FriendshipRequest', (app, id) => new FriendshipRequestObject(app, id));
 
-interface FollowOptions extends AuthOptions {
+interface FollowOptions extends Omit<AuthOptions, 'sessionToken'> {
   data?: Record<string, unknown>;
 }
 
@@ -60,7 +59,7 @@ export class Friendship {
 
     await this.app.request({
       method: 'POST',
-      path: `${API_VERSION}/users/friendshipRequests`,
+      path: `/users/friendshipRequests`,
       body: {
         user: source.toPointer(),
         friend: target.toPointer(),
@@ -78,7 +77,7 @@ export class Friendship {
     const followeeId = typeof followee === 'string' ? followee : followee.objectId;
     await this.app.request({
       method: 'POST',
-      path: `${API_VERSION}/users/${source.objectId}/friendship/${followeeId}`,
+      path: `/users/${source.objectId}/friendship/${followeeId}`,
       body: options?.data,
       options: { ...options, sessionToken: source.sessionToken },
     });
@@ -86,13 +85,13 @@ export class Friendship {
 
   async unfollow(
     followee: UserObjectRef | UserObject | string,
-    options?: AuthOptions
+    options?: Omit<AuthOptions, 'sessionToken'>
   ): Promise<void> {
     const currentUser = await this._mustGetCurrentUserAsnyc();
     const followeeId = typeof followee === 'string' ? followee : followee.objectId;
     await this.app.request({
       method: 'DELETE',
-      path: `${API_VERSION}/users/${currentUser.objectId}/friendship/${followeeId}`,
+      path: `/users/${currentUser.objectId}/friendship/${followeeId}`,
       options: { ...options, sessionToken: currentUser.sessionToken },
     });
   }
@@ -101,7 +100,7 @@ export class Friendship {
     const currentUser = await this._mustGetCurrentUserAsnyc();
     const res = await this.app.request({
       method: 'GET',
-      path: `${API_VERSION}/users/${currentUser.objectId}/followers`,
+      path: `/users/${currentUser.objectId}/followers`,
       query: {
         keys: '-user', // 没必要返回自己
         include: options?.include?.join(','),
@@ -117,7 +116,7 @@ export class Friendship {
     const currentUser = await this._mustGetCurrentUserAsnyc();
     const res = await this.app.request({
       method: 'GET',
-      path: `${API_VERSION}/users/${currentUser.objectId}/followees`,
+      path: `/users/${currentUser.objectId}/followees`,
       query: {
         keys: '-user', // 没必要返回自己
         include: options?.include?.join(','),
@@ -173,7 +172,7 @@ export class FriendshipRequestObject extends LCObject {
   async accept(options?: FriendshipOptions): Promise<void> {
     await this.app.request({
       method: 'PUT',
-      path: `${API_VERSION}/users/friendshipRequests/${this.objectId}/accept`,
+      path: `/users/friendshipRequests/${this.objectId}/accept`,
       body: {
         friendship: options?.friendship,
       },
@@ -184,7 +183,7 @@ export class FriendshipRequestObject extends LCObject {
   async decline(options?: AuthOptions): Promise<void> {
     await this.app.request({
       method: 'PUT',
-      path: `${API_VERSION}/users/friendshipRequests/${this.objectId}/decline`,
+      path: `/users/friendshipRequests/${this.objectId}/decline`,
       options,
     });
   }

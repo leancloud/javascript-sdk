@@ -1,9 +1,8 @@
 import { CurrentUserManager, UserObject, UserObjectRef } from './user';
-import type { AuthOptions, App, AdvancedHTTPRequest } from '../app/app';
+import type { AuthOptions, App, AppRequest } from '../app/app';
 import { Query } from './query';
 import { assert } from '../utils';
 import { Pointer, LCObject, Encoder } from './object';
-import { API_VERSION } from '../const';
 
 type InboxType = 'default' | 'private' | string;
 
@@ -76,11 +75,11 @@ export class StatusQuery extends Query {
     return query;
   }
 
-  protected _makeRequest(options?: AuthOptions): AdvancedHTTPRequest {
+  protected _makeRequest(options?: AuthOptions): AppRequest {
     const req = super._makeRequest(options);
     if (this._inboxOwner) {
       assert(this._statusOwner === undefined, 'Cannot query both inboxOwner and statusOwner');
-      req.path = `${API_VERSION}/subscribe/statuses`;
+      req.path = `/subscribe/statuses`;
 
       if (!req.options) {
         req.options = { sessionToken: this._inboxOwner.sessionToken };
@@ -134,7 +133,7 @@ export class StatusClass extends StatusQuery {
 
     const res = await this.app.request({
       method: 'POST',
-      path: `${API_VERSION}/statuses`,
+      path: `/statuses`,
       query: { fetchWhenSave: true },
       body: {
         query: {
@@ -164,7 +163,7 @@ export class StatusClass extends StatusQuery {
 
     const res = await this.app.request({
       method: 'POST',
-      path: `${API_VERSION}/statuses`,
+      path: `/statuses`,
       body: {
         query: {
           className: '_User',
@@ -186,7 +185,7 @@ export class StatusClass extends StatusQuery {
 
     await this.app.request({
       method: 'DELETE',
-      path: `${API_VERSION}/subscribe/statuses/inbox`,
+      path: `/subscribe/statuses/inbox`,
       query: {
         owner: JSON.stringify(owner.toPointer()),
         inboxType: options?.inboxType,
@@ -202,7 +201,7 @@ export class StatusClass extends StatusQuery {
 
     const res = await this.app.request({
       method: 'GET',
-      path: `${API_VERSION}/subscribe/statuses/count`,
+      path: `/subscribe/statuses/count`,
       query: {
         owner: JSON.stringify(owner.toPointer()),
         inboxType: options?.inboxType,
@@ -218,7 +217,7 @@ export class StatusClass extends StatusQuery {
 
     await this.app.request({
       method: 'POST',
-      path: `${API_VERSION}/subscribe/statuses/resetUnreadCount`,
+      path: `/subscribe/statuses/resetUnreadCount`,
       query: {
         owner: JSON.stringify(owner.toPointer()),
         inboxType: options?.inboxType,

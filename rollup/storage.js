@@ -18,7 +18,7 @@ export default [
         entryFileNames: 'index.esm.js',
       },
     ],
-    external: ['debug', 'uuid', 'base64-arraybuffer'],
+    external: ['debug', 'uuid', 'base64-arraybuffer', 'lodash'],
     plugins: [
       typescript({
         rootDir: 'src',

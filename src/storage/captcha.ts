@@ -1,5 +1,4 @@
 import { App, AuthOptions } from '../app/app';
-import { API_VERSION } from '../const';
 
 export interface RefreshCaptchaOptions extends AuthOptions {
   width?: number;
@@ -100,7 +99,7 @@ export class Captcha {
     this.validateToken = null;
     const res = await this.app.request({
       method: 'GET',
-      path: `${API_VERSION}/requestCaptcha`,
+      path: `/requestCaptcha`,
       query: {
         width: options?.width,
         height: options?.height,
@@ -125,7 +124,7 @@ export class Captcha {
     }
     const res = await this.app.request({
       method: 'POST',
-      path: `${API_VERSION}/verifyCaptcha`,
+      path: `/verifyCaptcha`,
       body: {
         captcha_code: code,
         captcha_token: this.token,

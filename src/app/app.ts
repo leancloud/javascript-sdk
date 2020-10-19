@@ -1,12 +1,12 @@
-import { HTTPRequest, RequestOptions, HTTPResponse, request } from './http';
+import { HTTP, HTTPRequest, HTTPResponse, RequestOptions } from '../http';
 import { AdapterManager } from './adapters';
 import { NSStorage } from './storage';
 import { Encoder, LCObject } from '../storage/object';
-import { KEY_CURRENT_USER, SDK_VERSION } from '../const';
+import { API_VERSION, KEY_CURRENT_USER, SDK_VERSION } from '../const';
 import { APIError } from './errors';
 import { assert } from '../utils';
 import { isCNApp, Router, Service } from './router';
-import type { UserObject } from '../storage/user';
+import type { AuthedUser } from '../storage/user';
 
 interface AppConfig {
   appId: string;
@@ -25,7 +25,7 @@ export interface AuthOptions extends RequestOptions {
 /**
  * @internal
  */
-export interface AdvancedHTTPRequest extends HTTPRequest {
+export interface AppRequest extends Omit<HTTPRequest, 'baseURL'> {
   service?: Service;
   options?: AuthOptions;
 }
@@ -68,7 +68,7 @@ export class App {
   storage: NSStorage;
 
   /** @internal */
-  currentUser: UserObject;
+  currentUser: AuthedUser;
 
   /* eslint-disable */
   /** @internal */
@@ -115,46 +115,43 @@ export class App {
     return this._default;
   }
 
-  /** @internal */
-  async request(req: AdvancedHTTPRequest): Promise<HTTPResponse> {
-    if (req.baseURL) {
-      return request(req);
-    }
-
-    req.baseURL = this.serverURL || (await this._router.getServiceURL(req.service));
-
-    req.header = Object.assign(req.header || {}, {
-      'Content-Type': 'application/json',
-      'X-LC-UA': getUserAgent('LeanCloud-JS-SDK'),
-      'X-LC-Id': this.appId,
-      'X-LC-Key': this.appKey,
-    });
-
-    let { useMasterKey } = this;
+  /**
+   * @internal
+   */
+  async request(req: AppRequest): Promise<HTTPResponse> {
+    let { appKey, useMasterKey } = this;
     if (req.options?.useMasterKey !== undefined) {
       useMasterKey = req.options.useMasterKey;
     }
     if (useMasterKey) {
-      req.header['X-LC-Key'] = this.masterKey + ',master';
+      assert(this.masterKey, 'The masterKey is empty');
+      appKey = this.masterKey + ',master';
     }
 
-    let sessionToken: string;
-    if (req.options?.sessionToken) {
-      sessionToken = req.options.sessionToken;
-    } else {
-      sessionToken = await this.getSessionTokenAsync();
-    }
+    const httpReq: HTTPRequest = {
+      baseURL: this.serverURL || (await this._router.getServiceURL(req.service || 'api')),
+      path: HTTP.assemblePath(API_VERSION, req.path || ''),
+      header: {
+        ...req.header,
+        'Content-Type': 'application/json',
+        'X-LC-UA': UserAgent.get(),
+        'X-LC-Id': this.appId,
+        'X-LC-Key': appKey,
+      },
+    };
+
+    const sessionToken = req.options?.sessionToken || (await this.getSessionTokenAsync());
     if (sessionToken) {
-      req.header['X-LC-Session'] = sessionToken;
+      httpReq.header['X-LC-Session'] = sessionToken;
     }
 
     if (!this.production) {
-      req.header['X-LC-Prod'] = '0';
+      httpReq.header['X-LC-Prod'] = '0';
     }
-    const res = await request(req);
+
+    const res = await HTTP.request({ ...req, ...httpReq });
     if (res.status >= 400) {
-      const { code, error } = res.body as { code: number; error: string };
-      throw new APIError(code, error);
+      throw new APIError(res.body.code, res.body.error);
     }
     return res;
   }
@@ -203,15 +200,14 @@ export class App {
    *
    * @since 5.0.0
    */
-  getSessionToken(): string {
+  getSessionToken(): string | undefined {
     if (this.currentUser) {
       return this.currentUser.sessionToken;
     }
-    const userStr = this.storage.get(KEY_CURRENT_USER);
-    if (userStr) {
-      return JSON.parse(userStr).sessionToken;
+    const encodedUser = this.storage.get(KEY_CURRENT_USER);
+    if (encodedUser) {
+      return JSON.parse(encodedUser).sessionToken;
     }
-    return null;
   }
 
   /**
@@ -219,32 +215,44 @@ export class App {
    *
    * @since 5.0.0
    */
-  async getSessionTokenAsync(): Promise<string> {
+  async getSessionTokenAsync(): Promise<string | undefined> {
     if (this.currentUser) {
       return this.currentUser.sessionToken;
     }
-    const userStr = await this.storage.getAsync(KEY_CURRENT_USER);
-    if (userStr) {
-      return JSON.parse(userStr).sessionToken;
+    const encodedUser = this.storage.get(KEY_CURRENT_USER);
+    if (encodedUser) {
+      return JSON.parse(encodedUser).sessionToken;
     }
-    return null;
   }
 }
 
-/** @internal */
-function getUserAgent(base: string): string {
-  const userAgent = base + '/' + SDK_VERSION;
-  if (AdapterManager.isSet) {
-    const { platformInfo } = AdapterManager.get();
-    if (platformInfo) {
-      const { name, version } = platformInfo;
-      if (name) {
-        if (version) {
-          return userAgent + ` (${name}/${version})`;
+/**
+ * @inrernal
+ */
+class UserAgent {
+  static prefix = 'LeanCloud-JS-SDK/' + SDK_VERSION;
+
+  static get(): string {
+    const suffix = this.getPlatformSuffix();
+    if (suffix) {
+      return this.prefix + ' ' + suffix;
+    }
+    return this.prefix;
+  }
+
+  static getPlatformSuffix(): string {
+    if (AdapterManager.isSet) {
+      const { platformInfo } = AdapterManager.get();
+      if (platformInfo) {
+        const { name, version } = platformInfo;
+        if (name) {
+          if (version) {
+            return '(' + name + '/' + version + ')';
+          }
+          return '(' + name + ')';
         }
-        return userAgent + ` (${name})`;
       }
     }
+    return '';
   }
-  return userAgent;
 }

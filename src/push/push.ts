@@ -1,5 +1,4 @@
 import { App, AuthOptions } from '../app/app';
-import { API_VERSION } from '../const';
 import type { Query } from '../storage/query';
 
 export interface PushOptions extends AuthOptions {
@@ -31,7 +30,7 @@ export class Push {
     await this.app.request({
       service: 'push',
       method: 'POST',
-      path: `${API_VERSION}/push`,
+      path: `/push`,
       body: {
         data,
         where: options?.query?.toJSON(),

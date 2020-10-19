@@ -5,7 +5,6 @@ import { AddObjectOptions, Encoder, LCObjectData } from '../object';
 import { Operation } from '../operation';
 import type { UserObject, UserObjectRef } from '../user';
 import type { ACL } from '../acl';
-import { API_VERSION } from '../../const';
 
 interface RoleDataToAdd extends LCObjectData {
   ACL: ACL;
@@ -44,7 +43,7 @@ export class RoleClass extends Class {
     }
     const res = await this.app.request({
       method: 'POST',
-      path: `${API_VERSION}/roles`,
+      path: `/roles`,
       body,
       options,
     });

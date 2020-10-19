@@ -11,7 +11,6 @@ import { AuthOptions, App } from '../../app/app';
 import { Query } from '../query';
 import { Encoder } from '../object';
 import { Operation } from '../operation';
-import { API_VERSION } from '../../const';
 
 Encoder.setCreator('_Role', (app, id) => new RoleObject(app, id));
 
@@ -31,7 +30,7 @@ export class RoleObjectRef extends LCObjectRef {
   async addUser(user: UserSubject | UserSubject[], options?: AuthOptions): Promise<void> {
     await this.app.request({
       method: 'PUT',
-      path: `${API_VERSION}/roles/${this.objectId}`,
+      path: `/roles/${this.objectId}`,
       body: {
         users: Operation.addRelation(user),
       },
@@ -42,7 +41,7 @@ export class RoleObjectRef extends LCObjectRef {
   async addRole(role: RoleSubject | RoleSubject[], options?: AuthOptions): Promise<void> {
     await this.app.request({
       method: 'PUT',
-      path: `${API_VERSION}/roles/${this.objectId}`,
+      path: `/roles/${this.objectId}`,
       body: {
         roles: Operation.addRelation(role),
       },
@@ -53,7 +52,7 @@ export class RoleObjectRef extends LCObjectRef {
   async removeUser(user: UserSubject | UserSubject[], options?: AuthOptions): Promise<void> {
     await this.app.request({
       method: 'PUT',
-      path: `${API_VERSION}/roles/${this.objectId}`,
+      path: `/roles/${this.objectId}`,
       body: {
         users: Operation.removeRelation(user),
       },
@@ -64,7 +63,7 @@ export class RoleObjectRef extends LCObjectRef {
   async removeRole(role: RoleSubject | RoleSubject[], options?: AuthOptions): Promise<void> {
     await this.app.request({
       method: 'PUT',
-      path: `${API_VERSION}/roles/${this.objectId}`,
+      path: `/roles/${this.objectId}`,
       body: {
         roles: Operation.removeRelation(role),
       },

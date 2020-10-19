@@ -1,17 +1,12 @@
-import {
-  GetObjectOptions,
-  UpdateObjectOptions,
-  LCObjectData,
-  LCObjectRef,
-  LCObject,
-} from '../object';
+import * as _ from 'lodash';
+import { UpdateObjectOptions, LCObjectData, LCObjectRef, LCObject } from '../object';
 import type { App, AuthOptions } from '../../app/app';
 import type { MiniAppAuthOptions } from './user-class';
 import type { RoleObject } from '../role';
 import { Operation } from '../operation';
 import { assert } from '../../utils';
 import { Encoder } from '../object';
-import { KEY_CURRENT_USER, API_VERSION } from '../../const';
+import { KEY_CURRENT_USER } from '../../const';
 import { Query } from '../query';
 import { AdapterManager } from '../../app/adapters';
 
@@ -32,7 +27,8 @@ export interface UserData extends LCObjectData {
   emailVerified?: boolean;
   mobilePhoneNumber?: string;
   mobilePhoneVerified?: boolean;
-  authData?: Record<string, unknown>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  authData?: Record<string, any>;
 }
 
 interface FollowOptions extends AuthOptions {
@@ -51,30 +47,32 @@ export class CurrentUserManager {
   static set(app: App, user: UserObject): void {
     const encodedUser = Encoder.encode(user, true);
     app.storage.set(KEY_CURRENT_USER, JSON.stringify(encodedUser));
-    app.currentUser = user;
+    app.currentUser = AuthedUser.from(user);
   }
 
   static async setAsync(app: App, user: UserObject): Promise<void> {
     const encodedUser = Encoder.encode(user, true);
     await app.storage.setAsync(KEY_CURRENT_USER, JSON.stringify(encodedUser));
-    app.currentUser = user;
+    app.currentUser = AuthedUser.from(user);
   }
 
-  static get(app: App): UserObject {
+  static get(app: App): AuthedUser {
     if (!app.currentUser) {
       const encodedUser = app.storage.get(KEY_CURRENT_USER);
       if (encodedUser) {
-        app.currentUser = Encoder.decode(app, JSON.parse(encodedUser)) as UserObject;
+        const user = Encoder.decode(app, JSON.parse(encodedUser)) as UserObject;
+        app.currentUser = AuthedUser.from(user);
       }
     }
     return app.currentUser || null;
   }
 
-  static async getAsync(app: App): Promise<UserObject> {
+  static async getAsync(app: App): Promise<AuthedUser> {
     if (!app.currentUser) {
       const encodedUser = await app.storage.getAsync(KEY_CURRENT_USER);
       if (encodedUser) {
-        app.currentUser = Encoder.decode(app, JSON.parse(encodedUser)) as UserObject;
+        const user = Encoder.decode(app, JSON.parse(encodedUser)) as UserObject;
+        app.currentUser = AuthedUser.from(user);
       }
     }
     return app.currentUser || null;
@@ -109,6 +107,25 @@ export class CurrentUserManager {
     await app.storage.setAsync(KEY_CURRENT_USER, JSON.stringify(userKV));
     app.currentUser = null;
   }
+
+  static flushDataAsync(app: App, data: UserData): Promise<void>;
+  static flushDataAsync(app: App, modifier: (data: UserData) => void): Promise<void>;
+  static async flushDataAsync(app: App, arg: UserData | ((data: UserData) => void)): Promise<void> {
+    const encodedUser = await app.storage.getAsync(KEY_CURRENT_USER);
+    const data = encodedUser ? JSON.parse(encodedUser) : {};
+    if (typeof arg === 'function') {
+      arg(data);
+    } else {
+      Object.assign(data, arg);
+    }
+    delete data.password;
+    return app.storage.setAsync(KEY_CURRENT_USER, data);
+  }
+
+  static async persist(user: AuthedUser): Promise<void> {
+    const encodedUser = Encoder.encode(user, true);
+    user.app.storage.set(KEY_CURRENT_USER, JSON.stringify(encodedUser));
+  }
 }
 
 export class UserObjectRef extends LCObjectRef {
@@ -120,45 +137,6 @@ export class UserObjectRef extends LCObjectRef {
     return this.objectId;
   }
 
-  isCurrent(): boolean {
-    const currentUser = CurrentUserManager.get(this.app);
-    return this.objectId === currentUser?.objectId;
-  }
-
-  async isCurrentAsync(): Promise<boolean> {
-    const currentUser = await CurrentUserManager.getAsync(this.app);
-    return this.objectId === currentUser?.objectId;
-  }
-
-  async get(options?: GetObjectOptions): Promise<UserObject> {
-    const user = (await super.get(options)) as UserObject;
-    if (await this.isCurrentAsync()) {
-      await CurrentUserManager.syncDataAsync(this.app, (userKV) => {
-        Object.assign(userKV, Encoder.encode(user, true));
-      });
-    }
-    return user;
-  }
-
-  async update(data: UserData, options?: UpdateObjectOptions): Promise<UserObject> {
-    const user = (await super.update(data, options)) as UserObject;
-    if (await this.isCurrentAsync()) {
-      await CurrentUserManager.syncDataAsync(this.app, (userKV) => {
-        // TODO: 因为无法直接从 API 获取删除的属性, 所以需要判断 data 来同步删除本地缓存的当前用户的属性.
-        // 不过我怀疑是否有删除某属性后又在本地读取该属性的使用场景, 所以暂时未实现该功能
-        Object.assign(userKV, data, Encoder.encode(user, true));
-      });
-    }
-    return user;
-  }
-
-  async delete(options?: AuthOptions): Promise<void> {
-    await super.delete(options);
-    if (await this.isCurrentAsync()) {
-      await CurrentUserManager.removeAsync(this.app);
-    }
-  }
-
   getRoles(): Promise<RoleObject[]> {
     return new Query('_Role', this.app).where('users', '==', this).find() as Promise<RoleObject[]>;
   }
@@ -166,8 +144,6 @@ export class UserObjectRef extends LCObjectRef {
 
 export class UserObject extends LCObject {
   data: UserData;
-  createdAt: Date;
-  updatedAt: Date;
 
   protected _ref: UserObjectRef;
 
@@ -184,35 +160,58 @@ export class UserObject extends LCObject {
     return this._ref.aclKey;
   }
 
-  private get _anonymousId(): string {
-    const authData = this.data.authData as { anonymous?: { id: string } };
-    return authData.anonymous?.id;
+  getRoles(): Promise<RoleObject[]> {
+    return this._ref.getRoles();
+  }
+}
+
+export class AuthedUser extends UserObject {
+  static from(user: UserObject): AuthedUser {
+    const authedUser = new AuthedUser(user.app, user.objectId);
+    authedUser.data = user.data;
+    authedUser.createdAt = user.createdAt;
+    authedUser.updatedAt = user.updatedAt;
+    return authedUser;
   }
 
-  isCurrent(): boolean {
-    if (this.isAnonymous()) {
-      const currentUser = CurrentUserManager.get(this.app);
-      return this._anonymousId === currentUser._anonymousId;
-    }
-    return this._ref.isCurrent();
+  get sessionToken(): string {
+    return this.data.sessionToken;
   }
 
-  async isCurrentAsync(): Promise<boolean> {
-    if (this.isAnonymous()) {
-      const currentUser = await CurrentUserManager.getAsync(this.app);
-      return this._anonymousId === currentUser._anonymousId;
-    }
-    return this._ref.isCurrentAsync();
+  get authData(): UserData['authData'] {
+    return this.data.authData;
+  }
+
+  get anonymousId(): string {
+    return this.authData?.anonymous?.id;
   }
 
   isAnonymous(): boolean {
-    return !!this.data.authData?.anonymous;
+    return Boolean(this.authData?.anonymous);
   }
+
+  /* XXX: 让人困惑的方法
+  isCurrent(): boolean {
+    const currentUser = CurrentUserManager.get(this.app);
+    if (this.isAnonymous()) {
+      return this.anonymousId && this.anonymousId === currentUser?.anonymousId;
+    }
+    return this.objectId === currentUser?.objectId;
+  }
+
+  async isCurrentAsync(): Promise<boolean> {
+    const currentUser = await CurrentUserManager.getAsync(this.app);
+    if (this.isAnonymous()) {
+      return this.anonymousId && this.anonymousId === currentUser?.anonymousId;
+    }
+    return this.objectId === currentUser?.objectId;
+  }
+  */
 
   async isAuthenticated(): Promise<boolean> {
     try {
       await this.app.request({
-        path: `${API_VERSION}/users/me`,
+        path: `/users/me`,
         options: { sessionToken: this.sessionToken },
       });
       return true;
@@ -227,124 +226,85 @@ export class UserObject extends LCObject {
   async updatePassword(
     oldPassword: string,
     newPassword: string,
-    options?: AuthOptions
+    options?: Omit<AuthOptions, 'sessionToken'>
   ): Promise<void> {
     const res = await this.app.request({
       method: 'PUT',
-      path: `${API_VERSION}/users/${this.objectId}/updatePassword`,
+      path: `/users/${this.objectId}/updatePassword`,
       body: {
         old_password: oldPassword,
         new_password: newPassword,
       },
-      options: { sessionToken: this.sessionToken, ...options },
+      options: { ...options, sessionToken: this.sessionToken },
     });
-    this.data.sessionToken = (res.body as UserData).sessionToken;
-    if (await this.isCurrentAsync()) {
-      await CurrentUserManager.syncDataAsync(this.app, (userKV) => {
-        userKV.sessionToken = this.sessionToken;
-      });
-    }
+    this.data.sessionToken = res.body.sessionToken;
+    // TODO: sync storage data
   }
 
   associateWithAuthData(
     platform: string,
-    authData: Record<string, unknown>,
+    authDataItem: Record<string, unknown>,
     options?: UpdateObjectOptions
-  ): Promise<UserObject> {
-    return this.update({ authData: { [platform]: authData } }, { fetch: true, ...options });
+  ): Promise<AuthedUser> {
+    const authData = { [platform]: authDataItem };
+    return this.update({ authData }, options);
+    // TODO: sync storage data
   }
 
   associateWithAuthDataAndUnionId(
     platform: string,
-    authData: Record<string, unknown>,
+    authDataItem: Record<string, unknown>,
     unionId: string,
     options?: AssociateUnionIdOptions
-  ): Promise<UserObject> {
-    Object.assign(authData, {
+  ): Promise<AuthedUser> {
+    const item = Object.assign({}, authDataItem, {
       unionid: unionId,
       platform: options?.unionIdPlatform ?? 'weixin',
       main_account: options?.asMainAccount ?? false,
     });
-    return this.associateWithAuthData(platform, authData, options);
+    return this.associateWithAuthData(platform, item, options);
   }
 
-  async associateWithMiniApp(options?: MiniAppAuthOptions): Promise<UserObject> {
-    const authInfo = await AdapterManager.get().getAuthInfo(options);
-    return this.associateWithAuthData(authInfo.provider, authInfo.authData, options);
+  async associateWithMiniApp(options?: MiniAppAuthOptions): Promise<AuthedUser> {
+    const { getAuthInfo } = AdapterManager.get();
+    assert(getAuthInfo, 'The getAuthInfo adapter is not set');
+    const { provider, authData } = await getAuthInfo(options);
+    return this.associateWithAuthData(provider, authData, options);
   }
 
   dissociateAuthData(platform: string): Promise<UserObject> {
-    return this.update({ [`authData.${platform}`]: Operation.unset() }, { fetch: true });
+    return this.update({ [`authData.${platform}`]: Operation.unset() });
+    // TODO: sync storage data
   }
 
-  async signUp(data: UserDataForAdd, options?: AuthOptions): Promise<UserObject> {
+  async signUp(data: UserDataForAdd, options?: AuthOptions): Promise<AuthedUser> {
     if (!this.isAnonymous()) {
-      throw new Error('User#signUp can only be invoked by an anonymous user');
+      throw new Error('The signUp method can only be invoked by an anonymous user');
     }
     assert(data.username, 'The username must be provided');
     assert(data.password, 'The password must be provided');
-    if (await this.isCurrentAsync()) {
-      CurrentUserManager.syncDataAsync(this.app, (userKV) => {
-        delete userKV.authData['anonymous'];
-      });
-    }
+    delete this.data.authData.anonymous;
     return this.update(data, options);
   }
 
-  async refreshSessionToken(options?: AuthOptions): Promise<void> {
+  async refreshSessionToken(options?: Omit<AuthOptions, 'sessionToken'>): Promise<string> {
     const res = await this.app.request({
       method: 'PUT',
-      path: `${API_VERSION}/users/${this.objectId}/refreshSessionToken`,
+      path: `/users/${this.objectId}/refreshSessionToken`,
       options: { ...options, sessionToken: this.sessionToken },
     });
-    this.data.sessionToken = res.body['sessionToken'];
-    if (await this.isCurrentAsync()) {
-      await CurrentUserManager.syncDataAsync(this.app, (userKV) => {
-        userKV.sessionToken = this.sessionToken;
-      });
+    this.merge(res.body);
+    if (this.app.currentUser === this) {
+      await CurrentUserManager.persist(this);
     }
+    return this.sessionToken;
   }
 
-  async follow(
-    followee: UserObjectRef | UserObject | string,
-    options?: FollowOptions
-  ): Promise<void> {
-    assert(this.sessionToken, 'Cannot create friendship for an unauthorized user');
-    const followeeId = typeof followee === 'string' ? followee : followee.objectId;
-    await this.app.request({
-      method: 'POST',
-      path: `${API_VERSION}/users/${this.objectId}/friendship/${followeeId}`,
-      body: options?.data,
-      options: { ...options, sessionToken: this.sessionToken },
-    });
-  }
-
-  async unfollow(
-    followee: UserObjectRef | UserObject | string,
-    options?: AuthOptions
-  ): Promise<void> {
-    assert(this.sessionToken, 'Cannot remove friendship for an unauthorized user');
-    const followeeId = typeof followee === 'string' ? followee : followee.objectId;
-    await this.app.request({
-      method: 'DELETE',
-      path: `${API_VERSION}/users/${this.objectId}/friendship/${followeeId}`,
-      options: { ...options, sessionToken: this.sessionToken },
-    });
-  }
-
-  getRoles(): Promise<RoleObject[]> {
-    return this._ref.getRoles();
-  }
-
-  get(options?: GetObjectOptions): Promise<UserObject> {
-    return this._ref.get({ sessionToken: this.sessionToken, ...options });
-  }
-
-  update(data: UserData, options?: UpdateObjectOptions): Promise<UserObject> {
-    return this._ref.update(data, { sessionToken: this.sessionToken, ...options });
-  }
-
-  delete(options?: AuthOptions): Promise<void> {
-    return this._ref.delete({ sessionToken: this.sessionToken, ...options });
+  async update(data: UserData, options?: UpdateObjectOptions): Promise<AuthedUser> {
+    const user = AuthedUser.from((await super.update(data, options)) as UserObject);
+    if (this.app.currentUser === this) {
+      _.merge(this.app.currentUser.data, user.data);
+    }
+    return user;
   }
 }

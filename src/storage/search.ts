@@ -2,7 +2,6 @@ import { App, AuthOptions } from '../app/app';
 import { HTTPRequest } from '../app/http';
 import { Encoder, LCObject } from './object';
 import { GeoPoint } from './geo-point';
-import { API_VERSION } from '../const';
 
 interface SearchSortOrderOptions {
   mode?: 'min' | 'max' | 'sum' | 'avg';
@@ -41,7 +40,7 @@ class SearchResult {
     }
     const res = await this._app.request({
       method: 'GET',
-      path: `${API_VERSION}/search/select`,
+      path: `/search/select`,
       query: { sid: this.sid },
       options,
     });
@@ -177,7 +176,7 @@ export class SearchQuery {
   private _makeRequest(options?: AuthOptions): HTTPRequest {
     const req: HTTPRequest = {
       method: 'GET',
-      path: `${API_VERSION}/search/select`,
+      path: `/search/select`,
       query: {
         q: this._q,
         skip: this._skip,

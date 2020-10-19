@@ -1,5 +1,5 @@
 import type { App } from '../app/app';
-import { API_VERSION, KEY_INSTALLATION } from '../const';
+import { KEY_INSTALLATION } from '../const';
 import { Class } from '../storage/class';
 import { Encoder, LCObject, LCObjectData, UpdateObjectOptions } from '../storage/object';
 
@@ -20,7 +20,7 @@ export class InstallationClass extends Class {
   }
 
   protected get _apiPath(): string {
-    return `${API_VERSION}/installations`;
+    return `/installations`;
   }
 
   static addOrUpdateCurrent(

@@ -26,7 +26,8 @@ export interface UploadRequest extends Omit<HTTPRequest, 'body'> {
 export interface HTTPResponse {
   status: number;
   header?: Record<string, string | string[]>;
-  body?: unknown;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  body?: any;
 }
 
 let requestID = 0;

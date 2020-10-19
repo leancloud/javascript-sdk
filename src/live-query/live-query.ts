@@ -3,7 +3,7 @@
 import { Realtime, setAdapters, debug } from 'leancloud-realtime/core';
 import { LiveQueryPlugin } from 'leancloud-realtime-plugin-live-query';
 import { EventEmitter } from 'eventemitter3';
-import { API_VERSION, KEY_SUBSCRIPTION_ID } from '../const';
+import { KEY_SUBSCRIPTION_ID } from '../const';
 import type { App, AuthOptions } from '../app/app';
 import type { Query } from '../storage/query';
 import type { HTTPRequest } from '../app/http';
@@ -76,7 +76,7 @@ export class LiveQuery extends EventEmitter<LiveQueryListeners> {
   private _makeSubscribeRequest(subscriptionId?: string): HTTPRequest {
     return {
       method: 'POST',
-      path: `${API_VERSION}/LiveQuery/subscribe`,
+      path: `/LiveQuery/subscribe`,
       body: {
         id: subscriptionId,
         query: {
@@ -129,7 +129,7 @@ export class LiveQuery extends EventEmitter<LiveQueryListeners> {
       this._client.close();
       await this._app.request({
         method: 'POST',
-        path: `${API_VERSION}/LiveQuery/unsubscribe`,
+        path: `/LiveQuery/unsubscribe`,
         body: { id: this._id, query_id: this._queryId },
       });
     } finally {

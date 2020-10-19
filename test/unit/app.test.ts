@@ -1,7 +1,7 @@
 import 'should';
 import { adapters } from '../../src/utils/test-adapters';
 import { App } from '../../src/app/app';
-import { UserObject } from '../../src/storage/user';
+import { AuthedUser, UserObject } from '../../src/storage/user';
 import { KEY_CURRENT_USER } from '../../src/const';
 
 describe('App', function () {
@@ -25,7 +25,6 @@ describe('App', function () {
     it('basic request', async function () {
       await app.request({
         method: 'POST',
-        baseURL: 'test-base-url',
         path: '/test-path',
         header: { testHeaderKey: 'testHeaderValue' },
         query: { num: 123, str: '456', bool: true },
@@ -33,16 +32,9 @@ describe('App', function () {
       });
       const req = adapters.requests.pop();
       req.method.should.eql('POST');
-      req.baseURL.should.eql('test-base-url');
-      req.path.should.eql('test-path');
+      req.path.should.endWith('/test-path');
       req.header.testHeaderKey.should.eql('testHeaderValue');
       req.query.should.containEql({ num: '123', str: '456', bool: 'true' });
-    });
-
-    it('should send request to serverURL when the baseURL is empty', async function () {
-      await app.request({ method: 'GET' });
-      const req = adapters.requests.pop();
-      req.baseURL.should.eql(app.serverURL);
     });
 
     it('should set X-LC-Id and X-LC-Key headers', async function () {
@@ -72,7 +64,7 @@ describe('App', function () {
     });
 
     it("should use currentUser's sessionToken", async function () {
-      app.currentUser = new UserObject(app, '');
+      app.currentUser = new AuthedUser(app, '');
       app.currentUser.data = { sessionToken: 'current-user-session' };
       await app.request({ method: 'GET' });
       const req = adapters.requests.pop();
@@ -89,7 +81,7 @@ describe('App', function () {
     });
 
     it('should use the sessionToken specified in options first', async function () {
-      app.currentUser = new UserObject(app, '');
+      app.currentUser = new AuthedUser(app, '');
       app.currentUser.data = { sessionToken: 'current-user-session' };
       await app.request({
         method: 'GET',

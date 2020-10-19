@@ -1,7 +1,6 @@
 import { decode as base64ToArrayBuffer } from 'base64-arraybuffer';
 import { Class } from '../class';
 import { App, AuthOptions } from '../../app/app';
-import { API_VERSION } from '../../const';
 import { HTTPResponse } from '../../app/http';
 import { ACL } from '../acl';
 import { FileObjectRef, FileObject } from './file-object';
@@ -77,7 +76,7 @@ function getFileSize(data: unknown): number | undefined {
  */
 export class FileClass extends Class {
   protected get _apiPath(): string {
-    return `${API_VERSION}/files`;
+    return `/files`;
   }
 
   constructor(app?: App) {
@@ -203,7 +202,7 @@ export class FileClass extends Class {
   ): Promise<FileTokens> {
     const res = await this.app.request({
       method: 'POST',
-      path: `${API_VERSION}/fileTokens`,
+      path: `/fileTokens`,
       body: {
         name,
         ACL,
@@ -217,7 +216,7 @@ export class FileClass extends Class {
   private _invokeFileCallback(token: string, success: boolean): Promise<HTTPResponse> {
     return this.app.request({
       method: 'POST',
-      path: `${API_VERSION}/fileCallback`,
+      path: `/fileCallback`,
       body: { token, result: success },
     });
   }

@@ -1,6 +1,5 @@
 import { AuthOptions, App } from '../app/app';
 import { Encoder } from '../storage/object';
-import { API_VERSION } from '../const';
 
 interface RequestSMSCodeOptions extends AuthOptions {
   smsType?: string;
@@ -41,7 +40,7 @@ export class Cloud {
   async requestSMSCode(mobilePhoneNumber: string, options?: RequestSMSCodeOptions): Promise<void> {
     await this.app.request({
       method: 'POST',
-      path: `${API_VERSION}/requestSmsCode`,
+      path: `/requestSmsCode`,
       body: {
         ...options?.variables,
         mobilePhoneNumber,
@@ -64,7 +63,7 @@ export class Cloud {
   ): Promise<void> {
     await this.app.request({
       method: 'POST',
-      path: `${API_VERSION}/verifySmsCode/${smsCode}`,
+      path: `/verifySmsCode/${smsCode}`,
       body: { mobilePhoneNumber },
       options,
     });
@@ -75,7 +74,7 @@ export class Cloud {
     const res = await this.app.request({
       service: 'engine',
       method: 'POST',
-      path: `${API_VERSION}/functions/${name}`,
+      path: `/functions/${name}`,
       body: Encoder.encode(data, true),
       options,
     });
@@ -87,7 +86,7 @@ export class Cloud {
     const res = await this.app.request({
       service: 'engine',
       method: 'POST',
-      path: `${API_VERSION}/call/${name}`,
+      path: `/call/${name}`,
       body: Encoder.encode(data, true),
       options,
     });
