@@ -28,12 +28,14 @@
   },
   "dependencies": {
     "@leancloud/adapter-types": "^4.0.0",
+    "@types/lodash": "^4.14.162",
     "@types/uuid": "^8.3.0",
     "base64-arraybuffer": "^0.2.0",
     "debug": "^4.1.1",
     "eventemitter3": "^4.0.7",
     "leancloud-realtime": "^5.0.0-rc.3",
     "leancloud-realtime-plugin-live-query": "^1.2.0",
+    "lodash": "^4.17.20",
     "uuid": "^8.3.0"
   },
   "devDependencies": {
