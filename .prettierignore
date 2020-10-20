@@ -6,3 +6,4 @@ dist
 /env.ts
 /docs
 /.vscode
+/changelog.md
