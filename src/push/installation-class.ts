@@ -1,7 +1,7 @@
 import type { App } from '../app/app';
 import { KEY_INSTALLATION } from '../const';
 import { Class } from '../storage/class';
-import { Encoder, LCObject, LCObjectData, UpdateObjectOptions } from '../storage/object';
+import { lcEncode, LCObject, LCObjectData, UpdateObjectOptions } from '../storage/object';
 
 interface InstallationData extends LCObjectData {
   badge?: number;
@@ -36,9 +36,14 @@ export class InstallationClass extends Class {
   ): Promise<LCObject> {
     const encodedIns = await this.app.storage.getAsync(KEY_INSTALLATION);
     if (encodedIns) {
-      const ins = Encoder.decodeObject(this.app, JSON.parse(encodedIns));
+      const ins = this.app.decode(JSON.parse(encodedIns));
       return ins.update(data, options);
     }
-    return this.add(data, options);
+    const ins = await this.add(data, options);
+    await this.app.storage.setAsync(
+      KEY_INSTALLATION,
+      JSON.stringify(lcEncode(ins, { full: true }))
+    );
+    return ins;
   }
 }

@@ -8,7 +8,7 @@ import {
   AuthedUser,
 } from '../../../src/storage/user';
 import { API_VERSION, KEY_CURRENT_USER } from '../../../src/const';
-import { Encoder } from '../../../src/storage/object';
+import { lcEncode } from '../../../src/storage/object';
 
 const app = new App({
   appId: 'test-app-id',
@@ -36,7 +36,7 @@ describe('CurrentUser', function () {
       app.currentUser = null;
       const user = new AuthedUser(app, 'test-user-id');
       user.data = { key: 'value' };
-      app.storage.set(KEY_CURRENT_USER, JSON.stringify(Encoder.encode(user, true)));
+      app.storage.set(KEY_CURRENT_USER, JSON.stringify(lcEncode(user, { full: true })));
       CurrentUserManager.get(app).data.should.eql(user.data);
     });
 

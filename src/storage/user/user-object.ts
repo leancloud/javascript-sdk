@@ -1,16 +1,12 @@
-import * as _ from 'lodash';
-import { UpdateObjectOptions, LCObjectData, LCObjectRef, LCObject } from '../object';
+import { UpdateObjectOptions, LCObjectData, LCObjectRef, LCObject, lcEncode } from '../object';
 import type { App, AuthOptions } from '../../app/app';
 import type { MiniAppAuthOptions } from './user-class';
 import type { RoleObject } from '../role';
 import { Operation } from '../operation';
 import { assert } from '../../utils';
-import { Encoder } from '../object';
 import { KEY_CURRENT_USER } from '../../const';
 import { Query } from '../query';
 import { AdapterManager } from '../../app/adapters';
-
-Encoder.setCreator('_User', (app, id) => new UserObject(app, id));
 
 export interface UserDataForAdd extends LCObjectData {
   username?: string;
@@ -45,13 +41,13 @@ interface AssociateUnionIdOptions extends UpdateObjectOptions {
  */
 export class CurrentUserManager {
   static set(app: App, user: UserObject): void {
-    const encodedUser = Encoder.encode(user, true);
+    const encodedUser = lcEncode(user, { full: true });
     app.storage.set(KEY_CURRENT_USER, JSON.stringify(encodedUser));
     app.currentUser = AuthedUser.from(user);
   }
 
   static async setAsync(app: App, user: UserObject): Promise<void> {
-    const encodedUser = Encoder.encode(user, true);
+    const encodedUser = lcEncode(user, { full: true });
     await app.storage.setAsync(KEY_CURRENT_USER, JSON.stringify(encodedUser));
     app.currentUser = AuthedUser.from(user);
   }
@@ -60,7 +56,7 @@ export class CurrentUserManager {
     if (!app.currentUser) {
       const encodedUser = app.storage.get(KEY_CURRENT_USER);
       if (encodedUser) {
-        const user = Encoder.decode(app, JSON.parse(encodedUser)) as UserObject;
+        const user = app.decode(JSON.parse(encodedUser));
         app.currentUser = AuthedUser.from(user);
       }
     }
@@ -71,7 +67,7 @@ export class CurrentUserManager {
     if (!app.currentUser) {
       const encodedUser = await app.storage.getAsync(KEY_CURRENT_USER);
       if (encodedUser) {
-        const user = Encoder.decode(app, JSON.parse(encodedUser)) as UserObject;
+        const user = app.decode(JSON.parse(encodedUser));
         app.currentUser = AuthedUser.from(user);
       }
     }
@@ -123,7 +119,7 @@ export class CurrentUserManager {
   }
 
   static async persist(user: AuthedUser): Promise<void> {
-    const encodedUser = Encoder.encode(user, true);
+    const encodedUser = lcEncode(user, { full: true });
     user.app.storage.set(KEY_CURRENT_USER, JSON.stringify(encodedUser));
   }
 }
@@ -190,24 +186,6 @@ export class AuthedUser extends UserObject {
     return Boolean(this.authData?.anonymous);
   }
 
-  /* XXX: 让人困惑的方法
-  isCurrent(): boolean {
-    const currentUser = CurrentUserManager.get(this.app);
-    if (this.isAnonymous()) {
-      return this.anonymousId && this.anonymousId === currentUser?.anonymousId;
-    }
-    return this.objectId === currentUser?.objectId;
-  }
-
-  async isCurrentAsync(): Promise<boolean> {
-    const currentUser = await CurrentUserManager.getAsync(this.app);
-    if (this.isAnonymous()) {
-      return this.anonymousId && this.anonymousId === currentUser?.anonymousId;
-    }
-    return this.objectId === currentUser?.objectId;
-  }
-  */
-
   async isAuthenticated(): Promise<boolean> {
     try {
       await this.app.request({
@@ -238,7 +216,10 @@ export class AuthedUser extends UserObject {
       options: { ...options, sessionToken: this.sessionToken },
     });
     this.data.sessionToken = res.body.sessionToken;
-    // TODO: sync storage data
+    this.mergeData(res.body);
+    if (this.app.currentUser === this) {
+      await CurrentUserManager.persist(this);
+    }
   }
 
   associateWithAuthData(
@@ -293,18 +274,16 @@ export class AuthedUser extends UserObject {
       path: `/users/${this.objectId}/refreshSessionToken`,
       options: { ...options, sessionToken: this.sessionToken },
     });
-    this.merge(res.body);
+    this.mergeData(res.body);
     if (this.app.currentUser === this) {
       await CurrentUserManager.persist(this);
     }
     return this.sessionToken;
   }
 
-  async update(data: UserData, options?: UpdateObjectOptions): Promise<AuthedUser> {
+  async update(data: UserData, options?: UpdateObjectOptions): Promise<this> {
     const user = AuthedUser.from((await super.update(data, options)) as UserObject);
-    if (this.app.currentUser === this) {
-      _.merge(this.app.currentUser.data, user.data);
-    }
-    return user;
+    this.mergeData(user.data);
+    return this;
   }
 }

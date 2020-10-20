@@ -1,10 +1,11 @@
-import { Class } from '../class';
-import { App } from '../../app/app';
-import { RoleObjectRef, RoleObject } from './role-object';
-import { AddObjectOptions, Encoder, LCObjectData } from '../object';
-import { Operation } from '../operation';
 import type { UserObject, UserObjectRef } from '../user';
 import type { ACL } from '../acl';
+import type { App } from '../../app/app';
+import { Class } from '../class';
+import { RoleObjectRef, RoleObject } from './role-object';
+import { AddObjectOptions, LCObjectData } from '../object';
+import { Operation } from '../operation';
+import { mustGetDefaultApp } from '../../app/default-app';
 
 interface RoleDataToAdd extends LCObjectData {
   ACL: ACL;
@@ -22,7 +23,7 @@ export class RoleClass extends Class {
   }
 
   static object(id: string): RoleObjectRef {
-    return new RoleObjectRef(App.default, id);
+    return new RoleObjectRef(mustGetDefaultApp(), id);
   }
 
   static add(data: RoleDataToAdd, options?: AddObjectOptions): Promise<RoleObject> {
@@ -47,6 +48,6 @@ export class RoleClass extends Class {
       body,
       options,
     });
-    return Encoder.decodeObject(this.app, res.body, this.className) as RoleObject;
+    return this.app.decode(res.body, { type: 'Object', className: this.className });
   }
 }

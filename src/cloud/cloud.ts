@@ -1,5 +1,5 @@
 import { AuthOptions, App } from '../app/app';
-import { Encoder } from '../storage/object';
+import { lcEncode } from '../storage/object';
 
 interface RequestSMSCodeOptions extends AuthOptions {
   smsType?: string;
@@ -75,10 +75,10 @@ export class Cloud {
       service: 'engine',
       method: 'POST',
       path: `/functions/${name}`,
-      body: Encoder.encode(data, true),
+      body: lcEncode(data, { full: true }),
       options,
     });
-    return res.body['result'];
+    return res.body.result;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -87,9 +87,9 @@ export class Cloud {
       service: 'engine',
       method: 'POST',
       path: `/call/${name}`,
-      body: Encoder.encode(data, true),
+      body: lcEncode(data, { full: true }),
       options,
     });
-    return Encoder.decode(this.app, res.body['result']);
+    return this.app.decode(res.body.result);
   }
 }

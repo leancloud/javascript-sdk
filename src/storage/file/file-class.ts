@@ -1,10 +1,11 @@
+import type { App, AuthOptions } from '../../app/app';
 import { decode as base64ToArrayBuffer } from 'base64-arraybuffer';
 import { Class } from '../class';
-import { App, AuthOptions } from '../../app/app';
 import { HTTPResponse } from '../../app/http';
 import { ACL } from '../acl';
 import { FileObjectRef, FileObject } from './file-object';
 import { getFileProvider } from './file-provider';
+import { mustGetDefaultApp } from '../../app/default-app';
 
 /**
  * @internal
@@ -84,7 +85,7 @@ export class FileClass extends Class {
   }
 
   static object(id: string): FileObjectRef {
-    return new FileObjectRef(App.default, id);
+    return new FileObjectRef(mustGetDefaultApp(), id);
   }
 
   static upload(name: string, data: unknown, options?: UploadOptions): Promise<FileObject> {

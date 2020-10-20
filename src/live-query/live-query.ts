@@ -140,7 +140,7 @@ export class LiveQuery extends EventEmitter<LiveQueryListeners> {
   private _onMessage = (messages: Record<string, unknown>[]) => {
     messages.forEach((msg) => {
       if (msg.query_id === this._queryId) {
-        const obj = this._app.decodeObject(msg.object);
+        const obj = this._app.decode(msg.object, { type: 'Object' });
         const event = msg.op as string;
         const updatedKeys = msg.updatedKeys as string[];
         this.emit(event as LiveQueryEvents, obj, updatedKeys);

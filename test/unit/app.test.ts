@@ -3,6 +3,7 @@ import { adapters } from '../../src/utils/test-adapters';
 import { App } from '../../src/app/app';
 import { AuthedUser, UserObject } from '../../src/storage/user';
 import { KEY_CURRENT_USER } from '../../src/const';
+import { LCObject } from '../../src/storage/object';
 
 describe('App', function () {
   const app = new App({
@@ -103,6 +104,61 @@ describe('App', function () {
       return app.request({ method: 'GET' }).should.rejectedWith({
         code: 123,
         error: 'error message',
+      });
+    });
+  });
+
+  describe('#decode', function () {
+    describe('.decode', function () {
+      it('should decode Pointer', function () {
+        const data = {
+          __type: 'Pointer',
+          className: 'Test',
+          objectId: 'test-object-id',
+          key: 'value',
+        };
+        const obj = app.decode(data) as LCObject;
+        obj.should.instanceOf(LCObject);
+        obj.app.should.eql(app);
+        obj.className.should.eql(data.className);
+        obj.objectId.should.eql(data.objectId);
+        obj.data.should.eql({ key: 'value' });
+      });
+
+      it('should decode Object', function () {
+        const data = {
+          __type: 'Object',
+          className: 'Test',
+          objectId: 'test-object-id',
+          key: 'value',
+        };
+        const obj = app.decode(data) as LCObject;
+        obj.should.instanceOf(LCObject);
+        obj.app.should.eql(app);
+        obj.className.should.eql(data.className);
+        obj.objectId.should.eql(data.objectId);
+        obj.data.should.eql({ key: 'value' });
+      });
+
+      it('should decode Date', function () {
+        const data = { __type: 'Date', iso: '2020-09-02T09:09:09.244Z' };
+        const date = app.decode(data) as Date;
+        date.should.instanceOf(Date);
+        date.toISOString().should.eql(data.iso);
+      });
+
+      it('should decode Date in an array', function () {
+        const data = { __type: 'Date', iso: '2020-09-02T09:09:09.244Z' };
+        const [date] = app.decode([data]) as [Date];
+        date.should.instanceOf(Date);
+        date.toISOString().should.eql(data.iso);
+      });
+
+      it('should decode Date in a object', function () {
+        const data = { __type: 'Date', iso: '2020-09-02T09:09:09.244Z' };
+        const { date } = app.decode({ date: data }) as { date: Date };
+        date.should.instanceOf(Date);
+        date.toISOString().should.eql(data.iso);
       });
     });
   });

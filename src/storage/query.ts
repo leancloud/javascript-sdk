@@ -1,10 +1,11 @@
-import { App, AppRequest, AuthOptions } from '../app/app';
-import { GeoPoint } from './geo-point';
-import { LCObject } from './object';
-import { isEmptyObject, assert, isRegExp } from '../utils';
-import { Encoder } from './object';
-import { PluginManager } from '../app/plugin';
+import type { AppRequest, AuthOptions } from '../app/app';
 import type { LiveQuery } from '../live-query';
+import { GeoPoint } from './geo-point';
+import { lcEncode, LCObject } from './object';
+import { assert } from '../utils';
+import { PluginManager } from '../app/plugin';
+import { mustGetDefaultApp } from '../app/default-app';
+import { isEmpty, isRegExp } from 'lodash';
 
 interface RegExpWithString {
   regexp: string;
@@ -41,7 +42,7 @@ export class Query {
   private _returnACL: boolean;
   private _danglingOr: Query;
 
-  constructor(public className: string, public app = App.default) {}
+  constructor(public className: string, public app = mustGetDefaultApp()) {}
 
   /**
    * Constructs a {@link Query} that is the AND of the passed in queries.
@@ -89,7 +90,7 @@ export class Query {
   }
 
   get or(): Query {
-    if (isEmptyObject(this._where)) {
+    if (isEmpty(this._where)) {
       return this;
     }
     const query = new Query(this.className, this.app);
@@ -146,7 +147,9 @@ export class Query {
   async find(options?: AuthOptions): Promise<LCObject[]> {
     const res = await this.app.request(this._makeRequest(options));
     const { results } = res.body as { results: Record<string, unknown>[] };
-    return results?.map((result) => Encoder.decodeObject(this.app, result, this.className));
+    return results?.map((result) =>
+      this.app.decode(result, { type: 'Object', className: this.className })
+    );
   }
 
   async first(options?: AuthOptions): Promise<LCObject> {
@@ -397,7 +400,7 @@ export class Query {
 
   toJSON(): QueryCondition {
     if (this._danglingOr) {
-      if (isEmptyObject(this._where)) {
+      if (isEmpty(this._where)) {
         return this._danglingOr.toJSON();
       }
       const or = this._danglingOr;
@@ -476,7 +479,7 @@ export class Query {
     if (!this._where[key]) {
       this._where[key] = {};
     }
-    this._where[key][cond] = Encoder.encode(value);
+    this._where[key][cond] = lcEncode(value);
   }
 
   private _clearAllCondition(key: string) {

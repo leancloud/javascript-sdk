@@ -1,7 +1,7 @@
-import { merge, omit } from 'lodash';
+import { merge, omit, isPlainObject, isEmpty, isDate } from 'lodash';
 import type { Query } from './query';
 import type { AuthOptions, App } from '../app/app';
-import { isEmptyObject, isObject, assert, isDate, mapObject, deleteObjectKey } from '../utils';
+import { mapObject } from '../utils';
 import { ACL } from './acl';
 
 /**
@@ -60,24 +60,24 @@ export class LCObjectRef {
       },
       options,
     });
-    if (isEmptyObject(res.body)) {
+    if (isEmpty(res.body)) {
       throw new Error(`The objectId '${this.objectId}' is not exists`);
     }
-    return Encoder.decodeObject(this.app, res.body, this.className) as LCObject;
+    return this.app.decode(res.body, { type: 'Object', className: this.className });
   }
 
   async update(data: LCObjectData, options?: UpdateObjectOptions): Promise<LCObject> {
     const res = await this.app.request({
       method: 'PUT',
       path: `/classes/${this.className}/${this.objectId}`,
-      body: Encoder.encode(removeReservedKeys(data)),
+      body: lcEncode(removeReservedKeys(data)),
       query: {
         fetchWhenSave: options?.fetch,
         where: options?.query?.toString(),
       },
       options,
     });
-    return Encoder.decodeObject(this.app, res.body, this.className) as LCObject;
+    return this.app.decode(res.body, { type: 'Object', className: this.className });
   }
 
   async delete(options?: AuthOptions): Promise<void> {
@@ -103,7 +103,8 @@ export class LCObject {
   /**
    * @internal
    */
-  static extractData(data: unknown): unknown {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types
+  static extractData(data: any): any {
     if (!data) return data;
 
     if (data instanceof LCObject) {
@@ -114,7 +115,7 @@ export class LCObject {
       return data.map((item) => this.extractData(item));
     }
 
-    if (isObject(data)) {
+    if (isPlainObject(data)) {
       return mapObject(data, (value) => this.extractData(value));
     }
 
@@ -145,21 +146,7 @@ export class LCObject {
   }
 
   async get(options?: GetObjectOptions): Promise<LCObject> {
-    const res = await this.app.request({
-      method: 'GET',
-      path: `/classes/${this.className}/${this.objectId}`,
-      query: {
-        keys: options?.keys?.join(','),
-        include: options?.include?.join(','),
-        returnACL: options?.returnACL,
-      },
-      options,
-    });
-    if (isEmptyObject(res.body)) {
-      throw new Error(`The objectId '${this.objectId}' is not exists`);
-    }
-    return Encoder.decodeObject3(this, res.body);
-    // return this._ref.get(options);
+    return this._ref.get(options);
   }
 
   update(data: LCObjectData, options?: UpdateObjectOptions): Promise<LCObject> {
@@ -172,7 +159,7 @@ export class LCObject {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   toJSON(): Record<string, any> {
-    const data = LCObject.extractData(this) as Record<string, unknown>;
+    const data = LCObject.extractData(this);
     data.objectId = this.objectId;
     if (this.createdAt) {
       data.createdAt = this.createdAt;
@@ -185,11 +172,11 @@ export class LCObject {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   toFullJSON(): Record<string, any> {
-    return Encoder.encodeObject(this, true);
+    return lcEncode(this, { full: true });
   }
 
-  merge(data: LCObjectData): this {
-    merge(this.data, omit(data, ['objectId', 'createdAt', 'updatedAt']));
+  mergeData(data: LCObjectData): this {
+    merge(this.data, omit(data, ['objectId', 'createdAt', 'updatedAt', 'ACL']));
     if (data.updatedAt) {
       this.updatedAt = new Date(data.updatedAt);
     }
@@ -197,184 +184,50 @@ export class LCObject {
   }
 }
 
-interface ObjectCreator {
-  (app: App, objectId: string, className?: string): LCObject;
-}
-
-interface LCClass<T extends LCObject> {
-  new (app: App, className: string, objectId: string): T;
-}
-
-interface MetaInfo {
-  app: App;
-  className: string;
-}
-
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** @internal */
-export class Encoder {
-  private static _creators = new Map<string, ObjectCreator>();
-
-  static setCreator(className: string, creator: ObjectCreator): void {
-    this._creators.set(className, creator);
-  }
-
-  static create(app: App, className: string, objectId: string): LCObject {
-    const creator = this._creators.get(className);
-    if (creator) {
-      return creator(app, objectId, className);
-    }
-    return new LCObject(app, className, objectId);
-  }
-
-  static encode(data: any, full?: boolean): any {
-    if (!data) return data;
-
-    if (data instanceof LCObjectRef) {
-      return data.toPointer();
-    }
-
-    if (data instanceof LCObject) {
-      return this.encodeObject(data, full);
-    }
-
-    if (data instanceof ACL) {
-      return data.toJSON();
-    }
-
-    if (isDate(data)) {
-      return { __type: 'Date', iso: data.toISOString() };
-    }
-
-    if (Array.isArray(data)) {
-      return data.map((item) => this.encode(item, full));
-    }
-
-    if (isObject(data)) {
-      return mapObject(data, (value) => this.encode(value));
-    }
-
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types
+export function lcEncode(data: any, options?: { full?: boolean }): any {
+  if (!data) {
     return data;
   }
 
-  static encodeObject(obj: LCObject, full?: boolean): any {
-    if (!full) {
-      return obj.toPointer();
-    }
+  if (data instanceof LCObjectRef) {
+    return data.toPointer();
+  }
 
-    const encoded = this.encode(obj.data, full);
-    encoded.__type = 'Object';
-    encoded.className = obj.className;
-    encoded.objectId = obj.objectId;
-
-    if (obj.createdAt) {
-      encoded.createdAt = obj.createdAt.toISOString();
+  if (data instanceof LCObject) {
+    if (!options?.full) {
+      return data.toPointer();
     }
-    if (obj.updatedAt) {
-      encoded.updatedAt = obj.updatedAt.toISOString();
+    const encoded = {
+      ...lcEncode(data.data, options),
+      __type: 'Object',
+      className: data.className,
+      objectId: data.objectId,
+    };
+    if (data.createdAt) {
+      encoded.createdAt = data.createdAt.toISOString();
     }
-
+    if (data.updatedAt) {
+      encoded.updatedAt = data.updatedAt.toISOString();
+    }
     return encoded;
   }
 
-  static decode(app: App, data: any): any {
-    if (!data) return data;
-
-    switch (data.__type) {
-      case 'Pointer':
-      case 'Object':
-        return this.decodeObject(app, data);
-      case 'Date':
-        return new Date(data.iso);
-      case 'File':
-        return this.decodeObject(app, data, '_File');
-    }
-
-    if (Array.isArray(data)) {
-      return data.map((item) => this.decode(app, item));
-    }
-
-    if (isObject(data)) {
-      return mapObject(data, (value) => this.decode(app, value));
-    }
-
-    return data;
+  if (data instanceof ACL) {
+    return data.toJSON();
   }
 
-  static decodeObject(app: App, data: any, className?: string): LCObject {
-    if (className) {
-      data.className = className;
-    }
-    assert(data.className, 'Decode failed: the className is empty');
-    assert(data.objectId, 'Decode failed: the objectId is empty');
-
-    const obj = this.create(app, data.className, data.objectId);
-    obj.data = { ...data };
-    deleteObjectKey(obj.data, ['className', 'objectId', 'ACL', '__type', 'createdAt', 'updatedAt']);
-    obj.data = this.decode(app, obj.data);
-
-    if (data.createdAt) {
-      obj.createdAt = new Date(data.createdAt);
-    }
-    if (data.updatedAt) {
-      obj.updatedAt = new Date(data.updatedAt);
-    }
-
-    if (data.ACL) {
-      obj.data.ACL = ACL.fromJSON(data.ACL);
-    }
-
-    return obj;
+  if (isDate(data)) {
+    return { __type: 'Date', iso: data.toISOString() };
   }
 
-  static decodeObject2<T extends LCObject>(clazz: LCClass<T>, info: MetaInfo, data: any): T {
-    console.log('decode2');
-    assert(data.objectId, 'Decode failed: the objectId is empty');
-    const obj = new clazz(info.app, data.className, data.objectId);
-    obj.data = { ...data };
-    deleteObjectKey(obj.data, ['className', 'objectId', 'ACL', '__type', 'createdAt', 'updatedAt']);
-
-    if (data.createdAt) {
-      obj.createdAt = new Date(data.createdAt);
-    }
-
-    if (data.updatedAt) {
-      obj.updatedAt = new Date(data.updatedAt);
-    }
-
-    if (data.ACL) {
-      obj.data.ACL = ACL.fromJSON(data.ACL);
-    }
-
-    return obj;
+  if (Array.isArray(data)) {
+    return data.map((item) => lcEncode(item, options));
   }
 
-  static decodeObject3<T extends LCObject>(mirror: T, data: any): T {
-    console.log('decode3');
-    assert(data.objectId, 'Decode failed: the objectId is empty');
-    const obj = Object.create(Object.getPrototypeOf(mirror), {
-      app: {
-        value: mirror.app,
-      },
-    }) as T;
-    obj.data = { ...data };
-    deleteObjectKey(obj.data, ['className', 'objectId', 'ACL', '__type', 'createdAt', 'updatedAt']);
-
-    if (data.createdAt) {
-      obj.createdAt = new Date(data.createdAt);
-    }
-
-    if (data.updatedAt) {
-      obj.updatedAt = new Date(data.updatedAt);
-    }
-
-    if (data.ACL) {
-      obj.data.ACL = ACL.fromJSON(data.ACL);
-    }
-
-    return obj;
+  if (isPlainObject(data)) {
+    return mapObject(data, (value) => lcEncode(value, options));
   }
+
+  return data;
 }
-/* eslint-enable @typescript-eslint/no-explicit-any */
-/* eslint-enable @typescript-eslint/explicit-module-boundary-types */

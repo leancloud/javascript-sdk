@@ -1,11 +1,10 @@
-import { App, AuthOptions } from '../../app/app';
+import type { App, AuthOptions } from '../../app/app';
+import { mustGetDefaultApp } from '../../app/default-app';
 import type { LiveQuery } from '../../_entry/live-query';
 import { ACL } from '../acl';
-import { Encoder, LCObject } from '../object';
+import { LCObject } from '../object';
 import { Query } from '../query';
 import { CurrentUserManager, UserObject, UserObjectRef } from '../user';
-
-Encoder.setCreator('_FriendshipRequest', (app, id) => new FriendshipRequestObject(app, id));
 
 interface FollowOptions extends Omit<AuthOptions, 'sessionToken'> {
   data?: Record<string, unknown>;
@@ -45,7 +44,7 @@ interface FolloweeResult extends Record<string, any> {
 type FriendshipStatus = 'pending' | 'accepted' | 'declined' | 'all';
 
 export class Friendship {
-  constructor(public app = App.default) {}
+  constructor(public app = mustGetDefaultApp()) {}
 
   async request(
     target: UserObject | UserObjectRef | string,
@@ -109,7 +108,7 @@ export class Friendship {
       },
       options: { ...options, sessionToken: currentUser.sessionToken },
     });
-    return Encoder.decode(this.app, res.body['results']);
+    return this.app.decode(res.body.results);
   }
 
   async getFollowees(options?: GetFollowersOptions): Promise<FolloweeResult[]> {
@@ -125,7 +124,7 @@ export class Friendship {
       },
       options: { ...options, sessionToken: currentUser.sessionToken },
     });
-    return Encoder.decode(this.app, res.body['results']);
+    return this.app.decode(res.body.results);
   }
 
   async getRequests(

@@ -4,11 +4,8 @@ import {
   LCObjectData,
   GetObjectOptions,
   UpdateObjectOptions,
-  Encoder,
 } from '../object';
 import type { App } from '../../app/app';
-
-Encoder.setCreator('_File', (app, id) => new FileObject(app, id));
 
 export interface FileData extends LCObjectData {
   name: string;

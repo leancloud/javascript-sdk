@@ -1,6 +1,6 @@
 import { App, AuthOptions } from '../app/app';
 import { HTTPRequest } from '../app/http';
-import { Encoder, LCObject } from './object';
+import { LCObject } from './object';
 import { GeoPoint } from './geo-point';
 
 interface SearchSortOrderOptions {
@@ -31,7 +31,7 @@ class SearchResult {
   constructor(private _app: App, raw: SearchResultRaw) {
     this.sid = raw.sid;
     this.hits = raw.hits ?? 0;
-    this.data = raw.results?.map((res) => Encoder.decodeObject(this._app, res));
+    this.data = raw.results?.map((result) => this._app.decode(result, { type: 'Object' }));
   }
 
   async next(options?: AuthOptions): Promise<SearchResult> {

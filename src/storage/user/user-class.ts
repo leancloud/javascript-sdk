@@ -1,4 +1,4 @@
-import { App, AuthOptions } from '../../app/app';
+import type { App, AuthOptions } from '../../app/app';
 import {
   UserObject,
   UserObjectRef,
@@ -9,8 +9,9 @@ import {
 } from './user-object';
 import { v4 as uuid_v4 } from 'uuid';
 import { Class } from '../class';
-import { Encoder, removeReservedKeys } from '../object';
+import { removeReservedKeys } from '../object';
 import { AdapterManager } from '../../app/adapters';
+import { mustGetDefaultApp } from '../../app/default-app';
 
 interface SignUpDataWithMobile extends UserDataForAdd {
   mobilePhoneNumber: string;
@@ -51,38 +52,38 @@ export class UserClass extends Class {
   }
 
   static object(id: string): UserObjectRef {
-    return new UserObjectRef(App.default, id);
+    return new UserObjectRef(mustGetDefaultApp(), id);
   }
 
   static current(): UserObject {
-    return CurrentUserManager.get(App.default);
+    return CurrentUserManager.get(mustGetDefaultApp());
   }
 
   static currentAsync(): Promise<UserObject> {
-    return CurrentUserManager.getAsync(App.default);
+    return CurrentUserManager.getAsync(mustGetDefaultApp());
   }
 
   static become(sessionToken: string, options?: AuthOptions): Promise<UserObject> {
-    return new UserClass(App.default).become(sessionToken, options);
+    return new UserClass(mustGetDefaultApp()).become(sessionToken, options);
   }
 
   static signUp(data: UserDataForAdd, options?: AuthOptions): Promise<UserObject> {
-    return new UserClass(App.default).signUp(data, options);
+    return new UserClass(mustGetDefaultApp()).signUp(data, options);
   }
 
   static signUpOrLoginWithMobilePhone(
     data: SignUpDataWithMobile,
     options?: AuthOptions
   ): Promise<UserObject> {
-    return new UserClass(App.default).signUpOrLoginWithMobilePhone(data, options);
+    return new UserClass(mustGetDefaultApp()).signUpOrLoginWithMobilePhone(data, options);
   }
 
   static loginWithData(data: UserData, options?: AuthOptions): Promise<UserObject> {
-    return new UserClass(App.default).loginWithData(data, options);
+    return new UserClass(mustGetDefaultApp()).loginWithData(data, options);
   }
 
   static login(username: string, password: string, options?: AuthOptions): Promise<UserObject> {
-    return new UserClass(App.default).login(username, password, options);
+    return new UserClass(mustGetDefaultApp()).login(username, password, options);
   }
 
   static loginWithAuthData(
@@ -90,11 +91,11 @@ export class UserClass extends Class {
     authData: Record<string, unknown>,
     options?: LoginWithAuthDataOptions
   ): Promise<UserObject> {
-    return new UserClass(App.default).loginWithAuthData(platform, authData, options);
+    return new UserClass(mustGetDefaultApp()).loginWithAuthData(platform, authData, options);
   }
 
   static loginAnonymously(options?: AuthOptions): Promise<UserObject> {
-    return new UserClass(App.default).loginAnonymously(options);
+    return new UserClass(mustGetDefaultApp()).loginAnonymously(options);
   }
 
   static loginWithEmail(
@@ -102,7 +103,7 @@ export class UserClass extends Class {
     password: string,
     options?: AuthOptions
   ): Promise<UserObject> {
-    return new UserClass(App.default).loginWithEmail(email, password, options);
+    return new UserClass(mustGetDefaultApp()).loginWithEmail(email, password, options);
   }
 
   static loginWithMobilePhone(
@@ -110,7 +111,11 @@ export class UserClass extends Class {
     password: string,
     options?: AuthOptions
   ): Promise<UserObject> {
-    return new UserClass(App.default).loginWithMobilePhone(mobilePhoneNumber, password, options);
+    return new UserClass(mustGetDefaultApp()).loginWithMobilePhone(
+      mobilePhoneNumber,
+      password,
+      options
+    );
   }
 
   static loginWithMobilePhoneSMSCode(
@@ -118,7 +123,7 @@ export class UserClass extends Class {
     smsCode: string,
     options?: AuthOptions
   ): Promise<UserObject> {
-    return new UserClass(App.default).loginWithMobilePhoneSMSCode(
+    return new UserClass(mustGetDefaultApp()).loginWithMobilePhoneSMSCode(
       mobilePhoneNumber,
       smsCode,
       options
@@ -131,7 +136,7 @@ export class UserClass extends Class {
     unionId: string,
     options?: LoginWithAuthDataAndUnionIdOptions
   ): Promise<UserObject> {
-    return new UserClass(App.default).loginWithAuthDataAndUnionId(
+    return new UserClass(mustGetDefaultApp()).loginWithAuthDataAndUnionId(
       platform,
       authData,
       unionId,
@@ -140,44 +145,47 @@ export class UserClass extends Class {
   }
 
   static loginWithMiniApp(options?: MiniAppAuthOptions): Promise<UserObject> {
-    return new UserClass(App.default).loginWithMiniApp(options);
+    return new UserClass(mustGetDefaultApp()).loginWithMiniApp(options);
   }
 
   static logOut(): void {
-    new UserClass(App.default).logOut();
+    new UserClass(mustGetDefaultApp()).logOut();
   }
 
   static logOutAsync(): Promise<void> {
-    return new UserClass(App.default).logOutAsync();
+    return new UserClass(mustGetDefaultApp()).logOutAsync();
   }
 
   static requestEmailVerify(email: string, options?: AuthOptions): Promise<void> {
-    return new UserClass(App.default).requestEmailVerify(email, options);
+    return new UserClass(mustGetDefaultApp()).requestEmailVerify(email, options);
   }
 
   static requestLoginSMSCode(
     mobilePhoneNumber: string,
     options?: AuthOptionsWithCaptchaToken
   ): Promise<void> {
-    return new UserClass(App.default).requestLoginSMSCode(mobilePhoneNumber, options);
+    return new UserClass(mustGetDefaultApp()).requestLoginSMSCode(mobilePhoneNumber, options);
   }
 
   static requestMobilePhoneVerify(
     mobilePhoneNumber: string,
     options?: AuthOptionsWithCaptchaToken
   ): Promise<void> {
-    return new UserClass(App.default).requestMobilePhoneVerify(mobilePhoneNumber, options);
+    return new UserClass(mustGetDefaultApp()).requestMobilePhoneVerify(mobilePhoneNumber, options);
   }
 
   static requestPasswordReset(email: string, options?: AuthOptions): Promise<void> {
-    return new UserClass(App.default).requestPasswordReset(email, options);
+    return new UserClass(mustGetDefaultApp()).requestPasswordReset(email, options);
   }
 
   static requestPasswordResetBySMSCode(
     mobilePhoneNumber: string,
     options?: AuthOptionsWithCaptchaToken
   ): Promise<void> {
-    return new UserClass(App.default).requestPasswordResetBySMSCode(mobilePhoneNumber, options);
+    return new UserClass(mustGetDefaultApp()).requestPasswordResetBySMSCode(
+      mobilePhoneNumber,
+      options
+    );
   }
 
   static resetPasswordBySMSCode(
@@ -185,18 +193,18 @@ export class UserClass extends Class {
     password: string,
     options?: AuthOptions
   ): Promise<void> {
-    return new UserClass(App.default).resetPasswordBySMSCode(code, password, options);
+    return new UserClass(mustGetDefaultApp()).resetPasswordBySMSCode(code, password, options);
   }
 
   static verifyMobilePhone(code: string, options?: AuthOptions): Promise<void> {
-    return new UserClass(App.default).verifyMobilePhone(code, options);
+    return new UserClass(mustGetDefaultApp()).verifyMobilePhone(code, options);
   }
 
   static requestChangePhoneNumber(
     mobilePhoneNumber: string,
     options?: ChangePhoneNumberOptions
   ): Promise<void> {
-    return new UserClass(App.default).requestChangePhoneNumber(mobilePhoneNumber, options);
+    return new UserClass(mustGetDefaultApp()).requestChangePhoneNumber(mobilePhoneNumber, options);
   }
 
   static changePhoneNumber(
@@ -204,7 +212,7 @@ export class UserClass extends Class {
     code: string,
     options?: AuthOptions
   ): Promise<void> {
-    return new UserClass(App.default).changePhoneNumber(mobilePhoneNumber, code, options);
+    return new UserClass(mustGetDefaultApp()).changePhoneNumber(mobilePhoneNumber, code, options);
   }
 
   object(id: string): UserObjectRef {
@@ -444,7 +452,7 @@ export class UserClass extends Class {
   }
 
   private async _decodeAndSetToCurrent(data: unknown): Promise<AuthedUser> {
-    const user = Encoder.decodeObject(this.app, data, this.className) as UserObject;
+    const user = this.app.decode(data, { type: 'Object', className: '_User' });
     const authedUser = AuthedUser.from(user);
     await CurrentUserManager.setAsync(this.app, authedUser);
     return authedUser;

@@ -1,6 +1,5 @@
 import { Query } from './query';
-import { LCObject, LCObjectRef, AddObjectOptions, removeReservedKeys } from './object';
-import { Encoder } from './object';
+import { LCObjectRef, AddObjectOptions, removeReservedKeys, LCObject, lcEncode } from './object';
 
 export class Class extends Query {
   protected get _apiPath(): string {
@@ -25,10 +24,10 @@ export class Class extends Query {
     const res = await this.app.request({
       method: 'POST',
       path: this._apiPath,
-      body: Encoder.encode(removeReservedKeys(data)),
+      body: lcEncode(removeReservedKeys(data)),
       query: { fetchWhenSave: options?.fetch },
       options,
     });
-    return Encoder.decodeObject(this.app, res.body, this.className);
+    return this.app.decode(res.body, { type: 'Object', className: this.className });
   }
 }

@@ -2,7 +2,7 @@ import { CurrentUserManager, UserObject, UserObjectRef } from './user';
 import type { AuthOptions, App, AppRequest } from '../app/app';
 import { Query } from './query';
 import { assert } from '../utils';
-import { Pointer, LCObject, Encoder } from './object';
+import { Pointer, LCObject } from './object';
 
 type InboxType = 'default' | 'private' | string;
 
@@ -148,7 +148,7 @@ export class StatusClass extends StatusQuery {
       },
       options,
     });
-    return Encoder.decodeObject(this.app, res.body, '_Status');
+    return this.app.decode(res.body, { className: '_Status' });
   }
 
   async sendToUser(
@@ -176,7 +176,7 @@ export class StatusClass extends StatusQuery {
       },
       options,
     });
-    return Encoder.decodeObject(this.app, res.body, '_Status');
+    return this.app.decode(res.body, { className: '_Status' });
   }
 
   async deleteInboxStatus(messageId: number, options?: StatusOptions): Promise<void> {

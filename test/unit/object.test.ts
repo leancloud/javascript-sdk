@@ -3,7 +3,7 @@ import { adapters } from '../../src/utils/test-adapters';
 import { App } from '../../src/app/app';
 import { Query } from '../../src/storage/query';
 import { ACL } from '../../src/storage/acl';
-import { LCObjectRef, LCObject, Encoder } from '../../src/storage/object';
+import { LCObjectRef, LCObject, lcEncode } from '../../src/storage/object';
 import { API_VERSION } from '../../src/const';
 
 const app = new App({
@@ -133,11 +133,11 @@ describe('LCObject', function () {
   });
 });
 
-describe('Encoder', function () {
+describe('lcEncode', function () {
   describe('.encode', function () {
-    it('should encode LCReference', function () {
+    it('should encode LCObjectRef', function () {
       const ref = new LCObjectRef(null, 'Test', 'test-object-id');
-      Encoder.encode(ref).should.eql({
+      lcEncode(ref).should.eql({
         __type: 'Pointer',
         className: 'Test',
         objectId: 'test-object-id',
@@ -147,12 +147,12 @@ describe('Encoder', function () {
     it('should encode LCObject', function () {
       const obj = new LCObject(null, 'Test', 'test-object-id');
       obj.data = { key: 'value' };
-      Encoder.encode(obj).should.eql({
+      lcEncode(obj).should.eql({
         __type: 'Pointer',
         className: 'Test',
         objectId: 'test-object-id',
       });
-      Encoder.encode(obj, true).should.eql({
+      lcEncode(obj, { full: true }).should.eql({
         __type: 'Object',
         className: 'Test',
         objectId: 'test-object-id',
@@ -166,7 +166,7 @@ describe('Encoder', function () {
       acl.allow('user1', 'read');
       acl.allow('user2', 'write');
       obj.data = { ACL: acl };
-      Encoder.encode(obj, true).should.eql({
+      lcEncode(obj, { full: true }).should.eql({
         __type: 'Object',
         className: 'Test',
         objectId: 'test-object-id',
@@ -179,15 +179,12 @@ describe('Encoder', function () {
 
     it('should encode Date', function () {
       const date = new Date();
-      Encoder.encode(date).should.eql({
-        __type: 'Date',
-        iso: date.toISOString(),
-      });
+      lcEncode(date).should.eql({ __type: 'Date', iso: date.toISOString() });
     });
 
     it('should encode Date in an array', function () {
       const date = new Date();
-      Encoder.encode([date]).should.eql([
+      lcEncode([date]).should.eql([
         {
           __type: 'Date',
           iso: date.toISOString(),
@@ -197,89 +194,9 @@ describe('Encoder', function () {
 
     it('encode encode Date in a object', function () {
       const date = new Date();
-      Encoder.encode({ date }).should.eql({
-        date: {
-          __type: 'Date',
-          iso: date.toISOString(),
-        },
+      lcEncode({ date }).should.eql({
+        date: { __type: 'Date', iso: date.toISOString() },
       });
-    });
-  });
-
-  describe('.decode', function () {
-    it('should decode Pointer', function () {
-      const data = {
-        __type: 'Pointer',
-        className: 'Test',
-        objectId: 'test-object-id',
-        key: 'value',
-      };
-      const obj = Encoder.decode(app, data) as LCObject;
-      obj.should.instanceOf(LCObject);
-      obj.app.should.eql(app);
-      obj.className.should.eql(data.className);
-      obj.objectId.should.eql(data.objectId);
-      obj.data.should.eql({ key: 'value' });
-    });
-
-    it('should decode Object', function () {
-      const data = {
-        __type: 'Object',
-        className: 'Test',
-        objectId: 'test-object-id',
-        key: 'value',
-      };
-      const obj = Encoder.decode(app, data) as LCObject;
-      obj.should.instanceOf(LCObject);
-      obj.app.should.eql(app);
-      obj.className.should.eql(data.className);
-      obj.objectId.should.eql(data.objectId);
-      obj.data.should.eql({ key: 'value' });
-    });
-
-    it('should decode Date', function () {
-      const data = {
-        __type: 'Date',
-        iso: '2020-09-02T09:09:09.244Z',
-      };
-      const date = Encoder.decode(null, data) as Date;
-      date.should.instanceOf(Date);
-      date.toISOString().should.eql(data.iso);
-    });
-
-    it('should decode Date in an array', function () {
-      const data = {
-        __type: 'Date',
-        iso: '2020-09-02T09:09:09.244Z',
-      };
-      const [date] = Encoder.decode(null, [data]) as Date[];
-      date.should.instanceOf(Date);
-      date.toISOString().should.eql(data.iso);
-    });
-
-    it('should decode Date in a object', function () {
-      const data = {
-        __type: 'Date',
-        iso: '2020-09-02T09:09:09.244Z',
-      };
-      const { date } = Encoder.decode(null, { date: data }) as { date: Date };
-      date.should.instanceOf(Date);
-      date.toISOString().should.eql(data.iso);
-    });
-  });
-
-  describe('.decodeObject', function () {
-    it('should return a LCObject', function () {
-      const data = {
-        objectId: 'test-object-id',
-        key: 'value',
-      };
-      const obj = Encoder.decodeObject(app, data, 'Test') as LCObject;
-      obj.should.instanceOf(LCObject);
-      obj.app.should.eql(app);
-      obj.className.should.eql('Test');
-      obj.objectId.should.eql(data.objectId);
-      obj.data.should.eql({ key: 'value' });
     });
   });
 });

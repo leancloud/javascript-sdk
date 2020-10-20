@@ -1,12 +1,18 @@
 import { HTTP, HTTPRequest, HTTPResponse, RequestOptions } from '../http';
 import { AdapterManager } from './adapters';
 import { NSStorage } from './storage';
-import { Encoder, LCObject } from '../storage/object';
+import { LCObject } from '../storage/object';
 import { API_VERSION, KEY_CURRENT_USER, SDK_VERSION } from '../const';
 import { APIError } from './errors';
-import { assert } from '../utils';
+import { assert, mapObject } from '../utils';
 import { isCNApp, Router, Service } from './router';
-import type { AuthedUser } from '../storage/user';
+import { AuthedUser, UserObject } from '../storage/user';
+import { isPlainObject, omit } from 'lodash';
+import { ACL } from '../storage/acl';
+import { RoleObject } from '../storage/role';
+import { FileObject } from '../storage/file';
+import { FriendshipRequestObject } from '../storage/friendship';
+import { getDefaultApp, setDefaultApp } from './default-app';
 
 interface AppConfig {
   appId: string;
@@ -30,13 +36,21 @@ export interface AppRequest extends Omit<HTTPRequest, 'baseURL'> {
   options?: AuthOptions;
 }
 
+type ObjectType = 'Object' | 'Pointer' | 'File' | 'Date';
+
+interface DecodeObjectOptions {
+  type?: ObjectType;
+  className?: string;
+  objectId?: string;
+}
+
 /**
  * Initialize the default App. If multiple App is needed, instantiate {@link App}.
  *
  * @since 5.0.0
  */
 export function init(config: AppConfig): void {
-  App.initDefault(config);
+  setDefaultApp(new App(config));
 }
 
 export class App {
@@ -77,8 +91,6 @@ export class App {
 
   private _router: Router;
 
-  private static _default: App;
-
   constructor(config: AppConfig) {
     this.appId = config.appId;
     this.appKey = config.appKey;
@@ -99,20 +111,13 @@ export class App {
     }
   }
 
-  /** @internal */
-  static initDefault(config: AppConfig): void {
-    assert(!this._default, 'Default app already initialized');
-    this._default = new App(config);
-  }
-
   /**
    * Getter of the default App, throw an error if the default App is not {@link init initialized}.
    *
    * @since 5.0.0
    */
   static get default(): App {
-    assert(this._default, 'Default app not initialized');
-    return this._default;
+    return getDefaultApp();
   }
 
   /**
@@ -154,25 +159,6 @@ export class App {
       throw new APIError(res.body.code, res.body.error);
     }
     return res;
-  }
-
-  /**
-   * @since 5.0.0
-   */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  decode(data: unknown): any {
-    return Encoder.decode(this, data);
-  }
-
-  /**
-   * Decode data, assert the data can be decoded to an LCObject.
-   *
-   * @param className Preferred className.
-   *
-   * @since 5.0.0
-   */
-  decodeObject(data: unknown, className?: string): LCObject {
-    return Encoder.decodeObject(this, data, className);
   }
 
   /**
@@ -223,6 +209,76 @@ export class App {
     if (encodedUser) {
       return JSON.parse(encodedUser).sessionToken;
     }
+  }
+
+  /**
+   * @since 5.0.0
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types
+  decode(data: any, options?: DecodeObjectOptions): any {
+    if (!data) {
+      return data;
+    }
+
+    const type = options?.type ?? (data.__type as ObjectType);
+
+    if (type === 'Date' && typeof data.iso === 'string') {
+      return new Date(data.iso);
+    }
+
+    if (type === 'Pointer' || type === 'Object') {
+      const className = options?.className ?? (data.className as string);
+      const objectId = options?.objectId ?? (data.objectId as string);
+      assert(className, 'Decode failed: no className');
+      assert(objectId, 'Decode failed: no objectId');
+
+      let object: LCObject;
+      switch (className) {
+        case '_User':
+          object = new UserObject(this, objectId);
+          break;
+        case '_Role':
+          object = new RoleObject(this, objectId);
+          break;
+        case '_File':
+          object = new FileObject(this, objectId);
+          break;
+        case '_FriendShipRequest':
+          object = new FriendshipRequestObject(this, objectId);
+          break;
+        default:
+          object = new LCObject(this, className, objectId);
+      }
+
+      object.data = this.decode(
+        omit(data, ['__type', 'className', 'objectId', 'createdAt', 'updatedAt', 'ACL'])
+      );
+
+      if (data.createdAt) {
+        object.createdAt = new Date(data.createdAt);
+      }
+      if (data.updatedAt) {
+        object.updatedAt = new Date(data.updatedAt);
+      }
+      if (data.ACL) {
+        object.data.ACL = ACL.fromJSON(data.ACL);
+      }
+      return object;
+    }
+
+    if (type === 'File') {
+      return this.decode(data, { type: 'Pointer', className: '_File' });
+    }
+
+    if (Array.isArray(data)) {
+      return data.map((item) => this.decode(item));
+    }
+
+    if (isPlainObject(data)) {
+      return mapObject(data, (value) => this.decode(value));
+    }
+
+    return data;
   }
 }
 

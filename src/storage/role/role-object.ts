@@ -9,10 +9,7 @@ import {
 import type { ACL } from '../../storage/acl';
 import { AuthOptions, App } from '../../app/app';
 import { Query } from '../query';
-import { Encoder } from '../object';
 import { Operation } from '../operation';
-
-Encoder.setCreator('_Role', (app, id) => new RoleObject(app, id));
 
 export interface RoleData extends LCObjectData {
   ACL: ACL;
