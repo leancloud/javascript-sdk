@@ -5,18 +5,19 @@ import { Adapters } from '@leancloud/adapter-types';
  */
 export class AdapterManager {
   private static _adapters: Partial<Adapters>;
-  private static _onSet: ((adapters?: Partial<Adapters>) => void)[] = [];
+  private static _requestPromise: Promise<Partial<Adapters>>;
+  private static _requestRecevier: (adapters: Partial<Adapters>) => void;
 
   static get isSet(): boolean {
-    return this._adapters ? true : false;
+    return Boolean(this._adapters);
   }
 
   static set(adapters: Partial<Adapters>): void {
     if (this._adapters) {
-      console.warn('Adapters already set');
+      throw new Error('Adapters already set');
     }
     this._adapters = adapters;
-    this._onSet.forEach((h) => h(adapters));
+    this._requestRecevier?.(this._adapters);
   }
 
   static get(): Partial<Adapters> {
@@ -26,12 +27,16 @@ export class AdapterManager {
     return this._adapters;
   }
 
-  static on(event: 'set', listener: (adapters?: Partial<Adapters>) => void): void {
-    switch (event) {
-      case 'set':
-        this._onSet.push(listener);
-        break;
+  static request(): Promise<Partial<Adapters>> {
+    if (this._adapters) {
+      return Promise.resolve(this._adapters);
     }
+    if (!this._requestPromise) {
+      this._requestPromise = new Promise((resolve) => {
+        this._requestRecevier = resolve;
+      });
+    }
+    return this._requestPromise;
   }
 }
 

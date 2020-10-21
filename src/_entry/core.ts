@@ -1,6 +1,6 @@
 export { App, init } from '../app/app';
 export { use } from '../app/plugin';
-export { Logger as debug } from '../app/log';
+export { debug } from '../debug';
 export { setAdapters } from '../app/adapters';
 
 export { Class } from '../class';

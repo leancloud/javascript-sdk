@@ -1,10 +1,11 @@
 import {
-  Adapters,
+  FormDataPart,
   HTTPMethod,
   RequestOptions as AdapterRequestOptions,
+  Response as AdapterResponse,
 } from '@leancloud/adapter-types';
 import { AdapterManager } from '../app/adapters';
-import { Log } from '../log';
+import { debug } from '../debug';
 
 export type RequestOptions = Pick<AdapterRequestOptions, 'onprogress' | 'signal'>;
 
@@ -26,7 +27,15 @@ export interface HTTPResponse {
   body?: any;
 }
 
+export interface UploadRequest extends Omit<HTTPRequest, 'body'> {
+  file: FormDataPart;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  form?: Record<string, any>;
+}
+
 export class HTTP {
+  private static _nextId = 1;
+
   static encodeQuery(query: HTTPRequest['query']): string {
     let queryStr = '';
     Object.entries(query).forEach(([key, val], idx) => {
@@ -40,13 +49,7 @@ export class HTTP {
     return queryStr;
   }
 
-  static assemblePath(...paths: string[]): string {
-    return paths.map((path) => (path.startsWith('/') ? path : '/' + path)).join('');
-  }
-
-  static async request(req: HTTPRequest): Promise<HTTPResponse> {
-    const request = this._mustGetRequestAdapter();
-
+  static encodeURL(req: HTTPRequest): string {
     let url = req.baseURL;
     if (req.path) {
       url += req.path.startsWith('/') ? req.path : '/' + req.path;
@@ -54,28 +57,58 @@ export class HTTP {
     if (req.query) {
       url += '?' + this.encodeQuery(req.query);
     }
+    return url;
+  }
 
-    const logResponse = Log.request(req);
-    const _res = await request(url, {
-      ...req.options,
-      method: req.method ?? 'GET',
-      headers: req.header,
-      data: req.body,
-    });
-    const res: HTTPResponse = {
-      status: _res.status,
-      header: _res.headers as Record<string, string>,
-      body: _res.data,
-    };
-    logResponse(res);
+  static assemblePath(...paths: string[]): string {
+    return paths.map((path) => (path.startsWith('/') ? path : '/' + path)).join('');
+  }
+
+  static async request(req: HTTPRequest): Promise<HTTPResponse> {
+    const { request } = AdapterManager.get();
+    if (!request) {
+      throw new Error('The request adapter is not set');
+    }
+
+    const id = this._nextId++;
+    debug.log('Request:send', '%d: %O', id, req);
+    const res = this._convertResponse(
+      await request(this.encodeURL(req), {
+        ...req.options,
+        method: req.method ?? 'GET',
+        headers: req.header,
+        data: req.body,
+      })
+    );
+    debug.log('Request:recv', '%d: %O', id, res);
     return res;
   }
 
-  private static _mustGetRequestAdapter(): Adapters['request'] {
-    const adapters = AdapterManager.get();
-    if (!adapters['request']) {
-      throw new Error('The request adapter is not set');
+  static async upload(req: UploadRequest): Promise<HTTPResponse> {
+    const { upload } = AdapterManager.get();
+    if (!upload) {
+      throw new Error('The upload adapter is not set');
     }
-    return adapters['request'];
+
+    const id = this._nextId++;
+    debug.log('Upload:send', '%d: %O', id, req);
+    const res = this._convertResponse(
+      await upload(this.encodeURL(req), req.file, {
+        ...req.options,
+        method: req.method || 'POST',
+        headers: req.header,
+        data: req.form,
+      })
+    );
+    debug.log('Upload:recv', '%d: %O', id, res);
+    return res;
+  }
+
+  private static _convertResponse(res: AdapterResponse): HTTPResponse {
+    return {
+      status: res.status,
+      header: res.headers as Record<string, string>,
+      body: res.data,
+    };
   }
 }

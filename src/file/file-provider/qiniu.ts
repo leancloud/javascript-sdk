@@ -1,4 +1,4 @@
-import { HTTPResponse, upload, UploadRequest } from '../../app/http';
+import { HTTP, HTTPResponse } from '../../http';
 import { FileTokens, ProviderUploadOptions } from '../file-class';
 
 export class Qiniu {
@@ -8,17 +8,13 @@ export class Qiniu {
     tokens: FileTokens,
     options?: ProviderUploadOptions
   ): Promise<HTTPResponse> {
-    const req: UploadRequest = {
+    return HTTP.upload({
       method: 'POST',
-      header: options?.header,
       baseURL: tokens.upload_url,
-      form: {
-        name,
-        key: tokens.key,
-        token: tokens.token,
-      },
+      file: { name, data, field: 'file' },
+      form: { name, key: tokens.key, token: tokens.token },
+      header: options?.header,
       options,
-    };
-    return upload(req, { field: 'file', name, data });
+    });
   }
 }

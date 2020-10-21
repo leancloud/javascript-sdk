@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { RequestOptions, Response } from '@leancloud/adapter-types';
-import { HTTPRequest, HTTPResponse } from '../app/http';
+import { HTTPRequest, HTTPResponse } from '../http';
 import { unmarshalURL } from './url';
 import { AdapterManager } from '../app/adapters';
 

@@ -1,6 +1,5 @@
+import { HTTP, HTTPResponse } from '../../http';
 import { FileTokens, ProviderUploadOptions } from '../file-class';
-import { HTTPResponse } from '../../app/http';
-import { request } from '../../app/http';
 
 export class AWSS3 {
   static upload(
@@ -9,7 +8,7 @@ export class AWSS3 {
     tokens: FileTokens,
     options?: ProviderUploadOptions
   ): Promise<HTTPResponse> {
-    return request({
+    return HTTP.request({
       method: 'PUT',
       baseURL: tokens.upload_url,
       header: {

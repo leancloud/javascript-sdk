@@ -1,5 +1,5 @@
 import { App, AuthOptions } from './app/app';
-import { HTTPRequest } from './app/http';
+import { AppRequest } from './app/app';
 import { LCObject } from './object';
 import { GeoPoint } from './geo-point';
 
@@ -173,8 +173,8 @@ export class SearchQuery {
     return query;
   }
 
-  private _makeRequest(options?: AuthOptions): HTTPRequest {
-    const req: HTTPRequest = {
+  private _makeRequest(options?: AuthOptions): AppRequest {
+    const req: AppRequest = {
       method: 'GET',
       path: `/search/select`,
       query: {

@@ -1,31 +1,63 @@
-import _debug from 'debug';
-import { HTTPRequest, HTTPResponse } from './http';
+import d from 'debug';
 
-_debug.enable('LC:*');
-const debugRequestSend = _debug('LC:Request:send');
-const debugRequestRecv = _debug('LC:Request:recv');
-const debugLocalStorageSet = _debug('LC:LocalStorage:set');
-const debugLocalStorageGet = _debug('LC:LocalStorage:get');
-const debugLocalStorageDelete = _debug('LC:LocalStorage:delete');
+interface OnEnableListener {
+  (filter: string): void;
+}
 
-export const debug = {
-  onRequestSend(id: number, req: HTTPRequest): void {
-    debugRequestSend('%d: %O', id, req);
-  },
+interface OnDisableListener {
+  (): void;
+}
 
-  onRequestRecv(id: number, res: HTTPResponse): void {
-    debugRequestRecv('%d: %O', id, res);
-  },
+interface Callable {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (...args: any[]): void;
+}
 
-  onLocalStorageSet(key: string, value: string): void {
-    debugLocalStorageSet('%o', { key, value });
-  },
+export class debug {
+  private static _enabled = false;
+  private static _filter: string;
+  private static _loggers: Record<string, Callable> = {};
+  private static _onEnable: OnEnableListener[] = [];
+  private static _onDisable: OnDisableListener[] = [];
 
-  onLocalStorageGet(key: string, value: string): void {
-    debugLocalStorageGet('%o', { key, value });
-  },
+  static get enabled(): boolean {
+    return this._enabled;
+  }
 
-  onLocalStorageDelete(key: string): void {
-    debugLocalStorageDelete(key);
-  },
-};
+  static get filter(): string {
+    return this._filter;
+  }
+
+  static enable(filter: string): void {
+    d.enable(filter);
+    this._filter = filter;
+    this._enabled = true;
+    this._onEnable.forEach((h) => h(filter));
+  }
+
+  static disable(): void {
+    d.disable();
+    this._enabled = false;
+    this._onDisable.forEach((h) => h());
+  }
+
+  static log(tag: string, ...args: unknown[]): void {
+    if (!this._loggers[tag]) {
+      this._loggers[tag] = d(tag);
+    }
+    this._loggers[tag](...args);
+  }
+
+  static on(event: 'enable', listener: OnEnableListener): void;
+  static on(event: 'disable', listener: OnDisableListener): void;
+  static on(event: string, listener: Callable): void {
+    switch (event) {
+      case 'enable':
+        this._onEnable.push(listener);
+        break;
+      case 'disable':
+        this._onDisable.push(listener);
+        break;
+    }
+  }
+}

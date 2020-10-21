@@ -6,15 +6,15 @@ import { EventEmitter } from 'eventemitter3';
 import { KEY_SUBSCRIPTION_ID } from '../const';
 import type { App, AuthOptions } from '../app/app';
 import type { Query } from '../query';
-import type { HTTPRequest } from '../app/http';
+import type { AppRequest } from '../app/app';
 import type { LCObject } from '../object';
 import type { PluginManager } from '../app/plugin';
-import type { Logger } from '../app/log';
+import type { debug as debug_ } from '../debug';
 
 /**
  * @internal
  */
-let logger: typeof Logger;
+let _debug: typeof debug_;
 
 /**
  * @internal
@@ -23,11 +23,11 @@ export function install(pluginManager: typeof PluginManager): void {
   pluginManager.register('LiveQuery', LiveQuery);
   pluginManager.requestAdapters().then(setAdapters);
 
-  logger = pluginManager.getLogger();
-  logger.on('enable', debug.enable);
-  logger.on('disable', debug.disable);
-  if (logger.enabled) {
-    debug.enable(logger.filter);
+  _debug = pluginManager.debug;
+  _debug.on('enable', debug.enable);
+  _debug.on('disable', debug.disable);
+  if (_debug.enabled) {
+    debug.enable(_debug.filter);
   }
 }
 
@@ -58,7 +58,7 @@ export class LiveQuery extends EventEmitter<LiveQueryListeners> {
   private _client: any;
   private _id: string;
   private _queryId: string;
-  private _subReq: HTTPRequest;
+  private _subReq: AppRequest;
   private _state = LiveQueryState.READY;
 
   static install = install;
@@ -73,7 +73,7 @@ export class LiveQuery extends EventEmitter<LiveQueryListeners> {
     this._query = query;
   }
 
-  private _makeSubscribeRequest(subscriptionId?: string): HTTPRequest {
+  private _makeSubscribeRequest(subscriptionId?: string): AppRequest {
     return {
       method: 'POST',
       path: `/LiveQuery/subscribe`,
@@ -151,9 +151,9 @@ export class LiveQuery extends EventEmitter<LiveQueryListeners> {
   private _onReconnect = async () => {
     try {
       await this._app.request(this._subReq);
-      logger?.log('LC:LiveQuery:reconnect', 'ok');
+      _debug?.log('LC:LiveQuery:reconnect', 'ok');
     } catch (err) {
-      logger?.log('LC:LiveQuery:reconnect', 'failed: ' + err.message);
+      _debug?.log('LC:LiveQuery:reconnect', 'failed: ' + err.message);
       throw err;
     }
   };

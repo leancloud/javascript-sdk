@@ -1,7 +1,7 @@
 import { Storage as AdapterStorage, SyncStorage } from '@leancloud/adapter-types';
 import { LOCAL_STORAGE_NAMESPACE } from '../const';
 import { AdapterManager } from './adapters';
-import { Log } from '../log';
+import { debug } from '../debug';
 
 export class LocalStorage {
   static keyWithNamespace(key: string): string {
@@ -11,39 +11,39 @@ export class LocalStorage {
   static set(key: string, value: string): void {
     key = this.keyWithNamespace(key);
     this._mustGetSyncStorage().setItem(key, value);
-    Log.localStorageSet(key, value);
+    debug.log('LocalStorage:set', { key, value });
   }
 
   static get(key: string): string {
     key = this.keyWithNamespace(key);
     const value = this._mustGetSyncStorage().getItem(key) ?? null;
-    Log.localStorageGet(key, value);
+    debug.log('LocalStorage:get', { key, value });
     return value;
   }
 
   static delete(key: string): void {
     key = this.keyWithNamespace(key);
     this._mustGetSyncStorage().removeItem(key);
-    Log.localStorageDelete(key);
+    debug.log('LocalStorage:delete', key);
   }
 
   static async setAsync(key: string, value: string): Promise<void> {
     key = this.keyWithNamespace(key);
     await this._mustGetStorage().setItem(key, value);
-    Log.localStorageSet(key, value);
+    debug.log('LocalStorage:set', { key, value });
   }
 
   static async getAsync(key: string): Promise<string> {
     key = this.keyWithNamespace(key);
     const value = (await this._mustGetStorage().getItem(key)) ?? null;
-    Log.localStorageGet(key, value);
+    debug.log('LocalStorage:get', { key, value });
     return value;
   }
 
   static async deleteAsync(key: string): Promise<void> {
     key = this.keyWithNamespace(key);
     await this._mustGetStorage().removeItem(key);
-    Log.localStorageDelete(key);
+    debug.log('LocalStorage:delete', key);
   }
 
   private static _mustGetStorage(): AdapterStorage {
