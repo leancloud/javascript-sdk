@@ -143,8 +143,8 @@ export class Captcha {
   bind(options: BindCaptchaOptions): void {
     if (!this._binder) {
       this._binder = new CaptchaDomBinder(this, options);
+      this._binder.bind();
     }
-    this._binder.bind();
   }
 
   /**
@@ -153,9 +153,7 @@ export class Captcha {
    * @since 5.0.0
    */
   unbind(): void {
-    if (this._binder) {
-      this._binder.unbind();
-    }
+    this._binder?.unbind();
   }
 }
 
