@@ -43,7 +43,7 @@ export class debug {
 
   static log(tag: string, ...args: unknown[]): void {
     if (!this._loggers[tag]) {
-      this._loggers[tag] = d(tag);
+      this._loggers[tag] = d('LC:' + tag);
     }
     this._loggers[tag](...args);
   }

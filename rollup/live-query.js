@@ -5,7 +5,7 @@ import { terser } from 'rollup-plugin-terser';
 
 export default [
   {
-    input: 'src/_entry/live-query.ts',
+    input: 'src/entry/live-query.ts',
     output: [
       {
         dir: 'live-query/dist',
@@ -22,7 +22,7 @@ export default [
     plugins: [typescript()],
   },
   {
-    input: 'src/_entry/live-query.ts',
+    input: 'src/entry/live-query.ts',
     output: {
       file: 'live-query/dist/live-query.min.js',
       format: 'umd',

@@ -5,7 +5,7 @@ import { terser } from 'rollup-plugin-terser';
 
 export default [
   {
-    input: 'src/_entry/all.ts',
+    input: 'src/index.ts',
     output: [
       {
         dir: 'dist',
@@ -28,7 +28,7 @@ export default [
     ],
   },
   {
-    input: 'src/_entry/core.ts',
+    input: 'src/index.ts',
     output: {
       file: 'dist/lc.min.js',
       format: 'umd',
@@ -37,7 +37,7 @@ export default [
     plugins: [resolve({ browser: true }), typescript(), commonjs(), terser()],
   },
   {
-    input: 'src/_entry/browser.ts',
+    input: 'src/entry/browser.ts',
     output: {
       file: 'dist/browser/lc.min.js',
       format: 'umd',

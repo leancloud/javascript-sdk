@@ -25,17 +25,7 @@ Available Commands:
 
 Available Classes:
 
-  LC.App
-  LC.Storage
-  LC.GeoPoint
-  LC.Query
-  LC.Op
-  LC.SearchQuery
-  LC.SearchQueryBuilder
-  LC.ACL
-  LC.Captcha
-  LC.Cloud
-  LC.Push
+  (print 'LC'<Enter> to see...)
 
 Available Objects:
 

@@ -20,7 +20,7 @@ export class PluginManager {
   static plugins: Record<string, Plugin> = {};
 
   static register(id: string, plugin: Plugin): void {
-    debug.log('LC:Plugin:register', id);
+    debug.log('Plugin:register', id);
     this.plugins[id] = plugin;
   }
 

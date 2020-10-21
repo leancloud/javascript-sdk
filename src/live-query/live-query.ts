@@ -151,9 +151,9 @@ export class LiveQuery extends EventEmitter<LiveQueryListeners> {
   private _onReconnect = async () => {
     try {
       await this._app.request(this._subReq);
-      _debug?.log('LC:LiveQuery:reconnect', 'ok');
+      _debug?.log('LiveQuery:reconnect', 'ok');
     } catch (err) {
-      _debug?.log('LC:LiveQuery:reconnect', 'failed: ' + err.message);
+      _debug?.log('LiveQuery:reconnect', 'failed: ' + err.message);
       throw err;
     }
   };
