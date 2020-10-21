@@ -1,0 +1,242 @@
+:root {
+  --lean-color: #2c97e8;
+  --text-color: #444;
+}
+
+button {
+  background-color: #fff;
+  outline: none;
+  border: 1px var(--lean-color) solid;
+  border-radius: 4px;
+  color: var(--lean-color);
+  cursor: pointer;
+  font-size: 18px;
+}
+button:active {
+  opacity: .75;
+}
+button[type="primary"] {
+  background-color: var(--lean-color);
+  color: #fff;
+}
+
+.apps {
+  display: flex;
+}
+
+.friend-app {
+  display: inline-block;
+  margin-right: 1rem;
+}
+
+.friend-app > .header {
+  padding: 16px;
+  border-bottom: 1px #aaa solid;
+}
+
+.friend-app > .header > .title {
+  font-size: 26px;
+  font-weight: bold;
+  color: var(--lean-color);
+}
+
+.friend-app > .header > .title.sub {
+  font-size: 16px;
+}
+
+.friend-app > .header > .btn-add {
+  border: 1px #aaa solid;
+  border-radius: 4px;
+  width: 50px;
+  height: 30px;
+  text-align: center;
+  line-height: 30px;
+  float: right;
+  cursor: pointer;
+}
+
+.friend-app .btn {
+  text-align: center;
+  cursor: pointer;
+  user-select: none;
+  border: 1px #aaa solid;
+  border-radius: 4px;
+  display: inline-block;
+}
+.friend-app .btn:active {
+  opacity: .75;
+}
+.friend-app .btn.primary {
+  color: #fff;
+  background-color: var(--lean-color);
+}
+
+.friend-app input {
+  border: 1px #aaa solid !important;
+  border-radius: 4px;
+  outline: none;
+  color: #444;
+  padding: 0 10px 0 10px;
+}
+
+.friend-app {
+  width: 400px;
+  border: 1px #aaa solid;
+  border-radius: 4px;
+  color: #444;
+  position: relative;
+}
+.friend-app > .container {
+  height: 600px;
+}
+.friend-app > .modal-cover {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, .5);
+}
+.friend-app .modal {
+  background-color: #fff;
+  width: 80%;
+  min-height: 100px;
+  border-radius: 6px;
+}
+.friend-app .modal > .content {
+  margin: 20px 16px 16px 16px;
+  font-size: 18px;
+  text-align: center;
+  word-wrap: break-word;
+}
+.friend-app .modal > .btn {
+  display: block;
+  margin: 10px;
+  font-size: 18px;
+  height: 40px;
+  line-height: 40px;
+}
+
+.friend-app .add-friend {
+  display: flex;
+  padding: 6px;
+}
+.friend-app .add-friend input {
+  flex: 1;
+  height: 26px;
+  font-size: 16px;
+}
+.friend-app .add-friend .btn {
+  width: 50px;
+  height: 26px;
+  line-height: 26px;
+  margin-left: 6px;
+  font-size: 16px;
+}
+
+.login {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 30px 20px 0 20px;
+}
+.login .action {
+  display: flex;
+  margin-top: 1rem;
+}
+.login button {
+  flex: 1;
+  height: 40px;
+  line-height: 40px;
+}
+.login button:nth-child(2) {
+  margin-left: 8px;
+}
+.login .btn.primary {
+  margin-right: 1rem;
+}
+
+.field {
+  display: flex;
+  margin-bottom: 1rem;
+}
+.field > label {
+  font-size: 18px;
+  position: relative;
+  top: 8px;
+}
+.field > input {
+  flex: 1;
+  font-size: 18px;
+  height: 36px;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.main > .tab {
+  display: flex;
+  height: 40px;
+  border-top: 1px #aaa solid;
+}
+.main > .tab > .item {
+  flex: 1;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  user-select: none;
+}
+.main > .tab > .item:nth-child(n+2) {
+  border-left: 1px #aaa solid;
+}
+.main > .tab > .item.active {
+  color: #fff;
+  background-color: var(--lean-color);
+}
+
+.main > .me {
+  flex: 1;
+  padding: 20px;
+}
+
+.friend-list {
+  flex: 1;
+}
+
+.friend-list > .nothing {
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.friend-list > .friend.request {
+  text-align: left;
+  padding-left: 10px;
+}
+
+.friend-list > .friend.request > .action .btn {
+  line-height: 26px;
+  width: 40px;
+}
+
+.friend-request {
+  height: 40px;
+  line-height: 40px;
+  border: 1px #aaa solid;
+  border-radius: 4px;
+  margin: 6px;
+  padding: 0 10px;
+  display: flex;
+  justify-content: space-between;
+}
+.friend-request button {
+  margin-left: 4px;
+}

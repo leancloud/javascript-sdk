@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="style.css" />
+    <title>Friendship Demo</title>
+  </head>
+  <body>
+    <div class="apps">
+      <div id="app1"></div>
+      <div id="app2"></div>
+    </div>
+    <script type="text/x-template" id="friend-demo">
+      <div class="friend-app">
+        <div class="header">
+          <label class="title">LeanCloud</label>
+          <label class="sub title">Friendship</label>
+        </div>
+        <div class="container">
+          <div class="login" v-if="!user">
+            <div class="field">
+              <label>用户名：</label>
+              <input type="text" v-model="username" />
+            </div>
+            <div class="field">
+              <label>密&emsp;码：</label>
+              <input type="password" v-model="password" />
+            </div>
+            <div class="action">
+              <button @click="handleSignUp">注册</button>
+              <button @click="handleLogin" type="primary">登录</button>
+            </div>
+          </div>
+
+          <div class="main" v-if="user">
+            <div class="friend-list" v-show="tabIndex === 0">
+              <div class="add-friend">
+                <input placeholder="请输入对方的 objectId" v-model="targetObjectId" />
+                <div class="btn" @click="handleSendRequest">添加</div>
+              </div>
+              <div class="nothing" v-if="myRequests.length === 0">暂无请求</div>
+              <friend-request-to
+                v-for="request in myRequests"
+                :key="request.objectId"
+                :username="request.objectId"
+                :status="request.status | statusName"
+              />
+            </div>
+            <div class="friend-list" v-show="tabIndex === 1">
+              <div class="nothing" v-if="requests.length === 0">暂无申请</div>
+              <friend-request-from
+                v-for="request in requests"
+                :key="request.objectId"
+                :username="request.username"
+                :status="request.status"
+                @accept="handleAccept(request)"
+                @decline="handleDecline(request)"
+              />
+            </div>
+            <div class="me" v-show="tabIndex === 2">
+              <p>用户名：{{ user.username }}</p>
+              <p>objectId：{{ user.objectId }}</p>
+            </div>
+            <div class="tab">
+              <div class="item" :class="{active: tabIndex === 0}" @click="tabIndex = 0">
+                请求({{ myRequests.length }})
+              </div>
+              <div class="item" :class="{active: tabIndex === 1}" @click="tabIndex = 1">
+                申请({{ requests.length }})
+              </div>
+              <div class="item" :class="{active: tabIndex === 2}" @click="tabIndex = 2">
+                我
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-cover" v-if="tip" @click.self="tip = ''">
+          <div class="modal">
+            <div class="content">{{ tip }}</div>
+            <div class="btn" @click="tip = ''">确定</div>
+          </div>
+        </div>
+      </div>
+    </script>
+
+
+    <script type="text/x-template" id="friend-request-to">
+      <div class="friend-request">
+        <label>{{ username }}</label>
+        <label>{{ status }}</label>
+      </div>
+    </script>
+
+    <script type="text/x-template" id="friend-request-from">
+      <div class="friend-request">
+        <label>{{ username }}</label>
+        <div v-if="status === 'pending'">
+          <button @click="$emit('accept')">接受</button>
+          <button @click="$emit('decline')">拒绝</button>
+        </div>
+        <label v-else>{{ status | statusName }}</label>
+      </div>
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="index.js"></script>
+  </body>
+</html>
