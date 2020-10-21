@@ -1,5 +1,5 @@
 import { App, AuthOptions } from '../app/app';
-import type { Query } from '../storage/query';
+import type { Query } from '../query';
 
 export interface PushOptions extends AuthOptions {
   query?: Query;

@@ -1,5 +1,5 @@
-import { App, AuthOptions } from '../app/app';
-import { HTTPRequest } from '../app/http';
+import { App, AuthOptions } from './app/app';
+import { HTTPRequest } from './app/http';
 import { LCObject } from './object';
 import { GeoPoint } from './geo-point';
 

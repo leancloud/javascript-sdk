@@ -1,4 +1,4 @@
-import { App, AuthOptions } from '../app/app';
+import { App, AuthOptions } from './app/app';
 
 export interface RefreshCaptchaOptions extends AuthOptions {
   width?: number;

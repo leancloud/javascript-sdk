@@ -1,8 +1,7 @@
 import 'should';
-import { ACL } from '../../src/storage/acl';
-import { UserObjectRef, UserObject } from '../../src/storage/user';
-import { RoleObject } from '../../src/storage/role';
-import { use } from '../../src/app/plugin';
+import { ACL } from '../../src/acl';
+import { UserObjectRef, UserObject } from '../../src/user';
+import { RoleObject } from '../../src/role';
 
 describe('ACL', function () {
   describe('.fromJSON', function () {

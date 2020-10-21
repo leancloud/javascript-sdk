@@ -1,17 +1,17 @@
 import { HTTP, HTTPRequest, HTTPResponse, RequestOptions } from '../http';
 import { AdapterManager } from './adapters';
 import { NSStorage } from './storage';
-import { LCObject } from '../storage/object';
+import { LCObject } from '../object';
 import { API_VERSION, KEY_CURRENT_USER, SDK_VERSION } from '../const';
 import { APIError } from './errors';
 import { assert, mapObject } from '../utils';
 import { isCNApp, Router, Service } from './router';
-import { AuthedUser, UserObject } from '../storage/user';
+import { AuthedUser, UserObject } from '../user';
 import { isPlainObject, omit } from 'lodash';
-import { ACL } from '../storage/acl';
-import { RoleObject } from '../storage/role';
-import { FileObject } from '../storage/file';
-import { FriendshipRequestObject } from '../storage/friendship';
+import { ACL } from '../acl';
+import { RoleObject } from '../role';
+import { FileObject } from '../file';
+import { FriendshipRequestObject } from '../friendship';
 import { getDefaultApp, setDefaultApp } from './default-app';
 
 interface AppConfig {

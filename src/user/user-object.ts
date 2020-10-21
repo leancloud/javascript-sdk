@@ -1,12 +1,12 @@
 import { UpdateObjectOptions, LCObjectData, LCObjectRef, LCObject, lcEncode } from '../object';
-import type { App, AuthOptions } from '../../app/app';
+import type { App, AuthOptions } from '../app/app';
 import type { MiniAppAuthOptions } from './user-class';
 import type { RoleObject } from '../role';
 import { Operation } from '../operation';
-import { assert } from '../../utils';
-import { KEY_CURRENT_USER } from '../../const';
+import { assert } from '../utils';
+import { KEY_CURRENT_USER } from '../const';
 import { Query } from '../query';
-import { AdapterManager } from '../../app/adapters';
+import { AdapterManager } from '../app/adapters';
 
 export interface UserDataForAdd extends LCObjectData {
   username?: string;

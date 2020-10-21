@@ -1,8 +1,8 @@
 import * as should from 'should';
 import { adapters } from '../../src/utils/test-adapters';
 import { App } from '../../src/app/app';
-import { StatusQuery, StatusClass } from '../../src/storage/status';
-import { CurrentUserManager, UserObject, UserObjectRef } from '../../src/storage/user';
+import { StatusQuery, StatusClass } from '../../src/status';
+import { CurrentUserManager, UserObject, UserObjectRef } from '../../src/user';
 import { API_VERSION } from '../../src/const';
 
 const app = new App({

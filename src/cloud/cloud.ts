@@ -1,5 +1,5 @@
 import { AuthOptions, App } from '../app/app';
-import { lcEncode } from '../storage/object';
+import { lcEncode } from '../object';
 
 interface RequestSMSCodeOptions extends AuthOptions {
   smsType?: string;

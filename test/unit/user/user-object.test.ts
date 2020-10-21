@@ -1,14 +1,9 @@
 import 'should';
 import { adapters } from '../../../src/utils/test-adapters';
 import { App } from '../../../src/app/app';
-import {
-  UserObject,
-  UserObjectRef,
-  CurrentUserManager,
-  AuthedUser,
-} from '../../../src/storage/user';
+import { UserObject, UserObjectRef, CurrentUserManager, AuthedUser } from '../../../src/user';
 import { API_VERSION, KEY_CURRENT_USER } from '../../../src/const';
-import { lcEncode } from '../../../src/storage/object';
+import { lcEncode } from '../../../src/object';
 
 const app = new App({
   appId: 'test-app-id',

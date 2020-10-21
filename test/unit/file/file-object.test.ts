@@ -1,6 +1,6 @@
 import 'should';
 import { App } from '../../../src/app/app';
-import { FileObjectRef, FileObject } from '../../../src/storage/file';
+import { FileObjectRef, FileObject } from '../../../src/file';
 import { adapters } from '../../../src/utils/test-adapters';
 
 const app = new App({

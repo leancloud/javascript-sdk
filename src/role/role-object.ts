@@ -5,9 +5,9 @@ import {
   LCObjectRef,
   GetObjectOptions,
   UpdateObjectOptions,
-} from '../../storage/object';
-import type { ACL } from '../../storage/acl';
-import { AuthOptions, App } from '../../app/app';
+} from '../object';
+import type { ACL } from '../acl';
+import { AuthOptions, App } from '../app/app';
 import { Query } from '../query';
 import { Operation } from '../operation';
 

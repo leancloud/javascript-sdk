@@ -3,24 +3,24 @@ export { use } from '../app/plugin';
 export { Logger as debug } from '../app/log';
 export { setAdapters } from '../app/adapters';
 
-export { Class } from '../storage/class';
-export { UserClass as User } from '../storage/user';
-export { RoleClass as Role } from '../storage/role';
-export { FileClass as File } from '../storage/file';
-export { StatusClass as Status } from '../storage/status';
+export { Class } from '../class';
+export { UserClass as User } from '../user';
+export { RoleClass as Role } from '../role';
+export { FileClass as File } from '../file';
+export { StatusClass as Status } from '../status';
 
-export type { LCObject, LCObjectRef } from '../storage/object';
-export type { UserObject, UserObjectRef } from '../storage/user';
-export type { RoleObject, RoleObjectRef } from '../storage/role';
+export type { LCObject, LCObjectRef } from '../object';
+export type { UserObject, UserObjectRef } from '../user';
+export type { RoleObject, RoleObjectRef } from '../role';
 
-export { GeoPoint } from '../storage/geo-point';
+export { GeoPoint } from '../geo-point';
 
-export { Query } from '../storage/query';
-export { SearchQuery, SearchSortBuilder } from '../storage/search';
+export { Query } from '../query';
+export { SearchQuery, SearchSortBuilder } from '../search';
 
-export { ACL } from '../storage/acl';
-export { Operation as Op } from '../storage/operation';
+export { ACL } from '../acl';
+export { Operation as Op } from '../operation';
 
-export { Captcha } from '../storage/captcha';
+export { Captcha } from '../captcha';
 export { Cloud } from '../cloud/cloud';
 export { Push } from '../push/push';

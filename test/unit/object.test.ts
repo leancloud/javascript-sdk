@@ -1,9 +1,9 @@
 import 'should';
 import { adapters } from '../../src/utils/test-adapters';
 import { App } from '../../src/app/app';
-import { Query } from '../../src/storage/query';
-import { ACL } from '../../src/storage/acl';
-import { LCObjectRef, LCObject, lcEncode } from '../../src/storage/object';
+import { Query } from '../../src/query';
+import { ACL } from '../../src/acl';
+import { LCObjectRef, LCObject, lcEncode } from '../../src/object';
 import { API_VERSION } from '../../src/const';
 
 const app = new App({

@@ -1,6 +1,6 @@
-import type { App, AuthOptions } from '../../app/app';
-import { mustGetDefaultApp } from '../../app/default-app';
-import type { LiveQuery } from '../../_entry/live-query';
+import type { App, AuthOptions } from '../app/app';
+import { mustGetDefaultApp } from '../app/default-app';
+import type { LiveQuery } from '../_entry/live-query';
 import { ACL } from '../acl';
 import { LCObject } from '../object';
 import { Query } from '../query';

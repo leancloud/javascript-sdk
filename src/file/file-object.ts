@@ -5,7 +5,7 @@ import {
   GetObjectOptions,
   UpdateObjectOptions,
 } from '../object';
-import type { App } from '../../app/app';
+import type { App } from '../app/app';
 
 export interface FileData extends LCObjectData {
   name: string;

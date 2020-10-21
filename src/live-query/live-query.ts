@@ -5,9 +5,9 @@ import { LiveQueryPlugin } from 'leancloud-realtime-plugin-live-query';
 import { EventEmitter } from 'eventemitter3';
 import { KEY_SUBSCRIPTION_ID } from '../const';
 import type { App, AuthOptions } from '../app/app';
-import type { Query } from '../storage/query';
+import type { Query } from '../query';
 import type { HTTPRequest } from '../app/http';
-import type { LCObject } from '../storage/object';
+import type { LCObject } from '../object';
 import type { PluginManager } from '../app/plugin';
 import type { Logger } from '../app/log';
 

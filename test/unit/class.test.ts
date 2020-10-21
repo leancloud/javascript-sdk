@@ -1,8 +1,8 @@
 import 'should';
 import { adapters } from '../../src/utils/test-adapters';
 import { App } from '../../src/app/app';
-import { Class } from '../../src/storage/class';
-import { LCObject, LCObjectRef } from '../../src/storage/object';
+import { Class } from '../../src/class';
+import { LCObject, LCObjectRef } from '../../src/object';
 import { API_VERSION } from '../../src/const';
 
 describe('Class', function () {

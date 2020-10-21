@@ -1,6 +1,6 @@
 import 'should';
-import { Operation } from '../../src/storage/operation';
-import { LCObjectRef, LCObject } from '../../src/storage/object';
+import { Operation } from '../../src/operation';
+import { LCObjectRef, LCObject } from '../../src/object';
 
 describe('Operation', function () {
   it('.unset', function () {

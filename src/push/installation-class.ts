@@ -1,7 +1,7 @@
 import type { App } from '../app/app';
 import { KEY_INSTALLATION } from '../const';
-import { Class } from '../storage/class';
-import { lcEncode, LCObject, LCObjectData, UpdateObjectOptions } from '../storage/object';
+import { Class } from '../class';
+import { lcEncode, LCObject, LCObjectData, UpdateObjectOptions } from '../object';
 
 interface InstallationData extends LCObjectData {
   badge?: number;

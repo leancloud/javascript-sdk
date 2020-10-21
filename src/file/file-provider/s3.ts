@@ -1,6 +1,6 @@
 import { FileTokens, ProviderUploadOptions } from '../file-class';
-import { HTTPResponse } from '../../../app/http';
-import { request } from '../../../app/http';
+import { HTTPResponse } from '../../app/http';
+import { request } from '../../app/http';
 
 export class AWSS3 {
   static upload(

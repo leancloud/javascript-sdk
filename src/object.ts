@@ -1,7 +1,7 @@
 import { merge, omit, isPlainObject, isEmpty, isDate } from 'lodash';
 import type { Query } from './query';
-import type { AuthOptions, App } from '../app/app';
-import { mapObject } from '../utils';
+import type { AuthOptions, App } from './app/app';
+import { mapObject } from './utils';
 import { ACL } from './acl';
 
 /**

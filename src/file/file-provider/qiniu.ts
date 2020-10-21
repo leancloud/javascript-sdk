@@ -1,4 +1,4 @@
-import { HTTPResponse, upload, UploadRequest } from '../../../app/http';
+import { HTTPResponse, upload, UploadRequest } from '../../app/http';
 import { FileTokens, ProviderUploadOptions } from '../file-class';
 
 export class Qiniu {

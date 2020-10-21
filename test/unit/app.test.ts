@@ -1,9 +1,9 @@
 import 'should';
 import { adapters } from '../../src/utils/test-adapters';
 import { App } from '../../src/app/app';
-import { AuthedUser, UserObject } from '../../src/storage/user';
+import { AuthedUser, UserObject } from '../../src/user';
 import { KEY_CURRENT_USER } from '../../src/const';
-import { LCObject } from '../../src/storage/object';
+import { LCObject } from '../../src/object';
 
 describe('App', function () {
   const app = new App({

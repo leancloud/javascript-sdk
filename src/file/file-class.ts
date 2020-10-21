@@ -1,11 +1,11 @@
-import type { App, AuthOptions } from '../../app/app';
+import type { App, AuthOptions } from '../app/app';
 import { decode as base64ToArrayBuffer } from 'base64-arraybuffer';
 import { Class } from '../class';
-import { HTTPResponse } from '../../app/http';
+import { HTTPResponse } from '../app/http';
 import { ACL } from '../acl';
 import { FileObjectRef, FileObject } from './file-object';
 import { getFileProvider } from './file-provider';
-import { mustGetDefaultApp } from '../../app/default-app';
+import { mustGetDefaultApp } from '../app/default-app';
 
 /**
  * @internal

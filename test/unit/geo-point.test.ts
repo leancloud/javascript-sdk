@@ -1,5 +1,5 @@
 import 'should';
-import { GeoPoint } from '../../src/storage/geo-point';
+import { GeoPoint } from '../../src/geo-point';
 
 describe('GeoPoint', function () {
   describe('constructor', function () {

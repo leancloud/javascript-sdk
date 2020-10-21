@@ -1,8 +1,8 @@
 import 'should';
 import { adapters } from '../../src/utils/test-adapters';
 import { App } from '../../src/app/app';
-import { GeoPoint } from '../../src/storage/geo-point';
-import { Query } from '../../src/storage/query';
+import { GeoPoint } from '../../src/geo-point';
+import { Query } from '../../src/query';
 
 describe('Query', function () {
   const app = new App({
