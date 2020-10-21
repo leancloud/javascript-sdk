@@ -3,7 +3,7 @@
 import { RequestOptions, Response } from '@leancloud/adapter-types';
 import { HTTPRequest, HTTPResponse } from '../http';
 import { unmarshalURL } from './url';
-import { AdapterManager } from '../app/adapters';
+import { AdapterManager } from '../adapters';
 
 class TestStorage {
   private static _map = new Map<string, string>();

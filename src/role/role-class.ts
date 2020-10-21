@@ -1,11 +1,11 @@
 import type { UserObject, UserObjectRef } from '../user';
 import type { ACL } from '../acl';
-import type { App } from '../app/app';
+import type { App } from '../app';
+import { mustGetDefaultApp } from '../app/default-app';
 import { Class } from '../class';
 import { RoleObjectRef, RoleObject } from './role-object';
 import { AddObjectOptions, LCObjectData } from '../object';
 import { Operation } from '../operation';
-import { mustGetDefaultApp } from '../app/default-app';
 
 interface RoleDataToAdd extends LCObjectData {
   ACL: ACL;

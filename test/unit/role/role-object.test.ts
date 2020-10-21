@@ -1,6 +1,6 @@
 import 'should';
 import { adapters } from '../../../src/utils/test-adapters';
-import { App } from '../../../src/app/app';
+import { App } from '../../../src/app';
 import { RoleObjectRef, RoleObject } from '../../../src/role';
 import { UserObjectRef, UserObject } from '../../../src/user';
 import { API_VERSION } from '../../../src/const';

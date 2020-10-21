@@ -1,6 +1,6 @@
 import { Storage as AdapterStorage, SyncStorage } from '@leancloud/adapter-types';
 import { LOCAL_STORAGE_NAMESPACE } from '../const';
-import { AdapterManager } from './adapters';
+import { AdapterManager } from '../adapters';
 import { debug } from '../debug';
 
 export class LocalStorage {

@@ -1,4 +1,4 @@
-import { App, AuthOptions } from '../app/app';
+import { App, AuthOptions } from '../app';
 import type { Query } from '../query';
 
 export interface PushOptions extends AuthOptions {

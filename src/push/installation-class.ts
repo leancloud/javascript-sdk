@@ -1,4 +1,4 @@
-import type { App } from '../app/app';
+import type { App } from '../app';
 import { KEY_INSTALLATION } from '../const';
 import { Class } from '../class';
 import { lcEncode, LCObject, LCObjectData, UpdateObjectOptions } from '../object';

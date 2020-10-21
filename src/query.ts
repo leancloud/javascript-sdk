@@ -1,10 +1,10 @@
-import type { AppRequest, AuthOptions } from './app/app';
+import type { AppRequest, AuthOptions } from './app';
 import type { LiveQuery } from './live-query';
+import { mustGetDefaultApp } from './app/default-app';
 import { GeoPoint } from './geo-point';
 import { lcEncode, LCObject } from './object';
 import { assert } from './utils';
-import { PluginManager } from './app/plugin';
-import { mustGetDefaultApp } from './app/default-app';
+import { PluginManager } from './plugin';
 import { isEmpty, isRegExp } from 'lodash';
 
 interface RegExpWithString {

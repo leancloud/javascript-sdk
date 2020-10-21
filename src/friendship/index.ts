@@ -1,4 +1,4 @@
-import type { App, AuthOptions } from '../app/app';
+import type { App, AuthOptions } from '../app';
 import { mustGetDefaultApp } from '../app/default-app';
 import type { LiveQuery } from '../live-query';
 import { ACL } from '../acl';

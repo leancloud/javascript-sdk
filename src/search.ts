@@ -1,7 +1,7 @@
-import { App, AuthOptions } from './app/app';
-import { AppRequest } from './app/app';
+import { App, AuthOptions, AppRequest } from './app';
 import { LCObject } from './object';
 import { GeoPoint } from './geo-point';
+import { mustGetDefaultApp } from './app/default-app';
 
 interface SearchSortOrderOptions {
   mode?: 'min' | 'max' | 'sum' | 'avg';
@@ -103,7 +103,7 @@ export class SearchQuery {
       this.className = arg1;
     }
     if (this.app === undefined) {
-      this.app = App.default;
+      this.app = mustGetDefaultApp();
     }
     if (this.className === undefined) {
       this.className = arg2;

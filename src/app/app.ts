@@ -1,5 +1,5 @@
 import { HTTP, HTTPRequest, HTTPResponse, RequestOptions } from '../http';
-import { AdapterManager } from './adapters';
+import { AdapterManager } from '../adapters';
 import { NSStorage } from './storage';
 import { LCObject } from '../object';
 import { API_VERSION, KEY_CURRENT_USER, SDK_VERSION } from '../const';

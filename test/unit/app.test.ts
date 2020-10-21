@@ -1,7 +1,7 @@
 import 'should';
 import { adapters } from '../../src/utils/test-adapters';
-import { App } from '../../src/app/app';
-import { AuthedUser, UserObject } from '../../src/user';
+import { App } from '../../src/app';
+import { AuthedUser } from '../../src/user';
 import { KEY_CURRENT_USER } from '../../src/const';
 import { LCObject } from '../../src/object';
 

@@ -1,6 +1,6 @@
 import 'should';
 import { adapters } from '../../src/utils/test-adapters';
-import { App } from '../../src/app/app';
+import { App } from '../../src/app';
 import { SearchQuery, SearchSortBuilder } from '../../src/search';
 import { GeoPoint } from '../../src/geo-point';
 import { LCObject } from '../../src/object';

@@ -4,7 +4,7 @@ import {
   RequestOptions as AdapterRequestOptions,
   Response as AdapterResponse,
 } from '@leancloud/adapter-types';
-import { AdapterManager } from '../app/adapters';
+import { AdapterManager } from '../adapters';
 import { debug } from '../debug';
 
 export type RequestOptions = Pick<AdapterRequestOptions, 'onprogress' | 'signal'>;

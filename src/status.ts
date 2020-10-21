@@ -1,5 +1,5 @@
+import type { AuthOptions, App, AppRequest } from './app';
 import { CurrentUserManager, UserObject, UserObjectRef } from './user';
-import type { AuthOptions, App, AppRequest } from './app/app';
 import { Query } from './query';
 import { assert } from './utils';
 import { Pointer, LCObject } from './object';

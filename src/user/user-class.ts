@@ -1,4 +1,5 @@
-import type { App, AuthOptions } from '../app/app';
+import type { App, AuthOptions } from '../app';
+import { mustGetDefaultApp } from '../app/default-app';
 import {
   UserObject,
   UserObjectRef,
@@ -10,8 +11,7 @@ import {
 import { v4 as uuid_v4 } from 'uuid';
 import { Class } from '../class';
 import { removeReservedKeys } from '../object';
-import { AdapterManager } from '../app/adapters';
-import { mustGetDefaultApp } from '../app/default-app';
+import { AdapterManager } from '../adapters';
 
 interface SignUpDataWithMobile extends UserDataForAdd {
   mobilePhoneNumber: string;

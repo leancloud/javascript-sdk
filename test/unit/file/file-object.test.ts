@@ -1,5 +1,5 @@
 import 'should';
-import { App } from '../../../src/app/app';
+import { App } from '../../../src/app';
 import { FileObjectRef, FileObject } from '../../../src/file';
 import { adapters } from '../../../src/utils/test-adapters';
 

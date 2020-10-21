@@ -1,6 +1,6 @@
 import { Adapters } from '@leancloud/adapter-types';
 import { AdapterManager } from './adapters';
-import { debug } from '../debug';
+import { debug } from './debug';
 
 /**
  * @internal

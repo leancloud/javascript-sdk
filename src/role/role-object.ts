@@ -1,4 +1,5 @@
 import type { UserObject, UserObjectRef } from '../user';
+import type { ACL } from '../acl';
 import {
   LCObject,
   LCObjectData,
@@ -6,8 +7,7 @@ import {
   GetObjectOptions,
   UpdateObjectOptions,
 } from '../object';
-import type { ACL } from '../acl';
-import { AuthOptions, App } from '../app/app';
+import { AuthOptions, App } from '../app';
 import { Query } from '../query';
 import { Operation } from '../operation';
 

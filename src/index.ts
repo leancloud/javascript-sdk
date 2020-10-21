@@ -1,7 +1,7 @@
-export { App, init } from './app/app';
-export { use } from './app/plugin';
+export { App, init } from './app';
+export { use } from './plugin';
 export { debug } from './debug';
-export { setAdapters } from './app/adapters';
+export { setAdapters } from './adapters';
 
 export { Class } from './class';
 export { UserClass as User } from './user';
@@ -22,6 +22,6 @@ export { ACL } from './acl';
 export { Operation as Op } from './operation';
 
 export { Captcha } from './captcha';
-export { Cloud } from './cloud/cloud';
+export { Cloud } from './cloud';
 export { Push } from './push/push';
 export { InstallationClass as Installation } from './push/installation-class';

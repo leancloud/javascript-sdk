@@ -1,15 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import type { App, AuthOptions } from '../app';
+import type { Query } from '../query';
+import type { AppRequest } from '../app';
+import type { LCObject } from '../object';
+import type { PluginManager } from '../plugin';
+import type { debug as debug_ } from '../debug';
 import { Realtime, setAdapters, debug } from 'leancloud-realtime/core';
 import { LiveQueryPlugin } from 'leancloud-realtime-plugin-live-query';
 import { EventEmitter } from 'eventemitter3';
 import { KEY_SUBSCRIPTION_ID } from '../const';
-import type { App, AuthOptions } from '../app/app';
-import type { Query } from '../query';
-import type { AppRequest } from '../app/app';
-import type { LCObject } from '../object';
-import type { PluginManager } from '../app/plugin';
-import type { debug as debug_ } from '../debug';
 
 /**
  * @internal
