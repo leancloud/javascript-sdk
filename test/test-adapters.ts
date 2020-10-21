@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { RequestOptions, Response } from '@leancloud/adapter-types';
-import { HTTPRequest, HTTPResponse } from '../http';
-import { unmarshalURL } from './url';
-import { AdapterManager } from '../adapters';
+import { HTTPRequest, HTTPResponse } from '../src/http';
+import { unmarshalURL } from '../src/utils/url';
+import { AdapterManager } from '../src/adapters';
 
 class TestStorage {
   private static _map = new Map<string, string>();

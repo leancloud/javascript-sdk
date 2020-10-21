@@ -17,7 +17,7 @@ import { getDefaultApp, setDefaultApp } from './default-app';
 interface AppConfig {
   appId: string;
   appKey: string;
-  serverURL: string;
+  serverURL?: string;
   masterKey?: string;
   useMasterKey?: boolean;
   production?: boolean;

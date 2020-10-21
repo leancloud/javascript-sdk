@@ -1,5 +1,5 @@
 import 'should';
-import { adapters } from '../../../src/utils/test-adapters';
+import { adapters } from '../../test-adapters';
 import { App } from '../../../src/app';
 import { UserObject, UserObjectRef, CurrentUserManager, AuthedUser } from '../../../src/user';
 import { API_VERSION, KEY_CURRENT_USER } from '../../../src/const';

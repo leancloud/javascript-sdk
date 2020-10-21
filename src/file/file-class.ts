@@ -77,7 +77,7 @@ function getFileSize(data: unknown): number | undefined {
  */
 export class FileClass extends Class {
   protected get _apiPath(): string {
-    return `/files`;
+    return '/files';
   }
 
   constructor(app?: App) {

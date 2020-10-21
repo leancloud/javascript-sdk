@@ -1,5 +1,5 @@
 import 'should';
-import { adapters } from '../../src/utils/test-adapters';
+import { adapters } from '../test-adapters';
 import { App } from '../../src/app';
 import { Push } from '../../src/push/push';
 import { Query } from '../../src/query';
