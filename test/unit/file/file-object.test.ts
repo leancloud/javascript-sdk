@@ -1,7 +1,7 @@
-import 'should';
+import * as should from 'should';
 import { App } from '../../../src/app';
 import { FileObjectRef, FileObject } from '../../../src/file';
-import { adapters } from '../../../src/utils/test-adapters';
+import { adapters } from '../../test-adapters';
 
 const app = new App({
   appId: 'test-app-id',
@@ -13,40 +13,20 @@ describe('FileObjectRef', function () {
   const ref = new FileObjectRef(app, 'test-file-id');
 
   describe('#get', function () {
-    it('should return a FileObject', async function () {
+    it('should return a FileObject', async () => {
       adapters.responses.push({ body: { objectId: 'test-file-id' } });
       (await ref.get()).should.instanceOf(FileObject);
     });
   });
 
-  describe('#update', function () {
-    it('should update only name/url/mime_type/metaData/ACL', async function () {
-      adapters.responses.push({ body: { objectId: 'test-file-id' } });
-      await ref.update({
-        name: 'test-name',
-        url: 'test-url',
-        mime_type: 'test-mime',
-        metaData: { key: 'value' },
-        otherKey: 'value',
-      });
-      const req = adapters.requests.pop();
-      req.body.should.containEql({
-        name: 'test-name',
-        url: 'test-url',
-        mime_type: 'test-mime',
-        metaData: { key: 'value' },
-      });
-      (!req.body['otherKey']).should.true();
-    });
-
-    it('should return a FileObject', async function () {
-      adapters.responses.push({ body: { objectId: 'test-file-id' } });
-      (await ref.update({})).should.instanceOf(FileObject);
+  describe('#update', () => {
+    it('should throw an error', () => {
+      should.throws(() => ref.update());
     });
   });
 });
 
-describe('FileObject', function () {
+describe('FileObject', () => {
   const file = new FileObject(app, 'test-file-id');
   file.data = {
     name: 'test-file-name',
@@ -57,7 +37,7 @@ describe('FileObject', function () {
     },
   };
 
-  describe('#name', function () {
+  describe('#name', () => {
     it('should return name in data', function () {
       file.name.should.eql(file.data.name);
     });
@@ -89,17 +69,16 @@ describe('FileObject', function () {
     });
   });
 
-  describe('#get', function () {
-    it('should return a FileObject', async function () {
+  describe('#get', () => {
+    it('should return a FileObject', async () => {
       adapters.responses.push({ body: { objectId: 'test-file-id' } });
       (await file.get()).should.instanceOf(FileObject);
     });
   });
 
-  describe('#update', function () {
-    it('should return a FileObject', async function () {
-      adapters.responses.push({ body: { objectId: 'test-file-id' } });
-      (await file.update({})).should.instanceOf(FileObject);
+  describe('#update', () => {
+    it('should throw an error', () => {
+      should.throws(() => file.update());
     });
   });
 });

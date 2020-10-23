@@ -5,6 +5,6 @@ import { LiveQuery } from '../../src/live-query';
 
 LC.setAdapters(adapters);
 LC.use(LiveQuery);
-LC.init(env);
+LC.init(env.cn_n1);
 
 export { env, LC };

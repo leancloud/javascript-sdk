@@ -2,8 +2,7 @@ import * as should from 'should';
 import { adapters } from '../test-adapters';
 import { App } from '../../src/app';
 import { StatusQuery, StatusClass } from '../../src/status';
-import { CurrentUserManager, UserObject, UserObjectRef } from '../../src/user';
-import { API_VERSION } from '../../src/const';
+import { AuthedUser, UserObject, UserObjectRef } from '../../src/user';
 
 const app = new App({
   appId: 'test-app-id',
@@ -40,15 +39,20 @@ describe('StatusQuery', function () {
     });
   });
 
-  describe('#whereInboxOwner', function () {
-    it('should throw error when user has no sessionToken', function () {
-      should.throws(() => query.whereInboxOwner(new UserObject(null, 'test-user-id')));
+  describe('#whereInboxOwner', () => {
+    it('should throw an error when the owner has no sessionToken', () => {
+      const owner = new AuthedUser(null, '');
+      owner.data = {};
+      should.throws(
+        () => query.whereInboxOwner(owner),
+        'Cannot query both inboxOwner and statusOwner'
+      );
     });
 
-    it('check query condition', async function () {
-      const user = new UserObject(null, 'test-user-id');
-      user.data = { sessionToken: 'test-session-token' };
-      await query.whereInboxOwner(user).find();
+    it('check query condition', async () => {
+      const owner = new AuthedUser(null, 'test-user-id');
+      owner.data = { sessionToken: 'test-session-token' };
+      await query.whereInboxOwner(owner).find();
       const req = adapters.requests.pop();
       JSON.parse(req.query.owner as string).should.eql({
         __type: 'Pointer',
@@ -56,224 +60,305 @@ describe('StatusQuery', function () {
         objectId: 'test-user-id',
       });
     });
+
+    it("should use owner's sessionToken", async () => {
+      const currentUser = new UserObject(app, '');
+      currentUser.data = { sessionToken: 'current-user-session' };
+      const owner = new AuthedUser(null, '');
+      owner.data = { sessionToken: 'owner-session' };
+      await query.whereInboxOwner(owner).find();
+      const req = adapters.requests.pop();
+      req.header['X-LC-Session'].should.eql(owner.sessionToken);
+    });
   });
 
-  it('#whereInboxType', async function () {
-    const user = new UserObject(null, 'test-user-id');
+  it('#whereInboxType', async () => {
+    const user = new AuthedUser(null, '');
     user.data = { sessionToken: 'test-session-token' };
     await query.whereInboxOwner(user).whereInboxType('test-inbox-type').find();
     const req = adapters.requests.pop();
     req.query.inboxType.should.eql('test-inbox-type');
   });
 
-  it('#whereSinceId', async function () {
-    const user = new UserObject(null, 'test-user-id');
+  it('#whereSinceId', async () => {
+    const user = new AuthedUser(null, '');
     user.data = { sessionToken: 'test-session-token' };
     await query.whereInboxOwner(user).whereSinceId(123).find();
     const req = adapters.requests.pop();
     req.query.sinceId.should.eql('123');
   });
 
-  it('#whereMaxId', async function () {
-    const user = new UserObject(null, 'test-user-id');
+  it('#whereMaxId', async () => {
+    const user = new AuthedUser(null, '');
     user.data = { sessionToken: 'test-session-token' };
-    await query.whereInboxOwner(user).whereMaxId(456).find();
+    await query.whereInboxOwner(user).whereMaxId(321).find();
     const req = adapters.requests.pop();
-    req.query.maxId.should.eql('456');
+    req.query.maxId.should.eql('321');
   });
 
-  describe('#find', function () {
-    it('should send GET request to /subscribe/statuses when inboxOwner is set', async function () {
-      const user = new UserObject(null, 'test-user-id');
+  describe('#find', () => {
+    it('should send GET request to /subscribe/statuses when inboxOwner is set', async () => {
+      const user = new AuthedUser(null, '');
       user.data = { sessionToken: 'test-session-token' };
       await query.whereInboxOwner(user).find();
       const req = adapters.requests.pop();
       req.method.should.eql('GET');
-      req.path.should.eql(`${API_VERSION}/subscribe/statuses`);
+      req.path.should.endWith('/subscribe/statuses');
     });
 
-    it('should throw error when set both statusOwner and inboxOwner', function () {
-      const user = new UserObject(null, 'test-user-id');
+    it('should throw an error when set both statusOwner and inboxOwner', () => {
+      const user = new AuthedUser(null, '');
       user.data = { sessionToken: 'test-session-token' };
-      return query.whereInboxOwner(user).whereStatusOwner(user).find().should.rejected();
+      should.throws(() => query.whereInboxOwner(user).whereStatusOwner(user).find());
     });
   });
 });
 
-describe('StatusClass', function () {
+describe('StatusClass', () => {
   const Status = new StatusClass(app);
 
-  beforeEach(() => {
-    const currentUser = new UserObject(app, 'test-user-id');
-    currentUser.data = { sessionToken: 'test-session-token' };
-    CurrentUserManager.set(app, currentUser);
-  });
-
-  describe('#sendToFollowers', function () {
-    it('should throw error when no current user', function () {
-      CurrentUserManager.remove(app);
-      return Status.sendToFollowers({}).should.rejected();
+  describe('#sendToFollowers', () => {
+    it('should throw an error when the owner has no sessionToken', () => {
+      const owner = new AuthedUser(null, '');
+      owner.data = {};
+      return Status.sendToFollowers(owner, {}).should.rejectedWith(
+        'The owner cannot be an unauthorized user'
+      );
     });
 
-    it('should send POST requests to /statuses', async function () {
+    it('should send POST requests to /statuses', async () => {
+      const owner = new AuthedUser(null, '');
+      owner.data = { sessionToken: 'test-session-token' };
       adapters.responses.push({ body: { objectId: 'test-status-id' } });
-      await Status.sendToFollowers({});
+      await Status.sendToFollowers(owner, {});
       const req = adapters.requests.pop();
       req.method.should.eql('POST');
-      req.path.should.eql(`${API_VERSION}/statuses`);
+      req.path.should.endWith('/statuses');
     });
 
-    it('should add "source" to the status data', async function () {
+    it('should add "source" to the status data', async () => {
+      const owner = new AuthedUser(null, 'owner-id');
+      owner.data = { sessionToken: 'test-session-token' };
       adapters.responses.push({ body: { objectId: 'test-status-id' } });
-      await Status.sendToFollowers({});
+      await Status.sendToFollowers(owner, {});
       const req = adapters.requests.pop();
-      req.body['data'].should.containEql({
-        source: app.currentUser.toPointer(),
-      });
+      req.body.data.source.should.eql(owner.toPointer());
     });
 
-    it('should send to all followers', async function () {
+    it('should send to all followers', async () => {
+      const owner = new AuthedUser(null, 'owner-id');
+      owner.data = { sessionToken: 'test-session-token' };
       adapters.responses.push({ body: { objectId: 'test-status-id' } });
-      await Status.sendToFollowers({});
+      await Status.sendToFollowers(owner, {});
       const req = adapters.requests.pop();
-      req.body['query'].should.containEql({
+      req.body.query.should.containEql({
         className: '_Follower',
         keys: 'follower',
-        where: { user: app.currentUser.toPointer() },
+        where: { user: owner.toPointer() },
       });
     });
 
-    it('check options', async function () {
+    it('check options', async () => {
+      const owner = new AuthedUser(null, '');
+      owner.data = { sessionToken: 'test-session-token' };
       adapters.responses.push({ body: { objectId: 'test-status-id' } });
-      await Status.sendToFollowers({}, { inboxType: 'test-inbox-type' });
+      await Status.sendToFollowers(owner, {}, { inboxType: 'test-inbox-type' });
       const req = adapters.requests.pop();
-      req.body['inboxType'].should.eql('test-inbox-type');
+      req.body.inboxType.should.eql('test-inbox-type');
+    });
+
+    it("should use owner's sessionToken", async () => {
+      const currentUser = new UserObject(app, '');
+      currentUser.data = { sessionToken: 'current-user-session' };
+      const owner = new AuthedUser(null, '');
+      owner.data = { sessionToken: 'owner-session' };
+      await Status.sendToFollowers(owner, {});
+      const req = adapters.requests.pop();
+      req.header['X-LC-Session'].should.eql(owner.sessionToken);
     });
   });
 
-  describe('#sendToUser', async function () {
-    it('should throw error when no current user', function () {
-      CurrentUserManager.remove(app);
-      const target = new UserObject(null, 'test-user-2');
-      return Status.sendToUser(target, {}).should.rejected();
+  describe('#sendToUser', async () => {
+    it('should throw an error when the owner has no sessionToken', () => {
+      const owner = new AuthedUser(null, '');
+      owner.data = {};
+      const target = new UserObject(null, '');
+      return Status.sendToUser(owner, target, {}).should.rejectedWith(
+        'The owner cannot be an unauthorized user'
+      );
     });
 
-    it('should send POST requests to /statuses', async function () {
-      const target = new UserObject(null, 'test-user-2');
+    it('should send POST requests to /statuses', async () => {
+      const owner = new AuthedUser(null, '');
+      owner.data = { sessionToken: 'test-session-token' };
+      const target = new UserObject(null, '');
       adapters.responses.push({ body: { objectId: 'test-status-id' } });
-      await Status.sendToUser(target, {});
+      await Status.sendToUser(owner, target, {});
       const req = adapters.requests.pop();
       req.method.should.eql('POST');
-      req.path.should.eql(`${API_VERSION}/statuses`);
+      req.path.should.endWith('/statuses');
     });
 
-    it('should add "source" to the status data', async function () {
-      const target = new UserObject(null, 'test-user-2');
+    it('should add "source" to the status data', async () => {
+      const owner = new AuthedUser(null, 'owner-id');
+      owner.data = { sessionToken: 'test-session-token' };
+      const target = new UserObject(null, '');
       adapters.responses.push({ body: { objectId: 'test-status-id' } });
-      await Status.sendToUser(target, {});
+      await Status.sendToUser(owner, target, {});
       const req = adapters.requests.pop();
-      req.body['data'].should.containEql({
-        source: app.currentUser.toPointer(),
-      });
+      req.body.data.source.should.eql(owner.toPointer());
     });
 
-    it('should send to specified user', async function () {
-      const target = new UserObject(null, 'test-user-2');
+    it('should send to specified user', async () => {
+      const owner = new AuthedUser(null, 'owner-id');
+      owner.data = { sessionToken: 'test-session-token' };
+      const target = new UserObject(null, 'target-id');
       adapters.responses.push({ body: { objectId: 'test-status-id' } });
-      await Status.sendToUser(target, {});
+      await Status.sendToUser(owner, target, {});
       const req = adapters.requests.pop();
-      req.body['query'].should.containEql({
+      req.body.query.should.containEql({
         className: '_User',
         where: { objectId: target.objectId },
       });
     });
 
-    it('check options', async function () {
+    it('check options', async () => {
+      const owner = new AuthedUser(null, '');
+      owner.data = { sessionToken: 'test-session-token' };
       const target = new UserObject(null, 'test-user-2');
       adapters.responses.push({ body: { objectId: 'test-status-id' } });
-      await Status.sendToUser(target, {}, { inboxType: 'test-inbox-type' });
+      await Status.sendToUser(owner, target, {}, { inboxType: 'test-inbox-type' });
       const req = adapters.requests.pop();
-      req.body['inboxType'].should.eql('test-inbox-type');
+      req.body.inboxType.should.eql('test-inbox-type');
+    });
+
+    it("should use owner's sessionToken", async () => {
+      const currentUser = new UserObject(app, '');
+      currentUser.data = { sessionToken: 'current-user-session' };
+      const owner = new AuthedUser(null, '');
+      owner.data = { sessionToken: 'owner-session' };
+      await Status.sendToUser(owner, new UserObject(null, ''), {});
+      const req = adapters.requests.pop();
+      req.header['X-LC-Session'].should.eql(owner.sessionToken);
     });
   });
 
-  describe('#deleteInboxStatus', function () {
-    it('should throw error when no current user', function () {
-      CurrentUserManager.remove(app);
-      return Status.deleteInboxStatus(123).should.rejected();
+  describe('#deleteInboxStatus', () => {
+    it('should throw an error when the owner has no sessionToken', () => {
+      const owner = new AuthedUser(null, '');
+      owner.data = {};
+      Status.deleteInboxStatus(owner, 123).should.rejectedWith(
+        'The owner cannot be an unauthorized user'
+      );
     });
 
-    it('should send DELETE request to /subscribe/statuses/inbox', async function () {
-      await Status.deleteInboxStatus(123);
+    it('should send DELETE request to /subscribe/statuses/inbox', async () => {
+      const owner = new AuthedUser(null, '');
+      owner.data = { sessionToken: 'test-session-token' };
+      await Status.deleteInboxStatus(owner, 123);
       const req = adapters.requests.pop();
       req.method.should.eql('DELETE');
-      req.path.should.eql(`${API_VERSION}/subscribe/statuses/inbox`);
+      req.path.should.endWith('/subscribe/statuses/inbox');
     });
 
-    it('check owner and messageId', async function () {
-      await Status.deleteInboxStatus(123);
+    it('check owner and messageId', async () => {
+      const owner = new AuthedUser(null, 'owner-id');
+      owner.data = { sessionToken: 'test-session-token' };
+      await Status.deleteInboxStatus(owner, 123);
       const req = adapters.requests.pop();
       req.query.should.containEql({
-        owner: JSON.stringify(app.currentUser.toPointer()),
+        owner: JSON.stringify(owner.toPointer()),
         messageId: '123',
       });
     });
 
-    it('check options', async function () {
-      await Status.deleteInboxStatus(123, { inboxType: 'test-inbox-type' });
+    it('check options', async () => {
+      const owner = new AuthedUser(null, '');
+      owner.data = { sessionToken: 'test-session-token' };
+      await Status.deleteInboxStatus(owner, 123, { inboxType: 'test-inbox-type' });
       const req = adapters.requests.pop();
       req.query.should.containEql({
         inboxType: 'test-inbox-type',
       });
     });
+
+    it("should use owner's sessionToken", async () => {
+      const currentUser = new UserObject(app, '');
+      currentUser.data = { sessionToken: 'current-user-session' };
+      const owner = new AuthedUser(null, '');
+      owner.data = { sessionToken: 'owner-session' };
+      await Status.deleteInboxStatus(owner, 123);
+      const req = adapters.requests.pop();
+      req.header['X-LC-Session'].should.eql(owner.sessionToken);
+    });
   });
 
-  describe('#getUnreadCount', function () {
-    it('should throw error when no current user', function () {
-      CurrentUserManager.remove(app);
-      return Status.getUnreadCount().should.rejected();
+  describe('#getUnreadCount', () => {
+    it('should throw an error when the owner has no sessionToken', () => {
+      const owner = new AuthedUser(null, '');
+      owner.data = {};
+      Status.getUnreadCount(owner).should.rejectedWith('The owner cannot be an unauthorized user');
     });
 
-    it('should send GET request to /subscribe/statuses/count', async function () {
-      await Status.getUnreadCount();
+    it('should send GET request to /subscribe/statuses/count', async () => {
+      const owner = new AuthedUser(null, '');
+      owner.data = { sessionToken: 'test-session-token' };
+      await Status.getUnreadCount(owner);
       const req = adapters.requests.pop();
       req.method.should.eql('GET');
-      req.path.should.eql(`${API_VERSION}/subscribe/statuses/count`);
+      req.path.should.endWith('/subscribe/statuses/count');
     });
 
-    it('check owner', async function () {
-      await Status.deleteInboxStatus(123);
+    it('check owner and messageId', async () => {
+      const owner = new AuthedUser(null, 'owner-id');
+      owner.data = { sessionToken: 'test-session-token' };
+      await Status.deleteInboxStatus(owner, 123);
       const req = adapters.requests.pop();
       req.query.should.containEql({
-        owner: JSON.stringify(app.currentUser.toPointer()),
+        owner: JSON.stringify(owner.toPointer()),
         messageId: '123',
       });
     });
 
-    it('check options', async function () {
-      await Status.deleteInboxStatus(123, { inboxType: 'test-inbox-type' });
+    it('check options', async () => {
+      const owner = new AuthedUser(null, '');
+      owner.data = { sessionToken: 'test-session-token' };
+      await Status.deleteInboxStatus(owner, 123, { inboxType: 'test-inbox-type' });
       const req = adapters.requests.pop();
       req.query.should.containEql({ inboxType: 'test-inbox-type' });
     });
+
+    it("should use owner's sessionToken", async () => {
+      const currentUser = new UserObject(app, '');
+      currentUser.data = { sessionToken: 'current-user-session' };
+      const owner = new AuthedUser(null, '');
+      owner.data = { sessionToken: 'owner-session' };
+      await Status.getUnreadCount(owner);
+      const req = adapters.requests.pop();
+      req.header['X-LC-Session'].should.eql(owner.sessionToken);
+    });
   });
 
-  describe('#resetUnreadCount', function () {
-    it('should throw error when no current user', function () {
-      CurrentUserManager.remove(app);
-      return Status.resetUnreadCount().should.rejected();
+  describe('#resetUnreadCount', () => {
+    it('should throw an error when the owner has no sessionToken', () => {
+      const owner = new AuthedUser(null, '');
+      owner.data = {};
+      Status.resetUnreadCount(owner).should.rejectedWith(
+        'The owner cannot be an unauthorized user'
+      );
     });
 
-    it('should send POST request to /subscribe/statuses/resetUnreadCount', async function () {
-      const owner = new UserObject(null, 'test-user-id');
+    it('should send POST request to /subscribe/statuses/resetUnreadCount', async () => {
+      const owner = new AuthedUser(null, '');
       owner.data = { sessionToken: 'test-session-token' };
       await Status.resetUnreadCount(owner);
       const req = adapters.requests.pop();
       req.method.should.eql('POST');
-      req.path.should.eql(`${API_VERSION}/subscribe/statuses/resetUnreadCount`);
+      req.path.should.endWith('/subscribe/statuses/resetUnreadCount');
     });
 
-    it('check owner', async function () {
-      const owner = new UserObject(null, 'test-user-id');
+    it('check owner', async () => {
+      const owner = new AuthedUser(null, 'owner-id');
       owner.data = { sessionToken: 'test-session-token' };
       await Status.resetUnreadCount(owner);
       const req = adapters.requests.pop();
@@ -281,10 +366,22 @@ describe('StatusClass', function () {
       req.header['X-LC-Session'].should.eql(owner.sessionToken);
     });
 
-    it('check options', async function () {
-      await Status.resetUnreadCount({ inboxType: 'test-inbox-type' });
+    it('check options', async () => {
+      const owner = new AuthedUser(null, '');
+      owner.data = { sessionToken: 'test-session-token' };
+      await Status.resetUnreadCount(owner, { inboxType: 'test-inbox-type' });
       const req = adapters.requests.pop();
       req.query.should.containEql({ inboxType: 'test-inbox-type' });
+    });
+
+    it("should use owner's sessionToken", async () => {
+      const currentUser = new UserObject(app, '');
+      currentUser.data = { sessionToken: 'current-user-session' };
+      const owner = new AuthedUser(null, '');
+      owner.data = { sessionToken: 'owner-session' };
+      await Status.resetUnreadCount(owner);
+      const req = adapters.requests.pop();
+      req.header['X-LC-Session'].should.eql(owner.sessionToken);
     });
   });
 });

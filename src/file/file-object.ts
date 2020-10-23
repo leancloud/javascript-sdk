@@ -1,17 +1,12 @@
 import type { App } from '../app';
-import {
-  LCObjectRef,
-  LCObject,
-  LCObjectData,
-  GetObjectOptions,
-  UpdateObjectOptions,
-} from '../object';
+import { LCObjectRef, LCObject, LCObjectData, GetObjectOptions } from '../object';
 
 export interface FileData extends LCObjectData {
   name: string;
   url: string;
   mime_type: string;
-  metaData: Record<string, unknown>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  metaData: Record<string, any>;
 }
 
 export class FileObjectRef extends LCObjectRef {
@@ -19,26 +14,21 @@ export class FileObjectRef extends LCObjectRef {
     super(app, '_File', objectId);
   }
 
+  protected get _apiPath(): string {
+    return '/files/' + this.objectId;
+  }
+
   get(options?: GetObjectOptions): Promise<FileObject> {
     return super.get(options) as Promise<FileObject>;
   }
 
-  update(data: Partial<FileData>, options?: UpdateObjectOptions): Promise<FileObject> {
-    return super.update(
-      {
-        name: data.name,
-        url: data.url,
-        mime_type: data.mime_type,
-        metaData: data.metaData,
-        ACL: data.ACL,
-      },
-      options
-    ) as Promise<FileObject>;
+  update(): never {
+    throw new Error('Cannot update file object');
   }
 }
 
 export class FileObject extends LCObject {
-  data: FileData;
+  data: Partial<FileData>;
 
   protected _ref: FileObjectRef;
 
@@ -74,7 +64,7 @@ export class FileObject extends LCObject {
     return this._ref.get(options);
   }
 
-  update(data: Partial<FileData>, options?: UpdateObjectOptions): Promise<FileObject> {
-    return this._ref.update(data, options);
+  update(): never {
+    return this._ref.update();
   }
 }

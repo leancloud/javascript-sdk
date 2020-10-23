@@ -5,7 +5,7 @@ import { GeoPoint } from './geo-point';
 import { lcEncode, LCObject } from './object';
 import { assert } from './utils';
 import { PluginManager } from './plugin';
-import { isEmpty, isRegExp } from 'lodash';
+import { isEmpty, isRegExp, cloneDeep } from 'lodash';
 
 interface RegExpWithString {
   regexp: string;
@@ -40,7 +40,7 @@ export class Query {
   private _skip: number;
   private _limit: number;
   private _returnACL: boolean;
-  private _danglingOr: Query;
+  private _siblingOr: Query;
 
   constructor(public className: string, public app = mustGetDefaultApp()) {}
 
@@ -94,7 +94,7 @@ export class Query {
       return this;
     }
     const query = new Query(this.className, this.app);
-    query._danglingOr = this;
+    query._siblingOr = this;
     return query;
   }
 
@@ -287,16 +287,19 @@ export class Query {
 
   where(key: string, condition: 'not-contained-in', values: unknown[]): Query;
 
-  where(key: string, cond: 'near', point: GeoPoint): Query;
-  where(key: string, cond: 'within', box: GeoBox): Query;
-  where(
-    key: string,
-    cond: 'within-miles' | 'within-kilometers' | 'within-radians',
-    value: GeoDistance
-  ): Query;
-  where(key: string, cond: string, value?: unknown): Query {
+  where(key: string, condition: 'near', point: GeoPoint): Query;
+
+  where(key: string, condition: 'within', box: GeoBox): Query;
+
+  where(key: string, condition: 'within-miles', distance: GeoDistance): Query;
+
+  where(key: string, condition: 'within-kilometers', distance: GeoDistance): Query;
+
+  where(key: string, condition: 'within-radians', distance: GeoDistance): Query;
+
+  where(key: string, condition: string, value?: unknown): Query {
     const query = this._clone();
-    switch (cond) {
+    switch (condition) {
       case '==':
         query._whereEqualTo(key, value);
         break;
@@ -382,31 +385,29 @@ export class Query {
         assertIsGeoDistance(value);
         query._whereWithinRadians(key, value.point, value.max, value.min);
         break;
-      case 'within-miles': {
+      case 'within-miles':
         assertIsGeoDistance(value);
         query._whereWithinMiles(key, value.point, value.max, value.min);
         break;
-      }
-      case 'within-kilometers': {
+      case 'within-kilometers':
         assertIsGeoDistance(value);
         query._whereWithinKilometers(key, value.point, value.max, value.min);
         break;
-      }
       default:
-        throw new TypeError(`Unsupported condition '${cond}'`);
+        throw new TypeError('Unsupported query condition: ' + condition);
     }
     return query;
   }
 
   toJSON(): QueryCondition {
-    if (this._danglingOr) {
+    if (this._siblingOr) {
       if (isEmpty(this._where)) {
-        return this._danglingOr.toJSON();
+        return this._siblingOr.toJSON();
       }
-      const or = this._danglingOr;
-      this._danglingOr = null;
+      const or = this._siblingOr;
+      this._siblingOr = null;
       const json = Query.or(or, this).toJSON();
-      this._danglingOr = or;
+      this._siblingOr = or;
       return json;
     }
     const where = { ...this._where };
@@ -428,25 +429,21 @@ export class Query {
     return liveQuery.subscribe(this, options);
   }
 
-  protected _clone(query?: Query): Query {
-    if (!query) {
-      query = new Query(this.className, this.app);
-    }
-    Object.entries(this._where).forEach(([key, value]) => {
-      if (Array.isArray(value)) {
-        query._where[key] = [...value];
-      } else {
-        query._where[key] = { ...value };
-      }
-    });
+  protected _clone(): Query {
+    const query = new Query(this.className, this.app);
+    this._fill(query);
+    return query;
+  }
+
+  protected _fill(query: Query): void {
+    query._where = cloneDeep(this._where);
     query._keys = [...this._keys];
     query._order = [...this._order];
     query._include = [...this._include];
     query._skip = this._skip;
     query._limit = this._limit;
     query._returnACL = this._returnACL;
-    query._danglingOr = this._danglingOr;
-    return query;
+    query._siblingOr = this._siblingOr;
   }
 
   protected _makeRequest(options?: AuthOptions): AppRequest {

@@ -5,15 +5,16 @@ import {
   UserObjectRef,
   CurrentUserManager,
   UserData,
-  UserDataForAdd,
+  CreateUserData,
   AuthedUser,
 } from './user-object';
 import { v4 as uuid_v4 } from 'uuid';
 import { Class } from '../class';
 import { removeReservedKeys } from '../object';
 import { AdapterManager } from '../adapters';
+import { assert } from '../utils';
 
-interface SignUpDataWithMobile extends UserDataForAdd {
+interface SignUpDataWithMobile extends Partial<CreateUserData> {
   mobilePhoneNumber: string;
   smsCode: string;
 }
@@ -67,7 +68,7 @@ export class UserClass extends Class {
     return new UserClass(mustGetDefaultApp()).become(sessionToken, options);
   }
 
-  static signUp(data: UserDataForAdd, options?: AuthOptions): Promise<UserObject> {
+  static signUp(data: Partial<CreateUserData>, options?: AuthOptions): Promise<UserObject> {
     return new UserClass(mustGetDefaultApp()).signUp(data, options);
   }
 
@@ -235,7 +236,7 @@ export class UserClass extends Class {
     return this._decodeAndSetToCurrent(res.body);
   }
 
-  async signUp(data: UserDataForAdd, options?: AuthOptions): Promise<UserObject> {
+  async signUp(data: Partial<CreateUserData>, options?: AuthOptions): Promise<UserObject> {
     const res = await this.app.request({
       method: 'POST',
       path: `/users`,
@@ -258,7 +259,7 @@ export class UserClass extends Class {
     return this._decodeAndSetToCurrent(res.body);
   }
 
-  async loginWithData(data: UserData, options?: AuthOptions): Promise<UserObject> {
+  async loginWithData(data: Partial<UserData>, options?: AuthOptions): Promise<UserObject> {
     const res = await this.app.request({
       method: 'POST',
       path: `/login`,
@@ -274,13 +275,13 @@ export class UserClass extends Class {
 
   async loginWithAuthData(
     platform: string,
-    authData: Record<string, unknown>,
+    authDataItem: Record<string, unknown>,
     options?: LoginWithAuthDataOptions
   ): Promise<UserObject> {
     const res = await this.app.request({
       method: 'POST',
       path: `/users`,
-      body: { authData: { [platform]: authData } },
+      body: { authData: { [platform]: authDataItem } },
       query: { failOnNotExist: options?.failOnNotExist },
       options,
     });
@@ -313,22 +314,38 @@ export class UserClass extends Class {
 
   loginWithAuthDataAndUnionId(
     platform: string,
-    authData: Record<string, unknown>,
+    authDataItem: Record<string, unknown>,
     unionId: string,
-    options?: LoginWithAuthDataAndUnionIdOptions
+    options: LoginWithAuthDataAndUnionIdOptions
   ): Promise<UserObject> {
-    authData = Object.assign({}, authData, {
-      platform: options?.unionIdPlatform,
-      main_account: options?.asMainAccount,
-      unionid: unionId,
-    });
-    return this.loginWithAuthData(platform, authData, options);
+    const { unionIdPlatform = 'weixin' } = options || {};
+    return this.loginWithAuthData(
+      platform,
+      {
+        ...authDataItem,
+        unionid: unionId,
+        platform: unionIdPlatform,
+        main_account: options?.asMainAccount,
+      },
+      options
+    );
   }
 
   async loginWithMiniApp(options?: MiniAppAuthOptions): Promise<UserObject> {
     const authInfo = await AdapterManager.get().getAuthInfo(options);
-    // XXX: 如果对 provider 和 platform 的用法有困惑, 请咨询 @leeyeh
     return this.loginWithAuthData(authInfo.provider, authInfo.authData, options);
+  }
+
+  async loginWithMiniAppAndUnionId(
+    unionId: string,
+    options?: MiniAppAuthOptions & Pick<LoginWithAuthDataAndUnionIdOptions, 'asMainAccount'>
+  ): Promise<UserObject> {
+    const { provider, authData, platform } = await AdapterManager.get().getAuthInfo(options);
+    assert(platform, 'Current mini-app not support login with unionId');
+    return this.loginWithAuthDataAndUnionId(provider, authData, unionId, {
+      ...options,
+      unionIdPlatform: platform,
+    });
   }
 
   logOut(): void {
@@ -454,7 +471,7 @@ export class UserClass extends Class {
   private async _decodeAndSetToCurrent(data: unknown): Promise<AuthedUser> {
     const user = this.app.decode(data, { type: 'Object', className: '_User' });
     const authedUser = AuthedUser.from(user);
-    await CurrentUserManager.setAsync(this.app, authedUser);
+    await CurrentUserManager.setAsync(authedUser);
     return authedUser;
   }
 }

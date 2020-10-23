@@ -1,12 +1,12 @@
 import type { AuthOptions, App, AppRequest } from './app';
-import { CurrentUserManager, UserObject, UserObjectRef } from './user';
+import { AuthedUser, UserObject, UserObjectRef } from './user';
 import { Query } from './query';
 import { assert } from './utils';
 import { Pointer, LCObject } from './object';
 
 type InboxType = 'default' | 'private' | string;
 
-interface StatusOptions extends AuthOptions {
+interface StatusOptions extends Omit<AuthOptions, 'sessionToken'> {
   inboxType?: InboxType;
 }
 
@@ -17,7 +17,7 @@ interface StatusCount {
 
 export class StatusQuery extends Query {
   private _statusOwner: Pointer;
-  private _inboxOwner: UserObject;
+  private _inboxOwner: AuthedUser;
   private _inboxType: InboxType;
   private _sinceId: number;
   private _maxId: number;
@@ -27,6 +27,7 @@ export class StatusQuery extends Query {
   }
 
   whereStatusOwner(owner: UserObject | UserObjectRef | string): StatusQuery {
+    assert(this._inboxOwner === undefined, 'Cannot query both inboxOwner and statusOwner');
     const query = this._clone();
     if (typeof owner === 'string') {
       query._statusOwner = { __type: 'Pointer', className: '_User', objectId: owner };
@@ -37,8 +38,9 @@ export class StatusQuery extends Query {
     return query;
   }
 
-  whereInboxOwner(owner: UserObject): StatusQuery {
-    assert(owner.sessionToken, 'Cannot query inbox for an unauthorized user');
+  whereInboxOwner(owner: AuthedUser): StatusQuery {
+    assert(this._statusOwner === undefined, 'Cannot query both inboxOwner and statusOwner');
+    assert(owner.sessionToken, 'The owner cannot be an unauthorized user');
     const query = this._clone();
     query._inboxOwner = owner;
     return query;
@@ -62,30 +64,31 @@ export class StatusQuery extends Query {
     return query;
   }
 
-  protected _clone(query?: StatusQuery): StatusQuery {
-    if (!query) {
-      query = new StatusQuery(this.app);
-    }
-    query = super._clone(query) as StatusQuery;
+  protected _clone(): StatusQuery {
+    const query = new StatusQuery(this.app);
+    this._fill(query);
+    return query;
+  }
+
+  protected _fill(query: StatusQuery): void {
+    super._fill(query);
     query._statusOwner = this._statusOwner;
     query._inboxOwner = this._inboxOwner;
     query._inboxType = this._inboxType;
     query._sinceId = this._sinceId;
     query._maxId = this._maxId;
-    return query;
   }
 
   protected _makeRequest(options?: AuthOptions): AppRequest {
     const req = super._makeRequest(options);
     if (this._inboxOwner) {
       assert(this._statusOwner === undefined, 'Cannot query both inboxOwner and statusOwner');
-      req.path = `/subscribe/statuses`;
+      req.path = '/subscribe/statuses';
 
-      if (!req.options) {
-        req.options = { sessionToken: this._inboxOwner.sessionToken };
-      } else if (!req.options.sessionToken) {
-        req.options.sessionToken = this._inboxOwner.sessionToken;
-      }
+      req.options = {
+        ...req.options,
+        sessionToken: this._inboxOwner.sessionToken,
+      };
 
       req.query.owner = JSON.stringify(this._inboxOwner.toPointer());
       req.query.inboxType = this._inboxType;
@@ -101,39 +104,47 @@ export class StatusQuery extends Query {
  */
 export class StatusClass extends StatusQuery {
   static async sendToFollowers(
+    owner: AuthedUser,
     data: Record<string, unknown>,
     options?: StatusOptions
   ): Promise<LCObject> {
-    return new StatusClass().sendToFollowers(data, options);
+    return new StatusClass().sendToFollowers(owner, data, options);
   }
 
   static async sendToUser(
+    owner: AuthedUser,
     target: UserObject | UserObjectRef | string,
     data: Record<string, unknown>,
     options?: StatusOptions
   ): Promise<LCObject> {
-    return new StatusClass().sendToUser(target, data, options);
+    return new StatusClass().sendToUser(owner, target, data, options);
   }
 
-  static async deleteInboxStatus(messageId: number, options?: StatusOptions): Promise<void> {
-    return new StatusClass().deleteInboxStatus(messageId, options);
+  static async deleteInboxStatus(
+    owner: AuthedUser,
+    messageId: number,
+    options?: StatusOptions
+  ): Promise<void> {
+    return new StatusClass().deleteInboxStatus(owner, messageId, options);
   }
 
-  static async getUnreadCount(options?: StatusOptions): Promise<StatusCount> {
-    return new StatusClass().getUnreadCount(options);
+  static async getUnreadCount(owner: AuthedUser, options?: StatusOptions): Promise<StatusCount> {
+    return new StatusClass().getUnreadCount(owner, options);
   }
 
-  static async resetUnreadCount(options?: StatusOptions): Promise<void> {
-    return new StatusClass().resetUnreadCount(options);
+  static async resetUnreadCount(owner: AuthedUser, options?: StatusOptions): Promise<void> {
+    return new StatusClass().resetUnreadCount(owner, options);
   }
 
-  async sendToFollowers(data: Record<string, unknown>, options?: StatusOptions): Promise<LCObject> {
-    const owner = await CurrentUserManager.getAsync(this.app);
-    assert(owner, 'No user is logged in');
-
+  async sendToFollowers(
+    owner: AuthedUser,
+    data: Record<string, unknown>,
+    options?: StatusOptions
+  ): Promise<LCObject> {
+    assert(owner.sessionToken, 'The owner cannot be an unauthorized user');
     const res = await this.app.request({
       method: 'POST',
-      path: `/statuses`,
+      path: '/statuses',
       query: { fetchWhenSave: true },
       body: {
         query: {
@@ -146,24 +157,22 @@ export class StatusClass extends StatusQuery {
         data: { ...data, source: owner.toPointer() },
         inboxType: options?.inboxType,
       },
-      options,
+      options: { ...options, sessionToken: owner.sessionToken },
     });
     return this.app.decode(res.body, { className: '_Status' });
   }
 
   async sendToUser(
+    owner: AuthedUser,
     target: UserObject | UserObjectRef | string,
     data: Record<string, unknown>,
     options?: StatusOptions
   ): Promise<LCObject> {
-    const owner = await CurrentUserManager.getAsync(this.app);
-    assert(owner, 'No user is logged in');
-
+    assert(owner.sessionToken, 'The owner cannot be an unauthorized user');
     const targetId = typeof target === 'string' ? target : target.objectId;
-
     const res = await this.app.request({
       method: 'POST',
-      path: `/statuses`,
+      path: '/statuses',
       body: {
         query: {
           className: '_User',
@@ -174,55 +183,53 @@ export class StatusClass extends StatusQuery {
         data: { ...data, source: owner.toPointer() },
         inboxType: options?.inboxType || 'private',
       },
-      options,
+      options: { ...options, sessionToken: owner.sessionToken },
     });
     return this.app.decode(res.body, { className: '_Status' });
   }
 
-  async deleteInboxStatus(messageId: number, options?: StatusOptions): Promise<void> {
-    const owner = await CurrentUserManager.getAsync(this.app);
-    assert(owner, 'No user is logged in');
-
+  async deleteInboxStatus(
+    owner: AuthedUser,
+    messageId: number,
+    options?: StatusOptions
+  ): Promise<void> {
+    assert(owner.sessionToken, 'The owner cannot be an unauthorized user');
     await this.app.request({
       method: 'DELETE',
-      path: `/subscribe/statuses/inbox`,
+      path: '/subscribe/statuses/inbox',
       query: {
         owner: JSON.stringify(owner.toPointer()),
         inboxType: options?.inboxType,
         messageId,
       },
-      options,
+      options: { ...options, sessionToken: owner.sessionToken },
     });
   }
 
-  async getUnreadCount(options?: StatusOptions): Promise<StatusCount> {
-    const owner = await CurrentUserManager.getAsync(this.app);
-    assert(owner, 'No user is logged in');
-
+  async getUnreadCount(owner: AuthedUser, options?: StatusOptions): Promise<StatusCount> {
+    assert(owner.sessionToken, 'The owner cannot be an unauthorized user');
     const res = await this.app.request({
       method: 'GET',
-      path: `/subscribe/statuses/count`,
+      path: '/subscribe/statuses/count',
       query: {
         owner: JSON.stringify(owner.toPointer()),
         inboxType: options?.inboxType,
       },
-      options,
+      options: { ...options, sessionToken: owner.sessionToken },
     });
-    return res.body as StatusCount;
+    return res.body;
   }
 
-  async resetUnreadCount(options?: StatusOptions): Promise<void> {
-    const owner = await CurrentUserManager.getAsync(this.app);
-    assert(owner, 'No user is logged in');
-
+  async resetUnreadCount(owner: AuthedUser, options?: StatusOptions): Promise<void> {
+    assert(owner.sessionToken, 'The owner cannot be an unauthorized user');
     await this.app.request({
       method: 'POST',
-      path: `/subscribe/statuses/resetUnreadCount`,
+      path: '/subscribe/statuses/resetUnreadCount',
       query: {
         owner: JSON.stringify(owner.toPointer()),
         inboxType: options?.inboxType,
       },
-      options,
+      options: { ...options, sessionToken: owner.sessionToken },
     });
   }
 }

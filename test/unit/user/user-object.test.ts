@@ -16,7 +16,7 @@ describe('CurrentUser', function () {
     it("should set current user's data into localStorage", function () {
       const user = new AuthedUser(app, 'test-user-id');
       user.data = { key: 'value' };
-      CurrentUserManager.set(app, user);
+      CurrentUserManager.set(user);
       const userKV = app.storage.get(KEY_CURRENT_USER);
       JSON.parse(userKV).should.containEql({
         objectId: user.objectId,
@@ -60,21 +60,12 @@ describe('CurrentUser', function () {
     });
   });
 
-  describe('.syncData', function () {
-    it('should modify user data in localStorage', function () {
-      const user = new UserObject(app, 'test-user-id');
+  describe('.persist', function () {
+    it('should flush user data into localStorage', function () {
+      const user = new AuthedUser(app, 'test-user-id');
       user.data = { key: 'value' };
-      CurrentUserManager.set(app, user);
-      CurrentUserManager.syncData(app, (data) => (data.key = 'modified'));
-      CurrentUserManager.get(app).data.key.should.eql('modified');
-    });
-
-    it('should prevent store password', function () {
-      const user = new UserObject(app, 'test-user-id');
-      user.data = { key: 'value' };
-      CurrentUserManager.set(app, user);
-      CurrentUserManager.syncData(app, (userKV) => (userKV.password = 'secret'));
-      (!CurrentUserManager.get(app).data.password).should.true();
+      CurrentUserManager.persist(user);
+      app.storage.get(KEY_CURRENT_USER).should.eql(JSON.stringify(lcEncode(user, { full: true })));
     });
   });
 });
@@ -201,7 +192,7 @@ describe('AuthedUser', function () {
     it('should remove anonymous id when user is current', async function () {
       const user = new AuthedUser(app, 'test-user-id');
       user.data = { authData: { anonymous: { id: 'anonymous-id' } } };
-      CurrentUserManager.set(app, user);
+      CurrentUserManager.set(user);
       adapters.responses.push({ body: { objectId: 'test-user-id' } });
       await user.signUp({ username: 'name', password: 'secret' });
       CurrentUserManager.get(app).isAnonymous().should.false();
