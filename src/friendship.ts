@@ -137,9 +137,10 @@ export class Friendship {
 
   getRequests(
     user: AuthedUser,
-    status: FriendshipStatus,
-    direction: 'send' | 'receive',
-    options?: PaginationOptions
+    options?: PaginationOptions & {
+      status?: FriendshipStatus;
+      direction?: 'send' | 'receive';
+    }
   ): Promise<FriendshipRequestObject[]> {
     let query = this.getRequestQuery(user);
     if (options?.limit !== undefined) {
@@ -148,10 +149,11 @@ export class Friendship {
     if (options?.skip !== undefined) {
       query = query.skip(options.skip);
     }
-    if (status !== 'all') {
+
+    if (options?.status && options.status !== 'all') {
       query = query.where('status', '==', status);
     }
-    switch (direction) {
+    switch (options?.direction) {
       case 'send':
         query = query.where('user', '==', user);
         break;
@@ -194,6 +196,14 @@ export class Friendship {
 export class FriendshipRequestObject extends LCObject {
   constructor(app: App, objectId: string) {
     super(app, '_FriendshipRequest', objectId);
+  }
+
+  get status(): string {
+    return this.data.status;
+  }
+
+  get friend(): UserObject {
+    return this.data.friend;
   }
 
   async accept(options?: FriendshipOptions): Promise<void> {

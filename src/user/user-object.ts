@@ -146,6 +146,10 @@ export class AuthedUser extends UserObject {
     return this.authData?.anonymous?.id;
   }
 
+  get username(): string {
+    return this.data.username;
+  }
+
   isCurrent(): boolean {
     return this.app.currentUser === this;
   }
