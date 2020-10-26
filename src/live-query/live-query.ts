@@ -50,8 +50,6 @@ interface LiveQueryListeners {
   leave(object: LCObject): void;
 }
 
-type LiveQueryEvents = keyof LiveQueryListeners;
-
 export class LiveQuery extends EventEmitter<LiveQueryListeners> {
   private _app: App;
   private _query: Query;
@@ -141,9 +139,9 @@ export class LiveQuery extends EventEmitter<LiveQueryListeners> {
     messages.forEach((msg) => {
       if (msg.query_id === this._queryId) {
         const obj = this._app.decode(msg.object, { type: 'Object' });
-        const event = msg.op as string;
+        const event = msg.op as keyof LiveQueryListeners;
         const updatedKeys = msg.updatedKeys as string[];
-        this.emit(event as LiveQueryEvents, obj, updatedKeys);
+        this.emit(event, obj, updatedKeys);
       }
     });
   };
