@@ -3,7 +3,6 @@
 /coverage
 dist
 /*.json
-/env.ts
 /docs
 /.vscode
 /changelog.md
