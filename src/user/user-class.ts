@@ -56,11 +56,11 @@ export class UserClass extends Class {
     return new UserObjectRef(mustGetDefaultApp(), id);
   }
 
-  static current(): UserObject {
+  static current(): AuthedUser {
     return CurrentUserManager.get(mustGetDefaultApp());
   }
 
-  static currentAsync(): Promise<UserObject> {
+  static currentAsync(): Promise<AuthedUser> {
     return CurrentUserManager.getAsync(mustGetDefaultApp());
   }
 

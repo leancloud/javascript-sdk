@@ -1,4 +1,4 @@
-import type { AppRequest, AuthOptions } from './app';
+import type { App, AppRequest, AuthOptions } from './app';
 import type { LiveQuery } from './live-query';
 import { mustGetDefaultApp } from './app/default-app';
 import { GeoPoint } from './geo-point';
@@ -32,9 +32,23 @@ interface QueryCondition {
   $or?: QueryCondition[];
 }
 
-export class Query {
+interface QueryProps {
+  className: string;
+  app?: App;
+  beforeFind?: (this: Query, options: AuthOptions) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  beforeFindDecode?: (this: Query, data: any) => void;
+  beforeSubscribe?: (this: Query, options: AuthOptions) => void;
+}
+
+export class Query<TObject extends LCObject = LCObject> {
+  app: App;
+  className: string;
+
+  // conditions
   private _where: QueryCondition = {};
-  private _keys: string[] = [];
+  private _selectedKeys: string[] = [];
+  private _exceptedKeys: string[] = [];
   private _order: string[] = [];
   private _include: string[] = [];
   private _skip: number;
@@ -42,7 +56,23 @@ export class Query {
   private _returnACL: boolean;
   private _siblingOr: Query;
 
-  constructor(public className: string, public app = mustGetDefaultApp()) {}
+  // hooks
+  private _beforeFind: QueryProps['beforeFind'];
+  private _beforeSubscribe: QueryProps['beforeSubscribe'];
+
+  constructor(className: string, app?: App);
+  constructor(props: QueryProps);
+  constructor(arg1: string | QueryProps, arg2?: App) {
+    if (typeof arg1 === 'string') {
+      this.className = arg1;
+      this.app = arg2 || mustGetDefaultApp();
+    } else {
+      this.className = arg1.className;
+      this.app = arg1.app || mustGetDefaultApp();
+      this._beforeFind = arg1.beforeFind;
+      this._beforeSubscribe = arg1.beforeSubscribe;
+    }
+  }
 
   /**
    * Constructs a {@link Query} that is the AND of the passed in queries.
@@ -98,15 +128,27 @@ export class Query {
     return query;
   }
 
-  select(...keys: string[]): Query {
+  select(keys: string[]): Query;
+  select(...keys: string[]): Query;
+  select(key: string | string[], ...keys: string[]): Query {
     const query = this._clone();
-    query._keys = keys;
+    if (typeof key === 'string') {
+      query._selectedKeys = [key, ...keys];
+    } else {
+      query._selectedKeys = key;
+    }
     return query;
   }
 
-  except(...keys: string[]): Query {
+  except(keys: string[]): Query;
+  except(...keys: string[]): Query;
+  except(key: string | string[], ...keys: string[]): Query {
     const query = this._clone();
-    query._keys = keys.map((key) => '-' + key);
+    if (typeof key === 'string') {
+      query._exceptedKeys = ['-' + key, ...keys.map((key) => '-' + key)];
+    } else {
+      query._exceptedKeys = key.map((key) => '-' + key);
+    }
     return query;
   }
 
@@ -126,15 +168,21 @@ export class Query {
     return query;
   }
 
-  limit(count: number): Query {
+  limit(count: number): Query<TObject> {
     const query = this._clone();
     query._limit = count;
     return query;
   }
 
-  include(...keys: string[]): Query {
+  include(keys: string[]): Query;
+  include(...keys: string[]): Query;
+  include(key: string | string[], ...keys: string[]): Query {
     const query = this._clone();
-    query._include = keys;
+    if (typeof key === 'string') {
+      query._include = [key, ...keys];
+    } else {
+      query._include = key;
+    }
     return query;
   }
 
@@ -144,25 +192,27 @@ export class Query {
     return query;
   }
 
-  async find(options?: AuthOptions): Promise<LCObject[]> {
+  async find(options?: AuthOptions): Promise<TObject[]> {
     const res = await this.app.request(this._makeRequest(options));
-    const { results } = res.body as { results: Record<string, unknown>[] };
-    return results?.map((result) =>
+    const results: Record<string, unknown>[] = res.body.results || [];
+    return results.map((result) =>
       this.app.decode(result, { type: 'Object', className: this.className })
     );
   }
 
-  async first(options?: AuthOptions): Promise<LCObject> {
+  async first(options?: AuthOptions): Promise<TObject> {
     const results = await this.limit(1).find(options);
     return results.length ? results[0] : null;
   }
 
   async count(options?: AuthOptions): Promise<number> {
-    const req = this._makeRequest(options);
+    const _options = { ...options };
+    this._beforeFind?.(_options);
+
+    const req = this._makeRequest(_options);
     req.query.count = 1;
     req.query.limit = 0;
-    const res = await this.app.request(req);
-    return (res.body as { count: number }).count;
+    return (await this.app.request(req)).body.count;
   }
 
   /**
@@ -170,7 +220,7 @@ export class Query {
    *
    * @since 5.0.0
    */
-  where(key: string, condition: '==', value: unknown): Query;
+  where(key: string, condition: '==', value: unknown): Query<TObject>;
 
   /**
    * Add a constraint to the query that requires a particular key's value to be not equal to the provided value.
@@ -330,20 +380,20 @@ export class Query {
         break;
       case 'in':
         assertIsQuery(value);
-        if (value._keys.length == 0) {
+        if (value._selectedKeys.length == 0) {
           query._whereMachesQuery(key, value);
         } else {
-          assert(value._keys.length === 1, 'The sub-query expect select only one key');
-          query._whereMatchesKeyInQuery(key, value._keys[0], value);
+          assert(value._selectedKeys.length === 1, 'The sub-query expect select only one key');
+          query._whereMatchesKeyInQuery(key, value._selectedKeys[0], value);
         }
         break;
       case 'not-in':
         assertIsQuery(value);
-        if (value._keys.length == 0) {
+        if (value._selectedKeys.length == 0) {
           query._whereDoesNotMatchQuery(key, value);
         } else {
-          assert(value._keys.length === 1, 'The sub-query expect select only one key');
-          query._whereDoesNotMatcheKeyInQuery(key, value._keys[0], value);
+          assert(value._selectedKeys.length === 1, 'The sub-query expect select only one key');
+          query._whereDoesNotMatcheKeyInQuery(key, value._selectedKeys[0], value);
         }
         break;
       case 'matches':
@@ -426,24 +476,34 @@ export class Query {
   subscribe(options?: AuthOptions): Promise<LiveQuery> {
     const liveQuery = PluginManager.plugins['LiveQuery'] as typeof LiveQuery;
     assert(liveQuery, 'Query#subscribe needs the LiveQuery plugin');
-    return liveQuery.subscribe(this, options);
+
+    const _options = { ...options };
+    this._beforeSubscribe?.(_options);
+
+    return liveQuery.subscribe(this, _options);
   }
 
-  protected _clone(): Query {
-    const query = new Query(this.className, this.app);
+  protected _clone(): Query<TObject> {
+    const query = new Query<TObject>({ className: this.className, app: this.app });
     this._fill(query);
     return query;
   }
 
   protected _fill(query: Query): void {
+    // conditions
     query._where = cloneDeep(this._where);
-    query._keys = [...this._keys];
+    query._selectedKeys = [...this._selectedKeys];
+    query._exceptedKeys = [...this._exceptedKeys];
     query._order = [...this._order];
     query._include = [...this._include];
     query._skip = this._skip;
     query._limit = this._limit;
     query._returnACL = this._returnACL;
     query._siblingOr = this._siblingOr;
+
+    // hooks
+    query._beforeFind = this._beforeFind;
+    query._beforeSubscribe = this._beforeSubscribe;
   }
 
   protected _makeRequest(options?: AuthOptions): AppRequest {
@@ -466,8 +526,9 @@ export class Query {
     if (this._order.length) {
       req.query.order = this._order.join(',');
     }
-    if (this._keys.length) {
-      req.query.keys = this._keys.join(',');
+    const keys = [...this._selectedKeys, ...this._exceptedKeys];
+    if (keys.length) {
+      req.query.keys = keys.join(',');
     }
     return req;
   }

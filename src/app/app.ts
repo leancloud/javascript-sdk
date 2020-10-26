@@ -243,7 +243,7 @@ export class App {
         case '_File':
           object = new FileObject(this, objectId);
           break;
-        case '_FriendShipRequest':
+        case '_FriendshipRequest':
           object = new FriendshipRequestObject(this, objectId);
           break;
         default:

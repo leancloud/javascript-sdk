@@ -12,16 +12,34 @@ describe('Query', function () {
   });
   const Test = new Query('Test', app);
 
-  it('#select', async function () {
-    await Test.select('key1', 'key2').find();
-    const req = adapters.requests.pop();
-    req.query.keys.should.eql('key1,key2');
+  describe('#select', () => {
+    it('should accept string[] argument', async () => {
+      await Test.select(['key1', 'key2']).find();
+      const req = adapters.requests.pop();
+      req.query.keys.should.eql('key1,key2');
+    });
+
+    it('should accept ...string arguments', async () => {
+      await Test.select('key1', 'key2').find();
+      const req = adapters.requests.pop();
+      req.query.keys.should.eql('key1,key2');
+    });
   });
 
-  it('#except', async function () {
-    await Test.except('key1', 'key2').find();
-    const req = adapters.requests.pop();
-    req.query.keys.should.eql('-key1,-key2');
+  describe('#except', () => {
+    it('should accept string[] argument', async () => {
+      await Test.except(['key1', 'key2']).find();
+      const req = adapters.requests.pop();
+      req.query.keys.should.eql('-key1,-key2');
+    });
+
+    it('should accept ...string arguments', async () => {
+      it('should accept string[] argument', async () => {
+        await Test.except('key1', 'key2').find();
+        const req = adapters.requests.pop();
+        req.query.keys.should.eql('-key1,-key2');
+      });
+    });
   });
 
   it('#orderBy', async function () {
@@ -42,10 +60,18 @@ describe('Query', function () {
     req.query.limit.should.eql('123');
   });
 
-  it('#include', async function () {
-    await Test.include('key1', 'key2').find();
-    const req = adapters.requests.pop();
-    req.query.include.should.eql('key1,key2');
+  describe('#include', () => {
+    it('should accept string[] argument', async () => {
+      await Test.include(['key1', 'key2']).find();
+      const req = adapters.requests.pop();
+      req.query.include.should.eql('key1,key2');
+    });
+
+    it('should accept ...string arguments', async () => {
+      await Test.include('key1', 'key2').find();
+      const req = adapters.requests.pop();
+      req.query.include.should.eql('key1,key2');
+    });
   });
 
   it('#returnACL', async function () {

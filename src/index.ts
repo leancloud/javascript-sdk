@@ -8,6 +8,7 @@ export { UserClass as User } from './user';
 export { RoleClass as Role } from './role';
 export { FileClass as File } from './file';
 export { StatusClass as Status } from './status';
+export { Friendship } from './friendship';
 
 export type { LCObject, LCObjectRef } from './object';
 export type { UserObject, UserObjectRef } from './user';

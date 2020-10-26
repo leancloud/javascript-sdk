@@ -15,7 +15,7 @@ export function removeReservedKeys(data: Record<string, unknown>): Record<string
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface LCObjectData extends Record<string, any> {
-  ACL: ACL;
+  ACL?: ACL;
 }
 
 export interface AddObjectOptions extends AuthOptions {
@@ -38,7 +38,7 @@ export interface Pointer {
   objectId: string;
 }
 
-export class LCObjectRef {
+export class LCObjectRef<TData extends LCObjectData = LCObjectData> {
   constructor(public app: App, public className: string, public objectId: string) {}
 
   get id(): string {
@@ -53,7 +53,7 @@ export class LCObjectRef {
     return { __type: 'Pointer', className: this.className, objectId: this.objectId };
   }
 
-  async get(options?: GetObjectOptions): Promise<LCObject> {
+  async get(options?: GetObjectOptions): Promise<LCObject<TData>> {
     const res = await this.app.request({
       method: 'GET',
       path: this._apiPath,
@@ -70,7 +70,7 @@ export class LCObjectRef {
     return this.app.decode(res.body, { type: 'Object', className: this.className });
   }
 
-  async update(data: Partial<LCObjectData>, options?: UpdateObjectOptions): Promise<LCObject> {
+  async update(data: Partial<TData>, options?: UpdateObjectOptions): Promise<LCObject<TData>> {
     const res = await this.app.request({
       method: 'PUT',
       path: `/classes/${this.className}/${this.objectId}`,
@@ -93,12 +93,12 @@ export class LCObjectRef {
   }
 }
 
-export class LCObject {
-  data: Partial<LCObjectData>;
+export class LCObject<TData extends LCObjectData = LCObjectData> {
+  data: TData;
   createdAt: Date;
   updatedAt: Date;
 
-  protected _ref: LCObjectRef;
+  protected _ref: LCObjectRef<TData>;
 
   constructor(app: App, className: string, objectId: string) {
     this._ref = new LCObjectRef(app, className, objectId);
@@ -149,11 +149,11 @@ export class LCObject {
     return this._ref.toPointer();
   }
 
-  get(options?: GetObjectOptions): Promise<LCObject> {
+  get(options?: GetObjectOptions): Promise<LCObject<TData>> {
     return this._ref.get(options);
   }
 
-  update(data: Partial<LCObjectData>, options?: UpdateObjectOptions): Promise<LCObject> {
+  update(data: Partial<TData>, options?: UpdateObjectOptions): Promise<LCObject<TData>> {
     return this._ref.update(data, options);
   }
 
@@ -179,7 +179,7 @@ export class LCObject {
     return lcEncode(this, { full: true });
   }
 
-  mergeData(data: Partial<LCObjectData>): this {
+  mergeData(data: Partial<TData>): this {
     merge(this.data, omit(data, ['objectId', 'createdAt', 'updatedAt', 'ACL']));
     if (data.updatedAt) {
       this.updatedAt = new Date(data.updatedAt);

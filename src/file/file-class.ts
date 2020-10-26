@@ -6,6 +6,7 @@ import { ACL } from '../acl';
 import { FileObjectRef, FileObject } from './file-object';
 import { getFileProvider } from './file-provider';
 import { decode as base64ToArrayBuffer } from 'base64-arraybuffer';
+import { CurrentUserManager } from '../user';
 
 /**
  * @internal
@@ -102,16 +103,9 @@ export class FileClass extends Class {
 
   async upload(name: string, data: unknown, options?: UploadOptions): Promise<FileObject> {
     data = this._parseFileData(data);
-    const metaData: Record<string, unknown> = { ...options?.metaData };
+    const metaData = { ...options?.metaData };
 
-    if (options?.sessionToken) {
-      metaData.owner = options.sessionToken;
-    } else {
-      metaData.owner = await this.app.getSessionTokenAsync();
-    }
-    if (!metaData.owner) {
-      metaData.owner = 'unknown';
-    }
+    metaData.owner = (await CurrentUserManager.getAsync(this.app))?.objectId || 'unknown';
     if (!metaData.size) {
       metaData.size = getFileSize(data);
     }
