@@ -2,7 +2,7 @@ import type { AuthOptions, App, AppRequest } from './app';
 import { AuthedUser, UserObject, UserObjectRef } from './user';
 import { Query } from './query';
 import { assert } from './utils';
-import { Pointer, LCObject } from './object';
+import { LCObject } from './object';
 
 type InboxType = 'default' | 'private' | string;
 
@@ -16,7 +16,7 @@ interface StatusCount {
 }
 
 export class StatusQuery extends Query {
-  private _statusOwner: Pointer;
+  private _statusOwner: UserObject | UserObjectRef;
   private _inboxOwner: AuthedUser;
   private _inboxType: InboxType;
   private _sinceId: number;
@@ -28,13 +28,12 @@ export class StatusQuery extends Query {
 
   whereStatusOwner(owner: UserObject | UserObjectRef | string): StatusQuery {
     assert(this._inboxOwner === undefined, 'Cannot query both inboxOwner and statusOwner');
-    const query = this._clone();
     if (typeof owner === 'string') {
-      query._statusOwner = { __type: 'Pointer', className: '_User', objectId: owner };
-    } else {
-      query._statusOwner = owner.toPointer();
+      owner = new UserObjectRef(this.app, owner);
     }
-    query._whereEqualTo('source', query._statusOwner);
+    const query = this._clone();
+    query._statusOwner = owner;
+    query._condBuilder.whereEqualTo('source', owner);
     return query;
   }
 

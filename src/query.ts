@@ -1,19 +1,12 @@
-import type { App, AppRequest, AuthOptions } from './app';
+import type { AppRequest, AuthOptions } from './app';
 import type { LiveQuery } from './live-query';
 import { mustGetDefaultApp } from './app/default-app';
 import { GeoPoint } from './geo-point';
-import { lcEncode, LCObject } from './object';
+import { LCObject } from './object';
 import { assert } from './utils';
 import { PluginManager } from './plugin';
-import { isEmpty, isRegExp, cloneDeep } from 'lodash';
-
-interface RegExpWithString {
-  regexp: string;
-  ignoreCase?: boolean;
-  ignoreBlank?: boolean;
-  multiline?: boolean;
-  dotAll?: boolean;
-}
+import { ConditionBuilder, Condition, RegExpLike } from './query/condition-builder';
+import { cloneDeep } from 'lodash';
 
 interface GeoBox {
   southwest: GeoPoint;
@@ -26,53 +19,42 @@ interface GeoDistance {
   min?: number;
 }
 
-interface QueryCondition {
-  [key: string]: Record<string, unknown> | QueryCondition[];
-  $and?: QueryCondition[];
-  $or?: QueryCondition[];
+interface QueryOptions {
+  select?: string[];
+  except?: string[];
+  order?: string[];
+  include?: string[];
+  skip?: number;
+  limit?: number;
+  returnACL?: boolean;
 }
 
-interface QueryProps {
-  className: string;
-  app?: App;
-  beforeFind?: (this: Query, options: AuthOptions) => void;
+interface BeforeFind {
+  (this: Query, options: AuthOptions): void;
+}
+interface BeforeSubscribe {
+  (this: Query, options: AuthOptions): void;
+}
+interface BeforeDecodeObject {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  beforeFindDecode?: (this: Query, data: any) => void;
-  beforeSubscribe?: (this: Query, options: AuthOptions) => void;
+  (this: Query, data: any): void;
+}
+interface AfterDecodeObject<TObject extends LCObject> {
+  (this: Query<TObject>, object: TObject): TObject | void;
 }
 
 export class Query<TObject extends LCObject = LCObject> {
-  app: App;
-  className: string;
+  protected _condBuilder = new ConditionBuilder();
 
-  // conditions
-  private _where: QueryCondition = {};
-  private _selectedKeys: string[] = [];
-  private _exceptedKeys: string[] = [];
-  private _order: string[] = [];
-  private _include: string[] = [];
-  private _skip: number;
-  private _limit: number;
-  private _returnACL: boolean;
+  private _options: QueryOptions = {};
   private _siblingOr: Query;
-
   // hooks
-  private _beforeFind: QueryProps['beforeFind'];
-  private _beforeSubscribe: QueryProps['beforeSubscribe'];
+  private _beforeFind: BeforeFind[] = [];
+  private _beforeSubscribe: BeforeSubscribe[] = [];
+  private _beforeDecodeObject: BeforeDecodeObject[] = [];
+  private _afterDecodeObject: AfterDecodeObject<TObject>[] = [];
 
-  constructor(className: string, app?: App);
-  constructor(props: QueryProps);
-  constructor(arg1: string | QueryProps, arg2?: App) {
-    if (typeof arg1 === 'string') {
-      this.className = arg1;
-      this.app = arg2 || mustGetDefaultApp();
-    } else {
-      this.className = arg1.className;
-      this.app = arg1.app || mustGetDefaultApp();
-      this._beforeFind = arg1.beforeFind;
-      this._beforeSubscribe = arg1.beforeSubscribe;
-    }
-  }
+  constructor(public className: string, public app = mustGetDefaultApp()) {}
 
   /**
    * Constructs a {@link Query} that is the AND of the passed in queries.
@@ -85,7 +67,15 @@ export class Query<TObject extends LCObject = LCObject> {
    *
    * @since 5.0.0
    */
-  static and(...queries: Query[]): Query {
+  static and(...queries: Query[]): Query;
+  static and(queries: Query[]): Query;
+  static and(query: Query | Query[], ...queries: Query[]): Query {
+    if (Array.isArray(query)) {
+      queries = query;
+    } else {
+      queries = [query, ...queries];
+    }
+
     assert(queries.length > 1, 'Query.and require at least 2 queries');
     for (let i = 1; i < queries.length; ++i) {
       assert(
@@ -95,9 +85,9 @@ export class Query<TObject extends LCObject = LCObject> {
       assert(queries[i].app.appId === queries[0].app.appId, 'All queries must belongs to same App');
     }
 
-    const query = new Query(queries[0].className, queries[0].app);
-    query._where = { $and: queries.map((query) => query.toJSON()) };
-    return query;
+    const newQuery = new Query(queries[0].className, queries[0].app);
+    newQuery._condBuilder = ConditionBuilder.and(queries.map((q) => q.toJSON()));
+    return newQuery;
   }
 
   /**
@@ -111,16 +101,31 @@ export class Query<TObject extends LCObject = LCObject> {
    *
    * @since 5.0.0
    */
-  static or(...queries: Query[]): Query {
+  static or(...queries: Query[]): Query;
+  static or(queries: Query[]): Query;
+  static or(query: Query | Query[], ...queries: Query[]): Query {
+    if (Array.isArray(query)) {
+      queries = query;
+    } else {
+      queries = [query, ...queries];
+    }
+
     assert(queries.length > 1, 'Query.or require at least 2 queries');
-    const query = Query.and(...queries);
-    query._where.$or = query._where.$and;
-    delete query._where.$and;
-    return query;
+    for (let i = 1; i < queries.length; ++i) {
+      assert(
+        queries[i].className === queries[0].className,
+        'All queries must belongs to same Class'
+      );
+      assert(queries[i].app.appId === queries[0].app.appId, 'All queries must belongs to same App');
+    }
+
+    const newQuery = new Query(queries[0].className, queries[0].app);
+    newQuery._condBuilder = ConditionBuilder.or(queries.map((q) => q.toJSON()));
+    return newQuery;
   }
 
   get or(): Query {
-    if (isEmpty(this._where)) {
+    if (this._condBuilder.isEmpty()) {
       return this;
     }
     const query = new Query(this.className, this.app);
@@ -133,9 +138,9 @@ export class Query<TObject extends LCObject = LCObject> {
   select(key: string | string[], ...keys: string[]): Query {
     const query = this._clone();
     if (typeof key === 'string') {
-      query._selectedKeys = [key, ...keys];
+      query._options.select = [key, ...keys];
     } else {
-      query._selectedKeys = key;
+      query._options.select = key;
     }
     return query;
   }
@@ -145,32 +150,35 @@ export class Query<TObject extends LCObject = LCObject> {
   except(key: string | string[], ...keys: string[]): Query {
     const query = this._clone();
     if (typeof key === 'string') {
-      query._exceptedKeys = ['-' + key, ...keys.map((key) => '-' + key)];
+      query._options.except = ['-' + key, ...keys.map((key) => '-' + key)];
     } else {
-      query._exceptedKeys = key.map((key) => '-' + key);
+      query._options.except = key.map((key) => '-' + key);
     }
     return query;
   }
 
   orderBy(key: string, direction?: 'asc' | 'desc'): Query {
     const query = this._clone();
+    if (!query._options.order) {
+      query._options.order = [];
+    }
     if (direction === 'desc') {
-      query._order.push('-' + key);
+      query._options.order.push('-' + key);
     } else {
-      query._order.push(key);
+      query._options.order.push(key);
     }
     return query;
   }
 
   skip(count: number): Query {
     const query = this._clone();
-    query._skip = count;
+    query._options.skip = count;
     return query;
   }
 
   limit(count: number): Query<TObject> {
     const query = this._clone();
-    query._limit = count;
+    query._options.limit = count;
     return query;
   }
 
@@ -179,25 +187,39 @@ export class Query<TObject extends LCObject = LCObject> {
   include(key: string | string[], ...keys: string[]): Query {
     const query = this._clone();
     if (typeof key === 'string') {
-      query._include = [key, ...keys];
+      query._options.include = [key, ...keys];
     } else {
-      query._include = key;
+      query._options.include = key;
     }
     return query;
   }
 
   returnACL(enable: boolean): Query {
     const query = this._clone();
-    query._returnACL = enable;
+    query._options.returnACL = enable;
     return query;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types
+  decodeObject(data: any): TObject {
+    this._beforeDecodeObject.forEach((hook) => hook.call(this, data));
+    let object = this.app.decode(data, { type: 'Object', className: this.className });
+    this._afterDecodeObject.forEach((hook) => {
+      const obj = hook.call(this, object);
+      if (obj) {
+        object = obj;
+      }
+    });
+    return object;
+  }
+
   async find(options?: AuthOptions): Promise<TObject[]> {
-    const res = await this.app.request(this._makeRequest(options));
+    const _options = { ...options };
+    this._beforeFind.forEach((hook) => hook.call(this, _options));
+
+    const res = await this.app.request(this._makeRequest(_options));
     const results: Record<string, unknown>[] = res.body.results || [];
-    return results.map((result) =>
-      this.app.decode(result, { type: 'Object', className: this.className })
-    );
+    return results.map((result) => this.decodeObject(result));
   }
 
   async first(options?: AuthOptions): Promise<TObject> {
@@ -207,7 +229,7 @@ export class Query<TObject extends LCObject = LCObject> {
 
   async count(options?: AuthOptions): Promise<number> {
     const _options = { ...options };
-    this._beforeFind?.(_options);
+    this._beforeFind.forEach((hook) => hook.call(this, _options));
 
     const req = this._makeRequest(_options);
     req.query.count = 1;
@@ -302,7 +324,7 @@ export class Query<TObject extends LCObject = LCObject> {
    *
    * @since 5.0.0
    */
-  where(key: string, condition: 'matches', value: string | RegExp | RegExpWithString): Query;
+  where(key: string, condition: 'matches', value: string | RegExpLike): Query;
 
   /**
    * Add a constraint for finding string values that start with a provided string. This query will
@@ -347,101 +369,111 @@ export class Query<TObject extends LCObject = LCObject> {
 
   where(key: string, condition: 'within-radians', distance: GeoDistance): Query;
 
-  where(key: string, condition: string, value?: unknown): Query {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types
+  where(key: string, condition: string, value?: any): Query {
     const query = this._clone();
     switch (condition) {
       case '==':
-        query._whereEqualTo(key, value);
+        query._condBuilder.whereEqualTo(key, value);
         break;
       case '!=':
-        query._whereNotEqualTo(key, value);
+        query._condBuilder.whereNotEqualTo(key, value);
         break;
       case '>':
-        query._whereGreaterThan(key, value);
+        query._condBuilder.whereGreaterThan(key, value);
         break;
       case '>=':
-        query._whereGreaterThanOrEqualTo(key, value);
+        query._condBuilder.whereGreaterThanOrEqualTo(key, value);
         break;
       case '<':
-        query._whereLessThan(key, value);
+        query._condBuilder.whereLessThan(key, value);
         break;
       case '<=':
-        query._whereLessThanOrEqualTo(key, value);
+        query._condBuilder.whereLessThanOrEqualTo(key, value);
         break;
       case 'exists':
-        query._whereExists(key);
+        query._condBuilder.whereExists(key);
         break;
       case 'not-exists':
-        query._whereNotExists(key);
+        query._condBuilder.whereNotExists(key);
         break;
       case 'size-is':
-        assertIsNumber(value);
-        query._whereSizeEqual(key, value);
+        if (typeof value !== 'number') {
+          throw new TypeError('Expected number value');
+        }
+        query._condBuilder.whereSizeEqual(key, value);
         break;
       case 'in':
-        assertIsQuery(value);
-        if (value._selectedKeys.length == 0) {
-          query._whereMachesQuery(key, value);
+        if (!(value instanceof Query)) {
+          throw new TypeError('Expected Query value');
+        }
+        if (value._options.select) {
+          if (value._options.select.length !== 1) {
+            throw new Error('Expected the sub-query select only one key');
+          }
+          query._condBuilder.whereMatchesKeyInQuery(
+            key,
+            value.className,
+            value._options.select[0],
+            value.toJSON()
+          );
         } else {
-          assert(value._selectedKeys.length === 1, 'The sub-query expect select only one key');
-          query._whereMatchesKeyInQuery(key, value._selectedKeys[0], value);
+          query._condBuilder.whereMachesQuery(key, value.className, value.toJSON());
         }
         break;
       case 'not-in':
-        assertIsQuery(value);
-        if (value._selectedKeys.length == 0) {
-          query._whereDoesNotMatchQuery(key, value);
+        if (!(value instanceof Query)) {
+          throw new TypeError('Expected Query value');
+        }
+        if (value._options.select) {
+          if (value._options.select.length !== 1) {
+            throw new Error('Expected the sub-query select only one key');
+          }
+          query._condBuilder.whereDoesNotMatcheKeyInQuery(
+            key,
+            value.className,
+            value._options.select[0],
+            value.toJSON()
+          );
         } else {
-          assert(value._selectedKeys.length === 1, 'The sub-query expect select only one key');
-          query._whereDoesNotMatcheKeyInQuery(key, value._selectedKeys[0], value);
+          query._condBuilder.whereDoesNotMatchQuery(key, value.className, value.toJSON());
         }
         break;
       case 'matches':
-        query._whereMatches(key, value as string | RegExpWithString | RegExp);
+        query._condBuilder.whereMatches(key, value);
         break;
       case 'starts-with':
-        assertIsString(value);
-        query._whereStartsWith(key, value);
+        query._condBuilder.whereStartsWith(key, value);
         break;
       case 'ends-with':
-        assertIsString(value);
-        query._whereEndsWith(key, value);
+        query._condBuilder.whereEndsWith(key, value);
         break;
       case 'contains':
-        assertIsString(value);
-        query._whereContains(key, value);
+        query._condBuilder.whereContains(key, value);
         break;
       case 'contains-all':
-        assertIsArray(value);
-        query._whereContainsAll(key, value);
+        query._condBuilder.whereContainsAll(key, value);
         break;
       case 'contained-in':
-        assertIsArray(value);
-        query._whereContainedIn(key, value);
+        query._condBuilder.whereContainedIn(key, value);
         break;
       case 'not-contained-in':
-        assertIsArray(value);
-        query._whereNotContainedIn(key, value);
+        query._condBuilder.whereNotContainedIn(key, value);
         break;
       case 'near':
-        assertIsGeoPoint(value);
-        query._whereNear(key, value);
+        query._condBuilder.whereNear(key, value);
         break;
       case 'within':
-        assertIsGeoBox(value);
-        query._whereWithinGeoBox(key, value.southwest, value.northeast);
+        query._condBuilder.whereWithinGeoBox(key, value.southwest, value.northeast);
         break;
       case 'within-radians':
-        assertIsGeoDistance(value);
-        query._whereWithinRadians(key, value.point, value.max, value.min);
+        query._condBuilder.whereWithinRadians(key, value.point, value.max, value.min);
         break;
       case 'within-miles':
-        assertIsGeoDistance(value);
-        query._whereWithinMiles(key, value.point, value.max, value.min);
+        query._condBuilder.whereWithinMiles(key, value.point, value.max, value.min);
         break;
       case 'within-kilometers':
-        assertIsGeoDistance(value);
-        query._whereWithinKilometers(key, value.point, value.max, value.min);
+        query._condBuilder.whereWithinKilometers(key, value.point, value.max, value.min);
         break;
       default:
         throw new TypeError('Unsupported query condition: ' + condition);
@@ -449,9 +481,9 @@ export class Query<TObject extends LCObject = LCObject> {
     return query;
   }
 
-  toJSON(): QueryCondition {
+  toJSON(): Condition {
     if (this._siblingOr) {
-      if (isEmpty(this._where)) {
+      if (this._condBuilder.isEmpty()) {
         return this._siblingOr.toJSON();
       }
       const or = this._siblingOr;
@@ -460,13 +492,7 @@ export class Query<TObject extends LCObject = LCObject> {
       this._siblingOr = or;
       return json;
     }
-    const where = { ...this._where };
-    Object.entries(where).forEach(([key, value]) => {
-      if (value['$eq'] !== undefined) {
-        where[key] = value['$eq'];
-      }
-    });
-    return where;
+    return this._condBuilder.build();
   }
 
   toString(): string {
@@ -478,314 +504,69 @@ export class Query<TObject extends LCObject = LCObject> {
     assert(liveQuery, 'Query#subscribe needs the LiveQuery plugin');
 
     const _options = { ...options };
-    this._beforeSubscribe?.(_options);
+    this._beforeSubscribe.forEach((hook) => hook.call(this, _options));
 
     return liveQuery.subscribe(this, _options);
   }
 
+  addHooks(hooks: {
+    beforeFind?: BeforeFind;
+    beforeSubscribe?: BeforeSubscribe;
+    beforeDecodeObject?: BeforeDecodeObject;
+    afterDecodeObject?: AfterDecodeObject<TObject>;
+  }): Query<TObject> {
+    const query = this._clone();
+    if (hooks.beforeFind) {
+      query._beforeFind.push(hooks.beforeFind);
+    }
+    if (hooks.beforeSubscribe) {
+      query._beforeSubscribe.push(hooks.beforeSubscribe);
+    }
+    if (hooks.beforeDecodeObject) {
+      query._beforeDecodeObject.push(hooks.beforeDecodeObject);
+    }
+    if (hooks.afterDecodeObject) {
+      query._afterDecodeObject.push(hooks.afterDecodeObject);
+    }
+    return query;
+  }
+
   protected _clone(): Query<TObject> {
-    const query = new Query<TObject>({ className: this.className, app: this.app });
+    const query = new Query<TObject>(this.className, this.app);
     this._fill(query);
     return query;
   }
 
   protected _fill(query: Query): void {
     // conditions
-    query._where = cloneDeep(this._where);
-    query._selectedKeys = [...this._selectedKeys];
-    query._exceptedKeys = [...this._exceptedKeys];
-    query._order = [...this._order];
-    query._include = [...this._include];
-    query._skip = this._skip;
-    query._limit = this._limit;
-    query._returnACL = this._returnACL;
+    query._condBuilder = this._condBuilder.clone();
+    query._options = cloneDeep(this._options);
     query._siblingOr = this._siblingOr;
 
     // hooks
-    query._beforeFind = this._beforeFind;
-    query._beforeSubscribe = this._beforeSubscribe;
+    query._beforeFind = [...this._beforeFind];
+    query._beforeSubscribe = [...this._beforeSubscribe];
+    query._beforeDecodeObject = [...this._beforeDecodeObject];
+    query._afterDecodeObject = [...this._afterDecodeObject];
   }
 
   protected _makeRequest(options?: AuthOptions): AppRequest {
     const req: AppRequest = {
       path: `/classes/${this.className}`,
       query: {
-        limit: this._limit,
-        skip: this._skip,
-        returnACL: this._returnACL,
+        where: this.toString(),
+        limit: this._options.limit,
+        skip: this._options.skip,
+        returnACL: this._options.returnACL,
+        include: this._options.include?.join(','),
+        order: this._options.order?.join(','),
       },
       options,
     };
-    const where = this.toString();
-    if (where !== '{}') {
-      req.query.where = where;
-    }
-    if (this._include.length) {
-      req.query.include = this._include.join(',');
-    }
-    if (this._order.length) {
-      req.query.order = this._order.join(',');
-    }
-    const keys = [...this._selectedKeys, ...this._exceptedKeys];
+    const keys = [this._options.select || [], this._options.except || []].flat();
     if (keys.length) {
       req.query.keys = keys.join(',');
     }
     return req;
   }
-
-  private _addCondition(key: string, cond: string, value: unknown) {
-    if (!this._where[key]) {
-      this._where[key] = {};
-    }
-    this._where[key][cond] = lcEncode(value);
-  }
-
-  private _clearAllCondition(key: string) {
-    if (this._where[key]) {
-      this._where[key] = {};
-    }
-  }
-
-  protected _whereEqualTo(key: string, value: unknown): void {
-    this._clearAllCondition(key);
-    // ATTENTION: the '$eq' is a dummy condition, do not send it to backend.
-    this._addCondition(key, '$eq', value);
-  }
-
-  private _whereNotEqualTo(key: string, value: unknown) {
-    this._addCondition(key, '$ne', value);
-  }
-
-  private _whereGreaterThan(key: string, value: unknown) {
-    this._addCondition(key, '$gt', value);
-  }
-
-  private _whereGreaterThanOrEqualTo(key: string, value: unknown) {
-    this._addCondition(key, '$gte', value);
-  }
-
-  private _whereLessThan(key: string, value: unknown) {
-    this._addCondition(key, '$lt', value);
-  }
-
-  private _whereLessThanOrEqualTo(key: string, value: unknown) {
-    this._addCondition(key, '$lte', value);
-  }
-
-  private _whereExists(key: string) {
-    this._addCondition(key, '$exists', true);
-  }
-
-  private _whereNotExists(key: string) {
-    this._addCondition(key, '$exists', false);
-  }
-
-  private _whereSizeEqual(key: string, value: number) {
-    this._addCondition(key, '$size', value);
-  }
-
-  private _whereMatchesKeyInQuery(key: string, queryKey: string, query: Query) {
-    this._addCondition(key, '$select', {
-      key: queryKey,
-      query: {
-        className: query.className,
-        where: query.toJSON(),
-      },
-    });
-  }
-
-  private _whereDoesNotMatcheKeyInQuery(key: string, queryKey: string, query: Query) {
-    this._addCondition(key, '$dontSelect', {
-      key: queryKey,
-      query: {
-        className: query.className,
-        where: query.toJSON(),
-      },
-    });
-  }
-
-  private _whereMachesQuery(key: string, query: Query) {
-    this._addCondition(key, '$inQuery', {
-      className: query.className,
-      where: query.toJSON(),
-    });
-  }
-
-  private _whereDoesNotMatchQuery(key: string, query: Query) {
-    this._addCondition(key, '$notInQuery', {
-      className: query.className,
-      where: query.toJSON(),
-    });
-  }
-
-  private _whereMatches(key: string, value: string | RegExpWithString | RegExp) {
-    let $regex: string;
-    let $options = '';
-    if (typeof value === 'string') {
-      $regex = value;
-    } else {
-      if (isRegExp(value)) {
-        $regex = value.source;
-      } else {
-        $regex = value.regexp;
-        if (value.ignoreBlank) {
-          $options += 'x';
-        }
-      }
-      if (value.ignoreCase) {
-        $options += 'i';
-      }
-      if (value.multiline) {
-        $options += 'm';
-      }
-      if (value.dotAll) {
-        $options += 's';
-      }
-    }
-    this._addCondition(key, '$regex', $regex);
-    if ($options) {
-      this._addCondition(key, '$options', $options);
-    }
-  }
-
-  private _whereStartsWith(key: string, value: string) {
-    this._whereMatches(key, '^' + quote(value));
-  }
-
-  private _whereEndsWith(key: string, value: string) {
-    this._whereMatches(key, quote(value) + '$');
-  }
-
-  private _whereContains(key: string, value: string) {
-    this._whereMatches(key, quote(value));
-  }
-
-  private _whereContainsAll(key: string, values: unknown[]) {
-    this._addCondition(key, '$all', values);
-  }
-
-  private _whereContainedIn(key: string, values: unknown[]) {
-    this._addCondition(key, '$in', values);
-  }
-
-  private _whereNotContainedIn(key: string, values: unknown[]) {
-    this._addCondition(key, '$nin', values);
-  }
-
-  private _whereNear(key: string, point: GeoPoint) {
-    this._addCondition(key, '$nearSphere', point);
-  }
-
-  private _whereWithinGeoBox(key: string, southwest: GeoPoint, northeast: GeoPoint) {
-    this._addCondition(key, '$within', { $box: [southwest, northeast] });
-  }
-
-  private _whereWithinRadians(
-    key: string,
-    point: GeoPoint,
-    maxDistance: number,
-    minDistance?: number
-  ) {
-    this._whereNear(key, point);
-    this._addCondition(key, '$maxDistanceInRadians', maxDistance);
-    if (minDistance !== undefined) {
-      this._addCondition(key, '$minDistanceInRadians', minDistance);
-    }
-  }
-
-  private _whereWithinMiles(
-    key: string,
-    point: GeoPoint,
-    maxDistance: number,
-    minDistance?: number
-  ) {
-    this._whereNear(key, point);
-    this._addCondition(key, '$maxDistanceInMiles', maxDistance);
-    if (minDistance !== undefined) {
-      this._addCondition(key, '$minDistanceInMiles', minDistance);
-    }
-  }
-
-  private _whereWithinKilometers(
-    key: string,
-    point: GeoPoint,
-    maxDistance: number,
-    minDistance?: number
-  ) {
-    this._whereNear(key, point);
-    this._addCondition(key, '$maxDistanceInKilometers', maxDistance);
-    if (minDistance !== undefined) {
-      this._addCondition(key, '$minDistanceInKilometers', minDistance);
-    }
-  }
-}
-
-/**
- * @internal
- */
-function quote(s: string): string {
-  return '\\Q' + s.replace('\\E', '\\E\\\\E\\Q') + '\\E';
-}
-
-/**
- * @internal
- */
-function assertIsString(value: unknown): asserts value is string {
-  assert(typeof value === 'string', `Need string, got ${value}`);
-}
-
-/**
- * @internal
- */
-function assertIsNumber(value: unknown): asserts value is number {
-  assert(typeof value === 'number', `Need number, got ${value}`);
-}
-
-/**
- * @internal
- */
-function assertIsArray(value: unknown): asserts value is unknown[] {
-  assert(Array.isArray(value), `Need array, got ${value}`);
-}
-
-/**
- * @internal
- */
-function assertIsGeoPoint(value: unknown): asserts value is GeoPoint {
-  assert(value instanceof GeoPoint, `Need GeoPoint, got ${value}`);
-}
-
-/**
- * @internal
- */
-function assertIsQuery(value: unknown): asserts value is Query {
-  assert(value instanceof Query, `Need Query, got ${value}`);
-}
-
-/**
- * @internal
- */
-function assertIsGeoBox(value: unknown): asserts value is GeoBox {
-  const box = value as GeoBox;
-  if (typeof box === 'object') {
-    if (box.northeast instanceof GeoPoint && box.southwest instanceof GeoPoint) {
-      return;
-    }
-  }
-  throw new TypeError(`Need GeoBox, got ${value}`);
-}
-
-/**
- * @internal
- */
-function assertIsGeoDistance(value: unknown): asserts value is GeoDistance {
-  const geo = value as GeoDistance;
-  if (typeof geo === 'object') {
-    if (geo.point instanceof GeoPoint && typeof geo.max === 'number') {
-      if (typeof geo.min === 'undefined' || typeof geo.min === 'number') {
-        return;
-      }
-    }
-  }
-  throw new TypeError(`Need GeoDistance, got ${value}`);
 }

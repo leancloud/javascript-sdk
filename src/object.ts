@@ -100,8 +100,14 @@ export class LCObject<TData extends LCObjectData = LCObjectData> {
 
   protected _ref: LCObjectRef<TData>;
 
-  constructor(app: App, className: string, objectId: string) {
-    this._ref = new LCObjectRef(app, className, objectId);
+  constructor(app: App, className: string, objectId: string);
+  constructor(ref: LCObjectRef<TData>);
+  constructor(arg1: App | LCObjectRef<TData>, className?: string, objectId?: string) {
+    if (arg1 instanceof LCObjectRef) {
+      this._ref = arg1;
+    } else {
+      this._ref = new LCObjectRef(arg1, className, objectId);
+    }
   }
 
   /**

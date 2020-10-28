@@ -1,18 +1,16 @@
-interface Point {
+export interface GeoPointLike {
   latitude: number;
   longitude: number;
 }
 
 export class GeoPoint {
-  /** @internal */
   __type = 'GeoPoint';
-
   latitude: number;
   longitude: number;
 
   constructor(latitude: number, longitude: number);
-  constructor(point: Point);
-  constructor(arg: Point | number, longitude?: number) {
+  constructor(point: GeoPointLike);
+  constructor(arg: number | GeoPointLike, longitude?: number) {
     if (typeof arg === 'number') {
       this.latitude = arg;
       this.longitude = longitude;
@@ -21,4 +19,14 @@ export class GeoPoint {
       this.longitude = arg.longitude;
     }
   }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types
+export function isGeoPointLike(value: any): value is GeoPointLike {
+  return (
+    value &&
+    value.__type === 'GeoPoint' &&
+    typeof value.latitude === 'number' &&
+    typeof value.longitude === 'number'
+  );
 }

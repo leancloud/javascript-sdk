@@ -108,8 +108,7 @@ export class UserObject extends LCObject {
   protected _ref: UserObjectRef;
 
   constructor(app: App, objectId: string) {
-    super(app, '_User', objectId);
-    this._ref = new UserObjectRef(app, objectId);
+    super(new UserObjectRef(app, objectId));
   }
 
   get sessionToken(): string {
@@ -118,6 +117,10 @@ export class UserObject extends LCObject {
 
   get aclKey(): string {
     return this._ref.aclKey;
+  }
+
+  get username(): string {
+    return this.data.username;
   }
 
   getRoles(): Promise<RoleObject[]> {
@@ -144,10 +147,6 @@ export class AuthedUser extends UserObject {
 
   get anonymousId(): string {
     return this.authData?.anonymous?.id;
-  }
-
-  get username(): string {
-    return this.data.username;
   }
 
   isCurrent(): boolean {

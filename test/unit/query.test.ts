@@ -213,7 +213,7 @@ describe('Query', function () {
       });
     });
 
-    describe('#where(key, "matches", value)', function () {
+    describe('#where(key, "matches", value)', () => {
       it('value is a string', async function () {
         await Test.where('key', 'matches', 'value').find();
         const req = adapters.requests.pop();
@@ -222,9 +222,9 @@ describe('Query', function () {
         });
       });
 
-      it('value is a string with options', async function () {
+      it('value is a string with options', async () => {
         await Test.where('key', 'matches', {
-          regexp: 'value',
+          source: 'value',
           ignoreCase: true,
           ignoreBlank: true,
           multiline: true,
@@ -232,7 +232,7 @@ describe('Query', function () {
         }).find();
         const req = adapters.requests.pop();
         JSON.parse(req.query.where as string).should.eql({
-          key: { $regex: 'value', $options: 'xims' },
+          key: { $regex: 'value', $options: 'imxs' },
         });
       });
 
