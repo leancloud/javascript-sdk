@@ -183,6 +183,7 @@ module.exports = function(AV) {
     file.attributes.url = url;
     //Mark the file is from external source.
     file.attributes.metaData.__source = 'external';
+    file.attributes.metaData.size = 0;
     return file;
   };
 
@@ -595,18 +596,13 @@ module.exports = function(AV) {
             };
             this._previousSave = AVRequest(
               'files',
-              this.attributes.name,
+              null,
               null,
               'post',
               data,
               options
             ).then(response => {
-              this.attributes.name = response.name;
-              this.attributes.url = response.url;
               this.id = response.objectId;
-              if (response.size) {
-                this.attributes.metaData.size = response.size;
-              }
               return this;
             });
           }
