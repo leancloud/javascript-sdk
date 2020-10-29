@@ -13,11 +13,19 @@ button {
   font-size: 18px;
 }
 button:active {
-  opacity: .75;
+  opacity: 0.75;
 }
-button[type="primary"] {
+button[type='primary'] {
   background-color: var(--lean-color);
   color: #fff;
+}
+button[type='secondary'] {
+  color: var(--text-color);
+  border-color: #aaa;
+}
+button[type='danger'] {
+  color: red;
+  border-color: red;
 }
 
 .apps {
@@ -29,46 +37,23 @@ button[type="primary"] {
   margin-right: 1rem;
 }
 
-.friend-app > .header {
+.header {
   padding: 16px;
   border-bottom: 1px #aaa solid;
 }
 
-.friend-app > .header > .title {
+.header > .title {
   font-size: 26px;
   font-weight: bold;
   color: var(--lean-color);
 }
 
-.friend-app > .header > .title.sub {
+.header > .title.sub {
   font-size: 16px;
 }
 
-.friend-app > .header > .btn-add {
-  border: 1px #aaa solid;
-  border-radius: 4px;
-  width: 50px;
-  height: 30px;
-  text-align: center;
-  line-height: 30px;
-  float: right;
-  cursor: pointer;
-}
-
-.friend-app .btn {
-  text-align: center;
-  cursor: pointer;
-  user-select: none;
-  border: 1px #aaa solid;
-  border-radius: 4px;
-  display: inline-block;
-}
-.friend-app .btn:active {
-  opacity: .75;
-}
-.friend-app .btn.primary {
-  color: #fff;
-  background-color: var(--lean-color);
+button.add {
+  margin-left: 0.25rem;
 }
 
 .friend-app input {
@@ -86,10 +71,11 @@ button[type="primary"] {
   color: #444;
   position: relative;
 }
-.friend-app > .container {
+.container {
   height: 600px;
 }
-.friend-app > .modal-cover {
+
+.modal-cover {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -98,42 +84,36 @@ button[type="primary"] {
   top: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, .5);
+  background-color: rgba(0, 0, 0, 0.5);
 }
-.friend-app .modal {
+.modal {
+  display: flex;
+  flex-direction: column;
   background-color: #fff;
   width: 80%;
   min-height: 100px;
   border-radius: 6px;
 }
-.friend-app .modal > .content {
+.modal > .content {
   margin: 20px 16px 16px 16px;
   font-size: 18px;
   text-align: center;
   word-wrap: break-word;
 }
-.friend-app .modal > .btn {
-  display: block;
-  margin: 10px;
+.modal > button {
+  margin: 0 10px 10px 10px;
   font-size: 18px;
   height: 40px;
   line-height: 40px;
 }
 
-.friend-app .add-friend {
+.add-friend {
   display: flex;
   padding: 6px;
 }
-.friend-app .add-friend input {
+.add-friend input {
   flex: 1;
-  height: 26px;
-  font-size: 16px;
-}
-.friend-app .add-friend .btn {
-  width: 50px;
-  height: 26px;
-  line-height: 26px;
-  margin-left: 6px;
+  height: 28px;
   font-size: 16px;
 }
 
@@ -193,7 +173,7 @@ button[type="primary"] {
   align-items: center;
   user-select: none;
 }
-.main > .tab > .item:nth-child(n+2) {
+.main > .tab > .item:nth-child(n + 2) {
   border-left: 1px #aaa solid;
 }
 .main > .tab > .item.active {
@@ -208,6 +188,7 @@ button[type="primary"] {
 
 .friend-list {
   flex: 1;
+  overflow-y: scroll;
 }
 
 .friend-list > .nothing {
@@ -227,7 +208,8 @@ button[type="primary"] {
   width: 40px;
 }
 
-.friend-request {
+.friend-item,
+.request-item {
   height: 40px;
   line-height: 40px;
   border: 1px #aaa solid;
@@ -237,6 +219,7 @@ button[type="primary"] {
   display: flex;
   justify-content: space-between;
 }
-.friend-request button {
+.friend-item,
+.request-item button {
   margin-left: 4px;
 }
