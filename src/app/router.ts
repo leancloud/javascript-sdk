@@ -22,8 +22,8 @@ export function isCNApp(app: string | App): boolean {
 
 export class Router {
   private _app: App;
-  private _urls: ServerURLs;
   private _refreshing = false;
+  private _urls?: ServerURLs;
 
   constructor(app: App) {
     this._app = app;
@@ -38,11 +38,11 @@ export class Router {
         this._urls = this.getDefaultServerURLs();
       }
     }
-    if (Date.now() >= this._urls.expire_at) {
+    if (Date.now() >= this._urls!.expire_at) {
       // DO NOT await here
       this.refresh();
     }
-    return this._urls;
+    return this._urls!;
   }
 
   async getServiceURL(service: Service): Promise<string> {
@@ -65,13 +65,13 @@ export class Router {
     this._refreshing = true;
 
     try {
-      const res = await HTTP.request({
+      const { body } = await HTTP.request({
         method: 'GET',
         baseURL: 'https://app-router.com/2/route',
         query: { appId: this._app.appId },
       });
-      this._urls = res.body;
-      this._urls.expire_at = Date.now() + this._urls.ttl * 1000;
+      this._urls = body;
+      this._urls!.expire_at = Date.now() + this._urls!.ttl * 1000;
       await this._app.storage.setAsync(KEY_SERVER_URLS, JSON.stringify(this._urls));
     } finally {
       this._refreshing = false;

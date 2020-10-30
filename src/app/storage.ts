@@ -14,7 +14,7 @@ export class LocalStorage {
     debug.log('LocalStorage:set', { key, value });
   }
 
-  static get(key: string): string {
+  static get(key: string): string | null {
     key = this.keyWithNamespace(key);
     const value = this._mustGetSyncStorage().getItem(key) ?? null;
     debug.log('LocalStorage:get', { key, value });
@@ -33,7 +33,7 @@ export class LocalStorage {
     debug.log('LocalStorage:set', { key, value });
   }
 
-  static async getAsync(key: string): Promise<string> {
+  static async getAsync(key: string): Promise<string | null> {
     key = this.keyWithNamespace(key);
     const value = (await this._mustGetStorage().getItem(key)) ?? null;
     debug.log('LocalStorage:get', { key, value });
@@ -74,7 +74,7 @@ export class NSStorage {
     LocalStorage.set(this.keyWithNamespace(key), value);
   }
 
-  get(key: string): string {
+  get(key: string): string | null {
     return LocalStorage.get(this.keyWithNamespace(key));
   }
 
@@ -86,7 +86,7 @@ export class NSStorage {
     return LocalStorage.setAsync(this.keyWithNamespace(key), value);
   }
 
-  getAsync(key: string): Promise<string> {
+  getAsync(key: string): Promise<string | null> {
     return LocalStorage.getAsync(this.keyWithNamespace(key));
   }
 

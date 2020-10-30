@@ -1,6 +1,6 @@
 import type { App } from './app';
 
-let defaultApp: App = null;
+let defaultApp: App;
 
 export function setDefaultApp(app: App): void {
   if (defaultApp) {

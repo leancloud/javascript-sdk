@@ -13,6 +13,9 @@ export class GeoPoint {
   constructor(arg: number | GeoPointLike, longitude?: number) {
     if (typeof arg === 'number') {
       this.latitude = arg;
+      if (!longitude) {
+        throw new Error('The longitude is required');
+      }
       this.longitude = longitude;
     } else {
       this.latitude = arg.latitude;

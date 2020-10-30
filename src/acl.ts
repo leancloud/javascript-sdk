@@ -33,7 +33,7 @@ export class ACL {
   /**
    * @since 5.0.0
    */
-  static fromJSON(data: unknown): ACL {
+  static fromJSON(data: Record<string, Privilege>): ACL {
     const acl = new ACL();
     Object.entries(data).forEach(([subject, privilege]) => {
       if (privilege.read === true) {

@@ -14,7 +14,7 @@ export interface HTTPRequest {
   method?: HTTPMethod;
   path?: string;
   header?: Record<string, string>;
-  query?: Record<string, string | number | boolean>;
+  query?: Record<string, string | number | boolean | undefined>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   body?: any;
   options?: RequestOptions;
@@ -36,7 +36,7 @@ export interface UploadRequest extends Omit<HTTPRequest, 'body'> {
 export class HTTP {
   private static _nextId = 1;
 
-  static encodeQuery(query: HTTPRequest['query']): string {
+  static encodeQuery(query: Record<string, string | number | boolean | undefined>): string {
     let queryStr = '';
     Object.entries(query).forEach(([key, val], idx) => {
       if (val !== undefined) {
@@ -106,7 +106,7 @@ export class HTTP {
 
   private static _convertResponse(res: AdapterResponse): HTTPResponse {
     return {
-      status: res.status,
+      status: res.status ?? 200,
       header: res.headers as Record<string, string>,
       body: res.data,
     };
