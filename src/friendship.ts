@@ -1,11 +1,11 @@
 import type { App, AuthOptions } from './app';
 import { mustGetDefaultApp } from './app/default-app';
-import { LCObject, LCObjectData } from './object';
+import { LCObject, LCObjectData, LCObjectRef } from './object';
 import { Query } from './query';
 import { AuthedUser, UserObject, UserObjectRef } from './user';
 import { assert } from './utils';
 
-interface FriendshipOptions extends Omit<AuthOptions, 'sessionToken'> {
+interface FriendshipOptions extends AuthOptions {
   payload?: LCObjectData;
 }
 
@@ -50,30 +50,28 @@ export class Friendship {
 
   getFollowerQuery(user: AuthedUser): Query {
     assert(user.sessionToken, 'The user must be authenticated');
+    const query = new Query('_Follower', this.app).where('user', '==', user);
     const sessionTokenProtector = (options: AuthOptions) => {
       assert(!options.sessionToken, 'Cannot set sessionToken for _Follower query');
       options.sessionToken = user.sessionToken;
     };
-    return new Query({
-      app: this.app,
-      className: '_Follower',
+    return query.addHooks({
       beforeFind: sessionTokenProtector,
       beforeSubscribe: sessionTokenProtector,
-    }).where('user', '==', user);
+    });
   }
 
   getFolloweeQuery(user: AuthedUser): Query {
     assert(user.sessionToken, 'The user must be authenticated');
+    const query = new Query('_Followee', this.app).where('user', '==', user);
     const sessionTokenProtector = (options: AuthOptions) => {
       assert(!options.sessionToken, 'Cannot set sessionToken for _Followee query');
       options.sessionToken = user.sessionToken;
     };
-    return new Query({
-      app: this.app,
-      className: '_Followee',
+    return query.addHooks({
       beforeFind: sessionTokenProtector,
       beforeSubscribe: sessionTokenProtector,
-    }).where('user', '==', user);
+    });
   }
 
   async getFollowers(user: AuthedUser, options?: PaginationOptions): Promise<UserObject[]> {
@@ -123,61 +121,110 @@ export class Friendship {
 
   getRequestQuery(user: AuthedUser): Query {
     assert(user.sessionToken, 'The user cannot be an unauthorized user');
+    const query = new Query('_FriendshipRequest', this.app);
     const sessionTokenProtector = (options: AuthOptions) => {
       assert(!options.sessionToken, 'Cannot set sessionToken for _FriendshipRequest query');
       options.sessionToken = user.sessionToken;
     };
-    return new Query<FriendshipRequestObject>({
-      app: this.app,
-      className: '_FriendshipRequest',
+    return query.addHooks({
       beforeFind: sessionTokenProtector,
       beforeSubscribe: sessionTokenProtector,
+      afterDecodeObject: (object) => {
+        return new FriendshipRequestObject(user, object.objectId);
+      },
     });
   }
 
-  getRequests(
+  getSendedRequestQuery(user: AuthedUser, status: FriendshipStatus = 'all'): Query {
+    const query = this.getRequestQuery(user).where('user', '==', user);
+    if (status !== 'all') {
+      return query.where('status', '==', status);
+    }
+    return query;
+  }
+
+  getReceivedRequestQuery(user: AuthedUser, status: FriendshipStatus = 'all'): Query {
+    const query = this.getRequestQuery(user).where('friend', '==', user);
+    if (status !== 'all') {
+      return query.where('status', '==', status);
+    }
+    return query;
+  }
+
+  getSendedRequests(
     user: AuthedUser,
+    status: FriendshipStatus = 'all',
     options?: PaginationOptions & {
-      status?: FriendshipStatus;
-      direction?: 'send' | 'receive';
+      include?: string[];
     }
   ): Promise<FriendshipRequestObject[]> {
-    let query = this.getRequestQuery(user);
+    let query = this.getSendedRequestQuery(user, status);
+    if (options?.include) {
+      query = query.include(options.include);
+    }
     if (options?.limit !== undefined) {
       query = query.limit(options.limit);
     }
     if (options?.skip !== undefined) {
       query = query.skip(options.skip);
     }
+    return query.find(options) as Promise<FriendshipRequestObject[]>;
+  }
 
-    if (options?.status && options.status !== 'all') {
-      query = query.where('status', '==', status);
+  getReceivedRequests(
+    user: AuthedUser,
+    status: FriendshipStatus = 'all',
+    options?: PaginationOptions & {
+      include?: string[];
     }
-    switch (options?.direction) {
-      case 'send':
-        query = query.where('user', '==', user);
-        break;
-      case 'receive':
-        query = query.where('friend', '==', user);
-        break;
+  ): Promise<FriendshipRequestObject[]> {
+    let query = this.getReceivedRequestQuery(user, status);
+    if (options?.include) {
+      query = query.include(options.include);
+    }
+    if (options?.limit !== undefined) {
+      query = query.limit(options.limit);
+    }
+    if (options?.skip !== undefined) {
+      query = query.skip(options.skip);
     }
     return query.find(options) as Promise<FriendshipRequestObject[]>;
   }
 
+  acceptRequest(
+    user: AuthedUser,
+    requestId: string,
+    options?: Omit<FriendshipOptions, 'sessionToken'>
+  ): Promise<void> {
+    return new FriendshipRequestObjectRef(this.app, requestId).accept({
+      ...options,
+      sessionToken: user.sessionToken,
+    });
+  }
+
+  declineRequest(
+    user: AuthedUser,
+    requestId: string,
+    options?: Omit<AuthOptions, 'sessionToken'>
+  ): Promise<void> {
+    return new FriendshipRequestObjectRef(this.app, requestId).decline({
+      ...options,
+      sessionToken: user.sessionToken,
+    });
+  }
+
   getFriendQuery(user: AuthedUser): Query {
     assert(user.sessionToken, 'The user cannot be an unauthorized user');
+    const query = new Query('_Followee', this.app).where('user', '==', user);
+    // .where('friendStatus', '==', true);
     const sessionTokenProtector = (options: AuthOptions) => {
       assert(!options.sessionToken, 'Cannot set sessionToken for _FriendshipRequest query');
       options.sessionToken = user.sessionToken;
     };
-    return new Query({
-      app: this.app,
-      className: '_Followee',
+    return query.addHooks({
       beforeFind: sessionTokenProtector,
       beforeSubscribe: sessionTokenProtector,
-    })
-      .where('user', '==', user)
-      .where('friendStatus', '==', true);
+    });
   }
 
   async getFriends(user: AuthedUser, options?: PaginationOptions): Promise<UserObject[]> {
@@ -193,17 +240,9 @@ export class Friendship {
   }
 }
 
-export class FriendshipRequestObject extends LCObject {
+class FriendshipRequestObjectRef extends LCObjectRef {
   constructor(app: App, objectId: string) {
     super(app, '_FriendshipRequest', objectId);
-  }
-
-  get status(): string {
-    return this.data.status;
-  }
-
-  get friend(): UserObject {
-    return this.data.friend;
   }
 
   async accept(options?: FriendshipOptions): Promise<void> {
@@ -222,6 +261,42 @@ export class FriendshipRequestObject extends LCObject {
       method: 'PUT',
       path: `/users/friendshipRequests/${this.objectId}/decline`,
       options,
+    });
+  }
+}
+
+export class FriendshipRequestObject extends LCObject {
+  private _user: AuthedUser;
+
+  constructor(user: AuthedUser, objectId: string) {
+    super(user.app, '_FriendshipRequest', objectId);
+    this._user = user;
+  }
+
+  get status(): string {
+    return this.data.status;
+  }
+
+  get user(): UserObject {
+    return this.data.user;
+  }
+
+  async accept(options?: Omit<FriendshipOptions, 'sessionToken'>): Promise<void> {
+    await this.app.request({
+      method: 'PUT',
+      path: `/users/friendshipRequests/${this.objectId}/accept`,
+      body: {
+        friendship: options?.payload,
+      },
+      options: { ...options, sessionToken: this._user.sessionToken },
+    });
+  }
+
+  async decline(options?: Omit<AuthOptions, 'sessionToken'>): Promise<void> {
+    await this.app.request({
+      method: 'PUT',
+      path: `/users/friendshipRequests/${this.objectId}/decline`,
+      options: { ...options, sessionToken: this._user.sessionToken },
     });
   }
 }

@@ -11,7 +11,6 @@ import { isPlainObject, omit } from 'lodash';
 import { ACL } from '../acl';
 import { RoleObject } from '../role';
 import { FileObject } from '../file';
-import { FriendshipRequestObject } from '../friendship';
 import { getDefaultApp, setDefaultApp } from './default-app';
 
 interface AppConfig {
@@ -242,9 +241,6 @@ export class App {
           break;
         case '_File':
           object = new FileObject(this, objectId);
-          break;
-        case '_FriendshipRequest':
-          object = new FriendshipRequestObject(this, objectId);
           break;
         default:
           object = new LCObject(this, className, objectId);
