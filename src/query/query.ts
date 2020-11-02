@@ -1,11 +1,11 @@
-import type { AppRequest, AuthOptions } from './app';
-import type { LiveQuery } from './live-query';
-import { mustGetDefaultApp } from './app/default-app';
-import { GeoPoint } from './geo-point';
-import { LCObject } from './object';
-import { assert } from './utils';
-import { PluginManager } from './plugin';
-import { ConditionBuilder, Condition, RegExpLike } from './query/condition-builder';
+import type { AppRequest, AuthOptions } from '../app';
+import type { LiveQuery } from '../live-query';
+import { mustGetDefaultApp } from '../app/default-app';
+import { GeoPoint } from '../geo-point';
+import { LCObject } from '../object';
+import { assert } from '../utils';
+import { PluginManager } from '../plugin';
+import { ConditionBuilder, Condition, RegExpLike } from './condition-builder';
 import { cloneDeep } from 'lodash';
 
 interface GeoBox {
