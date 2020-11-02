@@ -2,9 +2,8 @@ import 'should';
 import { adapters } from '../../test-adapters';
 import { App } from '../../../src/app';
 import { UserClass, UserObject, UserObjectRef } from '../../../src/user';
-import { API_VERSION } from '../../../src/const';
 
-describe('UserClass', function () {
+describe('UserClass', () => {
   const app = new App({
     appId: 'test-app-id',
     appKey: 'test-app-key',
@@ -12,8 +11,8 @@ describe('UserClass', function () {
   });
   const _User = new UserClass(app);
 
-  describe('#object', function () {
-    it('should return a UserObjectRef', function () {
+  describe('#object', () => {
+    it('should return a UserObjectRef', () => {
       const userRef = _User.object('test-user-id');
       userRef.should.instanceOf(UserObjectRef);
       userRef.objectId.should.eql('test-user-id');
@@ -21,23 +20,23 @@ describe('UserClass', function () {
     });
   });
 
-  describe('#become', function () {
-    it('should send GET request to /users/me', async function () {
+  describe('#become', () => {
+    it('should send GET request to /users/me', async () => {
       adapters.responses.push({ body: { objectId: 'test-user-id' } });
       await _User.become('test-session-token');
       const req = adapters.requests.pop();
       req.method.should.eql('GET');
-      req.path.should.eql(`${API_VERSION}/users/me`);
+      req.url.should.endWith('/users/me');
     });
 
-    it('should use specified sessionToken', async function () {
+    it('should use specified sessionToken', async () => {
       adapters.responses.push({ body: { objectId: 'test-user-id' } });
       await _User.become('test-session-token');
       const req = adapters.requests.pop();
       req.header['X-LC-Session'].should.eql('test-session-token');
     });
 
-    it('should decode response to a UserObject', async function () {
+    it('should decode response to a UserObject', async () => {
       adapters.responses.push({ body: { objectId: 'test-user-id' } });
       const user = await _User.become('test-session-token');
       user.should.instanceOf(UserObject);
@@ -45,23 +44,23 @@ describe('UserClass', function () {
       user.app.should.eql(_User.app);
     });
 
-    it('should set currentUser', async function () {
+    it('should set currentUser', async () => {
       adapters.responses.push({ body: { objectId: 'test-user-id' } });
       const user = await _User.become('test-session-token');
       user.should.eql(_User.current());
     });
   });
 
-  describe('#signUp', function () {
-    it('should send POST request to /users', async function () {
+  describe('#signUp', () => {
+    it('should send POST request to /users', async () => {
       adapters.responses.push({ body: { objectId: 'test-user-id' } });
       await _User.signUp({});
       const req = adapters.requests.pop();
       req.method.should.eql('POST');
-      req.path.should.eql(`${API_VERSION}/users`);
+      req.url.should.endWith('/users');
     });
 
-    it('should remove reserved keys', async function () {
+    it('should remove reserved keys', async () => {
       adapters.responses.push({ body: { objectId: 'test-user-id' } });
       await _User.signUp({
         objectId: '-',
@@ -73,8 +72,8 @@ describe('UserClass', function () {
     });
   });
 
-  describe('#signUpOrLoginWithMobilePhone', function () {
-    it('should send POST request to /usersByMobilePhone', async function () {
+  describe('#signUpOrLoginWithMobilePhone', () => {
+    it('should send POST request to /usersByMobilePhone', async () => {
       adapters.responses.push({ body: { objectId: 'test-user-id' } });
       await _User.signUpOrLoginWithMobilePhone({
         mobilePhoneNumber: 'test-phone',
@@ -82,10 +81,10 @@ describe('UserClass', function () {
       });
       const req = adapters.requests.pop();
       req.method.should.eql('POST');
-      req.path.should.eql(`${API_VERSION}/usersByMobilePhone`);
+      req.url.should.endWith('/usersByMobilePhone');
     });
 
-    it('should remove reserved keys', async function () {
+    it('should remove reserved keys', async () => {
       adapters.responses.push({ body: { objectId: 'test-user-id' } });
       await _User.signUpOrLoginWithMobilePhone({
         mobilePhoneNumber: 'test-phone',
@@ -99,16 +98,16 @@ describe('UserClass', function () {
     });
   });
 
-  describe('#logInWithData', function () {
-    it('should send POST request to /login', async function () {
+  describe('#logInWithData', () => {
+    it('should send POST request to /login', async () => {
       adapters.responses.push({ body: { objectId: 'test-user-id' } });
       await _User.loginWithData({});
       const req = adapters.requests.pop();
       req.method.should.eql('POST');
-      req.path.should.eql(`${API_VERSION}/login`);
+      req.url.should.endWith('/login');
     });
 
-    it('should remove reserved keys', async function () {
+    it('should remove reserved keys', async () => {
       adapters.responses.push({ body: { objectId: 'test-user-id' } });
       await _User.loginWithData({});
       const req = adapters.requests.pop();
@@ -116,16 +115,16 @@ describe('UserClass', function () {
     });
   });
 
-  describe('#logInWithAuthData', function () {
-    it('should send POST request to /users', async function () {
+  describe('#logInWithAuthData', () => {
+    it('should send POST request to /users', async () => {
       adapters.responses.push({ body: { objectId: 'test-user-id' } });
       await _User.loginWithAuthData('test-platform', { key: 'value' });
       const req = adapters.requests.pop();
       req.method.should.eql('POST');
-      req.path.should.eql(`${API_VERSION}/users`);
+      req.url.should.endWith('/users');
     });
 
-    it('check data and options', async function () {
+    it('check data and options', async () => {
       adapters.responses.push({ body: { objectId: 'test-user-id' } });
       await _User.loginWithAuthData('test-platform', { key: 'value' }, { failOnNotExist: true });
       const req = adapters.requests.pop();
@@ -136,30 +135,30 @@ describe('UserClass', function () {
     });
   });
 
-  describe('#requestEmailVerify', function () {
-    it('should send POST request to /requestEmailVerify', async function () {
+  describe('#requestEmailVerify', () => {
+    it('should send POST request to /requestEmailVerify', async () => {
       await _User.requestEmailVerify('test-email');
       const req = adapters.requests.pop();
       req.method.should.eql('POST');
-      req.path.should.eql(`${API_VERSION}/requestEmailVerify`);
+      req.url.should.endWith('/requestEmailVerify');
     });
 
-    it('check email', async function () {
+    it('check email', async () => {
       await _User.requestEmailVerify('test-email');
       const req = adapters.requests.pop();
       req.body.should.eql({ email: 'test-email' });
     });
   });
 
-  describe('#requestLoginSMSCode', function () {
-    it('should send POST request to /requestLoginSmsCode', async function () {
+  describe('#requestLoginSMSCode', () => {
+    it('should send POST request to /requestLoginSmsCode', async () => {
       await _User.requestLoginSMSCode('test-phone-number');
       const req = adapters.requests.pop();
       req.method.should.eql('POST');
-      req.path.should.eql(`${API_VERSION}/requestLoginSmsCode`);
+      req.url.should.endWith('/requestLoginSmsCode');
     });
 
-    it('check phone number and options', async function () {
+    it('check phone number and options', async () => {
       await _User.requestLoginSMSCode('test-phone-number', { validateToken: 'test-token' });
       const req = adapters.requests.pop();
       req.body.should.eql({
@@ -169,15 +168,15 @@ describe('UserClass', function () {
     });
   });
 
-  describe('#requestMobilePhoneVerify', function () {
-    it('should send POST request to /requestMobilePhoneVerify', async function () {
+  describe('#requestMobilePhoneVerify', () => {
+    it('should send POST request to /requestMobilePhoneVerify', async () => {
       await _User.requestMobilePhoneVerify('test-phone-number');
       const req = adapters.requests.pop();
       req.method.should.eql('POST');
-      req.path.should.eql(`${API_VERSION}/requestMobilePhoneVerify`);
+      req.url.should.endWith('/requestMobilePhoneVerify');
     });
 
-    it('check phone number and options', async function () {
+    it('check phone number and options', async () => {
       await _User.requestMobilePhoneVerify('test-phone-number', { validateToken: 'test-token' });
       const req = adapters.requests.pop();
       req.body.should.eql({
@@ -187,30 +186,30 @@ describe('UserClass', function () {
     });
   });
 
-  describe('#requestPasswordReset', function () {
-    it('should send POST request to /requestPasswordReset', async function () {
+  describe('#requestPasswordReset', () => {
+    it('should send POST request to /requestPasswordReset', async () => {
       await _User.requestPasswordReset('test-email');
       const req = adapters.requests.pop();
       req.method.should.eql('POST');
-      req.path.should.eql(`${API_VERSION}/requestPasswordReset`);
+      req.url.should.endWith('/requestPasswordReset');
     });
 
-    it('check email', async function () {
+    it('check email', async () => {
       await _User.requestPasswordReset('test-email');
       const req = adapters.requests.pop();
       req.body.should.eql({ email: 'test-email' });
     });
   });
 
-  describe('#requestPasswordResetBySMSCode', function () {
-    it('should send POST request to /requestPasswordResetBySmsCode', async function () {
+  describe('#requestPasswordResetBySMSCode', () => {
+    it('should send POST request to /requestPasswordResetBySmsCode', async () => {
       await _User.requestPasswordResetBySMSCode('test-phone-number');
       const req = adapters.requests.pop();
       req.method.should.eql('POST');
-      req.path.should.eql(`${API_VERSION}/requestPasswordResetBySmsCode`);
+      req.url.should.endWith('/requestPasswordResetBySmsCode');
     });
 
-    it('check phone number and options', async function () {
+    it('check phone number and options', async () => {
       await _User.requestPasswordResetBySMSCode('test-phone-number', {
         validateToken: 'test-token',
       });
@@ -222,39 +221,39 @@ describe('UserClass', function () {
     });
   });
 
-  describe('#resetPasswordBySMSCode', function () {
+  describe('#resetPasswordBySMSCode', () => {
     it('should send PUT request to /resetPasswordBySmsCode/${code}', async function () {
       await _User.resetPasswordBySMSCode('test-code', 'test-password');
       const req = adapters.requests.pop();
       req.method.should.eql('PUT');
-      req.path.should.eql(`${API_VERSION}/resetPasswordBySmsCode/test-code`);
+      req.url.should.endWith('/resetPasswordBySmsCode/test-code');
     });
 
-    it('check password', async function () {
+    it('check password', async () => {
       await _User.resetPasswordBySMSCode('test-code', 'test-password');
       const req = adapters.requests.pop();
       req.body.should.eql({ password: 'test-password' });
     });
   });
 
-  describe('#verifyMobilePhone', function () {
-    it('should send POST request to /verifyMobilePhone/${code}', async function () {
+  describe('#verifyMobilePhone', () => {
+    it('should send POST request to /verifyMobilePhone/${code}', async () => {
       await _User.verifyMobilePhone('test-code');
       const req = adapters.requests.pop();
       req.method.should.eql('POST');
-      req.path.should.eql(`${API_VERSION}/verifyMobilePhone/test-code`);
+      req.url.should.endWith('/verifyMobilePhone/test-code');
     });
   });
 
-  describe('#requestChangePhoneNumber', function () {
-    it('should send POST request to /requestChangePhoneNumber', async function () {
+  describe('#requestChangePhoneNumber', () => {
+    it('should send POST request to /requestChangePhoneNumber', async () => {
       await _User.requestChangePhoneNumber('test-phone-number');
       const req = adapters.requests.pop();
       req.method.should.eql('POST');
-      req.path.should.eql(`${API_VERSION}/requestChangePhoneNumber`);
+      req.url.should.endWith('/requestChangePhoneNumber');
     });
 
-    it('check phone number and options', async function () {
+    it('check phone number and options', async () => {
       await _User.requestChangePhoneNumber('test-phone-number', { ttl: 123 });
       const req = adapters.requests.pop();
       req.body.should.eql({
@@ -264,15 +263,15 @@ describe('UserClass', function () {
     });
   });
 
-  describe('#changePhoneNumber', async function () {
-    it('should send POST request to /changePhoneNumber', async function () {
+  describe('#changePhoneNumber', async () => {
+    it('should send POST request to /changePhoneNumber', async () => {
       await _User.changePhoneNumber('test-phone-number', 'test-code');
       const req = adapters.requests.pop();
       req.method.should.eql('POST');
-      req.path.should.eql(`${API_VERSION}/changePhoneNumber`);
+      req.url.should.endWith('/changePhoneNumber');
     });
 
-    it('check phone number and code', async function () {
+    it('check phone number and code', async () => {
       await _User.changePhoneNumber('test-phone-number', 'test-code');
       const req = adapters.requests.pop();
       req.body.should.eql({

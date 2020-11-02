@@ -4,7 +4,6 @@ import { App } from '../../src/app';
 import { Query } from '../../src/query';
 import { ACL } from '../../src/acl';
 import { LCObjectRef, LCObject, lcEncode } from '../../src/object';
-import { API_VERSION } from '../../src/const';
 
 const app = new App({
   appId: 'test-app-id',
@@ -12,11 +11,11 @@ const app = new App({
   serverURL: 'test-server-url',
 });
 
-describe('LCObjectRef', function () {
+describe('LCObjectRef', () => {
   const ref = new LCObjectRef(app, 'Test', 'test-object-id');
 
-  describe('#toPointer', function () {
-    it('should return a Pointer', function () {
+  describe('#toPointer', () => {
+    it('should return a Pointer', () => {
       ref.toPointer().should.eql({
         __type: 'Pointer',
         className: 'Test',
@@ -25,16 +24,16 @@ describe('LCObjectRef', function () {
     });
   });
 
-  describe('#get', function () {
-    it('should sent GET request to /classes/${className}/${objectId}', async function () {
+  describe('#get', () => {
+    it('should sent GET request to /classes/${className}/${objectId}', async () => {
       adapters.responses.push({ body: { objectId: 'test-object-id' } });
       await ref.get();
       const req = adapters.requests.pop();
       req.method.should.eql('GET');
-      req.path.should.eql(`${API_VERSION}/classes/Test/test-object-id`);
+      req.url.should.endWith('/classes/Test/test-object-id');
     });
 
-    it('check options', async function () {
+    it('check options', async () => {
       adapters.responses.push({ body: { objectId: 'test-object-id' } });
       await ref.get({
         keys: ['key1', 'key2'],
@@ -49,12 +48,12 @@ describe('LCObjectRef', function () {
       });
     });
 
-    it('should throw error when response is an empty object', function () {
+    it('should throw error when response is an empty object', () => {
       adapters.responses.push({ body: {} });
       return ref.get().should.rejected();
     });
 
-    it('should decode response', async function () {
+    it('should decode response', async () => {
       adapters.responses.push({
         status: 200,
         body: { objectId: 'test-object-id', key: 'value' },
@@ -66,13 +65,13 @@ describe('LCObjectRef', function () {
     });
   });
 
-  describe('#update', function () {
-    it('should send PUT request to /classes/${className}/${objectId}', async function () {
+  describe('#update', () => {
+    it('should send PUT request to /classes/${className}/${objectId}', async () => {
       adapters.responses.push({ body: { objectId: 'test-object-id' } });
       await ref.update({});
       const req = adapters.requests.pop();
       req.method.should.eql('PUT');
-      req.path.should.eql(`${API_VERSION}/classes/Test/test-object-id`);
+      req.url.should.endWith('/classes/Test/test-object-id');
     });
 
     it('check options', async function () {
@@ -91,7 +90,7 @@ describe('LCObjectRef', function () {
       });
     });
 
-    it('should decode response', async function () {
+    it('should decode response', async () => {
       adapters.responses.push({
         status: 200,
         body: { objectId: 'test-object-id', key: 'value' },
@@ -103,12 +102,12 @@ describe('LCObjectRef', function () {
     });
   });
 
-  describe('#delete', function () {
-    it('should sent DELETE request to /classes/${className}/${objectId}', async function () {
+  describe('#delete', () => {
+    it('should sent DELETE request to /classes/${className}/${objectId}', async () => {
       await ref.delete();
       const req = adapters.requests.pop();
       req.method.should.eql('DELETE');
-      req.path.should.eql(`${API_VERSION}/classes/Test/test-object-id`);
+      req.url.should.endWith('/classes/Test/test-object-id');
     });
   });
 });
@@ -133,9 +132,9 @@ describe('LCObject', function () {
   });
 });
 
-describe('lcEncode', function () {
-  describe('.encode', function () {
-    it('should encode LCObjectRef', function () {
+describe('lcEncode', () => {
+  describe('.encode', () => {
+    it('should encode LCObjectRef', () => {
       const ref = new LCObjectRef(null, 'Test', 'test-object-id');
       lcEncode(ref).should.eql({
         __type: 'Pointer',
@@ -144,7 +143,7 @@ describe('lcEncode', function () {
       });
     });
 
-    it('should encode LCObject', function () {
+    it('should encode LCObject', () => {
       const obj = new LCObject(null, 'Test', 'test-object-id');
       obj.data = { key: 'value' };
       lcEncode(obj).should.eql({
@@ -160,7 +159,7 @@ describe('lcEncode', function () {
       });
     });
 
-    it('should encode ACL in LCObject', function () {
+    it('should encode ACL in LCObject', () => {
       const obj = new LCObject(null, 'Test', 'test-object-id');
       const acl = new ACL();
       acl.allow('user1', 'read');
@@ -177,12 +176,12 @@ describe('lcEncode', function () {
       });
     });
 
-    it('should encode Date', function () {
+    it('should encode Date', () => {
       const date = new Date();
       lcEncode(date).should.eql({ __type: 'Date', iso: date.toISOString() });
     });
 
-    it('should encode Date in an array', function () {
+    it('should encode Date in an array', () => {
       const date = new Date();
       lcEncode([date]).should.eql([
         {
@@ -192,7 +191,7 @@ describe('lcEncode', function () {
       ]);
     });
 
-    it('encode encode Date in a object', function () {
+    it('encode encode Date in a object', () => {
       const date = new Date();
       lcEncode({ date }).should.eql({
         date: { __type: 'Date', iso: date.toISOString() },

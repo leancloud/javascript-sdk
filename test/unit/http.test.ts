@@ -6,9 +6,8 @@ describe('HTTP', () => {
   describe('.request', () => {
     it('basic request', async function () {
       await HTTP.request({
-        baseURL: 'https://example.com/',
         method: 'POST',
-        path: '/test-path',
+        url: 'https://example.com/',
         header: {
           testHeaderKey: 'testHeaderValue',
         },
@@ -23,7 +22,7 @@ describe('HTTP', () => {
       });
       const req = adapters.requests.pop();
       req.method.should.eql('POST');
-      req.path.should.eql('/test-path');
+      req.url.should.eql('https://example.com/');
       req.header.testHeaderKey.should.eql('testHeaderValue');
       req.query.should.eql({
         num: '123',

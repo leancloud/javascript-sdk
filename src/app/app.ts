@@ -1,4 +1,4 @@
-import { HTTP, HTTPRequest, HTTPResponse, RequestOptions } from '../http';
+import { HTTP, HTTPRequest, RequestOptions } from '../http';
 import { AdapterManager } from '../adapters';
 import { NSStorage } from './storage';
 import { LCObject } from '../object';
@@ -30,7 +30,8 @@ export interface AuthOptions extends RequestOptions {
 /**
  * @internal
  */
-export interface AppRequest extends Omit<HTTPRequest, 'baseURL'> {
+export interface AppRequest extends Omit<HTTPRequest, 'url'> {
+  path: string;
   service?: Service;
   options?: AuthOptions;
 }
@@ -122,42 +123,44 @@ export class App {
   /**
    * @internal
    */
-  async request(req: AppRequest): Promise<HTTPResponse> {
-    let { appKey, useMasterKey } = this;
-    if (req.options?.useMasterKey !== undefined) {
-      useMasterKey = req.options.useMasterKey;
-    }
-    if (useMasterKey) {
-      assert(this.masterKey, 'The masterKey is empty');
-      appKey = this.masterKey + ',master';
+  async request(req: AppRequest): Promise<any> {
+    let key = this.appKey;
+    if (req.options?.useMasterKey ?? this.useMasterKey) {
+      if (!this.masterKey) {
+        throw new Error('The masterKey is empty');
+      }
+      key = this.masterKey + ',master';
     }
 
-    const httpReq: HTTPRequest = {
-      baseURL: this.serverURL || (await this._router.getServiceURL(req.service || 'api')),
-      path: HTTP.assemblePath(API_VERSION, req.path || ''),
+    const url = this.serverURL || (await this._router.getServiceURL(req.service || 'api'));
+
+    const sessionToken = req.options?.sessionToken || (await this.getSessionTokenAsync());
+
+    const { status, body } = await HTTP.request({
+      method: req.method,
+      url: HTTP.assemblePath(url, API_VERSION, req.path),
       header: {
         ...req.header,
         'Content-Type': 'application/json',
         'X-LC-UA': UserAgent.get(),
         'X-LC-Id': this.appId,
-        'X-LC-Key': appKey,
+        'X-LC-Key': key,
+        'X-LC-Session': sessionToken,
+        'X-LC-Prod': this.production ? void 0 : '0',
       },
-    };
+      query: req.query,
+      body: req.body,
+    });
 
-    const sessionToken = req.options?.sessionToken || (await this.getSessionTokenAsync());
-    if (sessionToken) {
-      httpReq.header['X-LC-Session'] = sessionToken;
+    if (status >= 400) {
+      const { code, error } = body;
+      if (typeof code === 'number' && typeof error === 'string') {
+        throw new APIError(code, error);
+      }
+      throw new Error(JSON.stringify(body));
     }
 
-    if (!this.production) {
-      httpReq.header['X-LC-Prod'] = '0';
-    }
-
-    const res = await HTTP.request({ ...req, ...httpReq });
-    if (res.status >= 400) {
-      throw new APIError(res.body.code, res.body.error);
-    }
-    return res;
+    return body;
   }
 
   /**
@@ -181,7 +184,7 @@ export class App {
   }
 
   /**
-   * Get the current user's `sessionToken`, returns `null` if no user is logged in the current App.
+   * Get the current user's `sessionToken`, returns `undefined` if no user is logged in the current App.
    *
    * @since 5.0.0
    */

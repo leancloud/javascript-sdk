@@ -17,7 +17,7 @@ describe('Captcha', function () {
       await captcha.refresh();
       const req = adapters.requests.pop();
       req.method.should.eql('GET');
-      req.path.should.eql(`${API_VERSION}/requestCaptcha`);
+      req.url.should.endWith('/requestCaptcha');
     });
 
     it('check options', async function () {
@@ -45,7 +45,7 @@ describe('Captcha', function () {
       await captcha.verify('test-code');
       const req = adapters.requests.pop();
       req.method.should.eql('POST');
-      req.path.should.eql(`${API_VERSION}/verifyCaptcha`);
+      req.url.should.endWith('/verifyCaptcha');
     });
 
     it('check code and token', async function () {

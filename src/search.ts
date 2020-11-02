@@ -38,13 +38,13 @@ class SearchResult {
     if (this.data.length === 0) {
       return this;
     }
-    const res = await this._app.request({
+    const json = await this._app.request({
       method: 'GET',
       path: `/search/select`,
       query: { sid: this.sid },
       options,
     });
-    return new SearchResult(this._app, res.body as SearchResultRaw);
+    return new SearchResult(this._app, json as SearchResultRaw);
   }
 }
 
@@ -153,8 +153,8 @@ export class SearchQuery {
   }
 
   async find(options?: AuthOptions): Promise<SearchResult> {
-    const res = await this.app.request(this._makeRequest(options));
-    return new SearchResult(this.app, res.body as SearchResultRaw);
+    const json = await this.app.request(this._makeRequest(options));
+    return new SearchResult(this.app, json as SearchResultRaw);
   }
 
   orderBy(key: string, direction?: 'asc' | 'desc'): SearchQuery {

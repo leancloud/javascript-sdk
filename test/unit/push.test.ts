@@ -3,9 +3,8 @@ import { adapters } from '../test-adapters';
 import { App } from '../../src/app';
 import { Push } from '../../src/push/push';
 import { Query } from '../../src/query';
-import { API_VERSION } from '../../src/const';
 
-describe('Push', function () {
+describe('Push', () => {
   const app = new App({
     appId: 'test-app-id',
     appKey: 'test-app-key',
@@ -13,15 +12,15 @@ describe('Push', function () {
   });
   const push = new Push(app);
 
-  describe('#send', function () {
-    it('shoud send POST request to /push', async function () {
+  describe('#send', () => {
+    it('shoud send POST request to /push', async () => {
       await push.send({});
       const req = adapters.requests.pop();
       req.method.should.eql('POST');
-      req.path.should.eql(`${API_VERSION}/push`);
+      req.url.should.endWith('/push');
     });
 
-    it('check data and options', async function () {
+    it('check data and options', async () => {
       const pushTime = new Date();
       const expirationTime = new Date();
       await push.send(
@@ -61,7 +60,7 @@ describe('Push', function () {
       req.body.should.containEql({ expiration_interval: 123 });
     });
 
-    it('should throw error when set both expirationTime and expirationInterval', function () {
+    it('should throw error when set both expirationTime and expirationInterval', () => {
       return push.send({}, { expirationTime: new Date(), expirationInterval: 1 }).should.rejected();
     });
   });

@@ -67,7 +67,7 @@ export class Router {
     try {
       const { body } = await HTTP.request({
         method: 'GET',
-        baseURL: 'https://app-router.com/2/route',
+        url: 'https://app-router.com/2/route',
         query: { appId: this._app.appId },
       });
       this._urls = body;

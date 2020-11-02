@@ -4,7 +4,6 @@ import { App } from '../../src/app';
 import { SearchQuery, SearchSortBuilder } from '../../src/search';
 import { GeoPoint } from '../../src/geo-point';
 import { LCObject } from '../../src/object';
-import { API_VERSION } from '../../src/const';
 
 const app = new App({
   appId: 'test-app-id',
@@ -13,9 +12,9 @@ const app = new App({
 });
 const query = new SearchQuery(app, 'Test');
 
-describe('SearchSortBuilder', function () {
-  describe('#orderBy', function () {
-    it('check order direction', async function () {
+describe('SearchSortBuilder', () => {
+  describe('#orderBy', () => {
+    it('check order direction', async () => {
       const ssb = new SearchSortBuilder();
       ssb.orderBy('key1', 'asc');
       ssb.orderBy('key2', 'desc');
@@ -27,7 +26,7 @@ describe('SearchSortBuilder', function () {
       ]);
     });
 
-    it('check options', async function () {
+    it('check options', async () => {
       await query
         .sortBy(
           new SearchSortBuilder().orderBy('key', 'asc', {
@@ -43,8 +42,8 @@ describe('SearchSortBuilder', function () {
     });
   });
 
-  describe('#whereNear', function () {
-    it('check options', async function () {
+  describe('#whereNear', () => {
+    it('check options', async () => {
       const ssb = new SearchSortBuilder();
       ssb.whereNear('key1', new GeoPoint(1, 2), {
         order: 'asc',
@@ -80,58 +79,58 @@ describe('SearchSortBuilder', function () {
   });
 });
 
-describe('SearchQuery', function () {
-  it('#queryString', async function () {
+describe('SearchQuery', () => {
+  it('#queryString', async () => {
     await query.queryString('test-query-string').find();
     const req = adapters.requests.pop();
     req.query.q.should.eql('test-query-string');
   });
 
-  it('#skip', async function () {
+  it('#skip', async () => {
     await query.skip(123).find();
     const req = adapters.requests.pop();
     req.query.skip.should.eql('123');
   });
 
-  it('#limit', async function () {
+  it('#limit', async () => {
     await query.limit(123).find();
     const req = adapters.requests.pop();
     req.query.limit.should.eql('123');
   });
 
-  it('#sid', async function () {
+  it('#sid', async () => {
     await query.sid('test-sid').find();
     const req = adapters.requests.pop();
     req.query.sid.should.eql('test-sid');
   });
 
-  it('#fields', async function () {
+  it('#fields', async () => {
     await query.fields('key1', 'key2').find();
     const req = adapters.requests.pop();
     req.query.fields.should.eql('key1,key2');
   });
 
-  it('#include', async function () {
+  it('#include', async () => {
     await query.include('key1', 'key2').find();
     const req = adapters.requests.pop();
     req.query.include.should.eql('key1,key2');
   });
 
-  it('#orderBy', async function () {
+  it('#orderBy', async () => {
     await query.orderBy('key1').orderBy('key2', 'asc').orderBy('key3', 'desc').find();
     const req = adapters.requests.pop();
     req.query.order.should.eql('key1,key2,-key3');
   });
 
-  describe('#find', function () {
-    it('should send GET request to /search/select', async function () {
+  describe('#find', () => {
+    it('should send GET request to /search/select', async () => {
       await query.find();
       const req = adapters.requests.pop();
       req.method.should.eql('GET');
-      req.path.should.eql(`${API_VERSION}/search/select`);
+      req.url.should.endWith('/search/select');
     });
 
-    it('check result', async function () {
+    it('check result', async () => {
       adapters.responses.push({
         status: 200,
         body: {
@@ -156,7 +155,7 @@ describe('SearchQuery', function () {
       await result.next();
       const req = adapters.requests.pop();
       req.method.should.eql('GET');
-      req.path.should.eql(`${API_VERSION}/search/select`);
+      req.url.should.endWith('/search/select');
     });
   });
 });

@@ -10,7 +10,7 @@ export class Qiniu {
   ): Promise<HTTPResponse> {
     return HTTP.upload({
       method: 'POST',
-      baseURL: tokens.upload_url,
+      url: tokens.upload_url,
       file: { name, data, field: 'file' },
       form: { name, key: tokens.key, token: tokens.token },
       header: options?.header,

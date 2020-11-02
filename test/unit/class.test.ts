@@ -3,7 +3,6 @@ import { adapters } from '../test-adapters';
 import { App } from '../../src/app';
 import { Class } from '../../src/class';
 import { LCObject, LCObjectRef } from '../../src/object';
-import { API_VERSION } from '../../src/const';
 
 describe('Class', function () {
   const app = new App({
@@ -32,7 +31,7 @@ describe('Class', function () {
       await Test.add({});
       const req = adapters.requests.pop();
       req.method.should.eql('POST');
-      req.path.should.eql(`${API_VERSION}/classes/Test`);
+      req.url.should.endWith('/classes/Test');
     });
 
     it('should encode data', async function () {

@@ -27,12 +27,10 @@ export class Cloud {
     return new Cloud(App.default).verifySMSCode(mobilePhoneNumber, smsCode, options);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static run(name: string, data?: unknown, options?: AuthOptions): Promise<any> {
     return new Cloud(App.default).run(name, data, options);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static rpc(name: string, data?: unknown, options?: AuthOptions): Promise<any> {
     return new Cloud(App.default).rpc(name, data, options);
   }
@@ -69,27 +67,25 @@ export class Cloud {
     });
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async run(name: string, data?: unknown, options?: AuthOptions): Promise<any> {
-    const res = await this.app.request({
+    const { result } = await this.app.request({
       service: 'engine',
       method: 'POST',
       path: `/functions/${name}`,
       body: lcEncode(data, { full: true }),
       options,
     });
-    return res.body.result;
+    return result;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async rpc(name: string, data?: unknown, options?: AuthOptions): Promise<any> {
-    const res = await this.app.request({
+    const { result } = await this.app.request({
       service: 'engine',
       method: 'POST',
       path: `/call/${name}`,
       body: lcEncode(data, { full: true }),
       options,
     });
-    return this.app.decode(res.body.result);
+    return this.app.decode(result);
   }
 }

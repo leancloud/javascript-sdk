@@ -35,8 +35,7 @@ class TestAdapter {
     const components = unmarshalURL(url);
     TestAdapter.requests.push({
       method: options?.method,
-      baseURL: components.host,
-      path: components.path,
+      url: url.split('?')[0],
       header: options?.headers,
       query: components.query,
       body: options?.data,

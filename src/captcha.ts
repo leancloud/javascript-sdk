@@ -97,7 +97,7 @@ export class Captcha {
    */
   async refresh(options?: RefreshCaptchaOptions): Promise<void> {
     this.validateToken = null;
-    const res = await this.app.request({
+    const json = await this.app.request({
       method: 'GET',
       path: `/requestCaptcha`,
       query: {
@@ -108,8 +108,8 @@ export class Captcha {
       },
       options,
     });
-    this.token = res.body['captcha_token'];
-    this.url = res.body['captcha_url'];
+    this.token = json.captcha_token;
+    this.url = json.captcha_url;
   }
 
   /**
@@ -122,7 +122,7 @@ export class Captcha {
     if (!this.token) {
       throw new Error('The captcha token is empty, you should call refresh first');
     }
-    const res = await this.app.request({
+    const json = await this.app.request({
       method: 'POST',
       path: `/verifyCaptcha`,
       body: {
@@ -131,7 +131,7 @@ export class Captcha {
       },
       options,
     });
-    this.validateToken = res.body['validate_token'];
+    this.validateToken = json.validate_token;
     return this.validateToken;
   }
 

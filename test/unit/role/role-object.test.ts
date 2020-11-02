@@ -3,7 +3,6 @@ import { adapters } from '../../test-adapters';
 import { App } from '../../../src/app';
 import { RoleObjectRef, RoleObject } from '../../../src/role';
 import { UserObjectRef, UserObject } from '../../../src/user';
-import { API_VERSION } from '../../../src/const';
 
 const app = new App({
   appId: 'test-app-id',
@@ -11,18 +10,18 @@ const app = new App({
   serverURL: 'test-server-url',
 });
 
-describe('RoleObjectRef', function () {
+describe('RoleObjectRef', () => {
   const ref = new RoleObjectRef(app, 'test-role-id');
 
-  describe('#addUser', function () {
-    it('should send PUT request to /roles/${objectId}', async function () {
+  describe('#addUser', () => {
+    it('should send PUT request to /roles/${objectId}', async () => {
       await ref.addUser(new UserObject(null, 'test-user-id'));
       const req = adapters.requests.pop();
       req.method.should.eql('PUT');
-      req.path.should.eql(`${API_VERSION}/roles/test-role-id`);
+      req.url.should.endWith('/roles/test-role-id');
     });
 
-    it('should add relation with UserObject | UserObjectRef', async function () {
+    it('should add relation with UserObject | UserObjectRef', async () => {
       const body = {
         users: {
           __op: 'AddRelation',
@@ -39,7 +38,7 @@ describe('RoleObjectRef', function () {
       req.body.should.eql(body);
     });
 
-    it('should add relation with Array<User | UserReference>', async function () {
+    it('should add relation with Array<User | UserReference>', async () => {
       await ref.addUser([
         new UserObject(null, 'test-user-1'),
         new UserObjectRef(null, 'test-user-2'),
@@ -57,15 +56,15 @@ describe('RoleObjectRef', function () {
     });
   });
 
-  describe('#addRole', function () {
-    it('should send PUT request to /roles/${objectId}', async function () {
+  describe('#addRole', () => {
+    it('should send PUT request to /roles/${objectId}', async () => {
       await ref.addRole(new RoleObject(null, 'test-role-id'));
       const req = adapters.requests.pop();
       req.method.should.eql('PUT');
-      req.path.should.eql(`${API_VERSION}/roles/test-role-id`);
+      req.url.should.endWith('/roles/test-role-id');
     });
 
-    it('should add relation with RoleObject | RoleObjectRef', async function () {
+    it('should add relation with RoleObject | RoleObjectRef', async () => {
       const body = {
         roles: {
           __op: 'AddRelation',
@@ -82,7 +81,7 @@ describe('RoleObjectRef', function () {
       req.body.should.eql(body);
     });
 
-    it('should add relation with Array<RoleObject | RoleObjectRef>', async function () {
+    it('should add relation with Array<RoleObject | RoleObjectRef>', async () => {
       await ref.addRole([
         new RoleObject(null, 'test-role-1'),
         new RoleObjectRef(null, 'test-role-2'),
@@ -100,15 +99,15 @@ describe('RoleObjectRef', function () {
     });
   });
 
-  describe('#removeUser', function () {
-    it('should send PUT request to /roles/${objectId}', async function () {
+  describe('#removeUser', () => {
+    it('should send PUT request to /roles/${objectId}', async () => {
       await ref.removeUser(new UserObject(null, 'test-user-id'));
       const req = adapters.requests.pop();
       req.method.should.eql('PUT');
-      req.path.should.eql(`${API_VERSION}/roles/test-role-id`);
+      req.url.should.endWith('/roles/test-role-id');
     });
 
-    it('should remove relation with UserObject | UserObjectRef', async function () {
+    it('should remove relation with UserObject | UserObjectRef', async () => {
       const body = {
         users: {
           __op: 'RemoveRelation',
@@ -125,7 +124,7 @@ describe('RoleObjectRef', function () {
       req.body.should.eql(body);
     });
 
-    it('should remove relation with Array<UserObject | UserObjectRef>', async function () {
+    it('should remove relation with Array<UserObject | UserObjectRef>', async () => {
       await ref.removeUser([
         new UserObject(null, 'test-user-1'),
         new UserObjectRef(null, 'test-user-2'),
@@ -143,15 +142,15 @@ describe('RoleObjectRef', function () {
     });
   });
 
-  describe('#removeRole', function () {
-    it('should send PUT request to /roles/${objectId}', async function () {
+  describe('#removeRole', () => {
+    it('should send PUT request to /roles/${objectId}', async () => {
       await ref.removeRole(new RoleObject(null, 'test-role-id'));
       const req = adapters.requests.pop();
       req.method.should.eql('PUT');
-      req.path.should.eql(`${API_VERSION}/roles/test-role-id`);
+      req.url.should.endWith('/roles/test-role-id');
     });
 
-    it('should remove relation with RoleObject | RoleObjectRef', async function () {
+    it('should remove relation with RoleObject | RoleObjectRef', async () => {
       const body = {
         roles: {
           __op: 'RemoveRelation',
@@ -168,7 +167,7 @@ describe('RoleObjectRef', function () {
       req.body.should.eql(body);
     });
 
-    it('should remove relation with Array<RoleObject | RoleObjectRef>', async function () {
+    it('should remove relation with Array<RoleObject | RoleObjectRef>', async () => {
       await ref.removeRole([
         new RoleObject(null, 'test-role-1'),
         new RoleObjectRef(null, 'test-role-2'),
@@ -186,12 +185,12 @@ describe('RoleObjectRef', function () {
     });
   });
 
-  describe('#getUsers', function () {
-    it('should query relation with users', async function () {
+  describe('#getUsers', () => {
+    it('should query relation with users', async () => {
       adapters.responses.push({ body: { results: [] } });
       await ref.getUsers();
       const req = adapters.requests.pop();
-      req.path.should.eql(`${API_VERSION}/classes/_User`);
+      req.url.should.endWith('/classes/_User');
       JSON.parse(req.query.where as string).should.eql({
         $relatedTo: {
           key: 'users',
@@ -201,12 +200,12 @@ describe('RoleObjectRef', function () {
     });
   });
 
-  describe('#getRoles', function () {
-    it('should query relation with roles', async function () {
+  describe('#getRoles', () => {
+    it('should query relation with roles', async () => {
       adapters.responses.push({ body: { results: [] } });
       await ref.getRoles();
       const req = adapters.requests.pop();
-      req.path.should.eql(`${API_VERSION}/classes/_Role`);
+      req.url.should.endWith('/classes/_Role');
       JSON.parse(req.query.where as string).should.eql({
         $relatedTo: {
           key: 'roles',

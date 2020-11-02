@@ -42,12 +42,12 @@ export class RoleClass extends Class {
     if (data.users) {
       body.users = Operation.addRelation(data.users);
     }
-    const res = await this.app.request({
+    const json = await this.app.request({
       method: 'POST',
       path: `/roles`,
       body,
       options,
     });
-    return this.app.decode(res.body, { type: 'Object', className: this.className });
+    return this.app.decode(json, { type: 'Object', className: this.className });
   }
 }

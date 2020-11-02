@@ -229,44 +229,49 @@ export class UserClass extends Class {
   }
 
   async become(sessionToken: string, options?: AuthOptions): Promise<AuthedUser> {
-    const res = await this.app.request({
-      path: `/users/me`,
-      options: { ...options, sessionToken },
-    });
-    return this._decodeAndSetToCurrent(res.body);
+    return this._decodeAndSetToCurrent(
+      await this.app.request({
+        method: 'GET',
+        path: `/users/me`,
+        options: { ...options, sessionToken },
+      })
+    );
   }
 
   async signUp(data: Partial<CreateUserData>, options?: AuthOptions): Promise<UserObject> {
-    const res = await this.app.request({
-      method: 'POST',
-      path: `/users`,
-      body: removeReservedKeys(data),
-      options,
-    });
-    return this._decodeAndSetToCurrent(res.body);
+    return this._decodeAndSetToCurrent(
+      await this.app.request({
+        method: 'POST',
+        path: `/users`,
+        body: removeReservedKeys(data),
+        options,
+      })
+    );
   }
 
   async signUpOrLoginWithMobilePhone(
     data: SignUpDataWithMobile,
     options?: AuthOptions
   ): Promise<UserObject> {
-    const res = await this.app.request({
-      method: 'POST',
-      path: `/usersByMobilePhone`,
-      body: removeReservedKeys(data),
-      options,
-    });
-    return this._decodeAndSetToCurrent(res.body);
+    return this._decodeAndSetToCurrent(
+      await this.app.request({
+        method: 'POST',
+        path: `/usersByMobilePhone`,
+        body: removeReservedKeys(data),
+        options,
+      })
+    );
   }
 
   async loginWithData(data: Partial<UserData>, options?: AuthOptions): Promise<UserObject> {
-    const res = await this.app.request({
-      method: 'POST',
-      path: `/login`,
-      body: removeReservedKeys(data),
-      options,
-    });
-    return this._decodeAndSetToCurrent(res.body);
+    return this._decodeAndSetToCurrent(
+      await this.app.request({
+        method: 'POST',
+        path: `/login`,
+        body: removeReservedKeys(data),
+        options,
+      })
+    );
   }
 
   login(username: string, password: string, options?: AuthOptions): Promise<UserObject> {
@@ -278,14 +283,15 @@ export class UserClass extends Class {
     authDataItem: Record<string, unknown>,
     options?: LoginWithAuthDataOptions
   ): Promise<UserObject> {
-    const res = await this.app.request({
-      method: 'POST',
-      path: `/users`,
-      body: { authData: { [platform]: authDataItem } },
-      query: { failOnNotExist: options?.failOnNotExist },
-      options,
-    });
-    return this._decodeAndSetToCurrent(res.body);
+    return this._decodeAndSetToCurrent(
+      await this.app.request({
+        method: 'POST',
+        path: `/users`,
+        body: { authData: { [platform]: authDataItem } },
+        query: { failOnNotExist: options?.failOnNotExist },
+        options,
+      })
+    );
   }
 
   loginAnonymously(options?: AuthOptions): Promise<UserObject> {

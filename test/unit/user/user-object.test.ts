@@ -2,7 +2,7 @@ import 'should';
 import { adapters } from '../../test-adapters';
 import { App } from '../../../src/app';
 import { UserObject, UserObjectRef, CurrentUserManager, AuthedUser } from '../../../src/user';
-import { API_VERSION, KEY_CURRENT_USER } from '../../../src/const';
+import { KEY_CURRENT_USER } from '../../../src/const';
 import { lcEncode } from '../../../src/object';
 
 const app = new App({
@@ -11,9 +11,9 @@ const app = new App({
   serverURL: 'test-server-url',
 });
 
-describe('CurrentUser', function () {
+describe('CurrentUser', () => {
   describe('.set', function () {
-    it("should set current user's data into localStorage", function () {
+    it("should set current user's data into localStorage", () => {
       const user = new AuthedUser(app, 'test-user-id');
       user.data = { key: 'value' };
       CurrentUserManager.set(user);
@@ -93,18 +93,18 @@ describe('UserReference', function () {
   });
 });
 
-describe('AuthedUser', function () {
-  describe('#isAuthenticated', function () {
-    it('should send GET request to /users/me', async function () {
+describe('AuthedUser', () => {
+  describe('#isAuthenticated', () => {
+    it('should send GET request to /users/me', async () => {
       const user = new AuthedUser(app, 'test-user-id');
       user.data = { sessionToken: 'test-session-token' };
       await user.isAuthenticated();
       const req = adapters.requests.pop();
       req.method.should.eql('GET');
-      req.path.should.eql(`${API_VERSION}/users/me`);
+      req.url.should.endWith('/users/me');
     });
 
-    it("should send user's sessionToken", async function () {
+    it("should send user's sessionToken", async () => {
       const user = new AuthedUser(app, 'test-user-id');
       user.data = { sessionToken: 'test-session-token' };
       await user.isAuthenticated();
@@ -119,7 +119,7 @@ describe('AuthedUser', function () {
       (await user.isAuthenticated()).should.false();
     });
 
-    it('should throw error when error code is not 211', function () {
+    it('should throw error when error code is not 211', () => {
       const user = new AuthedUser(app, 'test-user-id');
       user.data = { sessionToken: 'test-session-token' };
       adapters.responses.push({ status: 400, body: { code: 123, error: '' } });
@@ -127,17 +127,17 @@ describe('AuthedUser', function () {
     });
   });
 
-  describe('#updatePassword', function () {
-    it('should send PUT request to /users/${objectId}/updatePassword', async function () {
+  describe('#updatePassword', () => {
+    it('should send PUT request to /users/${objectId}/updatePassword', async () => {
       const user = new AuthedUser(app, 'test-user-id');
       user.data = { sessionToken: 'test-session-token' };
       await user.updatePassword('old-password', 'new-password');
       const req = adapters.requests.pop();
       req.method.should.eql('PUT');
-      req.path.should.eql(`${API_VERSION}/users/test-user-id/updatePassword`);
+      req.url.should.endWith('/users/test-user-id/updatePassword');
     });
 
-    it('check password and sessionToken', async function () {
+    it('check password and sessionToken', async () => {
       const user = new AuthedUser(app, 'test-user-id');
       user.data = { sessionToken: 'test-session-token' };
       await user.updatePassword('old-password', 'new-password');
@@ -149,7 +149,7 @@ describe('AuthedUser', function () {
       });
     });
 
-    it('should update sessionToken', async function () {
+    it('should update sessionToken', async () => {
       const user = new AuthedUser(app, 'test-user-id');
       user.data = { sessionToken: 'test-session-token' };
       adapters.responses.push({ body: { sessionToken: 'new-session-token' } });
@@ -199,17 +199,17 @@ describe('AuthedUser', function () {
     });
   });
 
-  describe('#refreshSessionToken', function () {
-    it('should send PUT request to /users/${objectId}/refreshSessionToken', async function () {
+  describe('#refreshSessionToken', () => {
+    it('should send PUT request to /users/${objectId}/refreshSessionToken', async () => {
       const user = new AuthedUser(app, 'test-user-id');
       user.data = { sessionToken: 'test-session-token' };
       await user.refreshSessionToken();
       const req = adapters.requests.pop();
       req.method.should.eql('PUT');
-      req.path.should.eql(`${API_VERSION}/users/test-user-id/refreshSessionToken`);
+      req.url.should.endWith('/users/test-user-id/refreshSessionToken');
     });
 
-    it('should update sessionToken', async function () {
+    it('should update sessionToken', async () => {
       const user = new AuthedUser(app, 'test-user-id');
       user.data = { sessionToken: 'test-session-token' };
       app.currentUser = user;

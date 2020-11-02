@@ -4,18 +4,17 @@ import {
   RequestOptions as AdapterRequestOptions,
   Response as AdapterResponse,
 } from '@leancloud/adapter-types';
+import { trim } from 'lodash';
 import { AdapterManager } from './adapters';
 import { debug } from './debug';
 
 export type RequestOptions = Pick<AdapterRequestOptions, 'onprogress' | 'signal'>;
 
 export interface HTTPRequest {
-  baseURL: string;
-  method?: HTTPMethod;
-  path?: string;
+  method: HTTPMethod;
+  url: string;
   header?: Record<string, string>;
-  query?: Record<string, string | number | boolean | undefined>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  query?: Record<string, string | number | boolean>;
   body?: any;
   options?: RequestOptions;
 }
@@ -23,13 +22,11 @@ export interface HTTPRequest {
 export interface HTTPResponse {
   status: number;
   header?: Record<string, string>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   body?: any;
 }
 
 export interface UploadRequest extends Omit<HTTPRequest, 'body'> {
   file: FormDataPart;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   form?: Record<string, any>;
 }
 
@@ -39,29 +36,28 @@ export class HTTP {
   static encodeQuery(query: Record<string, string | number | boolean | undefined>): string {
     let queryStr = '';
     Object.entries(query).forEach(([key, val], idx) => {
-      if (val !== undefined) {
-        if (idx) {
-          queryStr += '&';
-        }
-        queryStr += key + '=' + encodeURIComponent(val);
+      if (val === undefined) {
+        delete query[key];
+        return;
       }
+      if (idx) {
+        queryStr += '&';
+      }
+      queryStr += key + '=' + encodeURIComponent(val);
     });
     return queryStr;
   }
 
-  static encodeURL(req: HTTPRequest): string {
-    let url = req.baseURL;
-    if (req.path) {
-      url += req.path.startsWith('/') ? req.path : '/' + req.path;
-    }
-    if (req.query) {
-      url += '?' + this.encodeQuery(req.query);
-    }
-    return url;
-  }
-
   static assemblePath(...paths: string[]): string {
-    return paths.map((path) => (path.startsWith('/') ? path : '/' + path)).join('');
+    let pathStr = '';
+    paths.forEach((path, index) => {
+      if (index) {
+        pathStr += '/' + trim(path, '/');
+      } else {
+        pathStr += trim(path, '/');
+      }
+    });
+    return pathStr;
   }
 
   static async request(req: HTTPRequest): Promise<HTTPResponse> {
@@ -70,16 +66,31 @@ export class HTTP {
       throw new Error('The request adapter is not set');
     }
 
+    let url = req.url;
+    if (req.query) {
+      url += '?' + this.encodeQuery(req.query);
+    }
+
+    if (req.header) {
+      Object.entries(req.header).forEach(([key, value]) => {
+        if (value === undefined) {
+          delete req.header[key];
+        }
+      });
+    }
+
     const id = this._nextId++;
     debug.log('Request:send', '%d: %O', id, req);
+
     const res = this._convertResponse(
-      await request(this.encodeURL(req), {
+      await request(url, {
         ...req.options,
         method: req.method ?? 'GET',
         headers: req.header,
         data: req.body,
       })
     );
+
     debug.log('Request:recv', '%d: %O', id, res);
     return res;
   }
@@ -90,16 +101,31 @@ export class HTTP {
       throw new Error('The upload adapter is not set');
     }
 
+    let url = req.url;
+    if (req.query) {
+      url += '?' + this.encodeQuery(req.query);
+    }
+
+    if (req.header) {
+      Object.entries(req.header).forEach(([key, value]) => {
+        if (value === undefined) {
+          delete req.header[key];
+        }
+      });
+    }
+
     const id = this._nextId++;
     debug.log('Upload:send', '%d: %O', id, req);
+
     const res = this._convertResponse(
-      await upload(this.encodeURL(req), req.file, {
+      await upload(url, req.file, {
         ...req.options,
         method: req.method || 'POST',
         headers: req.header,
         data: req.form,
       })
     );
+
     debug.log('Upload:recv', '%d: %O', id, res);
     return res;
   }

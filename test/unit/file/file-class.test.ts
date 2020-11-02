@@ -2,9 +2,8 @@ import 'should';
 import { App } from '../../../src/app';
 import { adapters } from '../../test-adapters';
 import { FileClass, FileObjectRef } from '../../../src/file';
-import { API_VERSION } from '../../../src/const';
 
-describe('FileClass', function () {
+describe('FileClass', () => {
   const app = new App({
     appId: 'test-app-id',
     appKey: 'test-app-key',
@@ -12,21 +11,21 @@ describe('FileClass', function () {
   });
   const _File = new FileClass(app);
 
-  describe('#object', function () {
-    it('should return a FileObjectRef', function () {
+  describe('#object', () => {
+    it('should return a FileObjectRef', () => {
       _File.object('test-file-id').should.instanceOf(FileObjectRef);
     });
   });
 
-  describe('#_getFileTokens', function () {
-    it('should send POST request to /fileTokens', async function () {
+  describe('#_getFileTokens', () => {
+    it('should send POST request to /fileTokens', async () => {
       await Reflect.get(_File, '_getFileTokens').call(_File, 'test-name');
       const req = adapters.requests.pop();
       req.method.should.eql('POST');
-      req.path.should.eql(`${API_VERSION}/fileTokens`);
+      req.url.should.endWith('/fileTokens');
     });
 
-    it('check parameters', async function () {
+    it('check parameters', async () => {
       await Reflect.get(_File, '_getFileTokens').call(_File, 'test-name', 'test-mime', null, {
         key: 'value',
       });
@@ -40,15 +39,15 @@ describe('FileClass', function () {
     });
   });
 
-  describe('#_invokeFileCallback', function () {
-    it('should send POST to /fileCallback', async function () {
+  describe('#_invokeFileCallback', () => {
+    it('should send POST to /fileCallback', async () => {
       await Reflect.get(_File, '_invokeFileCallback').call(_File, 'test-token', false);
       const req = adapters.requests.pop();
       req.method.should.eql('POST');
-      req.path.should.eql(`${API_VERSION}/fileCallback`);
+      req.url.should.endWith('/fileCallback');
     });
 
-    it('check parameters', async function () {
+    it('check parameters', async () => {
       await Reflect.get(_File, '_invokeFileCallback').call(_File, 'test-token', true);
       const req = adapters.requests.pop();
       req.body.should.eql({

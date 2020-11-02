@@ -54,7 +54,7 @@ export class LCObjectRef<TData extends LCObjectData = LCObjectData> {
   }
 
   async get(options?: GetObjectOptions): Promise<LCObject<TData>> {
-    const res = await this.app.request({
+    const json = await this.app.request({
       method: 'GET',
       path: this._apiPath,
       query: {
@@ -64,14 +64,14 @@ export class LCObjectRef<TData extends LCObjectData = LCObjectData> {
       },
       options,
     });
-    if (isEmpty(res.body)) {
+    if (isEmpty(json)) {
       throw new Error(`The objectId '${this.objectId}' is not exists`);
     }
-    return this.app.decode(res.body, { type: 'Object', className: this.className });
+    return this.app.decode(json, { type: 'Object', className: this.className });
   }
 
   async update(data: Partial<TData>, options?: UpdateObjectOptions): Promise<LCObject<TData>> {
-    const res = await this.app.request({
+    const json = await this.app.request({
       method: 'PUT',
       path: `/classes/${this.className}/${this.objectId}`,
       body: lcEncode(removeReservedKeys(data)),
@@ -81,7 +81,7 @@ export class LCObjectRef<TData extends LCObjectData = LCObjectData> {
       },
       options,
     });
-    return this.app.decode(res.body, { type: 'Object', className: this.className });
+    return this.app.decode(json, { type: 'Object', className: this.className });
   }
 
   async delete(options?: AuthOptions): Promise<void> {

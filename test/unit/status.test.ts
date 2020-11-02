@@ -103,7 +103,7 @@ describe('StatusQuery', function () {
       await query.whereInboxOwner(user).find();
       const req = adapters.requests.pop();
       req.method.should.eql('GET');
-      req.path.should.endWith('/subscribe/statuses');
+      req.url.should.endWith('/subscribe/statuses');
     });
 
     it('should throw an error when set both statusOwner and inboxOwner', () => {
@@ -133,7 +133,7 @@ describe('StatusClass', () => {
       await Status.sendToFollowers(owner, {});
       const req = adapters.requests.pop();
       req.method.should.eql('POST');
-      req.path.should.endWith('/statuses');
+      req.url.should.endWith('/statuses');
     });
 
     it('should add "source" to the status data', async () => {
@@ -196,7 +196,7 @@ describe('StatusClass', () => {
       await Status.sendToUser(owner, target, {});
       const req = adapters.requests.pop();
       req.method.should.eql('POST');
-      req.path.should.endWith('/statuses');
+      req.url.should.endWith('/statuses');
     });
 
     it('should add "source" to the status data', async () => {
@@ -258,7 +258,7 @@ describe('StatusClass', () => {
       await Status.deleteInboxStatus(owner, 123);
       const req = adapters.requests.pop();
       req.method.should.eql('DELETE');
-      req.path.should.endWith('/subscribe/statuses/inbox');
+      req.url.should.endWith('/subscribe/statuses/inbox');
     });
 
     it('check owner and messageId', async () => {
@@ -306,7 +306,7 @@ describe('StatusClass', () => {
       await Status.getUnreadCount(owner);
       const req = adapters.requests.pop();
       req.method.should.eql('GET');
-      req.path.should.endWith('/subscribe/statuses/count');
+      req.url.should.endWith('/subscribe/statuses/count');
     });
 
     it('check owner and messageId', async () => {
@@ -354,7 +354,7 @@ describe('StatusClass', () => {
       await Status.resetUnreadCount(owner);
       const req = adapters.requests.pop();
       req.method.should.eql('POST');
-      req.path.should.endWith('/subscribe/statuses/resetUnreadCount');
+      req.url.should.endWith('/subscribe/statuses/resetUnreadCount');
     });
 
     it('check owner', async () => {

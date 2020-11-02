@@ -2,9 +2,8 @@ import 'should';
 import { adapters } from '../../test-adapters';
 import { App } from '../../../src/app';
 import { RoleClass, RoleObjectRef } from '../../../src/role';
-import { API_VERSION } from '../../../src/const';
 
-describe('RoleClass', function () {
+describe('RoleClass', () => {
   const app = new App({
     appId: 'test-app-id',
     appKey: 'test-app-key',
@@ -12,13 +11,13 @@ describe('RoleClass', function () {
   });
   const Role = new RoleClass(app);
 
-  describe('#object', function () {
-    it('should return a RoleObjectRef', function () {
+  describe('#object', () => {
+    it('should return a RoleObjectRef', () => {
       const ref = Role.object('test-role-id');
       ref.should.instanceOf(RoleObjectRef);
     });
 
-    it('check app/className/objectId', function () {
+    it('check app/className/objectId', () => {
       const ref = Role.object('test-role-id');
       ref.app.should.eql(app);
       ref.className.should.eql('_Role');
@@ -26,13 +25,13 @@ describe('RoleClass', function () {
     });
   });
 
-  describe('#add', function () {
-    it('should send POST request to /roles', async function () {
+  describe('#add', () => {
+    it('should send POST request to /roles', async () => {
       adapters.responses.push({ body: { objectId: 'test-role-id' } });
       await Role.add({ name: 'test-role-name', ACL: null });
       const req = adapters.requests.pop();
       req.method.should.eql('POST');
-      req.path.should.eql(`${API_VERSION}/roles`);
+      req.url.should.endWith('/roles');
     });
   });
 });

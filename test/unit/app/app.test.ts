@@ -34,7 +34,7 @@ describe('App', () => {
 
   describe('#request', () => {
     it('should set X-LC-{Id,Key} headers', async () => {
-      await app.request({});
+      await app.request({ method: 'GET', path: '' });
       const req = adapters.requests.pop();
       req.header.should.containEql({
         'X-LC-Id': app.appId,
@@ -44,27 +44,35 @@ describe('App', () => {
 
     it('should use the masterKey', async () => {
       app.useMasterKey = true;
-      await app.request({});
+      await app.request({ method: 'GET', path: '' });
       let req = adapters.requests.pop();
       req.header['X-LC-Key'].should.eql(app.masterKey + ',master');
       app.useMasterKey = false;
 
-      await app.request({ options: { useMasterKey: true } });
+      await app.request({
+        method: 'GET',
+        path: '',
+        options: { useMasterKey: true },
+      });
       req = adapters.requests.pop();
       req.header['X-LC-Key'].should.eql(app.masterKey + ',master');
     });
 
     describe('X-LC-Session header', () => {
       it('from options', async () => {
-        await app.request({ options: { sessionToken: 'option-session' } });
+        await app.request({
+          method: 'GET',
+          path: '',
+          options: { sessionToken: 'option-session' },
+        });
         let req = adapters.requests.pop();
         req.header['X-LC-Session'].should.eql('option-session');
       });
 
-      it('from #currentUser', async function () {
+      it('from #currentUser', async () => {
         app.currentUser = new AuthedUser(null, '');
         app.currentUser.data = { sessionToken: 'current-user-session' };
-        await app.request({});
+        await app.request({ method: 'GET', path: '' });
         const req = adapters.requests.pop();
         req.header['X-LC-Session'].should.eql(app.currentUser.sessionToken);
         app.currentUser = null;
@@ -72,7 +80,7 @@ describe('App', () => {
 
       it('from #storage', async function () {
         app.storage.set(KEY_CURRENT_USER, '{"sessionToken":"storage-session"}');
-        await app.request({});
+        await app.request({ method: 'GET', path: '' });
         const req = adapters.requests.pop();
         req.header['X-LC-Session'].should.eql('storage-session');
         app.storage.delete(KEY_CURRENT_USER);
@@ -82,7 +90,11 @@ describe('App', () => {
         app.currentUser = new AuthedUser(null, '');
         app.currentUser.data = { sessionToken: 'current-user-session' };
         app.storage.set(KEY_CURRENT_USER, '{"sessionToken":"stored-session"}');
-        await app.request({ options: { sessionToken: 'option-session' } });
+        await app.request({
+          method: 'GET',
+          path: '',
+          options: { sessionToken: 'option-session' },
+        });
         const req = adapters.requests.pop();
         req.header['X-LC-Session'].should.eql('option-session');
         app.currentUser = null;
@@ -92,7 +104,7 @@ describe('App', () => {
 
     it('should set X-LC-Prod header', async () => {
       app.production = false;
-      await app.request({});
+      await app.request({ method: 'GET', path: '' });
       const req = adapters.requests.pop();
       req.header['X-LC-Prod'].should.eql('0');
       app.production = true;
@@ -106,10 +118,15 @@ describe('App', () => {
           error: 'error message',
         },
       });
-      return app.request({}).should.rejectedWith({
-        code: 123,
-        error: 'error message',
-      });
+      return app
+        .request({
+          method: 'GET',
+          path: '',
+        })
+        .should.rejectedWith({
+          code: 123,
+          error: 'error message',
+        });
     });
   });
 

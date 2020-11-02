@@ -95,8 +95,10 @@ export class LiveQuery extends EventEmitter<LiveQueryListeners> {
     const subscriptionId = await this._app.storage.getAsync(KEY_SUBSCRIPTION_ID);
     this._subReq = this._makeSubscribeRequest(subscriptionId || undefined);
 
-    const res = await this._app.request({ ...this._subReq, options });
-    const { id, query_id } = res.body as { id: string; query_id: string };
+    const { id, query_id } = (await this._app.request({ ...this._subReq, options })) as {
+      id: string;
+      query_id: string;
+    };
     if (id !== subscriptionId) {
       await this._app.storage.setAsync(KEY_SUBSCRIPTION_ID, id);
     }

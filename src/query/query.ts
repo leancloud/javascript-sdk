@@ -217,8 +217,9 @@ export class Query<TObject extends LCObject = LCObject> {
     const _options = { ...options };
     this._beforeFind.forEach((hook) => hook.call(this, _options));
 
-    const res = await this.app.request(this._makeRequest(_options));
-    const results: Record<string, unknown>[] = res.body.results || [];
+    const { results = [] } = (await this.app.request(this._makeRequest(_options))) as {
+      results: Record<string, any>[];
+    };
     return results.map((result) => this.decodeObject(result));
   }
 
@@ -234,7 +235,8 @@ export class Query<TObject extends LCObject = LCObject> {
     const req = this._makeRequest(_options);
     req.query.count = 1;
     req.query.limit = 0;
-    return (await this.app.request(req)).body.count;
+    const { count } = (await this.app.request(req)) as { count: number };
+    return count;
   }
 
   /**
@@ -552,6 +554,7 @@ export class Query<TObject extends LCObject = LCObject> {
 
   protected _makeRequest(options?: AuthOptions): AppRequest {
     const req: AppRequest = {
+      method: 'GET',
       path: `/classes/${this.className}`,
       query: {
         where: this.toString(),

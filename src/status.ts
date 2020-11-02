@@ -141,7 +141,7 @@ export class StatusClass extends StatusQuery {
     options?: StatusOptions
   ): Promise<LCObject> {
     assert(owner.sessionToken, 'The owner cannot be an unauthorized user');
-    const res = await this.app.request({
+    const json = await this.app.request({
       method: 'POST',
       path: '/statuses',
       query: { fetchWhenSave: true },
@@ -158,7 +158,7 @@ export class StatusClass extends StatusQuery {
       },
       options: { ...options, sessionToken: owner.sessionToken },
     });
-    return this.app.decode(res.body, { className: '_Status' });
+    return this.app.decode(json, { className: '_Status' });
   }
 
   async sendToUser(
@@ -169,7 +169,7 @@ export class StatusClass extends StatusQuery {
   ): Promise<LCObject> {
     assert(owner.sessionToken, 'The owner cannot be an unauthorized user');
     const targetId = typeof target === 'string' ? target : target.objectId;
-    const res = await this.app.request({
+    const json = await this.app.request({
       method: 'POST',
       path: '/statuses',
       body: {
@@ -184,7 +184,7 @@ export class StatusClass extends StatusQuery {
       },
       options: { ...options, sessionToken: owner.sessionToken },
     });
-    return this.app.decode(res.body, { className: '_Status' });
+    return this.app.decode(json, { className: '_Status' });
   }
 
   async deleteInboxStatus(
@@ -207,7 +207,7 @@ export class StatusClass extends StatusQuery {
 
   async getUnreadCount(owner: AuthedUser, options?: StatusOptions): Promise<StatusCount> {
     assert(owner.sessionToken, 'The owner cannot be an unauthorized user');
-    const res = await this.app.request({
+    return await this.app.request({
       method: 'GET',
       path: '/subscribe/statuses/count',
       query: {
@@ -216,7 +216,6 @@ export class StatusClass extends StatusQuery {
       },
       options: { ...options, sessionToken: owner.sessionToken },
     });
-    return res.body;
   }
 
   async resetUnreadCount(owner: AuthedUser, options?: StatusOptions): Promise<void> {

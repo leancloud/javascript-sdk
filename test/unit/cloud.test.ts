@@ -3,7 +3,6 @@ import { adapters } from '../test-adapters';
 import { App } from '../../src/app';
 import { Cloud } from '../../src/cloud';
 import { LCObject } from '../../src/object';
-import { API_VERSION } from '../../src/const';
 
 describe('Cloud', function () {
   const app = new App({
@@ -13,12 +12,12 @@ describe('Cloud', function () {
   });
   const cloud = new Cloud(app);
 
-  describe('#requestSMSCode', async function () {
+  describe('#requestSMSCode', async () => {
     it('should send POST request to /requestSmsCode', async function () {
       await cloud.requestSMSCode('test-phone-number');
       const req = adapters.requests.pop();
       req.method.should.eql('POST');
-      req.path.should.eql(`${API_VERSION}/requestSmsCode`);
+      req.url.should.endWith('/requestSmsCode');
     });
 
     it('check phone number and parameters', async function () {
@@ -47,11 +46,11 @@ describe('Cloud', function () {
     });
   });
 
-  describe('#verifySMSCode', function () {
-    it('should send POST request to /verifySmsCode/${code}', async function () {
+  describe('#verifySMSCode', () => {
+    it('should send POST request to /verifySmsCode/${code}', async () => {
       await cloud.verifySMSCode('test-phone-number', 'test-code');
       const req = adapters.requests.pop();
-      req.path.should.eql(`${API_VERSION}/verifySmsCode/test-code`);
+      req.url.should.endWith('/verifySmsCode/test-code');
     });
 
     it('check phone number', async function () {
@@ -63,12 +62,12 @@ describe('Cloud', function () {
     });
   });
 
-  describe('#run', function () {
-    it('should send POST request to /functions/${name}', async function () {
+  describe('#run', () => {
+    it('should send POST request to /functions/${name}', async () => {
       await cloud.run('test-function');
       const req = adapters.requests.pop();
       req.method.should.eql('POST');
-      req.path.should.eql(`${API_VERSION}/functions/test-function`);
+      req.url.should.endWith('/functions/test-function');
     });
 
     it('check data', async function () {
@@ -89,15 +88,15 @@ describe('Cloud', function () {
     });
   });
 
-  describe('#rpc', function () {
-    it('should send POST request to /call/${name}', async function () {
+  describe('#rpc', () => {
+    it('should send POST request to /call/${name}', async () => {
       await cloud.rpc('test-rpc-name');
       const req = adapters.requests.pop();
       req.method.should.eql('POST');
-      req.path.should.eql(`${API_VERSION}/call/test-rpc-name`);
+      req.url.should.endWith('/call/test-rpc-name');
     });
 
-    it('should encode data', async function () {
+    it('should encode data', async () => {
       const obj = new LCObject(app, 'test-class-name', 'test-object-id');
       obj.data = { key: 'value' };
       await cloud.rpc('test-rpc-name', obj);

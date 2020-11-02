@@ -160,15 +160,16 @@ export class AuthedUser extends UserObject {
   async isAuthenticated(): Promise<boolean> {
     try {
       await this.app.request({
+        method: 'GET',
         path: `/users/me`,
         options: { sessionToken: this.sessionToken },
       });
       return true;
     } catch (error) {
-      if (error.code !== 211) {
-        throw error;
+      if (error.code === 211) {
+        return false;
       }
-      return false;
+      throw error;
     }
   }
 
@@ -177,7 +178,7 @@ export class AuthedUser extends UserObject {
     newPassword: string,
     options?: Omit<AuthOptions, 'sessionToken'>
   ): Promise<void> {
-    const res = await this.app.request({
+    const json = await this.app.request({
       method: 'PUT',
       path: `/users/${this.objectId}/updatePassword`,
       body: {
@@ -186,7 +187,7 @@ export class AuthedUser extends UserObject {
       },
       options: { ...options, sessionToken: this.sessionToken },
     });
-    this.mergeData(res.body);
+    this.mergeData(json);
     if (this.isCurrent()) {
       await CurrentUserManager.persistAsync(this);
     }
@@ -240,12 +241,12 @@ export class AuthedUser extends UserObject {
   }
 
   async refreshSessionToken(options?: Omit<AuthOptions, 'sessionToken'>): Promise<string> {
-    const res = await this.app.request({
+    const json = await this.app.request({
       method: 'PUT',
       path: `/users/${this.objectId}/refreshSessionToken`,
       options: { ...options, sessionToken: this.sessionToken },
     });
-    this.mergeData(res.body);
+    this.mergeData(json);
     if (this.isCurrent()) {
       await CurrentUserManager.persistAsync(this);
     }

@@ -195,7 +195,7 @@ export class FileClass extends Class {
     ACL?: ACL,
     metaData?: Record<string, unknown>
   ): Promise<FileTokens> {
-    const res = await this.app.request({
+    return await this.app.request({
       method: 'POST',
       path: `/fileTokens`,
       body: {
@@ -205,11 +205,10 @@ export class FileClass extends Class {
         mime_type: mime,
       },
     });
-    return res.body as FileTokens;
   }
 
-  private _invokeFileCallback(token: string, success: boolean): Promise<HTTPResponse> {
-    return this.app.request({
+  private async _invokeFileCallback(token: string, success: boolean): Promise<void> {
+    await this.app.request({
       method: 'POST',
       path: `/fileCallback`,
       body: { token, result: success },

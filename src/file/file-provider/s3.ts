@@ -10,7 +10,7 @@ export class AWSS3 {
   ): Promise<HTTPResponse> {
     return HTTP.request({
       method: 'PUT',
-      baseURL: tokens.upload_url,
+      url: tokens.upload_url,
       header: {
         'Content-Type': tokens.mime_type,
         'Cache-Control': 'public, max-age=31536000',
