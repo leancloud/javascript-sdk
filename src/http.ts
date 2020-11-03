@@ -5,8 +5,11 @@ import {
   Response as AdapterResponse,
 } from '@leancloud/adapter-types';
 import { trim } from 'lodash';
-import { AdapterManager } from './adapters';
-import { debug } from './debug';
+import { getAdapters } from './adapters';
+import { debug as d } from 'debug';
+
+const debug_http = d('LC:http');
+const debug_upload = d('LC:upload');
 
 export type RequestOptions = Pick<AdapterRequestOptions, 'onprogress' | 'signal'>;
 
@@ -61,7 +64,7 @@ export class HTTP {
   }
 
   static async request(req: HTTPRequest): Promise<HTTPResponse> {
-    const { request } = AdapterManager.get();
+    const { request } = getAdapters();
     if (!request) {
       throw new Error('The request adapter is not set');
     }
@@ -80,7 +83,7 @@ export class HTTP {
     }
 
     const id = this._nextId++;
-    debug.log('Request:send', '%d: %O', id, req);
+    debug_http('send(↑) %d: %O', id, req);
 
     const res = this._convertResponse(
       await request(url, {
@@ -91,12 +94,12 @@ export class HTTP {
       })
     );
 
-    debug.log('Request:recv', '%d: %O', id, res);
+    debug_http('recv(↓) %d: %O', id, res);
     return res;
   }
 
   static async upload(req: UploadRequest): Promise<HTTPResponse> {
-    const { upload } = AdapterManager.get();
+    const { upload } = getAdapters();
     if (!upload) {
       throw new Error('The upload adapter is not set');
     }
@@ -115,7 +118,7 @@ export class HTTP {
     }
 
     const id = this._nextId++;
-    debug.log('Upload:send', '%d: %O', id, req);
+    debug_upload('send(↑) %d: %O', id, req);
 
     const res = this._convertResponse(
       await upload(url, req.file, {
@@ -126,7 +129,7 @@ export class HTTP {
       })
     );
 
-    debug.log('Upload:recv', '%d: %O', id, res);
+    debug_upload('recv(↓) %d: %O', id, res);
     return res;
   }
 

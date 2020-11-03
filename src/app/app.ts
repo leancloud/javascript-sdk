@@ -1,5 +1,5 @@
 import { HTTP, HTTPRequest, RequestOptions } from '../http';
-import { AdapterManager } from '../adapters';
+import { getAdapters } from '../adapters';
 import { NSStorage } from './storage';
 import { API_VERSION, KEY_CURRENT_USER, SDK_VERSION } from '../const';
 import { APIError } from './errors';
@@ -197,16 +197,14 @@ class UserAgent {
   }
 
   static getPlatformSuffix(): string {
-    if (AdapterManager.isSet) {
-      const { platformInfo } = AdapterManager.get();
-      if (platformInfo) {
-        const { name, version } = platformInfo;
-        if (name) {
-          if (version) {
-            return '(' + name + '/' + version + ')';
-          }
-          return '(' + name + ')';
+    const { platformInfo } = getAdapters();
+    if (platformInfo) {
+      const { name, version } = platformInfo;
+      if (name) {
+        if (version) {
+          return '(' + name + '/' + version + ')';
         }
+        return '(' + name + ')';
       }
     }
     return '';

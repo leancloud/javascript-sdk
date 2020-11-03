@@ -1,43 +1,21 @@
 import type { App, AuthOptions } from '../app';
 import type { Query } from '../query';
 import type { AppRequest } from '../app';
-import type { PluginManager } from '../plugin';
-import type { debug as debug_ } from '../debug';
 import { LCObject } from '../object';
-import { Realtime, setAdapters, debug } from 'leancloud-realtime/core';
+import { Realtime, setAdapters } from 'leancloud-realtime/core';
 import { LiveQueryPlugin } from 'leancloud-realtime-plugin-live-query';
 import { EventEmitter } from 'eventemitter3';
 import { KEY_SUBSCRIPTION_ID } from '../const';
+import { onAdaptersSet } from '../adapters';
 
-/**
- * @internal
- */
-let _debug: typeof debug_;
+onAdaptersSet(setAdapters);
 
-/**
- * @internal
- */
-export function install(pluginManager: typeof PluginManager): void {
-  pluginManager.register('LiveQuery', LiveQuery);
-  pluginManager.requestAdapters().then(setAdapters);
-
-  _debug = pluginManager.debug;
-  _debug.on('enable', debug.enable);
-  _debug.on('disable', debug.disable);
-  if (_debug.enabled) {
-    debug.enable(_debug.filter);
-  }
-}
-
-/**
- * @internal
- */
 enum LiveQueryState {
-  READY,
-  CONNECTING,
-  CONNECTED,
-  CLOSING,
-  CLOSED,
+  READY = 'Ready',
+  CONNECTING = 'Connecting',
+  CONNECTED = 'Connected',
+  CLOSING = 'Closing',
+  CLOSED = 'Closed',
 }
 
 interface LiveQueryListeners {
@@ -48,118 +26,109 @@ interface LiveQueryListeners {
   leave(object: LCObject): void;
 }
 
-export class LiveQuery extends EventEmitter<LiveQueryListeners> {
-  private _app: App;
-  private _query: Query;
+class Subscription extends EventEmitter<LiveQueryListeners> {
+  state = LiveQueryState.READY;
+  readonly created = this._subscribe();
+
+  private _onMessage: (messages: Record<string, any>[]) => void;
+  private _onReconnect: () => void;
   private _client: any;
   private _id: string;
   private _queryId: string;
-  private _subReq: AppRequest;
-  private _state = LiveQueryState.READY;
 
-  static install = install;
-
-  static subscribe(query: Query, options?: AuthOptions): Promise<LiveQuery> {
-    return new LiveQuery(query)._subscribe(options);
-  }
-
-  constructor(query: Query) {
+  constructor(public readonly query: Query, public options: AuthOptions) {
     super();
-    this._app = query.app;
-    this._query = query;
   }
 
-  private _makeSubscribeRequest(subscriptionId?: string): AppRequest {
-    return {
-      method: 'POST',
-      path: `/LiveQuery/subscribe`,
-      body: {
-        id: subscriptionId,
-        query: {
-          className: this._query.className,
-          where: this._query.toJSON(),
-          returnACL: this._query['_returnACL'],
-        },
-      },
-    };
-  }
-
-  private async _subscribe(options?: AuthOptions): Promise<this> {
-    if (this._state !== LiveQueryState.READY) {
-      throw new Error('You should call subscribe only once');
+  private async _subscribe(): Promise<this> {
+    if (this.state !== LiveQueryState.READY) {
+      throw new Error('Cannot subscribe, current state: ' + this.state);
     }
-    this._state = LiveQueryState.CONNECTING;
+    this.state = LiveQueryState.CONNECTING;
 
-    const subscriptionId = await this._app.storage.getAsync(KEY_SUBSCRIPTION_ID);
-    this._subReq = this._makeSubscribeRequest(subscriptionId || undefined);
-
-    const { id, query_id } = (await this._app.request({ ...this._subReq, options })) as {
-      id: string;
-      query_id: string;
-    };
+    const { app } = this.query;
+    const subscriptionId = await app.storage.getAsync(KEY_SUBSCRIPTION_ID);
+    const { id, query_id } = await requestQueryId(this.query, this.options);
     if (id !== subscriptionId) {
-      await this._app.storage.setAsync(KEY_SUBSCRIPTION_ID, id);
+      await app.storage.setAsync(KEY_SUBSCRIPTION_ID, id);
     }
 
-    this._id = id;
-    this._queryId = query_id;
-    this._subReq.body['id'] = id;
-    this._client = await createLiveQueryClient(this._app, id);
+    this._onMessage = (messages) => {
+      messages.forEach((message) => {
+        if (message.query_id === query_id) {
+          const object = LCObject.fromJSON(app, message.object);
+          this.emit(message.op, object, message.updatedKeys);
+        }
+      });
+    };
+    this._onReconnect = async () => {
+      // 别觉得这个函数很奇怪, 本来是想打印些日志的
+      await requestQueryId(this.query, { ...this.options, subscriptionId: id });
+    };
 
+    this._client = await createLiveQueryClient(app, id);
+    this._client.register(this.query);
     this._client.on('message', this._onMessage);
     this._client.on('reconnect', this._onReconnect);
-    this._state = LiveQueryState.CONNECTED;
+    this.state = LiveQueryState.CONNECTED;
     return this;
   }
 
   async unsubscribe(): Promise<void> {
-    if (this._state < LiveQueryState.CONNECTED) {
-      throw new Error('Cannot unsubscribe a unconnected live query');
+    if (this.state !== LiveQueryState.CONNECTED) {
+      throw new Error('Cannot unsubscribe, current state: ' + this.state);
     }
-    if (this._state === LiveQueryState.CLOSING || this._state === LiveQueryState.CLOSED) {
-      throw new Error('You should call unsubscribe only once');
-    }
-    this._state = LiveQueryState.CLOSING;
+    this.state = LiveQueryState.CLOSING;
 
     try {
       this._client.off('message', this._onMessage);
       this._client.off('reconnect', this._onReconnect);
-      this._client.close();
-      await this._app.request({
+      this._client.deregister(this.query);
+      await this.query.app.request({
         method: 'POST',
-        path: `/LiveQuery/unsubscribe`,
-        body: { id: this._id, query_id: this._queryId },
+        path: '/LiveQuery/unsubscribe',
+        body: {
+          id: this._id,
+          query_id: this._queryId,
+        },
       });
     } finally {
-      this._state = LiveQueryState.CLOSED;
+      this.state = LiveQueryState.CLOSED;
     }
   }
-
-  private _onMessage = (messages: Record<string, unknown>[]) => {
-    messages.forEach((msg) => {
-      if (msg.query_id === this._queryId) {
-        const obj = LCObject.fromJSON(this._app, msg.object);
-        const event = msg.op as keyof LiveQueryListeners;
-        const updatedKeys = msg.updatedKeys as string[];
-        this.emit(event, obj, updatedKeys);
-      }
-    });
-  };
-
-  private _onReconnect = async () => {
-    try {
-      await this._app.request(this._subReq);
-      _debug?.log('LiveQuery:reconnect', 'ok');
-    } catch (err) {
-      _debug?.log('LiveQuery:reconnect', 'failed: ' + err.message);
-      throw err;
-    }
-  };
 }
 
-/**
- * @internal
- */
+function requestQueryId(
+  query: Query,
+  options?: AuthOptions & {
+    subscriptionId?: string;
+  }
+): Promise<{
+  id: string;
+  query_id: string;
+}> {
+  const req: AppRequest = {
+    method: 'POST',
+    path: '/LiveQuery/subscribe',
+    body: {
+      query: {
+        className: query.className,
+        where: query.toString(),
+        returnACL: query.shouldReturnACL() || undefined,
+      },
+    },
+    options,
+  };
+  if (options?.subscriptionId) {
+    req.body.id = options.subscriptionId;
+  }
+  return query.app.request(req);
+}
+
+export function subscribe(query: Query, options?: AuthOptions): Promise<Subscription> {
+  return new Subscription(query, options).created;
+}
+
 function getRealtimeInstance(app: App): any {
   if (!app.realtimeInstance) {
     app.realtimeInstance = new Realtime({
@@ -172,9 +141,6 @@ function getRealtimeInstance(app: App): any {
   return app.realtimeInstance;
 }
 
-/**
- * @internal
- */
 function createLiveQueryClient(app: App, subscriptionId: string): Promise<any> {
   return getRealtimeInstance(app).createLiveQueryClient(subscriptionId);
 }

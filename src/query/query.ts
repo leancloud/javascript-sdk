@@ -1,9 +1,7 @@
 import type { App, AppRequest, AuthOptions } from '../app';
-import type { LiveQuery } from '../live-query';
 import { GeoPoint } from '../geo-point';
 import { LCDecode, LCObject } from '../object';
 import { assert } from '../utils';
-import { PluginManager } from '../plugin';
 import { ConditionBuilder, Condition, RegExpLike } from './condition-builder';
 import { cloneDeep } from 'lodash';
 
@@ -111,6 +109,10 @@ export class Query {
     const query = new Query(this.app, this.className);
     query._siblingOr = this;
     return query;
+  }
+
+  shouldReturnACL(): boolean {
+    return Boolean(this._options?.returnACL);
   }
 
   select(keys: string[]): Query;
@@ -460,12 +462,6 @@ export class Query {
 
   toString(): string {
     return JSON.stringify(this);
-  }
-
-  subscribe(options?: AuthOptions): Promise<LiveQuery> {
-    const liveQuery = PluginManager.plugins['LiveQuery'] as typeof LiveQuery;
-    assert(liveQuery, 'Query#subscribe needs the LiveQuery plugin');
-    return liveQuery.subscribe(this, options);
   }
 
   protected _clone(): Query {

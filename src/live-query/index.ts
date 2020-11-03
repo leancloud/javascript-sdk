@@ -1,1 +1,1 @@
-export { LiveQuery, install } from './live-query';
+export { subscribe } from './live-query';

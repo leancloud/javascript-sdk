@@ -2,7 +2,7 @@ import type { App, AuthOptions } from '../app';
 import { UserObject, UserObjectRef, CurrentUserManager, AuthedUser } from './user-object';
 import { v4 as uuid_v4 } from 'uuid';
 import { Class } from '../class';
-import { AdapterManager } from '../adapters';
+import { getAdapters } from '../adapters';
 import { assert } from '../utils';
 import { LCEncode, LCObjectData, omitReservedKeys } from '../object';
 
@@ -174,7 +174,7 @@ export class UserClass extends Class {
   }
 
   async loginWithMiniApp(options?: MiniAppAuthOptions): Promise<UserObject> {
-    const authInfo = await AdapterManager.get().getAuthInfo(options);
+    const authInfo = await getAdapters().getAuthInfo(options);
     return this.loginWithAuthData(authInfo.provider, authInfo.authData, options);
   }
 
@@ -182,7 +182,7 @@ export class UserClass extends Class {
     unionId: string,
     options?: MiniAppAuthOptions & Pick<LoginWithAuthDataAndUnionIdOptions, 'asMainAccount'>
   ): Promise<UserObject> {
-    const { provider, authData, platform } = await AdapterManager.get().getAuthInfo(options);
+    const { provider, authData, platform } = await getAdapters().getAuthInfo(options);
     assert(platform, 'Current mini-app not support login with unionId');
     return this.loginWithAuthDataAndUnionId(provider, authData, unionId, {
       ...options,

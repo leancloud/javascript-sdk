@@ -2,7 +2,7 @@ import { KEY_SERVER_URLS } from '../const';
 import { HTTP } from '../http';
 import type { App } from './app';
 
-export type Service = 'engine' | 'api' | 'push';
+export type Service = 'api' | 'engine' | 'push';
 
 interface ServerURLs {
   stats_server: string;
@@ -15,7 +15,7 @@ interface ServerURLs {
   expire_at: number;
 }
 
-export function isCNApp(app: string | App): boolean {
+export function isCNApp(app: string | { appId: string }): boolean {
   const appId = typeof app === 'string' ? app : app.appId;
   return appId.slice(-9) !== '-MdYXbMMI';
 }
@@ -29,7 +29,7 @@ export class Router {
     this._app = app;
   }
 
-  async getURLs(): Promise<ServerURLs> {
+  async getServerURLs(): Promise<ServerURLs> {
     if (!this._urls) {
       const urls = await this._app.storage.getAsync(KEY_SERVER_URLS);
       if (urls) {
@@ -45,9 +45,8 @@ export class Router {
     return this._urls!;
   }
 
-  async getServiceURL(service: Service): Promise<string> {
-    const urls = await this.getURLs();
-    const schema = 'https://';
+  async getServiceURL(service: Service, schema = 'https://'): Promise<string> {
+    const urls = await this.getServerURLs();
     switch (service) {
       case 'api':
         return schema + urls.api_server;
@@ -68,17 +67,21 @@ export class Router {
       const { body } = await HTTP.request({
         method: 'GET',
         url: 'https://app-router.com/2/route',
-        query: { appId: this._app.appId },
+        query: {
+          appId: this._app.appId,
+        },
       });
-      this._urls = body;
-      this._urls!.expire_at = Date.now() + this._urls!.ttl * 1000;
+      this._urls = {
+        ...body,
+        expire_at: Date.now() + body.ttl * 1000,
+      };
       await this._app.storage.setAsync(KEY_SERVER_URLS, JSON.stringify(this._urls));
     } finally {
       this._refreshing = false;
     }
   }
 
-  getDefaultServerURLs(): ServerURLs {
+  getDefaultServerURLs(ttl = 0): ServerURLs {
     const domain = isCNApp(this._app) ? 'lncld.net' : 'lncldglobal.com';
     const id = this._app.appId.slice(0, 8).toLowerCase();
     return {
@@ -89,7 +92,7 @@ export class Router {
       engine_server: `${id}.engine.${domain}`,
       api_server: `${id}.api.${domain}`,
       ttl: 0,
-      expire_at: 0,
+      expire_at: Date.now() + ttl * 1000,
     };
   }
 }

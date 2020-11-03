@@ -1,7 +1,9 @@
 import { Storage as AdapterStorage, SyncStorage } from '@leancloud/adapter-types';
 import { LOCAL_STORAGE_NAMESPACE } from '../const';
-import { AdapterManager } from '../adapters';
-import { debug } from '../debug';
+import { getAdapters } from '../adapters';
+import { debug as d } from 'debug';
+
+const debug = d('LC:localStorage');
 
 export class LocalStorage {
   static keyWithNamespace(key: string): string {
@@ -11,43 +13,43 @@ export class LocalStorage {
   static set(key: string, value: string): void {
     key = this.keyWithNamespace(key);
     this._mustGetSyncStorage().setItem(key, value);
-    debug.log('LocalStorage:set', { key, value });
+    debug('set', { key, value });
   }
 
   static get(key: string): string | null {
     key = this.keyWithNamespace(key);
     const value = this._mustGetSyncStorage().getItem(key) ?? null;
-    debug.log('LocalStorage:get', { key, value });
+    debug('get', { key, value });
     return value;
   }
 
   static delete(key: string): void {
     key = this.keyWithNamespace(key);
     this._mustGetSyncStorage().removeItem(key);
-    debug.log('LocalStorage:delete', key);
+    debug('delete', key);
   }
 
   static async setAsync(key: string, value: string): Promise<void> {
     key = this.keyWithNamespace(key);
     await this._mustGetStorage().setItem(key, value);
-    debug.log('LocalStorage:set', { key, value });
+    debug('set', { key, value });
   }
 
   static async getAsync(key: string): Promise<string | null> {
     key = this.keyWithNamespace(key);
     const value = (await this._mustGetStorage().getItem(key)) ?? null;
-    debug.log('LocalStorage:get', { key, value });
+    debug('get', { key, value });
     return value;
   }
 
   static async deleteAsync(key: string): Promise<void> {
     key = this.keyWithNamespace(key);
     await this._mustGetStorage().removeItem(key);
-    debug.log('LocalStorage:delete', key);
+    debug('delete', key);
   }
 
   private static _mustGetStorage(): AdapterStorage {
-    const { storage } = AdapterManager.get();
+    const { storage } = getAdapters();
     if (!storage) {
       throw new Error('The storage adapter is not set');
     }

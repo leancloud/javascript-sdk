@@ -12,7 +12,7 @@ import {
 import { Operation } from '../operation';
 import { assert } from '../utils';
 import { KEY_CURRENT_USER } from '../const';
-import { AdapterManager } from '../adapters';
+import { getAdapters } from '../adapters';
 
 export interface SignUpData extends LCObjectData {
   username: string;
@@ -252,7 +252,7 @@ export class AuthedUser extends UserObject {
   }
 
   async associateWithMiniApp(options?: MiniAppAuthOptions): Promise<AuthedUser> {
-    const { getAuthInfo } = AdapterManager.get();
+    const { getAuthInfo } = getAdapters();
     assert(getAuthInfo, 'The getAuthInfo adapter is not set');
     const { provider, authData } = await getAuthInfo(options);
     return this.associateWithAuthData(provider, authData, options);

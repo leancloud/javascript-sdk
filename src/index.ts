@@ -1,6 +1,6 @@
+export { debug } from 'debug';
+
 export { App } from './app';
-export { use } from './plugin';
-export { debug } from './debug';
 export { setAdapters } from './adapters';
 
 export { Class } from './class';
@@ -17,6 +17,8 @@ export { GeoPoint } from './geo-point';
 
 export { Query } from './query';
 export { SearchQuery, SearchSortBuilder } from './search';
+
+export { subscribe } from './live-query';
 
 export { ACL } from './acl';
 export { Operation as Op } from './operation';
