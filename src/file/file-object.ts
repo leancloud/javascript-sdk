@@ -1,11 +1,10 @@
 import type { App } from '../app';
-import { LCObjectRef, LCObject, LCObjectData, GetObjectOptions } from '../object';
+import { GetObjectOptions, LCObjectRef, LCObject, LCObjectData } from '../object';
 
 export interface FileData extends LCObjectData {
   name: string;
   url: string;
   mime_type: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   metaData: Record<string, any>;
 }
 
@@ -14,12 +13,12 @@ export class FileObjectRef extends LCObjectRef {
     super(app, '_File', objectId);
   }
 
-  protected get _apiPath(): string {
+  get apiPath(): string {
     return '/files/' + this.objectId;
   }
 
-  get(options?: GetObjectOptions): Promise<FileObject> {
-    return super.get(options) as Promise<FileObject>;
+  async get(options?: GetObjectOptions): Promise<FileObject> {
+    return FileObject.fromLCObject(await super.get(options));
   }
 
   update(): never {
@@ -27,14 +26,19 @@ export class FileObjectRef extends LCObjectRef {
   }
 }
 
-export class FileObject extends LCObject {
-  data: Partial<FileData>;
-
-  protected _ref: FileObjectRef;
-
+export class FileObject extends LCObject implements FileObjectRef {
   constructor(app: App, objectId: string) {
     super(app, '_File', objectId);
-    this._ref = new FileObjectRef(app, objectId);
+  }
+
+  static fromLCObject(object: LCObject): FileObject {
+    const file = new FileObject(object.app, object.objectId);
+    file.data = object.data;
+    return file;
+  }
+
+  get apiPath(): string {
+    return '/files/' + this.objectId;
   }
 
   get name(): string {
@@ -45,8 +49,16 @@ export class FileObject extends LCObject {
     return this.data.url;
   }
 
+  get mimeType(): string {
+    return this.data.mime_type;
+  }
+
+  get metaData(): Record<string, any> {
+    return this.data.metaData;
+  }
+
   get size(): number {
-    return this.data.metaData?.size as number;
+    return this.metaData?.size as number;
   }
 
   thumbnailURL(
@@ -60,11 +72,11 @@ export class FileObject extends LCObject {
     return this.url + `?imageView/${mode}/w/${width}/h/${height}/q/${quality}/format/${format}`;
   }
 
-  get(options?: GetObjectOptions): Promise<FileObject> {
-    return this._ref.get(options);
+  async get(options?: GetObjectOptions): Promise<FileObject> {
+    return FileObject.fromLCObject(await super.get(options));
   }
 
   update(): never {
-    return this._ref.update();
+    throw new Error('Cannot update file object');
   }
 }

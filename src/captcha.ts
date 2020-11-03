@@ -69,25 +69,15 @@ export class Captcha {
   static async request(app: App, options?: RefreshCaptchaOptions): Promise<Captcha>;
 
   /**
-   * Request a captcha from the default App.
+   * Request a captcha.
    *
    * @since 5.0.0
    */
-  static async request(options?: RefreshCaptchaOptions): Promise<Captcha>;
 
-  static async request(
-    arg1: App | RefreshCaptchaOptions,
-    options?: RefreshCaptchaOptions
-  ): Promise<Captcha> {
-    if (arg1 instanceof App) {
-      const captcha = new Captcha(arg1);
-      await captcha.refresh(options);
-      return captcha;
-    } else {
-      const captcha = new Captcha(App.default);
-      await captcha.refresh(arg1);
-      return captcha;
-    }
+  static async request(app: App, options: RefreshCaptchaOptions): Promise<Captcha> {
+    const captcha = new Captcha(app);
+    await captcha.refresh(options);
+    return captcha;
   }
 
   /**

@@ -1,19 +1,9 @@
-import { merge, omit, isPlainObject, isEmpty, isDate } from 'lodash';
+import { isPlainObject, isEmpty, isDate, merge, omit } from 'lodash';
 import type { Query } from './query';
 import type { AuthOptions, App } from './app';
 import { mapObject } from './utils';
 import { ACL } from './acl';
 
-/**
- * @internal
- */
-export function removeReservedKeys(data: Record<string, unknown>): Record<string, unknown> {
-  const removed: Record<string, unknown> = { ...data };
-  ['objectId', 'createdAt', 'updatedAt'].forEach((key) => delete removed[key]);
-  return removed;
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface LCObjectData extends Record<string, any> {
   ACL?: ACL;
 }
@@ -38,25 +28,28 @@ export interface Pointer {
   objectId: string;
 }
 
-export class LCObjectRef<TData extends LCObjectData = LCObjectData> {
-  constructor(public app: App, public className: string, public objectId: string) {}
+export function pointer({ className, objectId }: { className: string; objectId: string }): Pointer {
+  return { __type: 'Pointer', className, objectId };
+}
+export class LCObjectRef {
+  constructor(
+    public readonly app: App,
+    public readonly className: string,
+    public readonly objectId: string
+  ) {}
 
-  get id(): string {
-    return this.objectId;
-  }
-
-  protected get _apiPath(): string {
+  get apiPath(): string {
     return `/classes/${this.className}/${this.objectId}`;
   }
 
   toPointer(): Pointer {
-    return { __type: 'Pointer', className: this.className, objectId: this.objectId };
+    return pointer(this);
   }
 
-  async get(options?: GetObjectOptions): Promise<LCObject<TData>> {
+  async get(options?: GetObjectOptions): Promise<LCObject> {
     const json = await this.app.request({
       method: 'GET',
-      path: this._apiPath,
+      path: this.apiPath,
       query: {
         keys: options?.keys?.join(','),
         include: options?.include?.join(','),
@@ -65,179 +58,202 @@ export class LCObjectRef<TData extends LCObjectData = LCObjectData> {
       options,
     });
     if (isEmpty(json)) {
-      throw new Error(`The objectId '${this.objectId}' is not exists`);
+      throw new Error(`The Object(id=${this.objectId}) is not exists`);
     }
-    return this.app.decode(json, { type: 'Object', className: this.className });
+    return LCObject.fromJSON(this.app, json, this.className);
   }
 
-  async update(data: Partial<TData>, options?: UpdateObjectOptions): Promise<LCObject<TData>> {
+  async update(data: LCObjectData, options?: UpdateObjectOptions): Promise<LCObject> {
     const json = await this.app.request({
       method: 'PUT',
-      path: `/classes/${this.className}/${this.objectId}`,
-      body: lcEncode(removeReservedKeys(data)),
+      path: this.apiPath,
+      body: LCEncode(omitReservedKeys(data)),
       query: {
         fetchWhenSave: options?.fetch,
         where: options?.query?.toString(),
       },
       options,
     });
-    return this.app.decode(json, { type: 'Object', className: this.className });
+    return LCObject.fromJSON(this.app, json, this.className);
   }
 
   async delete(options?: AuthOptions): Promise<void> {
     await this.app.request({
       method: 'DELETE',
-      path: `/classes/${this.className}/${this.objectId}`,
+      path: this.apiPath,
       options,
     });
   }
 }
 
-export class LCObject<TData extends LCObjectData = LCObjectData> {
-  data: TData;
-  createdAt: Date;
-  updatedAt: Date;
+export class LCObject implements LCObjectRef {
+  data: Record<string, any>;
 
-  protected _ref: LCObjectRef<TData>;
+  constructor(
+    public readonly app: App,
+    public readonly className: string,
+    public readonly objectId: string
+  ) {}
 
-  constructor(app: App, className: string, objectId: string);
-  constructor(ref: LCObjectRef<TData>);
-  constructor(arg1: App | LCObjectRef<TData>, className?: string, objectId?: string) {
-    if (arg1 instanceof LCObjectRef) {
-      this._ref = arg1;
-    } else {
-      this._ref = new LCObjectRef(arg1, className, objectId);
-    }
+  static fromJSON(app: App, data: Record<string, any>, className?: string): LCObject {
+    const object = new LCObject(app, className ?? data.className, data.objectId);
+    object.data = LCDecode(app, data);
+    return object;
   }
 
-  /**
-   * @internal
-   */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types
-  static extractData(data: any): any {
-    if (!data) return data;
-
-    if (data instanceof LCObject) {
-      return this.extractData(data.data);
-    }
-
-    if (Array.isArray(data)) {
-      return data.map((item) => this.extractData(item));
-    }
-
-    if (isPlainObject(data)) {
-      return mapObject(data, (value) => this.extractData(value));
-    }
-
-    return data;
+  get apiPath(): string {
+    return `/classes/${this.className}/${this.objectId}`;
   }
 
-  get app(): App {
-    return this._ref.app;
-  }
-
-  get className(): string {
-    return this._ref.className;
-  }
-
-  get objectId(): string {
-    return this._ref.objectId;
-  }
-
-  /**
-   * 等同于 objectId
-   */
   get id(): string {
     return this.objectId;
   }
 
   toPointer(): Pointer {
-    return this._ref.toPointer();
+    return pointer(this);
   }
 
-  get(options?: GetObjectOptions): Promise<LCObject<TData>> {
-    return this._ref.get(options);
+  async get(options?: GetObjectOptions): Promise<LCObject> {
+    const json = await this.app.request({
+      method: 'GET',
+      path: this.apiPath,
+      query: {
+        keys: options?.keys?.join(','),
+        include: options?.include?.join(','),
+        returnACL: options?.returnACL,
+      },
+      options,
+    });
+    if (isEmpty(json)) {
+      throw new Error(`The Object(id=${this.objectId}) is not exists`);
+    }
+    return LCObject.fromJSON(this.app, json, this.className);
   }
 
-  update(data: Partial<TData>, options?: UpdateObjectOptions): Promise<LCObject<TData>> {
-    return this._ref.update(data, options);
+  async update(data: LCObjectData, options?: UpdateObjectOptions): Promise<LCObject> {
+    const json = await this.app.request({
+      method: 'PUT',
+      path: this.apiPath,
+      body: LCEncode(omitReservedKeys(data)),
+      query: {
+        fetchWhenSave: options?.fetch,
+        where: options?.query?.toString(),
+      },
+      options,
+    });
+    return LCObject.fromJSON(this.app, json, this.className);
   }
 
-  delete(options?: AuthOptions): Promise<void> {
-    return this._ref.delete(options);
+  async delete(options?: AuthOptions): Promise<void> {
+    await this.app.request({
+      method: 'DELETE',
+      path: this.apiPath,
+      options,
+    });
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  mergeData(data: Record<string, any>): void {
+    merge(this.data, omit(data, ['ACL']));
+    if (data.ACL) {
+      this.data.ACL = data.ACL;
+    }
+  }
+
   toJSON(): Record<string, any> {
-    const data = LCObject.extractData(this);
-    data.objectId = this.objectId;
-    if (this.createdAt) {
-      data.createdAt = this.createdAt;
-    }
-    if (this.updatedAt) {
-      data.updatedAt = this.updatedAt;
-    }
-    return data;
+    return extractObjectData(this);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   toFullJSON(): Record<string, any> {
-    return lcEncode(this, { full: true });
-  }
-
-  mergeData(data: Partial<TData>): this {
-    merge(this.data, omit(data, ['objectId', 'createdAt', 'updatedAt', 'ACL']));
-    if (data.updatedAt) {
-      this.updatedAt = new Date(data.updatedAt);
-    }
-    return this;
+    return LCEncode(this.data, { full: true });
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types
-export function lcEncode(data: any, options?: { full?: boolean }): any {
-  if (!data) {
-    return data;
-  }
+export function omitReservedKeys(data: Record<string, any>): Record<string, any> {
+  return omit(data, ['objectId', 'createdAt', 'updatedAt']);
+}
 
-  if (data instanceof LCObjectRef) {
-    return data.toPointer();
-  }
-
-  if (data instanceof LCObject) {
-    if (!options?.full) {
+export function LCEncode(data: any, options?: { full?: boolean }): any {
+  if (data) {
+    if (data instanceof LCObjectRef) {
       return data.toPointer();
     }
-    const encoded = {
-      ...lcEncode(data.data, options),
-      __type: 'Object',
-      className: data.className,
-      objectId: data.objectId,
-    };
-    if (data.createdAt) {
-      encoded.createdAt = data.createdAt.toISOString();
+
+    if (data instanceof LCObject) {
+      if (!options?.full) {
+        return data.toPointer();
+      }
+      const encoded = {
+        ...LCEncode(data.data, options),
+        __type: 'Object',
+        className: data.className,
+        objectId: data.objectId,
+      };
+      if (isDate(data.data.createdAt)) {
+        encoded.createdAt = data.data.createdAt.toISOString();
+      }
+      if (isDate(data.data.updatedAt)) {
+        encoded.updatedAt = data.data.updatedAt.toISOString();
+      }
+      return encoded;
     }
-    if (data.updatedAt) {
-      encoded.updatedAt = data.updatedAt.toISOString();
+
+    if (isPlainObject(data)) {
+      const encoded: Record<string, any> = {};
+      Object.entries(data).forEach(([key, value]) => {
+        encoded[key] == LCEncode(value);
+      });
+      return encoded;
     }
-    return encoded;
+
+    if (Array.isArray(data)) {
+      return data.map((item) => LCEncode(item, options));
+    }
+
+    if (isDate(data)) {
+      return { __type: 'Date', iso: data.toISOString() };
+    }
+
+    if (data instanceof ACL) {
+      return data.toJSON();
+    }
   }
 
-  if (data instanceof ACL) {
-    return data.toJSON();
-  }
+  return data;
+}
 
-  if (isDate(data)) {
-    return { __type: 'Date', iso: data.toISOString() };
+export function LCDecode(app: App, data: any): any {
+  if (data) {
+    if (isPlainObject(data)) {
+      switch (data.__type) {
+        case 'Date':
+          return new Date(data.iso);
+        case 'Pointer':
+        case 'Object':
+        case 'File':
+          LCObject.fromJSON(app, data);
+      }
+      return mapObject(data, (value) => LCDecode(app, value));
+    }
+    if (Array.isArray(data)) {
+      return data.map((value) => LCDecode(app, value));
+    }
   }
+  return data;
+}
 
-  if (Array.isArray(data)) {
-    return data.map((item) => lcEncode(item, options));
+function extractObjectData(data: any): any {
+  if (data) {
+    if (data instanceof LCObject) {
+      return extractObjectData(data.data);
+    }
+
+    if (Array.isArray(data)) {
+      return data.map((item) => extractObjectData(item));
+    }
+
+    if (isPlainObject(data)) {
+      return mapObject(data, (value) => extractObjectData(value));
+    }
   }
-
-  if (isPlainObject(data)) {
-    return mapObject(data, (value) => lcEncode(value, options));
-  }
-
   return data;
 }

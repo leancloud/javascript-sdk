@@ -1,8 +1,7 @@
-import type { AppRequest, AuthOptions } from '../app';
+import type { App, AppRequest, AuthOptions } from '../app';
 import type { LiveQuery } from '../live-query';
-import { mustGetDefaultApp } from '../app/default-app';
 import { GeoPoint } from '../geo-point';
-import { LCObject } from '../object';
+import { LCDecode, LCObject } from '../object';
 import { assert } from '../utils';
 import { PluginManager } from '../plugin';
 import { ConditionBuilder, Condition, RegExpLike } from './condition-builder';
@@ -29,32 +28,13 @@ interface QueryOptions {
   returnACL?: boolean;
 }
 
-interface BeforeFind {
-  (this: Query, options: AuthOptions): void;
-}
-interface BeforeSubscribe {
-  (this: Query, options: AuthOptions): void;
-}
-interface BeforeDecodeObject {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (this: Query, data: any): void;
-}
-interface AfterDecodeObject<TObject extends LCObject> {
-  (this: Query<TObject>, object: TObject): TObject | void;
-}
-
-export class Query<TObject extends LCObject = LCObject> {
+export class Query {
   protected _condBuilder = new ConditionBuilder();
 
   private _options: QueryOptions = {};
   private _siblingOr: Query;
-  // hooks
-  private _beforeFind: BeforeFind[] = [];
-  private _beforeSubscribe: BeforeSubscribe[] = [];
-  private _beforeDecodeObject: BeforeDecodeObject[] = [];
-  private _afterDecodeObject: AfterDecodeObject<TObject>[] = [];
 
-  constructor(public className: string, public app = mustGetDefaultApp()) {}
+  constructor(public readonly app: App, public readonly className: string) {}
 
   /**
    * Constructs a {@link Query} that is the AND of the passed in queries.
@@ -78,14 +58,14 @@ export class Query<TObject extends LCObject = LCObject> {
 
     assert(queries.length > 1, 'Query.and require at least 2 queries');
     for (let i = 1; i < queries.length; ++i) {
+      assert(queries[i].app.appId === queries[0].app.appId, 'All queries must belongs to same App');
       assert(
         queries[i].className === queries[0].className,
         'All queries must belongs to same Class'
       );
-      assert(queries[i].app.appId === queries[0].app.appId, 'All queries must belongs to same App');
     }
 
-    const newQuery = new Query(queries[0].className, queries[0].app);
+    const newQuery = new Query(queries[0].app, queries[0].className);
     newQuery._condBuilder = ConditionBuilder.and(queries.map((q) => q.toJSON()));
     return newQuery;
   }
@@ -112,14 +92,14 @@ export class Query<TObject extends LCObject = LCObject> {
 
     assert(queries.length > 1, 'Query.or require at least 2 queries');
     for (let i = 1; i < queries.length; ++i) {
+      assert(queries[i].app.appId === queries[0].app.appId, 'All queries must belongs to same App');
       assert(
         queries[i].className === queries[0].className,
         'All queries must belongs to same Class'
       );
-      assert(queries[i].app.appId === queries[0].app.appId, 'All queries must belongs to same App');
     }
 
-    const newQuery = new Query(queries[0].className, queries[0].app);
+    const newQuery = new Query(queries[0].app, queries[0].className);
     newQuery._condBuilder = ConditionBuilder.or(queries.map((q) => q.toJSON()));
     return newQuery;
   }
@@ -128,7 +108,7 @@ export class Query<TObject extends LCObject = LCObject> {
     if (this._condBuilder.isEmpty()) {
       return this;
     }
-    const query = new Query(this.className, this.app);
+    const query = new Query(this.app, this.className);
     query._siblingOr = this;
     return query;
   }
@@ -176,7 +156,7 @@ export class Query<TObject extends LCObject = LCObject> {
     return query;
   }
 
-  limit(count: number): Query<TObject> {
+  limit(count: number): Query {
     const query = this._clone();
     query._options.limit = count;
     return query;
@@ -200,39 +180,20 @@ export class Query<TObject extends LCObject = LCObject> {
     return query;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types
-  decodeObject(data: any): TObject {
-    this._beforeDecodeObject.forEach((hook) => hook.call(this, data));
-    let object = this.app.decode(data, { type: 'Object', className: this.className });
-    this._afterDecodeObject.forEach((hook) => {
-      const obj = hook.call(this, object);
-      if (obj) {
-        object = obj;
-      }
-    });
-    return object;
-  }
-
-  async find(options?: AuthOptions): Promise<TObject[]> {
-    const _options = { ...options };
-    this._beforeFind.forEach((hook) => hook.call(this, _options));
-
-    const { results = [] } = (await this.app.request(this._makeRequest(_options))) as {
+  async find(options?: AuthOptions): Promise<LCObject[]> {
+    const { results = [] } = (await this.app.request(this._makeRequest(options))) as {
       results: Record<string, any>[];
     };
-    return results.map((result) => this.decodeObject(result));
+    return LCDecode(this.app, results);
   }
 
-  async first(options?: AuthOptions): Promise<TObject> {
-    const results = await this.limit(1).find(options);
-    return results.length ? results[0] : null;
+  async first(options?: AuthOptions): Promise<LCObject | null> {
+    const objects = await this.limit(1).find(options);
+    return objects.length ? objects[0] : null;
   }
 
   async count(options?: AuthOptions): Promise<number> {
-    const _options = { ...options };
-    this._beforeFind.forEach((hook) => hook.call(this, _options));
-
-    const req = this._makeRequest(_options);
+    const req = this._makeRequest(options);
     req.query.count = 1;
     req.query.limit = 0;
     const { count } = (await this.app.request(req)) as { count: number };
@@ -244,7 +205,7 @@ export class Query<TObject extends LCObject = LCObject> {
    *
    * @since 5.0.0
    */
-  where(key: string, condition: '==', value: unknown): Query<TObject>;
+  where(key: string, condition: '==', value: unknown): Query;
 
   /**
    * Add a constraint to the query that requires a particular key's value to be not equal to the provided value.
@@ -504,52 +465,19 @@ export class Query<TObject extends LCObject = LCObject> {
   subscribe(options?: AuthOptions): Promise<LiveQuery> {
     const liveQuery = PluginManager.plugins['LiveQuery'] as typeof LiveQuery;
     assert(liveQuery, 'Query#subscribe needs the LiveQuery plugin');
-
-    const _options = { ...options };
-    this._beforeSubscribe.forEach((hook) => hook.call(this, _options));
-
-    return liveQuery.subscribe(this, _options);
+    return liveQuery.subscribe(this, options);
   }
 
-  addHooks(hooks: {
-    beforeFind?: BeforeFind;
-    beforeSubscribe?: BeforeSubscribe;
-    beforeDecodeObject?: BeforeDecodeObject;
-    afterDecodeObject?: AfterDecodeObject<TObject>;
-  }): Query<TObject> {
-    const query = this._clone();
-    if (hooks.beforeFind) {
-      query._beforeFind.push(hooks.beforeFind);
-    }
-    if (hooks.beforeSubscribe) {
-      query._beforeSubscribe.push(hooks.beforeSubscribe);
-    }
-    if (hooks.beforeDecodeObject) {
-      query._beforeDecodeObject.push(hooks.beforeDecodeObject);
-    }
-    if (hooks.afterDecodeObject) {
-      query._afterDecodeObject.push(hooks.afterDecodeObject);
-    }
-    return query;
-  }
-
-  protected _clone(): Query<TObject> {
-    const query = new Query<TObject>(this.className, this.app);
+  protected _clone(): Query {
+    const query = new Query(this.app, this.className);
     this._fill(query);
     return query;
   }
 
   protected _fill(query: Query): void {
-    // conditions
     query._condBuilder = this._condBuilder.clone();
     query._options = cloneDeep(this._options);
     query._siblingOr = this._siblingOr;
-
-    // hooks
-    query._beforeFind = [...this._beforeFind];
-    query._beforeSubscribe = [...this._beforeSubscribe];
-    query._beforeDecodeObject = [...this._beforeDecodeObject];
-    query._afterDecodeObject = [...this._afterDecodeObject];
   }
 
   protected _makeRequest(options?: AuthOptions): AppRequest {

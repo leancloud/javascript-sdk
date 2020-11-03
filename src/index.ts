@@ -1,4 +1,4 @@
-export { App, init } from './app';
+export { App } from './app';
 export { use } from './plugin';
 export { debug } from './debug';
 export { setAdapters } from './adapters';
@@ -8,7 +8,6 @@ export { UserClass as User } from './user';
 export { RoleClass as Role } from './role';
 export { FileClass as File } from './file';
 export { StatusClass as Status } from './status';
-export { Friendship } from './friendship';
 
 export type { LCObject, LCObjectRef } from './object';
 export type { UserObject, UserObjectRef } from './user';

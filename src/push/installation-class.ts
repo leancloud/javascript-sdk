@@ -1,7 +1,7 @@
 import type { App } from '../app';
 import { KEY_INSTALLATION } from '../const';
 import { Class } from '../class';
-import { lcEncode, LCObject, LCObjectData, UpdateObjectOptions } from '../object';
+import { LCEncode, LCObject, LCObjectData, UpdateObjectOptions } from '../object';
 
 interface InstallationData extends LCObjectData {
   badge?: number;
@@ -15,19 +15,12 @@ interface InstallationData extends LCObjectData {
 }
 
 export class InstallationClass extends Class {
-  constructor(app?: App) {
-    super('_Installation', app);
+  constructor(app: App) {
+    super(app, '_Installation');
   }
 
-  protected get _apiPath(): string {
+  get apiPath(): string {
     return `/installations`;
-  }
-
-  static addOrUpdateCurrent(
-    data: InstallationData,
-    options?: UpdateObjectOptions
-  ): Promise<LCObject> {
-    return new InstallationClass().addOrUpdateCurrent(data, options);
   }
 
   async addOrUpdateCurrent(
@@ -36,13 +29,13 @@ export class InstallationClass extends Class {
   ): Promise<LCObject> {
     const encodedIns = await this.app.storage.getAsync(KEY_INSTALLATION);
     if (encodedIns) {
-      const ins = this.app.decode(JSON.parse(encodedIns));
+      const ins = LCObject.fromJSON(this.app, JSON.parse(encodedIns));
       return ins.update(data, options);
     }
     const ins = await this.add(data, options);
     await this.app.storage.setAsync(
       KEY_INSTALLATION,
-      JSON.stringify(lcEncode(ins, { full: true }))
+      JSON.stringify(LCEncode(ins, { full: true }))
     );
     return ins;
   }

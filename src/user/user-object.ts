@@ -1,23 +1,28 @@
 import type { App, AuthOptions } from '../app';
 import type { MiniAppAuthOptions } from './user-class';
-import type { RoleObject } from '../role';
-import { UpdateObjectOptions, LCObjectData, LCObjectRef, LCObject, lcEncode } from '../object';
+import {
+  UpdateObjectOptions,
+  LCObjectRef,
+  LCObject,
+  LCEncode,
+  LCDecode,
+  GetObjectOptions,
+  LCObjectData,
+} from '../object';
 import { Operation } from '../operation';
 import { assert } from '../utils';
 import { KEY_CURRENT_USER } from '../const';
-import { Query } from '../query';
 import { AdapterManager } from '../adapters';
 
-export interface CreateUserData extends LCObjectData {
+export interface SignUpData extends LCObjectData {
   username: string;
   password: string;
-  email: string;
-  mobilePhoneNumber: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  authData: Record<string, any>;
+  email?: string;
+  mobilePhoneNumber?: string;
+  authData?: Record<string, any>;
 }
 
-export interface UserData extends Omit<CreateUserData, 'password'> {
+export interface UserData extends LCObjectData {
   username: string;
   sessionToken: string;
   email: string;
@@ -45,23 +50,21 @@ export class CurrentUserManager {
     return this.persistAsync(user);
   }
 
-  static get(app: App): AuthedUser {
+  static get(app: App): AuthedUser | null {
     if (!app.currentUser) {
       const encodedUser = app.storage.get(KEY_CURRENT_USER);
       if (encodedUser) {
-        const user = app.decode(JSON.parse(encodedUser));
-        app.currentUser = AuthedUser.from(user);
+        app.currentUser = AuthedUser.fromJSON(app, JSON.parse(encodedUser));
       }
     }
     return app.currentUser || null;
   }
 
-  static async getAsync(app: App): Promise<AuthedUser> {
+  static async getAsync(app: App): Promise<AuthedUser | null> {
     if (!app.currentUser) {
       const encodedUser = await app.storage.getAsync(KEY_CURRENT_USER);
       if (encodedUser) {
-        const user = app.decode(JSON.parse(encodedUser));
-        app.currentUser = AuthedUser.from(user);
+        app.currentUser = AuthedUser.fromJSON(app, JSON.parse(encodedUser));
       }
     }
     return app.currentUser || null;
@@ -78,12 +81,12 @@ export class CurrentUserManager {
   }
 
   static persistAsync(user: AuthedUser): Promise<void> {
-    const encodedUser = lcEncode(user, { full: true });
+    const encodedUser = LCEncode(user, { full: true });
     return user.app.storage.setAsync(KEY_CURRENT_USER, JSON.stringify(encodedUser));
   }
 
   static persist(user: AuthedUser): void {
-    const encodedUser = lcEncode(user, { full: true });
+    const encodedUser = LCEncode(user, { full: true });
     user.app.storage.set(KEY_CURRENT_USER, JSON.stringify(encodedUser));
   }
 }
@@ -97,18 +100,33 @@ export class UserObjectRef extends LCObjectRef {
     return this.objectId;
   }
 
-  getRoles(): Promise<RoleObject[]> {
-    return new Query('_Role', this.app).where('users', '==', this).find() as Promise<RoleObject[]>;
+  async get(options?: GetObjectOptions): Promise<UserObject> {
+    return UserObject.fromLCObject(await super.get(options));
+  }
+
+  async update(data: Record<string, any>, options?: UpdateObjectOptions): Promise<UserObject> {
+    return UserObject.fromLCObject(await super.update(data, options));
   }
 }
 
-export class UserObject extends LCObject {
-  data: Partial<UserData>;
-
-  protected _ref: UserObjectRef;
-
+export class UserObject extends LCObject implements UserObjectRef {
   constructor(app: App, objectId: string) {
-    super(new UserObjectRef(app, objectId));
+    super(app, '_User', objectId);
+  }
+
+  static fromJSON(app: App, data: Record<string, any>): UserObject {
+    if (!data.objectId) {
+      throw new Error('The objectId not in data');
+    }
+    const user = new UserObject(app, data.objectId);
+    user.data = LCDecode(app, data);
+    return user;
+  }
+
+  static fromLCObject(object: LCObject): UserObject {
+    const user = new UserObject(object.app, object.objectId);
+    user.data = object.data;
+    return user;
   }
 
   get sessionToken(): string {
@@ -116,32 +134,46 @@ export class UserObject extends LCObject {
   }
 
   get aclKey(): string {
-    return this._ref.aclKey;
+    return this.objectId;
   }
 
   get username(): string {
     return this.data.username;
   }
 
-  getRoles(): Promise<RoleObject[]> {
-    return this._ref.getRoles();
+  async get(options?: GetObjectOptions): Promise<UserObject> {
+    return UserObject.fromLCObject(await super.get(options));
+  }
+
+  async update(data: Record<string, any>, options?: UpdateObjectOptions): Promise<UserObject> {
+    return UserObject.fromLCObject(await super.update(data, options));
   }
 }
 
 export class AuthedUser extends UserObject {
-  static from(user: UserObject): AuthedUser {
-    const authedUser = new AuthedUser(user.app, user.objectId);
-    authedUser.data = user.data;
-    authedUser.createdAt = user.createdAt;
-    authedUser.updatedAt = user.updatedAt;
-    return authedUser;
+  static fromJSON(app: App, data: Record<string, any>): AuthedUser {
+    if (!data.objectId) {
+      throw new Error('No objectId in data');
+    }
+    const user = new AuthedUser(app, data.objectId);
+    user.data = LCDecode(app, data);
+    return user;
+  }
+
+  static fromLCObject(object: LCObject): AuthedUser {
+    if (typeof object.data.sessionToken !== 'string') {
+      throw new Error('No sessionToken in object or it is not string');
+    }
+    const user = new AuthedUser(object.app, object.objectId);
+    user.data = object.data;
+    return user;
   }
 
   get sessionToken(): string {
     return this.data.sessionToken;
   }
 
-  get authData(): UserData['authData'] {
+  get authData(): Record<string, any> {
     return this.data.authData;
   }
 
@@ -161,7 +193,7 @@ export class AuthedUser extends UserObject {
     try {
       await this.app.request({
         method: 'GET',
-        path: `/users/me`,
+        path: '/users/me',
         options: { sessionToken: this.sessionToken },
       });
       return true;
@@ -230,7 +262,7 @@ export class AuthedUser extends UserObject {
     return this.update({ [`authData.${platform}`]: Operation.unset() });
   }
 
-  async signUp(data: Partial<CreateUserData>, options?: AuthOptions): Promise<AuthedUser> {
+  async signUp(data: SignUpData, options?: AuthOptions): Promise<AuthedUser> {
     if (!this.isAnonymous()) {
       throw new Error('The signUp method can only be invoked by an anonymous user');
     }
@@ -253,8 +285,17 @@ export class AuthedUser extends UserObject {
     return this.sessionToken;
   }
 
-  async update(data: Partial<UserData>, options?: UpdateObjectOptions): Promise<this> {
-    const user = AuthedUser.from((await super.update(data, options)) as UserObject);
+  async get(options?: GetObjectOptions): Promise<this> {
+    const user = await super.get(options);
+    this.mergeData(user.data);
+    if (this.isCurrent()) {
+      await CurrentUserManager.persistAsync(this);
+    }
+    return this;
+  }
+
+  async update(data: Record<string, any>, options?: UpdateObjectOptions): Promise<this> {
+    const user = await super.update(data, options);
     this.mergeData(user.data);
     if (this.isCurrent()) {
       await CurrentUserManager.persistAsync(this);

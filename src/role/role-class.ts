@@ -1,7 +1,6 @@
 import type { UserObject, UserObjectRef } from '../user';
 import type { ACL } from '../acl';
 import type { App } from '../app';
-import { mustGetDefaultApp } from '../app/default-app';
 import { Class } from '../class';
 import { RoleObjectRef, RoleObject } from './role-object';
 import { AddObjectOptions, LCObjectData } from '../object';
@@ -18,16 +17,8 @@ interface RoleDataToAdd extends LCObjectData {
  * @alias Role
  */
 export class RoleClass extends Class {
-  constructor(app?: App) {
-    super('_Role', app);
-  }
-
-  static object(id: string): RoleObjectRef {
-    return new RoleObjectRef(mustGetDefaultApp(), id);
-  }
-
-  static add(data: RoleDataToAdd, options?: AddObjectOptions): Promise<RoleObject> {
-    return new RoleClass().add(data, options);
+  constructor(app: App) {
+    super(app, '_Role');
   }
 
   object(id: string): RoleObjectRef {
@@ -35,7 +26,7 @@ export class RoleClass extends Class {
   }
 
   async add(data: RoleDataToAdd, options?: AddObjectOptions): Promise<RoleObject> {
-    const body: Record<string, unknown> = { ...data };
+    const body: Record<string, any> = { ...data };
     if (data.roles) {
       body.roles = Operation.addRelation(data.roles);
     }
@@ -48,6 +39,11 @@ export class RoleClass extends Class {
       body,
       options,
     });
-    return this.app.decode(json, { type: 'Object', className: this.className });
+    return RoleObject.fromJSON(this.app, json);
+  }
+
+  async getUsersRole(user: UserObjectRef): Promise<RoleObject[]> {
+    const objects = await this.where('users', '==', user).find();
+    return objects.map((object) => RoleObject.fromLCObject(object));
   }
 }

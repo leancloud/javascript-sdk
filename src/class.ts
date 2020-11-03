@@ -1,8 +1,8 @@
 import { Query } from './query';
-import { LCObjectRef, AddObjectOptions, removeReservedKeys, LCObject, lcEncode } from './object';
+import { LCObjectRef, AddObjectOptions, LCObject, LCEncode, omitReservedKeys } from './object';
 
 export class Class extends Query {
-  protected get _apiPath(): string {
+  get apiPath(): string {
     return `/classes/${this.className}`;
   }
 
@@ -20,14 +20,14 @@ export class Class extends Query {
    *
    * @since 5.0.0
    */
-  async add(data: Record<string, unknown>, options?: AddObjectOptions): Promise<LCObject> {
+  async add(data: Record<string, any>, options?: AddObjectOptions): Promise<LCObject> {
     const json = await this.app.request({
       method: 'POST',
-      path: this._apiPath,
-      body: lcEncode(removeReservedKeys(data)),
+      path: this.apiPath,
+      body: LCEncode(omitReservedKeys(data)),
       query: { fetchWhenSave: options?.fetch },
       options,
     });
-    return this.app.decode(json, { type: 'Object', className: this.className });
+    return LCObject.fromJSON(this.app, json, this.className);
   }
 }

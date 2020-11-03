@@ -1,11 +1,12 @@
-import type { UserObject, UserObjectRef } from '../user';
 import type { ACL } from '../acl';
+import { UserObject, UserObjectRef } from '../user';
 import {
   LCObject,
-  LCObjectData,
   LCObjectRef,
   GetObjectOptions,
   UpdateObjectOptions,
+  LCDecode,
+  LCObjectData,
 } from '../object';
 import { AuthOptions, App } from '../app';
 import { Query } from '../query';
@@ -15,19 +16,19 @@ export interface RoleData extends LCObjectData {
   ACL: ACL;
   name: string;
 }
-
-type UserSubject = UserObjectRef | UserObject;
-type RoleSubject = RoleObjectRef | RoleObject;
-
 export class RoleObjectRef extends LCObjectRef {
   constructor(app: App, objectId: string) {
     super(app, '_Role', objectId);
   }
 
-  async addUser(user: UserSubject | UserSubject[], options?: AuthOptions): Promise<void> {
+  get apiPath(): string {
+    return '/roles/' + this.objectId;
+  }
+
+  async addUser(user: UserObjectRef | UserObjectRef[], options?: AuthOptions): Promise<void> {
     await this.app.request({
       method: 'PUT',
-      path: `/roles/${this.objectId}`,
+      path: this.apiPath,
       body: {
         users: Operation.addRelation(user),
       },
@@ -35,10 +36,10 @@ export class RoleObjectRef extends LCObjectRef {
     });
   }
 
-  async addRole(role: RoleSubject | RoleSubject[], options?: AuthOptions): Promise<void> {
+  async addRole(role: RoleObjectRef | RoleObjectRef[], options?: AuthOptions): Promise<void> {
     await this.app.request({
       method: 'PUT',
-      path: `/roles/${this.objectId}`,
+      path: this.apiPath,
       body: {
         roles: Operation.addRelation(role),
       },
@@ -46,10 +47,10 @@ export class RoleObjectRef extends LCObjectRef {
     });
   }
 
-  async removeUser(user: UserSubject | UserSubject[], options?: AuthOptions): Promise<void> {
+  async removeUser(user: UserObjectRef | UserObjectRef[], options?: AuthOptions): Promise<void> {
     await this.app.request({
       method: 'PUT',
-      path: `/roles/${this.objectId}`,
+      path: this.apiPath,
       body: {
         users: Operation.removeRelation(user),
       },
@@ -57,10 +58,10 @@ export class RoleObjectRef extends LCObjectRef {
     });
   }
 
-  async removeRole(role: RoleSubject | RoleSubject[], options?: AuthOptions): Promise<void> {
+  async removeRole(role: RoleObjectRef | RoleObjectRef[], options?: AuthOptions): Promise<void> {
     await this.app.request({
       method: 'PUT',
-      path: `/roles/${this.objectId}`,
+      path: this.apiPath,
       body: {
         roles: Operation.removeRelation(role),
       },
@@ -69,38 +70,54 @@ export class RoleObjectRef extends LCObjectRef {
   }
 
   getUsersQuery(): Query {
-    return new Query('_User', this.app).where('$relatedTo', '==', { key: 'users', object: this });
+    return new Query(this.app, '_User').where('$relatedTo', '==', { key: 'users', object: this });
   }
 
   getRolesQuery(): Query {
-    return new Query('_Role', this.app).where('$relatedTo', '==', { key: 'roles', object: this });
+    return new Query(this.app, '_Role').where('$relatedTo', '==', { key: 'roles', object: this });
   }
 
   async getUsers(options?: AuthOptions): Promise<UserObject[]> {
-    return this.getUsersQuery().find(options) as Promise<UserObject[]>;
+    const objects = await this.getUsersQuery().find(options);
+    return objects.map((object) => UserObject.fromLCObject(object));
   }
 
   async getRoles(options?: AuthOptions): Promise<RoleObject[]> {
-    return this.getRolesQuery().find(options) as Promise<RoleObject[]>;
+    const objects = await this.getRolesQuery().find(options);
+    return objects.map((object) => RoleObject.fromLCObject(object));
   }
 
-  get(options?: GetObjectOptions): Promise<RoleObject> {
-    return super.get(options) as Promise<RoleObject>;
+  async get(options?: GetObjectOptions): Promise<RoleObject> {
+    return RoleObject.fromLCObject(await super.get(options));
   }
 
-  update(data: RoleData, options?: UpdateObjectOptions): Promise<RoleObject> {
-    return super.update(data, options) as Promise<RoleObject>;
+  async update(data: Record<string, any>, options?: UpdateObjectOptions): Promise<RoleObject> {
+    return RoleObject.fromLCObject(await super.update(data, options));
   }
 }
 
-export class RoleObject extends LCObject {
-  data: RoleData;
-
-  protected _ref: RoleObjectRef;
-
+export class RoleObject extends LCObject implements RoleObjectRef {
   constructor(app: App, objectId: string) {
     super(app, '_Role', objectId);
-    this._ref = new RoleObjectRef(app, objectId);
+  }
+
+  static fromLCObject(object: LCObject): RoleObject {
+    const role = new RoleObject(object.app, object.objectId);
+    role.data = object.data;
+    return role;
+  }
+
+  static fromJSON(app: App, data: Record<string, any>): RoleObject {
+    if (!data.objectId) {
+      throw new Error('No objectId in data');
+    }
+    const role = new RoleObject(app, data.objectId);
+    role.data = LCDecode(app, data);
+    return role;
+  }
+
+  get apiPath(): string {
+    return '/roles/' + this.objectId;
   }
 
   get name(): string {
@@ -111,43 +128,73 @@ export class RoleObject extends LCObject {
     return 'role:' + this.data.name;
   }
 
-  addUser(user: UserSubject | UserSubject[], options?: AuthOptions): Promise<void> {
-    return this._ref.addUser(user, options);
+  async addUser(user: UserObjectRef | UserObjectRef[], options?: AuthOptions): Promise<void> {
+    await this.app.request({
+      method: 'PUT',
+      path: this.apiPath,
+      body: {
+        users: Operation.addRelation(user),
+      },
+      options,
+    });
   }
 
-  addRole(role: RoleSubject | RoleSubject[], options?: AuthOptions): Promise<void> {
-    return this._ref.addRole(role, options);
+  async addRole(role: RoleObjectRef | RoleObjectRef[], options?: AuthOptions): Promise<void> {
+    await this.app.request({
+      method: 'PUT',
+      path: this.apiPath,
+      body: {
+        roles: Operation.addRelation(role),
+      },
+      options,
+    });
   }
 
-  removeUser(user: UserSubject | UserSubject[], options?: AuthOptions): Promise<void> {
-    return this._ref.removeUser(user, options);
+  async removeUser(user: UserObjectRef | UserObjectRef[], options?: AuthOptions): Promise<void> {
+    await this.app.request({
+      method: 'PUT',
+      path: this.apiPath,
+      body: {
+        users: Operation.removeRelation(user),
+      },
+      options,
+    });
   }
 
-  removeRole(role: RoleSubject | RoleSubject[], options?: AuthOptions): Promise<void> {
-    return this._ref.removeRole(role, options);
+  async removeRole(role: RoleObjectRef | RoleObjectRef[], options?: AuthOptions): Promise<void> {
+    await this.app.request({
+      method: 'PUT',
+      path: this.apiPath,
+      body: {
+        roles: Operation.removeRelation(role),
+      },
+      options,
+    });
   }
 
   getUsersQuery(): Query {
-    return this._ref.getUsersQuery();
+    return new Query(this.app, '_User').where('$relatedTo', '==', { key: 'users', object: this });
   }
 
   getRolesQuery(): Query {
-    return this._ref.getRolesQuery();
+    return new Query(this.app, '_Role').where('$relatedTo', '==', { key: 'roles', object: this });
   }
 
-  getUsers(options?: AuthOptions): Promise<UserObject[]> {
-    return this._ref.getUsers(options);
+  async getUsers(options?: AuthOptions): Promise<UserObject[]> {
+    const objects = await this.getUsersQuery().find(options);
+    return objects.map((object) => UserObject.fromLCObject(object));
   }
 
-  getRoles(options?: AuthOptions): Promise<RoleObject[]> {
-    return this._ref.getRoles(options);
+  async getRoles(options?: AuthOptions): Promise<RoleObject[]> {
+    const objects = await this.getRolesQuery().find(options);
+    return objects.map((object) => RoleObject.fromLCObject(object));
   }
 
-  get(options?: GetObjectOptions): Promise<RoleObject> {
-    return super.get(options) as Promise<RoleObject>;
+  async get(options?: GetObjectOptions): Promise<RoleObject> {
+    return RoleObject.fromLCObject(await super.get(options));
   }
 
-  update(data: RoleData, options?: UpdateObjectOptions): Promise<RoleObject> {
-    return super.update(data, options) as Promise<RoleObject>;
+  async update(data: Record<string, any>, options?: UpdateObjectOptions): Promise<RoleObject> {
+    return RoleObject.fromLCObject(await super.update(data, options));
   }
 }

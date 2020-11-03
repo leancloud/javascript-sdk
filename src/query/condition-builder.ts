@@ -3,7 +3,7 @@
 
 import { isEmpty, cloneDeep } from 'lodash';
 import { GeoPoint, GeoPointLike } from '../geo-point';
-import { lcEncode } from '../object';
+import { LCEncode } from '../object';
 
 export interface RegExpLike {
   source: string;
@@ -66,7 +66,7 @@ export class ConditionBuilder {
       this._where[key] = {};
     }
     delete this._where[key].$eq;
-    this._where[key][condition] = lcEncode(value);
+    this._where[key][condition] = LCEncode(value);
   }
 
   whereEqualTo(key: string, value: any): void {

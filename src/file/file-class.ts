@@ -1,5 +1,4 @@
 import type { App, AuthOptions } from '../app';
-import { mustGetDefaultApp } from '../app/default-app';
 import { Class } from '../class';
 import { HTTPResponse } from '../http';
 import { ACL } from '../acl';
@@ -81,20 +80,8 @@ export class FileClass extends Class {
     return '/files';
   }
 
-  constructor(app?: App) {
-    super('_File', app);
-  }
-
-  static object(id: string): FileObjectRef {
-    return new FileObjectRef(mustGetDefaultApp(), id);
-  }
-
-  static upload(name: string, data: unknown, options?: UploadOptions): Promise<FileObject> {
-    return new FileClass().upload(name, data, options);
-  }
-
-  static uploadWithURL(name: string, url: string, options?: UploadOptions): Promise<FileObject> {
-    return new FileClass().uploadWithURL(name, url, options);
+  constructor(app: App) {
+    super(app, '_File');
   }
 
   object(id: string): FileObjectRef {
@@ -124,10 +111,9 @@ export class FileClass extends Class {
       ...tokens,
       name,
       metaData,
+      createdAt: new Date(tokens.createdAt),
+      updatedAt: new Date(tokens.createdAt),
     };
-    file.createdAt = new Date(tokens.createdAt);
-    file.updatedAt = file.createdAt;
-    delete file.data.createdAt;
     return file;
   }
 

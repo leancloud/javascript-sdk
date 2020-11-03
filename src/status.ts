@@ -22,8 +22,8 @@ export class StatusQuery extends Query {
   private _sinceId: number;
   private _maxId: number;
 
-  constructor(app?: App) {
-    super('_Status', app);
+  constructor(app: App) {
+    super(app, '_Status');
   }
 
   whereStatusOwner(owner: UserObject | UserObjectRef | string): StatusQuery {
@@ -102,39 +102,6 @@ export class StatusQuery extends Query {
  * @alias Status
  */
 export class StatusClass extends StatusQuery {
-  static async sendToFollowers(
-    owner: AuthedUser,
-    data: Record<string, unknown>,
-    options?: StatusOptions
-  ): Promise<LCObject> {
-    return new StatusClass().sendToFollowers(owner, data, options);
-  }
-
-  static async sendToUser(
-    owner: AuthedUser,
-    target: UserObject | UserObjectRef | string,
-    data: Record<string, unknown>,
-    options?: StatusOptions
-  ): Promise<LCObject> {
-    return new StatusClass().sendToUser(owner, target, data, options);
-  }
-
-  static async deleteInboxStatus(
-    owner: AuthedUser,
-    messageId: number,
-    options?: StatusOptions
-  ): Promise<void> {
-    return new StatusClass().deleteInboxStatus(owner, messageId, options);
-  }
-
-  static async getUnreadCount(owner: AuthedUser, options?: StatusOptions): Promise<StatusCount> {
-    return new StatusClass().getUnreadCount(owner, options);
-  }
-
-  static async resetUnreadCount(owner: AuthedUser, options?: StatusOptions): Promise<void> {
-    return new StatusClass().resetUnreadCount(owner, options);
-  }
-
   async sendToFollowers(
     owner: AuthedUser,
     data: Record<string, unknown>,
@@ -158,7 +125,7 @@ export class StatusClass extends StatusQuery {
       },
       options: { ...options, sessionToken: owner.sessionToken },
     });
-    return this.app.decode(json, { className: '_Status' });
+    return LCObject.fromJSON(this.app, json, '_Status');
   }
 
   async sendToUser(
@@ -184,7 +151,7 @@ export class StatusClass extends StatusQuery {
       },
       options: { ...options, sessionToken: owner.sessionToken },
     });
-    return this.app.decode(json, { className: '_Status' });
+    return LCObject.fromJSON(this.app, json, '_Status');
   }
 
   async deleteInboxStatus(

@@ -1,20 +1,20 @@
 import type { App, AuthOptions } from '../app';
-import { mustGetDefaultApp } from '../app/default-app';
-import {
-  UserObject,
-  UserObjectRef,
-  CurrentUserManager,
-  UserData,
-  CreateUserData,
-  AuthedUser,
-} from './user-object';
+import { UserObject, UserObjectRef, CurrentUserManager, AuthedUser } from './user-object';
 import { v4 as uuid_v4 } from 'uuid';
 import { Class } from '../class';
-import { removeReservedKeys } from '../object';
 import { AdapterManager } from '../adapters';
 import { assert } from '../utils';
+import { LCEncode, LCObjectData, omitReservedKeys } from '../object';
 
-interface SignUpDataWithMobile extends Partial<CreateUserData> {
+interface SignUpData extends LCObjectData {
+  username: string;
+  password: string;
+  email?: string;
+  mobilePhoneNumber?: string;
+  authData?: Record<string, any>;
+}
+
+interface SignUpDataWithMobile extends Partial<SignUpData> {
   mobilePhoneNumber: string;
   smsCode: string;
 }
@@ -44,187 +44,23 @@ export interface MiniAppAuthOptions extends LoginWithAuthDataOptions {
  * @alias User
  */
 export class UserClass extends Class {
-  constructor(app?: App) {
-    super('_User', app);
+  constructor(app: App) {
+    super(app, '_User');
   }
 
   protected get _apiPath(): string {
     return `/users`;
   }
 
-  static object(id: string): UserObjectRef {
-    return new UserObjectRef(mustGetDefaultApp(), id);
-  }
-
-  static current(): AuthedUser {
-    return CurrentUserManager.get(mustGetDefaultApp());
-  }
-
-  static currentAsync(): Promise<AuthedUser> {
-    return CurrentUserManager.getAsync(mustGetDefaultApp());
-  }
-
-  static become(sessionToken: string, options?: AuthOptions): Promise<UserObject> {
-    return new UserClass(mustGetDefaultApp()).become(sessionToken, options);
-  }
-
-  static signUp(data: Partial<CreateUserData>, options?: AuthOptions): Promise<UserObject> {
-    return new UserClass(mustGetDefaultApp()).signUp(data, options);
-  }
-
-  static signUpOrLoginWithMobilePhone(
-    data: SignUpDataWithMobile,
-    options?: AuthOptions
-  ): Promise<UserObject> {
-    return new UserClass(mustGetDefaultApp()).signUpOrLoginWithMobilePhone(data, options);
-  }
-
-  static loginWithData(data: UserData, options?: AuthOptions): Promise<UserObject> {
-    return new UserClass(mustGetDefaultApp()).loginWithData(data, options);
-  }
-
-  static login(username: string, password: string, options?: AuthOptions): Promise<UserObject> {
-    return new UserClass(mustGetDefaultApp()).login(username, password, options);
-  }
-
-  static loginWithAuthData(
-    platform: string,
-    authData: Record<string, unknown>,
-    options?: LoginWithAuthDataOptions
-  ): Promise<UserObject> {
-    return new UserClass(mustGetDefaultApp()).loginWithAuthData(platform, authData, options);
-  }
-
-  static loginAnonymously(options?: AuthOptions): Promise<UserObject> {
-    return new UserClass(mustGetDefaultApp()).loginAnonymously(options);
-  }
-
-  static loginWithEmail(
-    email: string,
-    password: string,
-    options?: AuthOptions
-  ): Promise<UserObject> {
-    return new UserClass(mustGetDefaultApp()).loginWithEmail(email, password, options);
-  }
-
-  static loginWithMobilePhone(
-    mobilePhoneNumber: string,
-    password: string,
-    options?: AuthOptions
-  ): Promise<UserObject> {
-    return new UserClass(mustGetDefaultApp()).loginWithMobilePhone(
-      mobilePhoneNumber,
-      password,
-      options
-    );
-  }
-
-  static loginWithMobilePhoneSMSCode(
-    mobilePhoneNumber: string,
-    smsCode: string,
-    options?: AuthOptions
-  ): Promise<UserObject> {
-    return new UserClass(mustGetDefaultApp()).loginWithMobilePhoneSMSCode(
-      mobilePhoneNumber,
-      smsCode,
-      options
-    );
-  }
-
-  static loginWithAuthDataAndUnionId(
-    platform: string,
-    authData: Record<string, unknown>,
-    unionId: string,
-    options?: LoginWithAuthDataAndUnionIdOptions
-  ): Promise<UserObject> {
-    return new UserClass(mustGetDefaultApp()).loginWithAuthDataAndUnionId(
-      platform,
-      authData,
-      unionId,
-      options
-    );
-  }
-
-  static loginWithMiniApp(options?: MiniAppAuthOptions): Promise<UserObject> {
-    return new UserClass(mustGetDefaultApp()).loginWithMiniApp(options);
-  }
-
-  static logOut(): void {
-    new UserClass(mustGetDefaultApp()).logOut();
-  }
-
-  static logOutAsync(): Promise<void> {
-    return new UserClass(mustGetDefaultApp()).logOutAsync();
-  }
-
-  static requestEmailVerify(email: string, options?: AuthOptions): Promise<void> {
-    return new UserClass(mustGetDefaultApp()).requestEmailVerify(email, options);
-  }
-
-  static requestLoginSMSCode(
-    mobilePhoneNumber: string,
-    options?: AuthOptionsWithCaptchaToken
-  ): Promise<void> {
-    return new UserClass(mustGetDefaultApp()).requestLoginSMSCode(mobilePhoneNumber, options);
-  }
-
-  static requestMobilePhoneVerify(
-    mobilePhoneNumber: string,
-    options?: AuthOptionsWithCaptchaToken
-  ): Promise<void> {
-    return new UserClass(mustGetDefaultApp()).requestMobilePhoneVerify(mobilePhoneNumber, options);
-  }
-
-  static requestPasswordReset(email: string, options?: AuthOptions): Promise<void> {
-    return new UserClass(mustGetDefaultApp()).requestPasswordReset(email, options);
-  }
-
-  static requestPasswordResetBySMSCode(
-    mobilePhoneNumber: string,
-    options?: AuthOptionsWithCaptchaToken
-  ): Promise<void> {
-    return new UserClass(mustGetDefaultApp()).requestPasswordResetBySMSCode(
-      mobilePhoneNumber,
-      options
-    );
-  }
-
-  static resetPasswordBySMSCode(
-    code: string,
-    password: string,
-    options?: AuthOptions
-  ): Promise<void> {
-    return new UserClass(mustGetDefaultApp()).resetPasswordBySMSCode(code, password, options);
-  }
-
-  static verifyMobilePhone(code: string, options?: AuthOptions): Promise<void> {
-    return new UserClass(mustGetDefaultApp()).verifyMobilePhone(code, options);
-  }
-
-  static requestChangePhoneNumber(
-    mobilePhoneNumber: string,
-    options?: ChangePhoneNumberOptions
-  ): Promise<void> {
-    return new UserClass(mustGetDefaultApp()).requestChangePhoneNumber(mobilePhoneNumber, options);
-  }
-
-  static changePhoneNumber(
-    mobilePhoneNumber: string,
-    code: string,
-    options?: AuthOptions
-  ): Promise<void> {
-    return new UserClass(mustGetDefaultApp()).changePhoneNumber(mobilePhoneNumber, code, options);
-  }
-
   object(id: string): UserObjectRef {
     return new UserObjectRef(this.app, id);
   }
 
-  current(): UserObject {
+  current(): AuthedUser {
     return CurrentUserManager.get(this.app);
   }
 
-  currentAsync(): Promise<UserObject> {
+  currentAsync(): Promise<AuthedUser> {
     return CurrentUserManager.getAsync(this.app);
   }
 
@@ -238,12 +74,12 @@ export class UserClass extends Class {
     );
   }
 
-  async signUp(data: Partial<CreateUserData>, options?: AuthOptions): Promise<UserObject> {
+  async signUp(data: SignUpData, options?: AuthOptions): Promise<AuthedUser> {
     return this._decodeAndSetToCurrent(
       await this.app.request({
         method: 'POST',
         path: `/users`,
-        body: removeReservedKeys(data),
+        body: LCEncode(omitReservedKeys(data)),
         options,
       })
     );
@@ -252,23 +88,23 @@ export class UserClass extends Class {
   async signUpOrLoginWithMobilePhone(
     data: SignUpDataWithMobile,
     options?: AuthOptions
-  ): Promise<UserObject> {
+  ): Promise<AuthedUser> {
     return this._decodeAndSetToCurrent(
       await this.app.request({
         method: 'POST',
         path: `/usersByMobilePhone`,
-        body: removeReservedKeys(data),
+        body: LCEncode(omitReservedKeys(data)),
         options,
       })
     );
   }
 
-  async loginWithData(data: Partial<UserData>, options?: AuthOptions): Promise<UserObject> {
+  async loginWithData(data: Record<string, any>, options?: AuthOptions): Promise<AuthedUser> {
     return this._decodeAndSetToCurrent(
       await this.app.request({
         method: 'POST',
         path: `/login`,
-        body: removeReservedKeys(data),
+        body: LCEncode(omitReservedKeys(data)),
         options,
       })
     );
@@ -474,10 +310,9 @@ export class UserClass extends Class {
     });
   }
 
-  private async _decodeAndSetToCurrent(data: unknown): Promise<AuthedUser> {
-    const user = this.app.decode(data, { type: 'Object', className: '_User' });
-    const authedUser = AuthedUser.from(user);
-    await CurrentUserManager.setAsync(authedUser);
-    return authedUser;
+  private async _decodeAndSetToCurrent(data: Record<string, any>): Promise<AuthedUser> {
+    const user = AuthedUser.fromJSON(this.app, data);
+    await CurrentUserManager.setAsync(user);
+    return user;
   }
 }

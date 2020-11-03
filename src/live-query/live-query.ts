@@ -1,11 +1,9 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 import type { App, AuthOptions } from '../app';
 import type { Query } from '../query';
 import type { AppRequest } from '../app';
-import type { LCObject } from '../object';
 import type { PluginManager } from '../plugin';
 import type { debug as debug_ } from '../debug';
+import { LCObject } from '../object';
 import { Realtime, setAdapters, debug } from 'leancloud-realtime/core';
 import { LiveQueryPlugin } from 'leancloud-realtime-plugin-live-query';
 import { EventEmitter } from 'eventemitter3';
@@ -140,7 +138,7 @@ export class LiveQuery extends EventEmitter<LiveQueryListeners> {
   private _onMessage = (messages: Record<string, unknown>[]) => {
     messages.forEach((msg) => {
       if (msg.query_id === this._queryId) {
-        const obj = this._query.decodeObject(msg.object);
+        const obj = LCObject.fromJSON(this._app, msg.object);
         const event = msg.op as keyof LiveQueryListeners;
         const updatedKeys = msg.updatedKeys as string[];
         this.emit(event, obj, updatedKeys);

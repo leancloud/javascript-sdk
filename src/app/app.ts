@@ -1,17 +1,11 @@
 import { HTTP, HTTPRequest, RequestOptions } from '../http';
 import { AdapterManager } from '../adapters';
 import { NSStorage } from './storage';
-import { LCObject } from '../object';
 import { API_VERSION, KEY_CURRENT_USER, SDK_VERSION } from '../const';
 import { APIError } from './errors';
-import { assert, mapObject } from '../utils';
+import { assert } from '../utils';
 import { isCNApp, Router, Service } from './router';
-import { AuthedUser, UserObject } from '../user';
-import { isPlainObject, omit } from 'lodash';
-import { ACL } from '../acl';
-import { RoleObject } from '../role';
-import { FileObject } from '../file';
-import { getDefaultApp, setDefaultApp } from './default-app';
+import { AuthedUser } from '../user';
 
 interface AppConfig {
   appId: string;
@@ -34,23 +28,6 @@ export interface AppRequest extends Omit<HTTPRequest, 'url'> {
   path: string;
   service?: Service;
   options?: AuthOptions;
-}
-
-type ObjectType = 'Object' | 'Pointer' | 'File' | 'Date';
-
-interface DecodeObjectOptions {
-  type?: ObjectType;
-  className?: string;
-  objectId?: string;
-}
-
-/**
- * Initialize the default App. If multiple App is needed, instantiate {@link App}.
- *
- * @since 5.0.0
- */
-export function init(config: AppConfig): void {
-  setDefaultApp(new App(config));
 }
 
 export class App {
@@ -109,15 +86,6 @@ export class App {
     if (!this.serverURL) {
       this._router = new Router(this);
     }
-  }
-
-  /**
-   * Getter of the default App, throw an error if the default App is not {@link init initialized}.
-   *
-   * @since 5.0.0
-   */
-  static get default(): App {
-    return getDefaultApp();
   }
 
   /**
@@ -211,73 +179,6 @@ export class App {
     if (encodedUser) {
       return JSON.parse(encodedUser).sessionToken;
     }
-  }
-
-  /**
-   * @since 5.0.0
-   */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types
-  decode(data: any, options?: DecodeObjectOptions): any {
-    if (!data) {
-      return data;
-    }
-
-    const type = options?.type ?? (data.__type as ObjectType);
-
-    if (type === 'Date' && typeof data.iso === 'string') {
-      return new Date(data.iso);
-    }
-
-    if (type === 'Pointer' || type === 'Object') {
-      const className = options?.className ?? (data.className as string);
-      const objectId = options?.objectId ?? (data.objectId as string);
-      assert(className, 'Decode failed: no className');
-      assert(objectId, 'Decode failed: no objectId');
-
-      let object: LCObject;
-      switch (className) {
-        case '_User':
-          object = new UserObject(this, objectId);
-          break;
-        case '_Role':
-          object = new RoleObject(this, objectId);
-          break;
-        case '_File':
-          object = new FileObject(this, objectId);
-          break;
-        default:
-          object = new LCObject(this, className, objectId);
-      }
-
-      object.data = this.decode(
-        omit(data, ['__type', 'className', 'objectId', 'createdAt', 'updatedAt', 'ACL'])
-      );
-
-      if (data.createdAt) {
-        object.createdAt = new Date(data.createdAt);
-      }
-      if (data.updatedAt) {
-        object.updatedAt = new Date(data.updatedAt);
-      }
-      if (data.ACL) {
-        object.data.ACL = ACL.fromJSON(data.ACL);
-      }
-      return object;
-    }
-
-    if (type === 'File') {
-      return this.decode(data, { type: 'Pointer', className: '_File' });
-    }
-
-    if (Array.isArray(data)) {
-      return data.map((item) => this.decode(item));
-    }
-
-    if (isPlainObject(data)) {
-      return mapObject(data, (value) => this.decode(value));
-    }
-
-    return data;
   }
 }
 

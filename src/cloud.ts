@@ -1,5 +1,5 @@
 import { AuthOptions, App } from './app';
-import { lcEncode } from './object';
+import { LCDecode, LCEncode } from './object';
 
 interface RequestSMSCodeOptions extends AuthOptions {
   smsType?: string;
@@ -14,26 +14,6 @@ interface RequestSMSCodeOptions extends AuthOptions {
 
 export class Cloud {
   constructor(public app: App) {}
-
-  static requestSMSCode(mobilePhoneNumber: string, options?: RequestSMSCodeOptions): Promise<void> {
-    return new Cloud(App.default).requestSMSCode(mobilePhoneNumber, options);
-  }
-
-  static verifySMSCode(
-    mobilePhoneNumber: string,
-    smsCode: string,
-    options?: AuthOptions
-  ): Promise<void> {
-    return new Cloud(App.default).verifySMSCode(mobilePhoneNumber, smsCode, options);
-  }
-
-  static run(name: string, data?: unknown, options?: AuthOptions): Promise<any> {
-    return new Cloud(App.default).run(name, data, options);
-  }
-
-  static rpc(name: string, data?: unknown, options?: AuthOptions): Promise<any> {
-    return new Cloud(App.default).rpc(name, data, options);
-  }
 
   async requestSMSCode(mobilePhoneNumber: string, options?: RequestSMSCodeOptions): Promise<void> {
     await this.app.request({
@@ -72,7 +52,7 @@ export class Cloud {
       service: 'engine',
       method: 'POST',
       path: `/functions/${name}`,
-      body: lcEncode(data, { full: true }),
+      body: LCEncode(data, { full: true }),
       options,
     });
     return result;
@@ -83,9 +63,9 @@ export class Cloud {
       service: 'engine',
       method: 'POST',
       path: `/call/${name}`,
-      body: lcEncode(data, { full: true }),
+      body: LCEncode(data, { full: true }),
       options,
     });
-    return this.app.decode(result);
+    return LCDecode(this.app, result);
   }
 }

@@ -1,1 +1,1 @@
-export { App, AppRequest, AuthOptions, init } from './app';
+export { App, AppRequest, AuthOptions } from './app';

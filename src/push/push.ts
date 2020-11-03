@@ -19,10 +19,6 @@ export interface PushOptions extends AuthOptions {
 export class Push {
   constructor(public app: App) {}
 
-  static send(data: Record<string, unknown>, options?: PushOptions): Promise<void> {
-    return new Push(App.default).send(data, options);
-  }
-
   async send(data: Record<string, unknown>, options?: PushOptions): Promise<void> {
     if (options?.expirationTime && options?.expirationInterval) {
       throw new Error(`Both expirationTime and expirationInterval cannot be set`);

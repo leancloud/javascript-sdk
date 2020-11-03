@@ -1,7 +1,6 @@
 import { App, AuthOptions, AppRequest } from './app';
 import { LCObject } from './object';
 import { GeoPoint } from './geo-point';
-import { mustGetDefaultApp } from './app/default-app';
 
 interface SearchSortOrderOptions {
   mode?: 'min' | 'max' | 'sum' | 'avg';
@@ -20,7 +19,7 @@ interface SearchSortNearOptions {
 interface SearchResultRaw {
   sid: number;
   hits: number;
-  results: Record<string, unknown>[];
+  results: Record<string, any>[];
 }
 
 class SearchResult {
@@ -31,7 +30,7 @@ class SearchResult {
   constructor(private _app: App, raw: SearchResultRaw) {
     this.sid = raw.sid;
     this.hits = raw.hits ?? 0;
-    this.data = raw.results?.map((result) => this._app.decode(result, { type: 'Object' }));
+    this.data = raw.results?.map((result) => LCObject.fromJSON(this._app, result));
   }
 
   async next(options?: AuthOptions): Promise<SearchResult> {
@@ -78,9 +77,6 @@ export class SearchSortBuilder {
 }
 
 export class SearchQuery {
-  app: App;
-  className: string;
-
   private _q: string;
   private _skip: number;
   private _limit: number;
@@ -91,24 +87,7 @@ export class SearchQuery {
   private _order: string[] = [];
   private _sort: string;
 
-  constructor();
-  constructor(app: App);
-  constructor(className: string);
-  constructor(app: App, className: string);
-  constructor(arg1?: App | string, arg2?: string) {
-    if (arg1 instanceof App) {
-      this.app = arg1;
-    }
-    if (typeof arg1 === 'string') {
-      this.className = arg1;
-    }
-    if (this.app === undefined) {
-      this.app = mustGetDefaultApp();
-    }
-    if (this.className === undefined) {
-      this.className = arg2;
-    }
-  }
+  constructor(public readonly app: App, public readonly className?: string) {}
 
   queryString(q: string): SearchQuery {
     const query = this._clone();
