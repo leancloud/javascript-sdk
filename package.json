@@ -63,8 +63,8 @@
     "should": "^13.2.3",
     "ts-node": "^9.0.0",
     "tslib": "^2.0.3",
-    "typedoc": "^0.19.0",
-    "typedoc-plugin-sourcefile-url": "^1.0.6",
+    "typedoc": "^0.19.2",
+    "typedoc-neo-theme": "^1.0.10",
     "typescript": "^4.0.3"
   },
   "main": "dist/index.cjs.js",

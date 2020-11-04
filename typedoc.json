@@ -1,34 +1,7 @@
 {
-  "inputFiles": [
-    "src/app/app.ts",
-    "src/app/plugin.ts",
-    "src/app/log.ts",
-    "src/app/adapters.ts",
-    "src/storage/class.ts",
-    "src/storage/user-class.ts",
-    "src/storage/role-class.ts",
-    "src/storage/file-class.ts",
-    "src/storage/status.ts",
-    "src/storage/object.ts",
-    "src/storage/user.ts",
-    "src/storage/role.ts",
-    "src/storage/geo-point.ts",
-    "src/storage/query.ts",
-    "src/storage/search.ts",
-    "src/storage/acl.ts",
-    "src/storage/operation.ts",
-    "src/storage/captcha.ts",
-    "src/cloud/cloud.ts",
-    "src/push/push.ts",
-    "src/live-query/live-query.ts"
-  ],
-  "excludePrivate": true,
-  "excludeProtected": true,
-  "excludeNotExported": true,
-  "excludeExternals": true,
-  "includeVersion": true,
-  "stripInternal": true,
-  "mode": "file",
   "out": "docs",
-  "sourcefile-url-prefix": "https://github.com/leancloud/javascript-sdk/blob/v5/"
+  "theme": "node_modules/typedoc-neo-theme/bin/default",
+  "excludeExternals": true,
+  "excludePrivate": true,
+  "excludeNotExported": true
 }
