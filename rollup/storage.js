@@ -18,7 +18,15 @@ export default [
         entryFileNames: 'index.esm.js',
       },
     ],
-    external: ['debug', 'uuid', 'base64-arraybuffer', 'lodash'],
+    external: [
+      'debug',
+      'uuid',
+      'base64-arraybuffer',
+      'lodash',
+      'leancloud-realtime/core',
+      'leancloud-realtime-plugin-live-query',
+      'eventemitter3',
+    ],
     plugins: [
       typescript({
         rootDir: 'src',
@@ -31,15 +39,6 @@ export default [
     input: 'src/index.ts',
     output: {
       file: 'dist/lc.min.js',
-      format: 'umd',
-      name: 'LC',
-    },
-    plugins: [resolve({ browser: true }), typescript(), commonjs(), terser()],
-  },
-  {
-    input: 'src/entry/browser.ts',
-    output: {
-      file: 'dist/browser/lc.min.js',
       format: 'umd',
       name: 'LC',
     },
