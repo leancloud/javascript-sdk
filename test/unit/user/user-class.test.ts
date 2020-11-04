@@ -57,6 +57,15 @@ describe('UserClass', () => {
   });
 
   describe('#signUp', () => {
+    beforeEach(() => {
+      adapters.responses.push({
+        body: {
+          objectId: 'test-user-id',
+          sessionToken: 'test-session-token',
+        },
+      });
+    });
+
     it('should send POST request to /users', async () => {
       await _User.signUp({
         username: 'Tom',
