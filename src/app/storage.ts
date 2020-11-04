@@ -66,10 +66,10 @@ export class LocalStorage {
 }
 
 export class NSStorage {
-  constructor(private _namespace: string) {}
+  constructor(public readonly namespace: string) {}
 
   keyWithNamespace(key: string): string {
-    return this._namespace + ':' + key;
+    return this.namespace + ':' + key;
   }
 
   set(key: string, value: string): void {
