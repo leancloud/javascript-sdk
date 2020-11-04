@@ -16,7 +16,7 @@ export function deleteObjectKey(obj: unknown, key: string | string[]): void {
 
 export function mapObject(
   object: Record<string, unknown>,
-  iteratee: (value?: unknown, key?: string) => unknown
+  iteratee: (value: unknown, key: string) => void
 ): Record<string, unknown> {
   return transform(object, (result, value, key) => {
     if (typeof key === 'string') {
