@@ -47,7 +47,7 @@ export class Cloud {
     });
   }
 
-  async run(name: string, data?: unknown, options?: AuthOptions): Promise<any> {
+  async run(name: string, data?: any, options?: AuthOptions): Promise<any> {
     const { result } = await this.app.request({
       service: 'engine',
       method: 'POST',
@@ -58,7 +58,7 @@ export class Cloud {
     return result;
   }
 
-  async rpc(name: string, data?: unknown, options?: AuthOptions): Promise<any> {
+  async rpc(name: string, data?: any, options?: AuthOptions): Promise<any> {
     const { result } = await this.app.request({
       service: 'engine',
       method: 'POST',

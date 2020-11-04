@@ -9,9 +9,9 @@ export { RoleClass as Role } from './role';
 export { FileClass as File } from './file';
 export { StatusClass as Status } from './status';
 
-export type { LCObject, LCObjectRef } from './object';
-export type { UserObject, UserObjectRef } from './user';
-export type { RoleObject, RoleObjectRef } from './role';
+export { LCObject, LCObjectRef } from './object';
+export { UserObject, UserObjectRef } from './user';
+export { RoleObject, RoleObjectRef } from './role';
 
 export { GeoPoint } from './geo-point';
 

@@ -123,7 +123,7 @@ describe('Cloud', function () {
       });
       const result = (await cloud.rpc('test-rpc-name')) as LCObject;
       result.should.instanceOf(LCObject);
-      result.data.should.eql({ key: 'value' });
+      result.data.should.eql({ objectId: 'test-id', key: 'value' });
     });
   });
 });

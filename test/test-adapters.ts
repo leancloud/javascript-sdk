@@ -3,7 +3,7 @@
 import { RequestOptions, Response } from '@leancloud/adapter-types';
 import { HTTPRequest, HTTPResponse } from '../src/http';
 import { unmarshalURL } from '../src/utils/url';
-import { AdapterManager } from '../src/adapters';
+import { setAdapters } from '../src/adapters';
 
 class TestStorage {
   private static _map = new Map<string, string>();
@@ -53,8 +53,6 @@ class TestAdapter {
   }
 }
 
-export const adapters = TestAdapter;
+setAdapters(TestAdapter);
 
-if (!AdapterManager.isSet) {
-  AdapterManager.set(adapters);
-}
+export const adapters = TestAdapter;

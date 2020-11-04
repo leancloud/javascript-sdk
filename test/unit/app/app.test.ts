@@ -3,7 +3,6 @@ import { adapters } from '../../test-adapters';
 import { App } from '../../../src/app';
 import { AuthedUser } from '../../../src/user';
 import { KEY_CURRENT_USER } from '../../../src/const';
-import { LCObject } from '../../../src/object';
 
 describe('App', () => {
   const app = new App({
@@ -127,83 +126,6 @@ describe('App', () => {
           code: 123,
           error: 'error message',
         });
-    });
-  });
-
-  describe('#decode', function () {
-    describe('.decode', function () {
-      it('Pointer', function () {
-        const data = {
-          __type: 'Pointer',
-          className: 'Test',
-          objectId: 'test-object-id',
-          key: 'value',
-          createdAt: '2020-10-21T08:45:34.937Z',
-          updatedAt: '2020-10-22T08:45:34.937Z',
-        };
-        const obj = app.decode(data) as LCObject;
-        obj.should.instanceOf(LCObject);
-        obj.app.should.eql(app);
-        obj.className.should.eql(data.className);
-        obj.objectId.should.eql(data.objectId);
-        obj.data.should.eql({ key: 'value' });
-        obj.createdAt.should.instanceOf(Date);
-        obj.updatedAt.should.instanceOf(Date);
-        obj.createdAt.toISOString().should.eql(data.createdAt);
-        obj.updatedAt.toISOString().should.eql(data.updatedAt);
-      });
-
-      it('LCObject', function () {
-        const data = {
-          __type: 'Object',
-          className: 'Test',
-          objectId: 'test-object-id',
-          key: 'value',
-          createdAt: '2020-10-21T08:45:34.937Z',
-          updatedAt: '2020-10-22T08:45:34.937Z',
-        };
-        const obj = app.decode(data) as LCObject;
-        obj.should.instanceOf(LCObject);
-        obj.app.should.eql(app);
-        obj.className.should.eql(data.className);
-        obj.objectId.should.eql(data.objectId);
-        obj.data.should.eql({ key: 'value' });
-        obj.createdAt.should.instanceOf(Date);
-        obj.updatedAt.should.instanceOf(Date);
-        obj.createdAt.toISOString().should.eql(data.createdAt);
-        obj.updatedAt.toISOString().should.eql(data.updatedAt);
-      });
-
-      it('Date', function () {
-        const data = { __type: 'Date', iso: '2020-09-02T09:09:09.244Z' };
-        const date = app.decode(data) as Date;
-        date.should.instanceOf(Date);
-        date.toISOString().should.eql(data.iso);
-      });
-
-      it('should decode data in an array', function () {
-        const data = { __type: 'Date', iso: '2020-09-02T09:09:09.244Z' };
-        const [date1, [date2]] = app.decode([data, [data]]) as [Date, [Date]];
-        [date1, date2].forEach((date) => {
-          date.should.instanceOf(Date);
-          date.toISOString().should.eql(data.iso);
-        });
-      });
-
-      it('should decode data in a object', function () {
-        const data = { __type: 'Date', iso: '2020-09-02T09:09:09.244Z' };
-        const {
-          date1,
-          obj: { date2 },
-        } = app.decode({ date1: data, obj: { date2: data } }) as {
-          date1: Date;
-          obj: { date2: Date };
-        };
-        [date1, date2].forEach((date) => {
-          date.should.instanceOf(Date);
-          date.toISOString().should.eql(data.iso);
-        });
-      });
     });
   });
 });

@@ -5,6 +5,22 @@ import { debug as d } from 'debug';
 
 const debug = d('LC:localStorage');
 
+function mustGetStorage(): AdapterStorage {
+  const { storage } = getAdapters();
+  if (!storage) {
+    throw new Error('The storage adapter is not set');
+  }
+  return storage;
+}
+
+function mustGetSyncStorage(): SyncStorage {
+  const storage = mustGetStorage();
+  if (storage.async) {
+    throw new Error('Current platform provides an async storage, please use async method instead');
+  }
+  return storage as SyncStorage;
+}
+
 export class LocalStorage {
   static keyWithNamespace(key: string): string {
     return LOCAL_STORAGE_NAMESPACE + ':' + key;
@@ -12,56 +28,40 @@ export class LocalStorage {
 
   static set(key: string, value: string): void {
     key = this.keyWithNamespace(key);
-    this._mustGetSyncStorage().setItem(key, value);
+    mustGetSyncStorage().setItem(key, value);
     debug('set', { key, value });
   }
 
   static get(key: string): string | null {
     key = this.keyWithNamespace(key);
-    const value = this._mustGetSyncStorage().getItem(key) ?? null;
+    const value = mustGetSyncStorage().getItem(key) ?? null;
     debug('get', { key, value });
     return value;
   }
 
   static delete(key: string): void {
     key = this.keyWithNamespace(key);
-    this._mustGetSyncStorage().removeItem(key);
+    mustGetSyncStorage().removeItem(key);
     debug('delete', key);
   }
 
   static async setAsync(key: string, value: string): Promise<void> {
     key = this.keyWithNamespace(key);
-    await this._mustGetStorage().setItem(key, value);
+    await mustGetStorage().setItem(key, value);
     debug('set', { key, value });
   }
 
   static async getAsync(key: string): Promise<string | null> {
     key = this.keyWithNamespace(key);
-    const value = (await this._mustGetStorage().getItem(key)) ?? null;
+    const value = (await mustGetStorage().getItem(key)) ?? null;
     debug('get', { key, value });
     return value;
   }
 
   static async deleteAsync(key: string): Promise<void> {
     key = this.keyWithNamespace(key);
-    await this._mustGetStorage().removeItem(key);
+    await mustGetStorage().removeItem(key);
     debug('delete', key);
-  }
-
-  private static _mustGetStorage(): AdapterStorage {
-    const { storage } = getAdapters();
-    if (!storage) {
-      throw new Error('The storage adapter is not set');
-    }
-    return storage;
-  }
-
-  private static _mustGetSyncStorage(): SyncStorage {
-    const storage = this._mustGetStorage();
-    if (storage.async) {
-      throw new Error('The adapters provides an async storage, please use async method instead');
-    }
-    return storage as SyncStorage;
   }
 }
 

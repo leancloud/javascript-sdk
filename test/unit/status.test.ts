@@ -10,11 +10,11 @@ const app = new App({
   serverURL: 'test-server-url',
 });
 
-describe('StatusQuery', function () {
+describe('StatusQuery', () => {
   const query = new StatusQuery(app);
 
-  describe('#whereStatusOwner', function () {
-    it('should accept string id param', async function () {
+  describe('#whereStatusOwner', () => {
+    it('should accept string id param', async () => {
       await query.whereStatusOwner('test-user-id').find();
       const req = adapters.requests.pop();
       JSON.parse(req.query.where as string).should.eql({
@@ -170,8 +170,9 @@ describe('StatusClass', () => {
     it("should use owner's sessionToken", async () => {
       const currentUser = new UserObject(app, '');
       currentUser.data = { sessionToken: 'current-user-session' };
-      const owner = new AuthedUser(null, '');
+      const owner = new AuthedUser(null, 'user-id');
       owner.data = { sessionToken: 'owner-session' };
+      adapters.responses.push({ body: { objectId: 'test-status-id' } });
       await Status.sendToFollowers(owner, {});
       const req = adapters.requests.pop();
       req.header['X-LC-Session'].should.eql(owner.sessionToken);
@@ -237,6 +238,7 @@ describe('StatusClass', () => {
       currentUser.data = { sessionToken: 'current-user-session' };
       const owner = new AuthedUser(null, '');
       owner.data = { sessionToken: 'owner-session' };
+      adapters.responses.push({ body: { objectId: 'test-status-id' } });
       await Status.sendToUser(owner, new UserObject(null, ''), {});
       const req = adapters.requests.pop();
       req.header['X-LC-Session'].should.eql(owner.sessionToken);

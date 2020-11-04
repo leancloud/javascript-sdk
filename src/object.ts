@@ -6,6 +6,8 @@ import { ACL } from './acl';
 
 export interface LCObjectData extends Record<string, any> {
   ACL?: ACL;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface AddObjectOptions extends AuthOptions {
@@ -87,7 +89,7 @@ export class LCObjectRef {
 }
 
 export class LCObject implements LCObjectRef {
-  data: Record<string, any>;
+  data: LCObjectData;
 
   constructor(
     public readonly app: App,
@@ -96,8 +98,21 @@ export class LCObject implements LCObjectRef {
   ) {}
 
   static fromJSON(app: App, data: Record<string, any>, className?: string): LCObject {
+    if (!className && !data.className) {
+      throw new Error('The className is missing in the data');
+    }
+    if (!data.objectId) {
+      throw new Error('The objectId is missing in the data');
+    }
+
     const object = new LCObject(app, className ?? data.className, data.objectId);
-    object.data = LCDecode(app, data);
+    object.data = LCDecode(app, omit(data, ['__type', 'className']));
+    if (typeof data.createdAt === 'string') {
+      object.data.createdAt = new Date(data.createdAt);
+    }
+    if (typeof data.updatedAt === 'string') {
+      object.data.updatedAt = new Date(data.updatedAt);
+    }
     return object;
   }
 
@@ -198,11 +213,7 @@ export function LCEncode(data: any, options?: { full?: boolean }): any {
     }
 
     if (isPlainObject(data)) {
-      const encoded: Record<string, any> = {};
-      Object.entries(data).forEach(([key, value]) => {
-        encoded[key] == LCEncode(value);
-      });
-      return encoded;
+      return mapObject(data, (value) => LCEncode(value));
     }
 
     if (Array.isArray(data)) {
@@ -230,7 +241,7 @@ export function LCDecode(app: App, data: any): any {
         case 'Pointer':
         case 'Object':
         case 'File':
-          LCObject.fromJSON(app, data);
+          return LCObject.fromJSON(app, data);
       }
       return mapObject(data, (value) => LCDecode(app, value));
     }

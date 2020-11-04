@@ -5,7 +5,6 @@ import {
   LCObjectRef,
   LCObject,
   LCEncode,
-  LCDecode,
   GetObjectOptions,
   LCObjectData,
 } from '../object';
@@ -114,19 +113,14 @@ export class UserObject extends LCObject implements UserObjectRef {
     super(app, '_User', objectId);
   }
 
-  static fromJSON(app: App, data: Record<string, any>): UserObject {
-    if (!data.objectId) {
-      throw new Error('The objectId not in data');
-    }
-    const user = new UserObject(app, data.objectId);
-    user.data = LCDecode(app, data);
-    return user;
-  }
-
   static fromLCObject(object: LCObject): UserObject {
     const user = new UserObject(object.app, object.objectId);
     user.data = object.data;
     return user;
+  }
+
+  static fromJSON(app: App, data: Record<string, any>): UserObject {
+    return this.fromLCObject(LCObject.fromJSON(app, data, '_User'));
   }
 
   get sessionToken(): string {
@@ -151,15 +145,6 @@ export class UserObject extends LCObject implements UserObjectRef {
 }
 
 export class AuthedUser extends UserObject {
-  static fromJSON(app: App, data: Record<string, any>): AuthedUser {
-    if (!data.objectId) {
-      throw new Error('No objectId in data');
-    }
-    const user = new AuthedUser(app, data.objectId);
-    user.data = LCDecode(app, data);
-    return user;
-  }
-
   static fromLCObject(object: LCObject): AuthedUser {
     if (typeof object.data.sessionToken !== 'string') {
       throw new Error('No sessionToken in object or it is not string');
@@ -167,6 +152,10 @@ export class AuthedUser extends UserObject {
     const user = new AuthedUser(object.app, object.objectId);
     user.data = object.data;
     return user;
+  }
+
+  static fromJSON(app: App, data: Record<string, any>): AuthedUser {
+    return this.fromLCObject(LCObject.fromJSON(app, data, '_User'));
   }
 
   get sessionToken(): string {

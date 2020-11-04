@@ -10,7 +10,7 @@ describe('Query', function () {
     appKey: 'test-app-key',
     serverURL: 'test-server-url',
   });
-  const Test = new Query('Test', app);
+  const Test = new Query(app, 'Test');
 
   describe('#select', () => {
     it('should accept string[] argument', async () => {

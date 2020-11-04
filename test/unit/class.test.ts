@@ -10,7 +10,7 @@ describe('Class', function () {
     appKey: 'test-app-key',
     serverURL: 'test-server-url',
   });
-  const Test = new Class('Test', app);
+  const Test = new Class(app, 'Test');
 
   describe('#object', function () {
     it('should return a LCObjectRef', function () {
@@ -73,7 +73,10 @@ describe('Class', function () {
       obj.should.instanceOf(LCObject);
       obj.className.should.eql('Test');
       obj.objectId.should.eql('test-object-id');
-      obj.data.should.eql({ key: 'value' });
+      obj.data.should.eql({
+        objectId: 'test-object-id',
+        key: 'value',
+      });
     });
   });
 });

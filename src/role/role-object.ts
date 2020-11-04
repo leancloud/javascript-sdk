@@ -5,7 +5,6 @@ import {
   LCObjectRef,
   GetObjectOptions,
   UpdateObjectOptions,
-  LCDecode,
   LCObjectData,
 } from '../object';
 import { AuthOptions, App } from '../app';
@@ -108,12 +107,7 @@ export class RoleObject extends LCObject implements RoleObjectRef {
   }
 
   static fromJSON(app: App, data: Record<string, any>): RoleObject {
-    if (!data.objectId) {
-      throw new Error('No objectId in data');
-    }
-    const role = new RoleObject(app, data.objectId);
-    role.data = LCDecode(app, data);
-    return role;
+    return this.fromLCObject(super.fromJSON(app, data, '_Role'));
   }
 
   get apiPath(): string {

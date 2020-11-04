@@ -21,8 +21,16 @@ describe('UserClass', () => {
   });
 
   describe('#become', () => {
+    beforeEach(() => {
+      adapters.responses.push({
+        body: {
+          objectId: 'test-user-id',
+          sessionToken: 'test-session-token',
+        },
+      });
+    });
+
     it('should send GET request to /users/me', async () => {
-      adapters.responses.push({ body: { objectId: 'test-user-id' } });
       await _User.become('test-session-token');
       const req = adapters.requests.pop();
       req.method.should.eql('GET');
@@ -30,14 +38,12 @@ describe('UserClass', () => {
     });
 
     it('should use specified sessionToken', async () => {
-      adapters.responses.push({ body: { objectId: 'test-user-id' } });
       await _User.become('test-session-token');
       const req = adapters.requests.pop();
       req.header['X-LC-Session'].should.eql('test-session-token');
     });
 
     it('should decode response to a UserObject', async () => {
-      adapters.responses.push({ body: { objectId: 'test-user-id' } });
       const user = await _User.become('test-session-token');
       user.should.instanceOf(UserObject);
       user.objectId.should.eql('test-user-id');
@@ -45,7 +51,6 @@ describe('UserClass', () => {
     });
 
     it('should set currentUser', async () => {
-      adapters.responses.push({ body: { objectId: 'test-user-id' } });
       const user = await _User.become('test-session-token');
       user.should.eql(_User.current());
     });
@@ -53,28 +58,37 @@ describe('UserClass', () => {
 
   describe('#signUp', () => {
     it('should send POST request to /users', async () => {
-      adapters.responses.push({ body: { objectId: 'test-user-id' } });
-      await _User.signUp({});
+      await _User.signUp({
+        username: 'Tom',
+        password: 'cat!@#123',
+      });
       const req = adapters.requests.pop();
       req.method.should.eql('POST');
       req.url.should.endWith('/users');
     });
 
     it('should remove reserved keys', async () => {
-      adapters.responses.push({ body: { objectId: 'test-user-id' } });
       await _User.signUp({
         objectId: '-',
         createdAt: '-',
         updatedAt: '-',
-      });
+      } as any);
       const req = adapters.requests.pop();
       req.body.should.eql({});
     });
   });
 
   describe('#signUpOrLoginWithMobilePhone', () => {
+    beforeEach(() => {
+      adapters.responses.push({
+        body: {
+          objectId: 'test-user-id',
+          sessionToken: 'test-session-token',
+        },
+      });
+    });
+
     it('should send POST request to /usersByMobilePhone', async () => {
-      adapters.responses.push({ body: { objectId: 'test-user-id' } });
       await _User.signUpOrLoginWithMobilePhone({
         mobilePhoneNumber: 'test-phone',
         smsCode: 'test-sms-code',
@@ -85,22 +99,29 @@ describe('UserClass', () => {
     });
 
     it('should remove reserved keys', async () => {
-      adapters.responses.push({ body: { objectId: 'test-user-id' } });
       await _User.signUpOrLoginWithMobilePhone({
         mobilePhoneNumber: 'test-phone',
         smsCode: 'test-sms-code',
-        objectId: '-',
-        createdAt: '-',
-        updatedAt: '-',
-      });
+        objectId: 'to-be-removed',
+        createdAt: 'to-be-removed',
+        updatedAt: 'to-be-removed',
+      } as any);
       const req = adapters.requests.pop();
       req.body.should.eql({ mobilePhoneNumber: 'test-phone', smsCode: 'test-sms-code' });
     });
   });
 
   describe('#logInWithData', () => {
+    beforeEach(() => {
+      adapters.responses.push({
+        body: {
+          objectId: 'test-user-id',
+          sessionToken: 'test-session-token',
+        },
+      });
+    });
+
     it('should send POST request to /login', async () => {
-      adapters.responses.push({ body: { objectId: 'test-user-id' } });
       await _User.loginWithData({});
       const req = adapters.requests.pop();
       req.method.should.eql('POST');
@@ -108,7 +129,6 @@ describe('UserClass', () => {
     });
 
     it('should remove reserved keys', async () => {
-      adapters.responses.push({ body: { objectId: 'test-user-id' } });
       await _User.loginWithData({});
       const req = adapters.requests.pop();
       req.body.should.eql({});
@@ -116,8 +136,16 @@ describe('UserClass', () => {
   });
 
   describe('#logInWithAuthData', () => {
+    beforeEach(() => {
+      adapters.responses.push({
+        body: {
+          objectId: 'test-user-id',
+          sessionToken: 'test-session-token',
+        },
+      });
+    });
+
     it('should send POST request to /users', async () => {
-      adapters.responses.push({ body: { objectId: 'test-user-id' } });
       await _User.loginWithAuthData('test-platform', { key: 'value' });
       const req = adapters.requests.pop();
       req.method.should.eql('POST');
@@ -125,7 +153,6 @@ describe('UserClass', () => {
     });
 
     it('check data and options', async () => {
-      adapters.responses.push({ body: { objectId: 'test-user-id' } });
       await _User.loginWithAuthData('test-platform', { key: 'value' }, { failOnNotExist: true });
       const req = adapters.requests.pop();
       req.body.should.eql({

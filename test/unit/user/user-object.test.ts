@@ -3,7 +3,7 @@ import { adapters } from '../../test-adapters';
 import { App } from '../../../src/app';
 import { UserObject, UserObjectRef, CurrentUserManager, AuthedUser } from '../../../src/user';
 import { KEY_CURRENT_USER } from '../../../src/const';
-import { lcEncode } from '../../../src/object';
+import { LCEncode } from '../../../src/object';
 
 const app = new App({
   appId: 'test-app-id',
@@ -30,9 +30,12 @@ describe('CurrentUser', () => {
       app.storage.delete(KEY_CURRENT_USER);
       app.currentUser = null;
       const user = new AuthedUser(app, 'test-user-id');
-      user.data = { key: 'value' };
-      app.storage.set(KEY_CURRENT_USER, JSON.stringify(lcEncode(user, { full: true })));
-      CurrentUserManager.get(app).data.should.eql(user.data);
+      user.data = {
+        key: 'value',
+        sessionToken: 'test-session-token',
+      };
+      app.storage.set(KEY_CURRENT_USER, JSON.stringify(LCEncode(user, { full: true })));
+      CurrentUserManager.get(app).data.should.containEql(user.data);
     });
 
     it('should get user data into app#currentUser', function () {
@@ -65,7 +68,7 @@ describe('CurrentUser', () => {
       const user = new AuthedUser(app, 'test-user-id');
       user.data = { key: 'value' };
       CurrentUserManager.persist(user);
-      app.storage.get(KEY_CURRENT_USER).should.eql(JSON.stringify(lcEncode(user, { full: true })));
+      app.storage.get(KEY_CURRENT_USER).should.eql(JSON.stringify(LCEncode(user, { full: true })));
     });
   });
 });
@@ -186,7 +189,7 @@ describe('AuthedUser', () => {
     it('should throw error when user is not anonymous', function () {
       const user = new AuthedUser(app, 'test-user-id');
       user.data = { sessionToken: 'test-session-token' };
-      return user.signUp({}).should.rejected();
+      return user.signUp({} as any).should.rejected();
     });
 
     it('should remove anonymous id when user is current', async function () {
