@@ -6,10 +6,10 @@ import {
   GetObjectOptions,
   UpdateObjectOptions,
   LCObjectData,
+  op,
 } from '../object';
 import { AuthOptions, App } from '../app';
 import { Query } from '../query';
-import { Operation } from '../operation';
 
 export interface RoleData extends LCObjectData {
   ACL: ACL;
@@ -29,7 +29,7 @@ export class RoleObjectRef extends LCObjectRef {
       method: 'PUT',
       path: this.apiPath,
       body: {
-        users: Operation.addRelation(user),
+        users: op.addRelation(user),
       },
       options,
     });
@@ -40,7 +40,7 @@ export class RoleObjectRef extends LCObjectRef {
       method: 'PUT',
       path: this.apiPath,
       body: {
-        roles: Operation.addRelation(role),
+        roles: op.addRelation(role),
       },
       options,
     });
@@ -51,7 +51,7 @@ export class RoleObjectRef extends LCObjectRef {
       method: 'PUT',
       path: this.apiPath,
       body: {
-        users: Operation.removeRelation(user),
+        users: op.removeRelation(user),
       },
       options,
     });
@@ -62,7 +62,7 @@ export class RoleObjectRef extends LCObjectRef {
       method: 'PUT',
       path: this.apiPath,
       body: {
-        roles: Operation.removeRelation(role),
+        roles: op.removeRelation(role),
       },
       options,
     });
@@ -127,7 +127,7 @@ export class RoleObject extends LCObject implements RoleObjectRef {
       method: 'PUT',
       path: this.apiPath,
       body: {
-        users: Operation.addRelation(user),
+        users: op.addRelation(user),
       },
       options,
     });
@@ -138,7 +138,7 @@ export class RoleObject extends LCObject implements RoleObjectRef {
       method: 'PUT',
       path: this.apiPath,
       body: {
-        roles: Operation.addRelation(role),
+        roles: op.addRelation(role),
       },
       options,
     });
@@ -149,7 +149,7 @@ export class RoleObject extends LCObject implements RoleObjectRef {
       method: 'PUT',
       path: this.apiPath,
       body: {
-        users: Operation.removeRelation(user),
+        users: op.removeRelation(user),
       },
       options,
     });
@@ -160,7 +160,7 @@ export class RoleObject extends LCObject implements RoleObjectRef {
       method: 'PUT',
       path: this.apiPath,
       body: {
-        roles: Operation.removeRelation(role),
+        roles: op.removeRelation(role),
       },
       options,
     });

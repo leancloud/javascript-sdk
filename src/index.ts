@@ -12,6 +12,7 @@ export { StatusClass as Status } from './status';
 export { LCObject, LCObjectRef } from './object';
 export { UserObject, UserObjectRef } from './user';
 export { RoleObject, RoleObjectRef } from './role';
+export { op } from './object/index';
 
 export { GeoPoint } from './geo-point';
 
@@ -21,7 +22,6 @@ export { SearchQuery, SearchSortBuilder } from './search';
 export { subscribe } from './live-query';
 
 export { ACL } from './acl';
-export { Operation as Op } from './operation';
 
 export { Captcha } from './captcha';
 export { Cloud } from './cloud';

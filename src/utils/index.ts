@@ -28,3 +28,7 @@ export function mapObject(
 export function assert(cond: unknown, msg?: string): asserts cond {
   if (!cond) throw new Error(msg || 'Assertion failed');
 }
+
+export function ensureArray<T>(value: T | T[]): T[] {
+  return Array.isArray(value) ? value : [value];
+}

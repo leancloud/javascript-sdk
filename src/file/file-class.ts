@@ -3,7 +3,7 @@ import { Class } from '../class';
 import { HTTPResponse } from '../http';
 import { ACL } from '../acl';
 import { FileObjectRef, FileObject } from './file-object';
-import { getFileProvider } from './file-provider';
+import { getFileProvider } from './provider';
 import { decode as base64ToArrayBuffer } from 'base64-arraybuffer';
 import { CurrentUserManager } from '../user';
 

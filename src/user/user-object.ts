@@ -7,8 +7,8 @@ import {
   LCEncode,
   GetObjectOptions,
   LCObjectData,
+  op,
 } from '../object';
-import { Operation } from '../operation';
 import { assert } from '../utils';
 import { KEY_CURRENT_USER } from '../const';
 import { getAdapters } from '../adapters';
@@ -248,7 +248,7 @@ export class AuthedUser extends UserObject {
   }
 
   dissociateAuthData(platform: string): Promise<UserObject> {
-    return this.update({ [`authData.${platform}`]: Operation.unset() });
+    return this.update({ [`authData.${platform}`]: op.unset() });
   }
 
   async signUp(data: SignUpData, options?: AuthOptions): Promise<AuthedUser> {

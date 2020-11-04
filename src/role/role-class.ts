@@ -3,8 +3,7 @@ import type { ACL } from '../acl';
 import type { App } from '../app';
 import { Class } from '../class';
 import { RoleObjectRef, RoleObject } from './role-object';
-import { AddObjectOptions, LCObjectData } from '../object';
-import { Operation } from '../operation';
+import { AddObjectOptions, LCObjectData, op } from '../object';
 
 interface RoleDataToAdd extends LCObjectData {
   ACL: ACL;
@@ -28,10 +27,10 @@ export class RoleClass extends Class {
   async add(data: RoleDataToAdd, options?: AddObjectOptions): Promise<RoleObject> {
     const body: Record<string, any> = { ...data };
     if (data.roles) {
-      body.roles = Operation.addRelation(data.roles);
+      body.roles = op.addRelation(data.roles);
     }
     if (data.users) {
-      body.users = Operation.addRelation(data.users);
+      body.users = op.addRelation(data.users);
     }
     const json = await this.app.request({
       method: 'POST',

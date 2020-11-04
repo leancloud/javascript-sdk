@@ -1,8 +1,9 @@
+import type { Query } from '../query';
+import type { AuthOptions, App } from '../app';
+import { mapObject } from '../utils';
+import { ACL } from '../acl';
 import { isPlainObject, isEmpty, isDate, merge, omit } from 'lodash';
-import type { Query } from './query';
-import type { AuthOptions, App } from './app';
-import { mapObject } from './utils';
-import { ACL } from './acl';
+import { pointer, Pointer } from './pointer';
 
 export interface LCObjectData extends Record<string, any> {
   ACL?: ACL;
@@ -24,15 +25,6 @@ export interface UpdateObjectOptions extends AddObjectOptions {
   query?: Query;
 }
 
-export interface Pointer {
-  __type: 'Pointer';
-  className: string;
-  objectId: string;
-}
-
-export function pointer({ className, objectId }: { className: string; objectId: string }): Pointer {
-  return { __type: 'Pointer', className, objectId };
-}
 export class LCObjectRef {
   constructor(
     public readonly app: App,
