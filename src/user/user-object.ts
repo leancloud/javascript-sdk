@@ -69,6 +69,14 @@ export class CurrentUserManager {
     return app.currentUser || null;
   }
 
+  static async mustGetAsync(app: App, message?: string): Promise<AuthedUser> {
+    const user = await this.getAsync(app);
+    if (!user) {
+      throw new Error(message || `No user is logged in app(id=${app.appId})`);
+    }
+    return user;
+  }
+
   static remove(app: App): void {
     app.storage.delete(KEY_CURRENT_USER);
     app.currentUser = null;

@@ -1,5 +1,3 @@
-import { transform } from 'lodash';
-
 export function deleteObjectKey(obj: unknown, key: string | string[]): void {
   if (!obj) return;
   if (Array.isArray(key)) {
@@ -12,17 +10,6 @@ export function deleteObjectKey(obj: unknown, key: string | string[]): void {
   } else {
     delete obj[key];
   }
-}
-
-export function mapObject(
-  object: Record<string, unknown>,
-  iteratee: (value: unknown, key: string) => void
-): Record<string, unknown> {
-  return transform(object, (result, value, key) => {
-    if (typeof key === 'string') {
-      result[key] = iteratee(value, key);
-    }
-  });
 }
 
 export function assert(cond: unknown, msg?: string): asserts cond {

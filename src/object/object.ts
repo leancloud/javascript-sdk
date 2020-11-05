@@ -1,8 +1,7 @@
 import type { Query } from '../query';
 import type { AuthOptions, App } from '../app';
-import { mapObject } from '../utils';
 import { ACL } from '../acl';
-import { isPlainObject, isEmpty, isDate, merge, omit } from 'lodash';
+import { isPlainObject, isEmpty, isDate, merge, omit, mapValues } from 'lodash';
 import { pointer, Pointer } from './pointer';
 
 export interface LCObjectData extends Record<string, any> {
@@ -205,7 +204,7 @@ export function LCEncode(data: any, options?: { full?: boolean }): any {
     }
 
     if (isPlainObject(data)) {
-      return mapObject(data, (value) => LCEncode(value));
+      return mapValues(data, (value) => LCEncode(value));
     }
 
     if (Array.isArray(data)) {
@@ -235,7 +234,7 @@ export function LCDecode(app: App, data: any): any {
         case 'File':
           return LCObject.fromJSON(app, data);
       }
-      return mapObject(data, (value) => LCDecode(app, value));
+      return mapValues(data, (value) => LCDecode(app, value));
     }
     if (Array.isArray(data)) {
       return data.map((value) => LCDecode(app, value));
@@ -255,7 +254,7 @@ function extractObjectData(data: any): any {
     }
 
     if (isPlainObject(data)) {
-      return mapObject(data, (value) => extractObjectData(value));
+      return mapValues(data, (value) => extractObjectData(value));
     }
   }
   return data;
