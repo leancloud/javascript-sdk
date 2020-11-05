@@ -1,5 +1,9 @@
 # Master
 
+### Features
+
+- 好友
+
 ### Internal Changes
 
 - 现在保存通过 `AV.File.withURL` 方法创建的文件等同于直接在 \_File 中添加一行数据，不再自动生成 `mime_type`。
