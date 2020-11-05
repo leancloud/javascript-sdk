@@ -883,6 +883,29 @@ export class User extends Object {
   followeeQuery(): Query<this>;
 }
 
+export class Friendship {
+  static request(
+    friend: User | string,
+    authOptions?: AuthOptions
+  ): Promise<void>;
+  static request(
+    options: { friend: User | string; attributes?: object },
+    authOptions?: AuthOptions
+  ): Promise<void>;
+  static acceptRequest(
+    request: Object | string,
+    authOptions?: AuthOptions
+  ): Promise<void>;
+  static acceptRequest(
+    options: { request: Object | string; attributes?: object },
+    authOptions?: AuthOptions
+  ): Promise<void>;
+  static declineRequest(
+    request: Object | string,
+    authOptions?: AuthOptions
+  ): Promise<void>;
+}
+
 export class Captcha {
   url: string;
   captchaToken: string;
@@ -1222,7 +1245,12 @@ export namespace Cloud {
   function requestSmsCode(
     data:
       | string
-      | { mobilePhoneNumber: string; template?: string; sign?: string; smsType?: 'sms' | 'voice' },
+      | {
+          mobilePhoneNumber: string;
+          template?: string;
+          sign?: string;
+          smsType?: 'sms' | 'voice';
+        },
     options?: SMSAuthOptions
   ): Promise<void>;
   function verifySmsCode(code: string, phone: string): Promise<void>;
