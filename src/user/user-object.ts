@@ -98,7 +98,7 @@ export class CurrentUserManager {
   }
 }
 
-export class UserObjectRef extends LCObjectRef {
+export class UserObjectRef extends LCObjectRef implements UserObjectRef {
   constructor(app: App, objectId: string) {
     super(app, '_User', objectId);
   }

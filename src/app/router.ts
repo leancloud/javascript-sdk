@@ -1,6 +1,6 @@
+import type { App } from './app';
 import { KEY_SERVER_URLS } from '../const';
 import { HTTP } from '../http';
-import type { App } from './app';
 
 export type Service = 'api' | 'engine' | 'push';
 
@@ -38,11 +38,11 @@ export class Router {
         this._urls = this.getDefaultServerURLs();
       }
     }
-    if (Date.now() >= this._urls!.expire_at) {
+    if (Date.now() >= this._urls.expire_at) {
       // DO NOT await here
       this.refresh();
     }
-    return this._urls!;
+    return this._urls;
   }
 
   async getServiceURL(service: Service, schema = 'https://'): Promise<string> {
@@ -52,6 +52,8 @@ export class Router {
         return schema + urls.api_server;
       case 'engine':
         return schema + urls.engine_server;
+      case 'push':
+        return schema + urls.push_server;
       default:
         throw new Error('Unknown service: ' + service);
     }

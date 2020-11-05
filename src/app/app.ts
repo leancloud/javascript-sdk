@@ -1,29 +1,17 @@
 import { HTTP, HTTPRequest, RequestOptions } from '../http';
 import { getAdapters } from '../adapters';
 import { NSStorage } from './storage';
-import { API_VERSION, KEY_CURRENT_USER, SDK_VERSION } from '../const';
+import { KEY_CURRENT_USER } from '../const';
 import { APIError } from './errors';
-import { assert } from '../utils';
 import { isCNApp, Router, Service } from './router';
 import { AuthedUser } from '../user';
-
-interface AppConfig {
-  appId: string;
-  appKey: string;
-  serverURL?: string;
-  masterKey?: string;
-  useMasterKey?: boolean;
-  production?: boolean;
-}
+import { version } from '../../package.json';
 
 export interface AuthOptions extends RequestOptions {
   sessionToken?: string;
   useMasterKey?: boolean;
 }
 
-/**
- * @internal
- */
 export interface AppRequest extends Omit<HTTPRequest, 'url'> {
   path: string;
   service?: Service;
@@ -33,8 +21,8 @@ export interface AppRequest extends Omit<HTTPRequest, 'url'> {
 export class App {
   appId: string;
   appKey: string;
-  serverURL: string;
-  masterKey: string;
+  serverURL?: string;
+  masterKey?: string;
 
   /**
    * Switches the SDK to using the `masterKey`. The `masterKey` grants privileged access to the data
@@ -55,32 +43,40 @@ export class App {
    */
   production: boolean;
 
-  /** @internal */
   storage: NSStorage;
-
-  /** @internal */
   currentUser: AuthedUser;
-
-  /* eslint-disable */
-  /** @internal */
-  realtimeInstance: any;
-  /* eslint-enable */
+  realtimeInstance?: any;
 
   private _router: Router;
 
-  constructor(config: AppConfig) {
-    this.appId = config.appId;
-    this.appKey = config.appKey;
-    this.serverURL = config.serverURL;
-    this.masterKey = config.masterKey;
-    this.useMasterKey = config.useMasterKey ?? false;
-    this.production = config.production ?? true;
-
-    assert(this.appId, 'The appId is required');
-    assert(this.appKey, 'The appKey is required');
-    if (isCNApp(this)) {
-      assert(this.serverURL, 'The serverURL is required by CN App');
+  constructor({
+    appId,
+    appKey,
+    serverURL,
+    masterKey,
+    useMasterKey = false,
+    production = true,
+  }: {
+    appId: string;
+    appKey: string;
+    serverURL?: string;
+    masterKey?: string;
+    useMasterKey?: boolean;
+    production?: boolean;
+  }) {
+    if (!appId || !appKey) {
+      throw new Error('The appId and appKey are required');
     }
+    if (isCNApp(appId) && !serverURL) {
+      throw new Error('The serverURL is required by CN app');
+    }
+
+    this.appId = appId;
+    this.appKey = appKey;
+    this.serverURL = serverURL;
+    this.masterKey = masterKey;
+    this.useMasterKey = useMasterKey;
+    this.production = production;
 
     this.storage = new NSStorage(this.appId);
     if (!this.serverURL) {
@@ -88,9 +84,6 @@ export class App {
     }
   }
 
-  /**
-   * @internal
-   */
   async request(req: AppRequest): Promise<any> {
     let key = this.appKey;
     if (req.options?.useMasterKey ?? this.useMasterKey) {
@@ -104,13 +97,26 @@ export class App {
 
     const sessionToken = req.options?.sessionToken || (await this.getSessionTokenAsync());
 
+    let ua = 'LeanCloud-JS-SDK/' + version;
+    const { platformInfo } = getAdapters();
+    if (platformInfo) {
+      const { name, version } = platformInfo;
+      if (name) {
+        if (version) {
+          ua += ` (${name}/${version})`;
+        } else {
+          ua += ` (${name})`;
+        }
+      }
+    }
+
     const { status, body } = await HTTP.request({
       method: req.method,
-      url: HTTP.assemblePath(url, API_VERSION, req.path),
+      url: HTTP.assemblePath(url, '1.1', req.path),
       header: {
         ...req.header,
         'Content-Type': 'application/json',
-        'X-LC-UA': UserAgent.get(),
+        'X-LC-UA': ua,
         'X-LC-Id': this.appId,
         'X-LC-Key': key,
         'X-LC-Session': sessionToken,
@@ -179,34 +185,5 @@ export class App {
     if (encodedUser) {
       return JSON.parse(encodedUser).sessionToken;
     }
-  }
-}
-
-/**
- * @inrernal
- */
-class UserAgent {
-  static prefix = 'LeanCloud-JS-SDK/' + SDK_VERSION;
-
-  static get(): string {
-    const suffix = this.getPlatformSuffix();
-    if (suffix) {
-      return this.prefix + ' ' + suffix;
-    }
-    return this.prefix;
-  }
-
-  static getPlatformSuffix(): string {
-    const { platformInfo } = getAdapters();
-    if (platformInfo) {
-      const { name, version } = platformInfo;
-      if (name) {
-        if (version) {
-          return '(' + name + '/' + version + ')';
-        }
-        return '(' + name + ')';
-      }
-    }
-    return '';
   }
 }

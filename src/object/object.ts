@@ -97,7 +97,12 @@ export class LCObject implements LCObjectRef {
     }
 
     const object = new LCObject(app, className ?? data.className, data.objectId);
-    object.data = LCDecode(app, omit(data, ['__type', 'className']));
+    object.data = LCDecode(app, omit(data, ['__type', 'className', 'ACL']));
+
+    if (data.ACL) {
+      object.data.ACL = ACL.fromJSON(data.ACL);
+    }
+
     if (typeof data.createdAt === 'string') {
       object.data.createdAt = new Date(data.createdAt);
     }
@@ -170,7 +175,7 @@ export class LCObject implements LCObjectRef {
   }
 
   toFullJSON(): Record<string, any> {
-    return LCEncode(this.data, { full: true });
+    return LCEncode(this, { full: true });
   }
 }
 

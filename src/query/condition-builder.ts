@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 import { isEmpty, cloneDeep } from 'lodash';
 import { GeoPoint, GeoPointLike } from '../geo-point';
 import { LCEncode } from '../object';

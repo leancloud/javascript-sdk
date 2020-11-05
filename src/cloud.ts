@@ -1,21 +1,22 @@
 import { AuthOptions, App } from './app';
 import { LCDecode, LCEncode } from './object';
 
-interface RequestSMSCodeOptions extends AuthOptions {
-  smsType?: string;
-  ttl?: number;
-  name?: string;
-  op?: string;
-  template?: string;
-  sign?: string;
-  validateToken?: string;
-  variables?: Record<string, unknown>;
-}
-
 export class Cloud {
-  constructor(public app: App) {}
+  constructor(public readonly app: App) {}
 
-  async requestSMSCode(mobilePhoneNumber: string, options?: RequestSMSCodeOptions): Promise<void> {
+  async requestSMSCode(
+    mobilePhoneNumber: string,
+    options?: AuthOptions & {
+      smsType?: string;
+      ttl?: number;
+      name?: string;
+      op?: string;
+      template?: string;
+      sign?: string;
+      validateToken?: string;
+      variables?: Record<string, unknown>;
+    }
+  ): Promise<void> {
     await this.app.request({
       method: 'POST',
       path: `/requestSmsCode`,

@@ -7,9 +7,6 @@ import { getFileProvider } from './provider';
 import { decode as base64ToArrayBuffer } from 'base64-arraybuffer';
 import { CurrentUserManager } from '../user';
 
-/**
- * @internal
- */
 export interface ProviderUploadOptions extends AuthOptions {
   header?: Record<string, string>; // send to file provider
 }
@@ -20,9 +17,6 @@ interface UploadOptions extends ProviderUploadOptions {
   metaData?: Record<string, unknown>;
 }
 
-/**
- * @internal
- */
 export interface FileTokens {
   objectId: string;
   createdAt: string;
@@ -35,9 +29,6 @@ export interface FileTokens {
   key: string;
 }
 
-/**
- * @internal
- */
 export interface FileProvider {
   upload(
     name: string,
@@ -47,9 +38,6 @@ export interface FileProvider {
   ): Promise<HTTPResponse>;
 }
 
-/**
- * @internal
- */
 function base64InDataURLs(urls: string): string {
   if (urls.startsWith('data:')) {
     const [meta, data] = urls.split(',');
@@ -60,9 +48,6 @@ function base64InDataURLs(urls: string): string {
   return urls;
 }
 
-/**
- * @internal
- */
 function getFileSize(data: unknown): number | undefined {
   if (typeof Blob !== 'undefined' && data instanceof Blob) {
     return data.size;
@@ -88,7 +73,7 @@ export class FileClass extends Class {
     return new FileObjectRef(this.app, id);
   }
 
-  async upload(name: string, data: unknown, options?: UploadOptions): Promise<FileObject> {
+  async upload(name: string, data: any, options?: UploadOptions): Promise<FileObject> {
     data = this._parseFileData(data);
     const metaData = { ...options?.metaData };
 
@@ -118,7 +103,7 @@ export class FileClass extends Class {
   }
 
   async uploadWithURL(name: string, url: string, options?: UploadOptions): Promise<FileObject> {
-    const metaData: Record<string, unknown> = {
+    const metaData: Record<string, any> = {
       ...options?.metaData,
       __source: 'external',
     };
@@ -144,8 +129,7 @@ export class FileClass extends Class {
     ) as Promise<FileObject>;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private _parseFileData(data: any): unknown {
+  private _parseFileData(data: any): any {
     if (Array.isArray(data)) {
       const u8arr = new Uint8Array(data.length);
       data.forEach((v, i) => (u8arr[i] = v));
@@ -172,6 +156,7 @@ export class FileClass extends Class {
     if (data.blob) {
       return data.blob;
     }
+
     return data;
   }
 
@@ -179,17 +164,12 @@ export class FileClass extends Class {
     name: string,
     mime?: string,
     ACL?: ACL,
-    metaData?: Record<string, unknown>
+    metaData?: Record<string, any>
   ): Promise<FileTokens> {
     return await this.app.request({
       method: 'POST',
       path: `/fileTokens`,
-      body: {
-        name,
-        ACL,
-        metaData,
-        mime_type: mime,
-      },
+      body: { name, ACL, metaData, mime_type: mime },
     });
   }
 

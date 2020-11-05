@@ -1,6 +1,6 @@
 {
   "name": "leancloud-storage",
-  "version": "5.0.0-beta.1",
+  "version": "5.0.0-beta.2",
   "description": "LeanCloud JavaScript SDK.",
   "keywords": [
     "leancloud",
@@ -23,6 +23,7 @@
     "test": "npm run test:unit",
     "test:unit": "mocha 'test/unit/**/*.test.ts'",
     "test:e2e": "mocha 'test/e2e/**/*.test.ts'",
+    "test:doc": "mocha 'test/doc/**/*.test.ts'",
     "coverage": "nyc npm run test",
     "repl": "ts-node ./tools/repl",
     "lint": "eslint --ext=ts,js --max-warnings=0 .",

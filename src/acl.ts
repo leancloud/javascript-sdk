@@ -1,14 +1,14 @@
-import type { UserObject, UserObjectRef } from './user';
+import type { UserObjectRef } from './user';
 import type { RoleObject } from './role';
 
-type Subject = '*' | UserObject | UserObjectRef | RoleObject | string;
+type Subject = '*' | UserObjectRef | RoleObject | string;
 
-interface Privilege {
+interface ACLValue {
   read?: boolean;
   write?: boolean;
 }
 
-type Operation = keyof Privilege;
+type Operation = keyof ACLValue;
 
 export class ACL {
   private _canRead = new Set<string>();
@@ -33,17 +33,17 @@ export class ACL {
   /**
    * @since 5.0.0
    */
-  static fromJSON(data: Record<string, Privilege>): ACL {
+  static fromJSON(data: Record<string, ACLValue>): ACL {
     const acl = new ACL();
-    Object.entries(data).forEach(([subject, privilege]) => {
-      if (privilege.read === true) {
+    Object.entries(data).forEach(([subject, value]) => {
+      if (value.read === true) {
         acl.allow(subject, 'read');
-      } else if (privilege.read === false) {
+      } else if (value.read === false) {
         acl.deny(subject, 'read');
       }
-      if (privilege.write === true) {
+      if (value.write === true) {
         acl.allow(subject, 'write');
-      } else if (privilege.write === false) {
+      } else if (value.write === false) {
         acl.deny(subject, 'write');
       }
     });
@@ -53,8 +53,8 @@ export class ACL {
   /**
    * @since 5.0.0
    */
-  toJSON(): Record<string, Privilege> {
-    const json: Record<string, Privilege> = {};
+  toJSON(): Record<string, ACLValue> {
+    const json: Record<string, ACLValue> = {};
     this._canRead.forEach((key) => {
       if (json[key]) {
         json[key].read = true;
