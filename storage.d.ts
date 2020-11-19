@@ -881,6 +881,10 @@ export class User extends Object {
   ): Promise<void>;
   followerQuery(): Query<this>;
   followeeQuery(): Query<this>;
+  getFollowersAndFollowees(
+    options?: { skip?: number; limit?: number },
+    authOptions?: AuthOptions
+  ): Promise<{ followers: User[]; followees: User[] }>;
 }
 
 export class Friendship {

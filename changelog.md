@@ -3,6 +3,7 @@
 ### Features
 
 - 好友
+- 添加 `AV.User#getFollowersAndFollowees` 方法用于查询指定用户的 followers 和 followees 。
 
 ### Internal Changes
 
