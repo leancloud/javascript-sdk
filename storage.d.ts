@@ -881,6 +881,33 @@ export class User extends Object {
   ): Promise<void>;
   followerQuery(): Query<this>;
   followeeQuery(): Query<this>;
+  getFollowersAndFollowees(
+    options?: { skip?: number; limit?: number },
+    authOptions?: AuthOptions
+  ): Promise<{ followers: User[]; followees: User[] }>;
+}
+
+export class Friendship {
+  static request(
+    friend: User | string,
+    authOptions?: AuthOptions
+  ): Promise<void>;
+  static request(
+    options: { friend: User | string; attributes?: object },
+    authOptions?: AuthOptions
+  ): Promise<void>;
+  static acceptRequest(
+    request: Object | string,
+    authOptions?: AuthOptions
+  ): Promise<void>;
+  static acceptRequest(
+    options: { request: Object | string; attributes?: object },
+    authOptions?: AuthOptions
+  ): Promise<void>;
+  static declineRequest(
+    request: Object | string,
+    authOptions?: AuthOptions
+  ): Promise<void>;
 }
 
 export class Captcha {
@@ -1222,7 +1249,12 @@ export namespace Cloud {
   function requestSmsCode(
     data:
       | string
-      | { mobilePhoneNumber: string; template?: string; sign?: string; smsType?: 'sms' | 'voice' },
+      | {
+          mobilePhoneNumber: string;
+          template?: string;
+          sign?: string;
+          smsType?: 'sms' | 'voice';
+        },
     options?: SMSAuthOptions
   ): Promise<void>;
   function verifySmsCode(code: string, phone: string): Promise<void>;

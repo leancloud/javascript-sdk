@@ -34,6 +34,7 @@ require('./push')(AV);
 require('./status')(AV);
 require('./search')(AV);
 require('./insight')(AV);
+require('./friendship')(AV);
 
 AV.Conversation = require('./conversation');
 require('./leaderboard');

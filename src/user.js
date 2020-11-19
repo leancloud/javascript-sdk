@@ -788,6 +788,34 @@ module.exports = function(AV) {
       },
 
       /**
+       * Get the user's followers and followees.
+       * @since 4.8.0
+       * @param {Object} [options]
+       * @param {Number} [options.skip]
+       * @param {Number} [options.limit]
+       * @param {AuthOptions} [authOptions]
+       */
+      getFollowersAndFollowees: function(options, authOptions) {
+        if (!this.id) {
+          throw new Error('Please signin.');
+        }
+        return request({
+          method: 'GET',
+          path: `/users/${this.id}/followersAndFollowees`,
+          query: {
+            skip: options && options.skip,
+            limit: options && options.limit,
+            include: 'follower,followee',
+            keys: 'follower,followee',
+          },
+          authOptions,
+        }).then(({ followers, followees }) => ({
+          followers: followers.map(({ follower }) => AV._decode(follower)),
+          followees: followees.map(({ followee }) => AV._decode(followee)),
+        }));
+      },
+
+      /**
        *Create a follower query to query the user's followers.
        * @since 0.3.0
        * @see AV.User#followerQuery

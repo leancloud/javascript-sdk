@@ -1,5 +1,10 @@
 # Master
 
+### Features
+
+- 好友
+- 添加 `AV.User#getFollowersAndFollowees` 方法用于查询指定用户的 followers 和 followees 。
+
 ### Internal Changes
 
 - 现在保存通过 `AV.File.withURL` 方法创建的文件等同于直接在 \_File 中添加一行数据，不再自动生成 `mime_type`。
