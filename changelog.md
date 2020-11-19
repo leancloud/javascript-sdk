@@ -1,8 +1,8 @@
-# Master
+# 4.8.0
 
 ### Features
 
-- 好友
+- 添加 `AV.Friendship` 以支持好友所需的各项功能。
 - 添加 `AV.User#getFollowersAndFollowees` 方法用于查询指定用户的 followers 和 followees 。
 
 ### Internal Changes
