@@ -162,7 +162,7 @@ module.exports = function(AV) {
       highlights: function(highlights) {
         var objects;
         if (highlights && _.isString(highlights)) {
-          objects = arguments;
+          objects = Array.from(arguments);
         } else {
           objects = highlights;
         }
