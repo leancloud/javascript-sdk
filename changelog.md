@@ -1,4 +1,14 @@
-# 4.8.0
+## 4.8.1（2020-12-03）
+
+### Features
+
+- 支持构造 `AV.SearchQuery` 时省略 `className` 以搜索所有 class 。
+
+### Bug Fixes
+
+- 修复 `AV.SearchQuery#highlights` 不能正确处理数组参数的问题。
+
+# 4.8.0（2020-11-19）
 
 ### Features
 
