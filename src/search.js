@@ -118,6 +118,17 @@ module.exports = function(AV) {
       _queryString: null,
       _highlights: null,
       _sortBuilder: null,
+      _clazz: null,
+
+      constructor: function(className) {
+        if (className) {
+          this._clazz = className;
+        } else {
+          className = '__INVALID_CLASS';
+        }
+        AV.Query.call(this, className);
+      },
+
       _createRequest: function(params, options) {
         return AVRequest(
           'search/select',
@@ -260,7 +271,7 @@ module.exports = function(AV) {
       _getParams: function() {
         var params = AV.SearchQuery.__super__._getParams.call(this);
         delete params.where;
-        if (this.className) {
+        if (this._clazz) {
           params.clazz = this.className;
         }
         if (this._sid) {
