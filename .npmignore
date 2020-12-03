@@ -13,3 +13,6 @@ recordings
 gulpfile.babel.js
 readme.txt
 .nyc_output
+.editorconfig
+.eslintrc.js
+.jsdocrc.json
