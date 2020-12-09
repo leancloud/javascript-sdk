@@ -237,13 +237,14 @@ module.exports = function(AV) {
        * completes.
        *
        * @see AV.Query#find
+       * @param {AuthOptions} options
        * @return {Promise} A promise that is resolved with the results when
        * the query completes.
        */
-      find: function() {
+      find: function(options) {
         var self = this;
 
-        var request = this._createRequest();
+        var request = this._createRequest(undefined, options);
 
         return request.then(function(response) {
           //update sid for next querying.
