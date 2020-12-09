@@ -1,8 +1,14 @@
+## 4.8.2（2020-12-09）
+
+### Bug Fixes
+
+- 修复 `AV.SearchQuery#find` 未正确处理 `AuthOptions` 的问题。
+
 ## 4.8.1（2020-12-03）
 
-### Features
+### Bug Fixes
 
-- 支持构造 `AV.SearchQuery` 时省略 `className` 以搜索所有 class 。
+- 修复构造 `AV.SearchQuery` 时省略 `className` 会抛出异常的问题。
 
 ### Bug Fixes
 
