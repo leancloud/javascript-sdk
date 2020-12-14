@@ -9,11 +9,6 @@ const debug = require('debug')('leancloud:file');
 const parseBase64 = require('./utils/parse-base64');
 
 module.exports = function(AV) {
-  const hexOctet = () =>
-    Math.floor((1 + Math.random()) * 0x10000)
-      .toString(16)
-      .substring(1);
-
   // port from browserify path module
   // since react-native packager won't shim node modules.
   const extname = path => {
@@ -484,23 +479,13 @@ module.exports = function(AV) {
           name += this._extName;
           extName = this._extName;
         }
-        // Create 16-bits uuid as qiniu key.
-        const key =
-          hexOctet() +
-          hexOctet() +
-          hexOctet() +
-          hexOctet() +
-          hexOctet() +
-          extName;
         const data = {
-          key,
           name,
           keep_file_name: authOptions.keepFileName,
           ACL: this._acl,
           mime_type: type,
           metaData: this.attributes.metaData,
         };
-        this._qiniu_key = key;
         return AVRequest('fileTokens', null, null, 'POST', data, authOptions);
       },
 

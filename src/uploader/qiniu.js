@@ -17,7 +17,7 @@ module.exports = function(uploadInfo, data, file, saveOptions = {}) {
     headers: file._uploadHeaders,
     data: {
       name: file.attributes.name,
-      key: uploadInfo.key || file._qiniu_key,
+      key: uploadInfo.key,
       token: uptoken,
     },
     onprogress: saveOptions.onprogress,
