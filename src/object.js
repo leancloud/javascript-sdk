@@ -1381,6 +1381,9 @@ module.exports = function(AV) {
     } else {
       throw new Error('class must be a string or a subclass of AV.Object.');
     }
+    if (!id) {
+      throw new TypeError('The objectId must be provided');
+    }
     const object = new _klass();
     object.id = id;
     object._hasData = hasData;

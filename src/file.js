@@ -188,6 +188,9 @@ module.exports = function(AV) {
    * @return {AV.File} the file object
    */
   AV.File.createWithoutData = function(objectId) {
+    if (!objectId) {
+      throw new TypeError('The objectId must be provided');
+    }
     var file = new AV.File();
     file.id = objectId;
     return file;
