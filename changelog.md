@@ -1,8 +1,8 @@
 # 4.9.0（2020-12-18）
 
-### **BREAKING CHANGES**
+### Bug Fixes
 
-- 移除了 `AV.Object.saveAll` 对一次发出的请求数量的限制。在早期的设计中：超出限制的请求会在方法内部分多次处理，当部分请求失败时后续的请求将不会被执行。
+- 修复了使用 `AV.Object.saveAll` 批量保存数据时，部分操作失败会影响后续操作执行的问题。
 
 ### Internal Changes
 
