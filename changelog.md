@@ -1,3 +1,20 @@
+# 4.9.0（2020-12-18）
+
+### **BREAKING CHANGES**
+
+- 移除了 `AV.Object.saveAll` 对一次发出的请求数量的限制。在早期的设计中：超出限制的请求会在方法内部分多次处理，当部分请求失败时后续的请求将不会被执行。
+
+### Internal Changes
+
+- 升级了内部依赖：
+  package|from|to
+  -|-|-
+  @leancloud/adapter-types|`3.0.0`|`4.0.0`
+  @leancloud/platform-adapters-browser|`1.1.0`|`1.4.0`
+  @leancloud/platform-adapters-node|`1.1.0`|`1.4.0`
+  @leancloud/platform-adapters-weapp|`1.2.0`|`1.5.0`
+  leancloud-realtime|`5.0.0-rc.2`|`5.0.0-rc.4`
+
 ## 4.8.3（2020-12-15）
 
 ### Internal Changes
