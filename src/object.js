@@ -1674,12 +1674,6 @@ module.exports = function(AV) {
             var batch = [];
             var newRemaining = [];
             AV._arrayEach(remaining, function(object) {
-              // Limit batches to 20 objects.
-              if (batch.length > 20) {
-                newRemaining.push(object);
-                return;
-              }
-
               if (object._canBeSerialized()) {
                 batch.push(object);
               } else {
