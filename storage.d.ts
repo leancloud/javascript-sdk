@@ -52,6 +52,7 @@ interface CaptchaOptions {
 
 interface FileSaveOptions extends AuthOptions {
   keepFileName?: boolean;
+  key?: string;
   onprogress?: (event: {
     loaded: number;
     total: number;
