@@ -485,6 +485,7 @@ module.exports = function(AV) {
         const data = {
           name,
           keep_file_name: authOptions.keepFileName,
+          key: authOptions.key,
           ACL: this._acl,
           mime_type: type,
           metaData: this.attributes.metaData,
@@ -501,6 +502,7 @@ module.exports = function(AV) {
        * @param {AuthOptions} [options] AuthOptions plus:
        * @param {UploadProgressCallback} [options.onprogress] 文件上传进度，在 Node.js 中无效，回调参数说明详见 {@link UploadProgressCallback}。
        * @param {boolean} [options.keepFileName = false] 保留下载文件的文件名。
+       * @param {string} [options.key] 指定文件的 key。设置该选项需要使用 masterKey
        * @return {Promise} Promise that is resolved when the save finishes.
        */
       save(options = {}) {
