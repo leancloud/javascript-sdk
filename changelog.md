@@ -1,3 +1,27 @@
+## 4.10.0（2021-01-19）
+
+### Features
+
+- 使用 masterKey 上传文件时，可自定义文件的 key :
+  ```js
+  const file = new AV.File(name, data);
+  file.save({
+    useMasterKey: true,
+    key: 'custom-file-key',
+  });
+  ```
+
+### Internal Changes
+
+- 升级了 browser 、node 和 weapp 平台的 Adapters：
+  package|from|to
+  -|-|-
+  @leancloud/adapter-types|`4.0.0`|`5.0.0`
+  @leancloud/platform-adapters-browser|`1.4.0`|`1.5.2`
+  @leancloud/platform-adapters-node|`1.4.0`|`1.5.2`
+  @leancloud/platform-adapters-weapp|`1.5.0`|`1.6.1`
+  使用其他依赖 `@leancloud/adapter-types@5` 的 Adapters 也需要升级 `leancloud-storage` 到 4.10.0 。
+
 # 4.9.0（2020-12-18）
 
 ### Bug Fixes
