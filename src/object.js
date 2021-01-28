@@ -272,7 +272,7 @@ module.exports = function(AV) {
         if (_.has(this, 'id')) {
           json.objectId = this.id;
         }
-        _(['createdAt', 'updatedAt']).each(key => {
+        ['createdAt', 'updatedAt'].forEach(key => {
           if (_.has(this, key)) {
             const val = this[key];
             json[key] = _.isDate(val) ? val.toJSON() : val;
@@ -1164,7 +1164,7 @@ module.exports = function(AV) {
        */
       parse: function(resp) {
         var output = _.clone(resp);
-        _(['createdAt', 'updatedAt']).each(function(key) {
+        ['createdAt', 'updatedAt'].forEach(function(key) {
           if (output[key]) {
             output[key] = AV._parseDate(output[key]);
           }
