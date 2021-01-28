@@ -213,7 +213,7 @@ module.exports = function(AV) {
         if (_.has(this, 'id')) {
           json.objectId = this.id;
         }
-        _(['createdAt', 'updatedAt']).each(key => {
+        ['createdAt', 'updatedAt'].forEach(key => {
           if (_.has(this, key)) {
             const val = this[key];
             json[key] = _.isDate(val) ? val.toJSON() : val;
