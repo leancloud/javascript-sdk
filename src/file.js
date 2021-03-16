@@ -619,6 +619,9 @@ module.exports = function(AV) {
        *     completes.
        */
       fetch(fetchOptions, options) {
+        if (!this.id) {
+          throw new Error('Cannot fetch unsaved file');
+        }
         var request = AVRequest(
           'files',
           null,
