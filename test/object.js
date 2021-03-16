@@ -447,6 +447,10 @@ describe('Objects', function() {
           expect(score.createdAt).to.be.a(Date);
           expect(score.id).to.be.eql(gameScore.id);
         }));
+    it('should throws when objectId is empty', () => {
+      const object = new AV.Object('GameScore');
+      expect(object.fetch).throwError();
+    });
     it('fetch should remove deleted keys', () => {
       const getFakedScore = () =>
         AV.parseJSON(

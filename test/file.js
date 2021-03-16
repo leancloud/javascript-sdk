@@ -188,6 +188,10 @@ describe('File', function() {
           .fetch()
           .then(file => (this.file = file));
       });
+      it('should throws when objectId is empty', () => {
+        const file = new AV.File('filename', { base64: 'dGVzdAo=' });
+        expect(file.fetch).throwError();
+      });
       it('should retrieve all data', function() {
         var file = this.file;
         expect(file).to.be.a(AV.File);
