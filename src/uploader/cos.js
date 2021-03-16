@@ -2,9 +2,6 @@ const { getAdapter } = require('../adapter');
 const debug = require('debug')('cos');
 
 module.exports = function(uploadInfo, data, file, saveOptions = {}) {
-  file.attributes.url = uploadInfo.url;
-  file._bucket = uploadInfo.bucket;
-  file.id = uploadInfo.objectId;
   const url =
     uploadInfo.upload_url + '?sign=' + encodeURIComponent(uploadInfo.token);
   const fileFormData = {
@@ -29,6 +26,9 @@ module.exports = function(uploadInfo, data, file, saveOptions = {}) {
         error.response = response;
         throw error;
       }
+      file.attributes.url = uploadInfo.url;
+      file._bucket = uploadInfo.bucket;
+      file.id = uploadInfo.objectId;
       return file;
     },
     error => {

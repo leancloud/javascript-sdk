@@ -2,10 +2,6 @@ const _ = require('underscore');
 const ajax = require('../utils/ajax');
 
 module.exports = function upload(uploadInfo, data, file, saveOptions = {}) {
-  file.attributes.url = uploadInfo.url;
-  file._bucket = uploadInfo.bucket;
-  file.id = uploadInfo.objectId;
-
   /* NODE-ONLY:start */
   if (data instanceof require('stream')) {
     // data.pipe(req);
@@ -27,5 +23,10 @@ module.exports = function upload(uploadInfo, data, file, saveOptions = {}) {
       file._uploadHeaders
     ),
     onprogress: saveOptions.onprogress,
-  }).then(() => file);
+  }).then(() => {
+    file.attributes.url = uploadInfo.url;
+    file._bucket = uploadInfo.bucket;
+    file.id = uploadInfo.objectId;
+    return file;
+  });
 };

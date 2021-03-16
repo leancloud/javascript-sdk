@@ -2,9 +2,6 @@ const { getAdapter } = require('../adapter');
 const debug = require('debug')('leancloud:qiniu');
 
 module.exports = function(uploadInfo, data, file, saveOptions = {}) {
-  file.attributes.url = uploadInfo.url;
-  file._bucket = uploadInfo.bucket;
-  file.id = uploadInfo.objectId;
   // Get the uptoken to upload files to qiniu.
   const uptoken = uploadInfo.token;
   const url = uploadInfo.upload_url || 'https://upload.qiniup.com';
@@ -40,6 +37,9 @@ module.exports = function(uploadInfo, data, file, saveOptions = {}) {
         error.response = response;
         throw error;
       }
+      file.attributes.url = uploadInfo.url;
+      file._bucket = uploadInfo.bucket;
+      file.id = uploadInfo.objectId;
       return file;
     },
     error => {
