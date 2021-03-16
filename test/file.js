@@ -189,7 +189,7 @@ describe('File', function() {
           .then(file => (this.file = file));
       });
       it('should throws when objectId is empty', () => {
-        const file = new AV.File('filename', { base64: 'dGVzdAo=' });
+        const file = new AV.File('filename', { base64: 'dGVzdA==' });
         expect(file.fetch).throwError();
       });
       it('should retrieve all data', function() {
