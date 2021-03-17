@@ -946,6 +946,9 @@ module.exports = function(AV) {
        *     completes.
        */
       fetch: function(fetchOptions = {}, options) {
+        if (!this.id) {
+          throw new Error('Cannot fetch unsaved object');
+        }
         var self = this;
         var request = _request(
           'classes',
