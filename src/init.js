@@ -97,7 +97,9 @@ AV.init = function init(options, ...params) {
   }
   AV._config.applicationId = appId;
   AV._config.applicationKey = appKey;
-  AV.setProduction(production);
+  if (!isNullOrUndefined(production)) {
+    AV.setProduction(production);
+  }
   if (typeof disableCurrentUser !== 'undefined')
     AV._config.disableCurrentUser = disableCurrentUser;
   const disableAppRouter =
