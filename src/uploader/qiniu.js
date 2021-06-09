@@ -80,6 +80,7 @@ function urlSafeBase64(string) {
 
 class ShardUploader {
   constructor(uploadInfo, data, file, saveOptions) {
+    this.uploadInfo = uploadInfo;
     this.data = data;
     this.file = file;
     this.size = undefined;
@@ -87,7 +88,8 @@ class ShardUploader {
     this.uploadedChunks = 0;
 
     const key = urlSafeBase64(uploadInfo.key);
-    this.baseURL = `https://upload.qiniup.com/buckets/${uploadInfo.bucket}/objects/${key}/uploads`;
+    const uploadURL = uploadInfo.upload_url || 'https://upload.qiniup.com';
+    this.baseURL = `${uploadURL}/buckets/${uploadInfo.bucket}/objects/${key}/uploads`;
     this.upToken = 'UpToken ' + uploadInfo.token;
 
     this.uploaded = 0;
@@ -158,40 +160,47 @@ class ShardUploader {
 
   upload() {
     const parts = [];
-    return this.getUploadId().then(uploadId => {
-      const uploadPart = () => {
-        return Promise.resolve(this.getChunk())
-          .then(chunk => {
-            if (!chunk) {
-              return;
-            }
-            const partNumber = parts.length + 1;
-            return this.uploadPart(uploadId, partNumber, chunk).then(part => {
-              parts.push(part);
-              this.uploadedChunks++;
-              return uploadPart();
-            });
-          })
-          .catch(error =>
-            this.stopUpload(uploadId).then(() => Promise.reject(error))
-          );
-      };
+    return this.getUploadId()
+      .then(uploadId => {
+        const uploadPart = () => {
+          return Promise.resolve(this.getChunk())
+            .then(chunk => {
+              if (!chunk) {
+                return;
+              }
+              const partNumber = parts.length + 1;
+              return this.uploadPart(uploadId, partNumber, chunk).then(part => {
+                parts.push(part);
+                this.uploadedChunks++;
+                return uploadPart();
+              });
+            })
+            .catch(error =>
+              this.stopUpload(uploadId).then(() => Promise.reject(error))
+            );
+        };
 
-      return uploadPart().then(() =>
-        ajax({
-          method: 'POST',
-          url: `${this.baseURL}/${uploadId}`,
-          headers: {
-            Authorization: this.upToken,
-          },
-          data: {
-            parts,
-            fname: this.file.attributes.name,
-            mimeType: this.file.attributes.mime_type,
-          },
-        })
-      );
-    });
+        return uploadPart().then(() =>
+          ajax({
+            method: 'POST',
+            url: `${this.baseURL}/${uploadId}`,
+            headers: {
+              Authorization: this.upToken,
+            },
+            data: {
+              parts,
+              fname: this.file.attributes.name,
+              mimeType: this.file.attributes.mime_type,
+            },
+          })
+        );
+      })
+      .then(() => {
+        this.file.attributes.url = this.uploadInfo.url;
+        this.file._bucket = this.uploadInfo.bucket;
+        this.file.id = this.uploadInfo.objectId;
+        return this.file;
+      });
   }
 }
 
