@@ -411,7 +411,9 @@ export namespace Object {
     query?: Query<T>;
   }
 
-  interface SaveAllOptions extends AuthOptions {}
+  interface SaveAllOptions extends AuthOptions {
+    fetchWhenSave?: boolean;
+  }
 
   interface SetOptions extends SilentOption {}
 }
