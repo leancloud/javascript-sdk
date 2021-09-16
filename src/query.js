@@ -380,6 +380,24 @@ module.exports = function(AV) {
       },
 
       /**
+       * Retrieves both AVObjects and total count.
+       *
+       * @since 4.12.0
+       * @param {AuthOptions} options
+       * @return {Promise} A tuple contains results and count.
+       */
+      findAndCount(options) {
+        const params = this._getParams();
+        params.count = 1;
+        const request = this._createRequest(params, options);
+
+        return request.then(response => [
+          this._parseResponse(response),
+          response.count,
+        ]);
+      },
+
+      /**
        * scan a Query. masterKey required.
        *
        * @since 2.1.0
