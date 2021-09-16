@@ -1,3 +1,10 @@
+# 4.12.0（2021-09-16）
+
+### Features
+
+- `AV.Object.saveAll` 支持 `fetchWhenSave` 参数。
+- 添加 `AV.Query#findAndCount` 方法，用于同时获取查询结果和符合查询条件的总数。
+
 ## 4.11.1（2021-06-09）
 
 ### Bug Fixes
