@@ -411,7 +411,9 @@ export namespace Object {
     query?: Query<T>;
   }
 
-  interface SaveAllOptions extends AuthOptions {}
+  interface SaveAllOptions extends AuthOptions {
+    fetchWhenSave?: boolean;
+  }
 
   interface SetOptions extends SilentOption {}
 }
@@ -581,6 +583,7 @@ export class Query<T extends Queriable> extends BaseQuery<T> {
   endsWith(key: string, suffix: string): this;
   equalTo(key: string, value: any): this;
   exists(key: string): this;
+  findAndCount(options?: AuthOptions): Promise<[T[], number]>;
   first(options?: AuthOptions): Promise<T | undefined>;
   get(objectId: string, options?: AuthOptions): Promise<T>;
   greaterThan(key: string, value: any): this;

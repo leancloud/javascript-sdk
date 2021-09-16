@@ -1736,6 +1736,10 @@ module.exports = function(AV) {
                       method: method,
                       path: path,
                       body: json,
+                      params:
+                        options && options.fetchWhenSave
+                          ? { fetchWhenSave: true }
+                          : undefined,
                     };
                   }),
                 },
