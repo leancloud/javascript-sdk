@@ -187,6 +187,7 @@ export class File extends BaseObject {
   constructor(name: string, data: any, type?: string);
   static withURL(name: string, url: string): File;
   static createWithoutData(objectId: string): File;
+  static censor(objectId: string): Promise<void>;
 
   destroy(options?: AuthOptions): Promise<void>;
   fetch(fetchOptions?: FetchOptions, options?: AuthOptions): Promise<this>;
@@ -205,6 +206,7 @@ export class File extends BaseObject {
   setUploadHeader(key: string, value: string): this;
   size(): any;
   thumbnailURL(width: number, height: number): string;
+  censor(): Promise<void>;
   toFullJSON(): any;
 }
 

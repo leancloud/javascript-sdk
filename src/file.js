@@ -3,7 +3,7 @@ const cos = require('./uploader/cos');
 const qiniu = require('./uploader/qiniu');
 const s3 = require('./uploader/s3');
 const AVError = require('./error');
-const AVRequest = require('./request')._request;
+const { request, _request: AVRequest } = require('./request');
 const { tap, transformFetchOptions } = require('./utils');
 const debug = require('debug')('leancloud:file');
 const parseBase64 = require('./utils/parse-base64');
@@ -194,6 +194,23 @@ module.exports = function(AV) {
     var file = new AV.File();
     file.id = objectId;
     return file;
+  };
+
+  /**
+   * Request file censor.
+   * @since 4.13.0
+   * @param {String} objectId
+   * @return {Promise.<void>}
+   */
+  AV.File.censor = function(objectId) {
+    if (!AV._config.masterKey) {
+      throw new Error('Cannot censor a file without masterKey');
+    }
+    return request({
+      method: 'POST',
+      path: `/files/${objectId}/censor`,
+      authOptions: { useMasterKey: true },
+    }).then(_.noop);
   };
 
   _.extend(
@@ -651,6 +668,18 @@ module.exports = function(AV) {
         delete value.bucket;
         _.extend(this, value);
         return this;
+      },
+
+      /**
+       * Request file censor
+       * @since 4.13.0
+       * @return {Promise.<void>}
+       */
+      censor() {
+        if (!this.id) {
+          throw new Error('Cannot censor an unsaved file');
+        }
+        return AV.File.censor(this.id);
       },
     }
   );
