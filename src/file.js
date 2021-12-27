@@ -200,7 +200,7 @@ module.exports = function(AV) {
    * Request file censor.
    * @since 4.13.0
    * @param {String} objectId
-   * @return {Promise.<void>}
+   * @return {Promise.<string>}
    */
   AV.File.censor = function(objectId) {
     if (!AV._config.masterKey) {
@@ -210,7 +210,7 @@ module.exports = function(AV) {
       method: 'POST',
       path: `/files/${objectId}/censor`,
       authOptions: { useMasterKey: true },
-    }).then(_.noop);
+    }).then(res => res.censorResult);
   };
 
   _.extend(
@@ -673,7 +673,7 @@ module.exports = function(AV) {
       /**
        * Request file censor
        * @since 4.13.0
-       * @return {Promise.<void>}
+       * @return {Promise.<string>}
        */
       censor() {
         if (!this.id) {
