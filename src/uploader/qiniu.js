@@ -134,7 +134,7 @@ class ShardUploader {
    * @param {string} uploadId
    * @param {number} partNumber
    * @param {any} data
-   * @returns {Promise<{ partNumber: number; etag: string; }>}
+   * @returns {Promise<{ partNumber: number, etag: string }>}
    */
   uploadPart(uploadId, partNumber, data) {
     return ajax({
