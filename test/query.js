@@ -471,7 +471,7 @@ describe('Queries', function() {
         .then(() => scan.next())
         .then(({ value, done }) => {
           value.should.be.instanceof(TestClass);
-          done.should.be.true();
+          done.should.be.false();
         })
         .then(() => scan.next())
         .then(({ value, done }) => {

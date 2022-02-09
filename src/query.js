@@ -406,19 +406,14 @@ module.exports = function(AV) {
        * @param {number} [options.batchSize] specify the batch size for each request
        * @param {AuthOptions} [authOptions]
        * @return {AsyncIterator.<AV.Object>}
-       * @example const scan = new AV.Query(TestClass).scan({
-       *   orderedBy: 'objectId',
-       *   batchSize: 10,
-       * }, {
-       *   useMasterKey: true,
-       * });
-       * const getTen = () => Promise.all(new Array(10).fill(0).map(() => scan.next()));
-       * getTen().then(results => {
-       *   // results are fisrt 10 instances of TestClass
-       *   return getTen();
-       * }).then(results => {
-       *   // 11 - 20
-       * });
+       * @example const testIterator = {
+       *   [Symbol.asyncIterator]() {
+       *     return new Query('Test').scan(undefined, { useMasterKey: true });
+       *   },
+       * };
+       * for await (const test of testIterator) {
+       *   console.log(test.id);
+       * }
        */
       scan({ orderedBy, batchSize } = {}, authOptions) {
         const condition = this._getParams();
@@ -445,16 +440,16 @@ module.exports = function(AV) {
         if (batchSize) condition.limit = batchSize;
         let promise = Promise.resolve([]);
         let cursor;
-        let done = false;
+        let endReached = false;
         return {
           next: () => {
             promise = promise.then(remainResults => {
-              if (done) return [];
+              if (endReached) return [];
               if (remainResults.length > 1) return remainResults;
               // no cursor means we have reached the end
               // except for the first time
               if (!cursor && remainResults.length !== 0) {
-                done = true;
+                endReached = true;
                 return remainResults;
               }
               // when only 1 item left in queue
@@ -472,7 +467,7 @@ module.exports = function(AV) {
                   return this._parseResponse(response);
                 })
                 .then(results => {
-                  if (!results.length) done = true;
+                  if (!results.length) endReached = true;
                   return remainResults.concat(results);
                 });
             });
@@ -480,7 +475,7 @@ module.exports = function(AV) {
               .then(remainResults => remainResults.shift())
               .then(result => ({
                 value: result,
-                done,
+                done: result === undefined,
               }));
           },
         };
