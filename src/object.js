@@ -1656,7 +1656,7 @@ module.exports = function(AV) {
     var unsavedFiles = [];
     AV.Object._findUnsavedChildren(object, unsavedChildren, unsavedFiles);
 
-    unsavedFiles = Array.from(new Set(unsavedFiles));
+    unsavedFiles = _.uniq(unsavedFiles);
 
     var promise = Promise.resolve();
     _.each(unsavedFiles, function(file) {
