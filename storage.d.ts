@@ -1120,10 +1120,10 @@ export enum LeaderboardVersionChangeInterval {
 }
 
 export class Error extends ErrorCode {
-  code: keyof typeof ErrorCode;
+  code: number;
   message: string;
 
-  constructor(code: keyof typeof ErrorCode, message: string);
+  constructor(code: number, message: string);
 }
 
 declare class ErrorCode {
