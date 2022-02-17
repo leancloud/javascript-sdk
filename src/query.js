@@ -597,7 +597,7 @@ module.exports = function(AV) {
        * Add a constraint to the query that requires a particular
        * <strong>array</strong> key's length to be equal to the provided value.
        * @param {String} key The array key to check.
-       * @param value The length value.
+       * @param {number} value The length value.
        * @return {AV.Query} Returns the query, so you can chain this call.
        */
       sizeEqualTo: function(key, value) {
