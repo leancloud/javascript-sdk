@@ -601,6 +601,7 @@ export class Query<T extends Queriable> extends BaseQuery<T> {
   near(key: string, point: GeoPoint): this;
   notContainedIn(key: string, values: any[]): this;
   notEqualTo(key: string, value: any): this;
+  sizeEqualTo(key: string, value: number): this;
   startsWith(key: string, prefix: string): this;
   withinGeoBox(key: string, southwest: GeoPoint, northeast: GeoPoint): this;
   withinKilometers(key: string, point: GeoPoint, maxDistance: number): this;
