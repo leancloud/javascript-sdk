@@ -360,7 +360,7 @@ export class Object extends BaseObject {
   get(attr: string): any;
   getACL(): ACL;
   getCreatedAt(): Date;
-  getObjectId(): String;
+  getObjectId(): string;
   getUpdatedAt(): Date;
   has(attr: string): boolean;
   increment(attr: string, amount?: number): this;
