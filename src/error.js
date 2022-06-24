@@ -21,8 +21,7 @@ _.extend(
 
     /**
      * Error code indicating that something has gone wrong with the server.
-     * If you get this error code, it is AV's fault. Contact us at
-     * https://avoscloud.com/help
+     * If you get this error code, it is AV's fault.
      * @constant
      */
     INTERNAL_SERVER_ERROR: 1,
@@ -249,6 +248,7 @@ _.extend(
 
     /**
      * Error code indicating an invalid push time.
+     * @constant
      */
     INVALID_PUSH_TIME_ERROR: 152,
 
