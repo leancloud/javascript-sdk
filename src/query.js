@@ -342,10 +342,10 @@ module.exports = function(AV) {
             if (result.success) {
               return result.success;
             }
-            const error = new Error(
+            const error = new AVError(
+              result.error.code,
               result.error.error || 'Unknown batch error'
             );
-            error.code = result.error.code;
             throw error;
           });
         }

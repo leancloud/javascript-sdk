@@ -2,6 +2,7 @@ const _ = require('underscore');
 const md5 = require('md5');
 const { extend } = require('underscore');
 const AV = require('./av');
+const AVError = require('./error');
 const { getSessionToken } = require('./utils');
 const ajax = require('./utils/ajax');
 
@@ -149,7 +150,7 @@ const request = ({
       }
       // Transform the error into an instance of AVError by trying to parse
       // the error string as JSON.
-      const err = new Error(errorJSON.error);
+      const err = new AVError(errorJSON.code, errorJSON.error);
       delete errorJSON.error;
       throw _.extend(err, errorJSON);
     })
