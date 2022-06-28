@@ -1396,6 +1396,7 @@ export namespace Error {
    */
   export const X_DOMAIN_REQUEST: 602;
 }
+
 export interface Error {
   code: number;
   message: string;
