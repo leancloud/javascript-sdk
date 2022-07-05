@@ -1,9 +1,14 @@
 {
   "presets": [
-    "es2015"
+    "@babel/preset-env"
   ],
   "plugins": [
-    "transform-runtime",
+    [
+      "@babel/plugin-transform-runtime",
+      {
+        "corejs": 3
+      }
+    ],
     [
       "transform-inline-environment-variables",
       {
