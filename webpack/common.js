@@ -36,10 +36,6 @@ exports.create = () => ({
           /node_modules\/@leancloud\/platform-adapters-/,
         ],
         loader: 'babel-loader',
-        query: {
-          presets: ['es2015'],
-          plugins: ['transform-runtime'],
-        },
       },
       {
         test: /\.js$/,

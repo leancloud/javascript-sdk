@@ -46,7 +46,7 @@
     "@pollyjs/adapter-node-http": "^2.6.2",
     "@pollyjs/core": "^2.6.2",
     "@pollyjs/persister-fs": "^2.6.2",
-    "babel-loader": "^7.0.0",
+    "babel-loader": "^8.2.5",
     "babel-plugin-istanbul": "^6.1.1",
     "babel-plugin-transform-inline-environment-variables": "^0.4.4",
     "cross-env": "^5.1.3",
