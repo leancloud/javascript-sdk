@@ -1,7 +1,5 @@
 {
-  "presets": [
-    "@babel/preset-env"
-  ],
+  "presets": ["@babel/preset-env"],
   "plugins": [
     [
       "@babel/plugin-transform-runtime",
@@ -12,17 +10,13 @@
     [
       "transform-inline-environment-variables",
       {
-        "include": [
-          "PLATFORM"
-        ]
+        "include": ["PLATFORM"]
       }
     ]
   ],
   "env": {
     "test": {
-      "plugins": [
-        "istanbul"
-      ]
+      "plugins": ["istanbul"]
     }
   }
 }
