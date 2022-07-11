@@ -10,4 +10,23 @@ describe('AVError', () => {
       expect(error.toString()).to.contain('error message');
     }
   });
+
+  it('should be a constructor', () => {
+    const error = new AV.Error(-1, 'error message');
+    expect(error).to.be.an(Error);
+    expect(error.code).to.equal(-1);
+    expect(error.message).to.equal('error message');
+  });
+
+  it('should be inheritable', () => {
+    class UnknownError extends AV.Error {
+      constructor() {
+        super(-1, 'unknown error');
+      }
+    }
+    const error = new UnknownError();
+    expect(error).to.be.an(UnknownError);
+    expect(error).to.be.an(AV.Error);
+    expect(error).to.be.an(Error);
+  });
 });
