@@ -1,0 +1,29 @@
+{
+  "presets": [
+    [
+      "@babel/preset-env",
+      {
+        "modules": "commonjs"
+      }
+    ]
+  ],
+  "plugins": [
+    [
+      "@babel/plugin-transform-runtime",
+      {
+        "corejs": 3
+      }
+    ],
+    [
+      "transform-inline-environment-variables",
+      {
+        "include": ["PLATFORM"]
+      }
+    ]
+  ],
+  "env": {
+    "test": {
+      "plugins": ["istanbul"]
+    }
+  }
+}
