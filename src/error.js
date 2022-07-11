@@ -5,10 +5,25 @@ const _ = require('underscore');
  */
 
 function AVError(code, message) {
-  const error = new Error(message);
-  error.code = code;
-  return error;
+  if (new.target) {
+    const error = new Error(message);
+    Object.setPrototypeOf(error, Object.getPrototypeOf(this));
+    error.code = code;
+    return error;
+  }
+  return new AVError(code, message);
 }
+
+AVError.prototype = Object.create(Error.prototype, {
+  constructor: {
+    value: Error,
+    enumerable: false,
+    writable: true,
+    configurable: true,
+  },
+});
+
+Object.setPrototypeOf(AVError, Error);
 
 _.extend(
   AVError,
