@@ -1,3 +1,14 @@
+# 4.13.0（2022-07-12）
+
+### Features
+
+- 添加 `AV.File.censor` 和 `AV.File#censor` 方法用于发起文件审核请求（需要使用 masterKey）。
+
+### Internal Changes
+
+- 使用 babel@7 进行代码转义。
+- 使用 core-js@3 提供的 polyfills。
+
 ## 4.12.3（2022-06-24）
 
 ### Bug Fixes
