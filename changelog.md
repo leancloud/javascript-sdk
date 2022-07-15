@@ -1,3 +1,16 @@
+## 4.13.1（2022-07-15）
+
+### Internal Changes
+
+升级依赖
+
+| package                              | from       | to         |
+| ------------------------------------ | ---------- | ---------- |
+| @leancloud/platform-adapters-browser | 1.5.2      | 1.5.3      |
+| @leancloud/platform-adapters-node    | 1.5.2      | 1.5.3      |
+| @leancloud/platform-adapters-weapp   | 1.6.1      | 1.6.2      |
+| leancloud-realtime                   | 5.0.0-rc.4 | 5.0.0-rc.7 |
+
 # 4.13.0（2022-07-12）
 
 ### Features
