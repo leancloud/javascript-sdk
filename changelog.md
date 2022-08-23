@@ -1,3 +1,9 @@
+## 4.13.2（2022-08-23）
+
+### Bug Fixes
+
+- 修复异步 storage 平台上无法使用 AV.Friendship 的问题。
+
 ## 4.13.1（2022-07-15）
 
 ### Internal Changes
