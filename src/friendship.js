@@ -1,5 +1,6 @@
 const _ = require('underscore');
 const { request: LCRequest } = require('./request');
+const { getSessionToken } = require('./utils');
 
 module.exports = function(AV) {
   const getUserWithSessionToken = authOptions => {
@@ -13,6 +14,18 @@ module.exports = function(AV) {
       return AV.User._fetchUserBySessionToken(authOptions.sessionToken);
     }
     return AV.User.currentAsync();
+  };
+
+  const getSessionTokenAsync = authOptions => {
+    const sessionToken = getSessionToken(authOptions);
+    if (sessionToken) {
+      return Promise.resolve(sessionToken);
+    }
+    return AV.User.currentAsync().then(user => {
+      if (user) {
+        return user.getSessionToken();
+      }
+    });
   };
 
   /**
@@ -80,13 +93,18 @@ module.exports = function(AV) {
         request = options;
       }
       const requestId = _.isString(request) ? request : request.id;
-      return LCRequest({
-        method: 'PUT',
-        path: '/users/friendshipRequests/' + requestId + '/accept',
-        data: {
-          friendship: AV._encode(attributes),
-        },
-        authOptions,
+      return getSessionTokenAsync(authOptions).then(sessionToken => {
+        if (!sessionToken) {
+          throw new Error('Please signin an user.');
+        }
+        return LCRequest({
+          method: 'PUT',
+          path: '/users/friendshipRequests/' + requestId + '/accept',
+          data: {
+            friendship: AV._encode(attributes),
+          },
+          authOptions,
+        });
       });
     },
 
@@ -98,10 +116,15 @@ module.exports = function(AV) {
      */
     declineRequest: function(request, authOptions = {}) {
       const requestId = _.isString(request) ? request : request.id;
-      return LCRequest({
-        method: 'PUT',
-        path: '/users/friendshipRequests/' + requestId + '/decline',
-        authOptions,
+      return getSessionTokenAsync(authOptions).then(sessionToken => {
+        if (!sessionToken) {
+          throw new Error('Please signin an user.');
+        }
+        return LCRequest({
+          method: 'PUT',
+          path: '/users/friendshipRequests/' + requestId + '/decline',
+          authOptions,
+        });
       });
     },
   };
