@@ -50,7 +50,7 @@ module.exports = function(AV) {
       /**
        * Sets a hash of model attributes on the status data.
        * @param {String} key The key to set.
-       * @param {} value The value to give it.
+       * @param {any} value The value to give it.
        */
       set: function(key, value) {
         this.data[key] = value;
@@ -383,7 +383,7 @@ module.exports = function(AV) {
       },
       /**
        * Sets the querying inbox type.default is 'default'.
-       * @param {Object} type The inbox type.
+       * @param {String} type The inbox type.
        * @return {AV.InboxQuery} Returns the query, so you can chain this call.
        */
       inboxType: function(type) {
