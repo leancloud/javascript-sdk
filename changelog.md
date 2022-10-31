@@ -1,3 +1,10 @@
+## 4.13.3（2022-10-31）
+
+### Bug Fixes
+
+- 修复 AV.Query#scan 当仅有一个 Object 满足条件约束时重复返回该 Object 的问题。
+- 补充 AV.Status 相关的类型定义。
+
 ## 4.13.2（2022-08-23）
 
 ### Bug Fixes
