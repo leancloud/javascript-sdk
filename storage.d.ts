@@ -479,7 +479,7 @@ export class Events {
   unbind(eventName?: string, callback?: Function, context?: any): Events;
 }
 
-declare type Queriable = Object | File | Status;
+declare type Queriable = Object | File;
 
 declare class BaseQuery<T extends Queriable> extends BaseObject {
   className: string;
@@ -1496,6 +1496,10 @@ export namespace Cloud {
 }
 
 export class Status {
+  id?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+  messageId?: number;
   inboxType: string;
   constructor(imageUrl?: string | null, message?: string | null);
   constructor(data: Record<string, any>);
@@ -1519,7 +1523,7 @@ export class Status {
     options?: AuthOptions
   ): Promise<any>;
   static statusQuery(source?: User): Query<Object>;
-  static inboxQuery(owner?: User, inboxType?: string): InboxQuery<Status>;
+  static inboxQuery(owner?: User, inboxType?: string): InboxQuery;
   get(key: string): any;
   set(key: string, value: any): this;
   destroy(options?: AuthOptions): Promise<any>;
@@ -1527,7 +1531,8 @@ export class Status {
   send(options?: AuthOptions): Promise<this>;
 }
 
-export class InboxQuery<T extends Queriable> extends Query<T> {
+// @ts-ignore
+export class InboxQuery extends Query<Status> {
   sinceId(id: number): this;
   maxId(id: number): this;
   owner(owner: User): this;
