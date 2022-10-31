@@ -438,45 +438,40 @@ module.exports = function(AV) {
         }
         if (orderedBy) condition.scan_key = orderedBy;
         if (batchSize) condition.limit = batchSize;
-        let promise = Promise.resolve([]);
         let cursor;
-        let endReached = false;
+        let remainResults = [];
         return {
           next: () => {
-            promise = promise.then(remainResults => {
-              if (endReached) return [];
-              if (remainResults.length > 1) return remainResults;
-              // no cursor means we have reached the end
-              // except for the first time
-              if (!cursor && remainResults.length !== 0) {
-                endReached = true;
-                return remainResults;
+            if (remainResults.length) {
+              return Promise.resolve({
+                done: false,
+                value: remainResults.shift(),
+              });
+            }
+            if (cursor === null) {
+              return Promise.resolve({ done: true });
+            }
+            return _request(
+              'scan/classes',
+              this.className,
+              null,
+              'GET',
+              cursor ? _.extend({}, condition, { cursor }) : condition,
+              authOptions
+            ).then(response => {
+              cursor = response.cursor;
+              if (response.results.length) {
+                const results = this._parseResponse(response);
+                results.forEach(result => remainResults.push(result));
               }
-              // when only 1 item left in queue
-              // start the next request to see if it is the last one
-              return _request(
-                'scan/classes',
-                this.className,
-                null,
-                'GET',
-                cursor ? _.extend({}, condition, { cursor }) : condition,
-                authOptions
-              )
-                .then(response => {
-                  cursor = response.cursor;
-                  return this._parseResponse(response);
-                })
-                .then(results => {
-                  if (!results.length) endReached = true;
-                  return remainResults.concat(results);
-                });
+              if (cursor === null && remainResults.length === 0) {
+                return { done: true };
+              }
+              return {
+                done: false,
+                value: remainResults.shift(),
+              };
             });
-            return promise
-              .then(remainResults => remainResults.shift())
-              .then(result => ({
-                value: result,
-                done: result === undefined,
-              }));
           },
         };
       },
