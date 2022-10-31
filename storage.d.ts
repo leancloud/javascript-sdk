@@ -479,7 +479,7 @@ export class Events {
   unbind(eventName?: string, callback?: Function, context?: any): Events;
 }
 
-declare type Queriable = Object | File;
+declare type Queriable = Object | File | Status;
 
 declare class BaseQuery<T extends Queriable> extends BaseObject {
   className: string;
@@ -1493,6 +1493,45 @@ export namespace Cloud {
   ): Promise<Captcha>;
   function verifyCaptcha(code: string, captchaToken: string): Promise<void>;
   function getServerDate(): Promise<Date>;
+}
+
+export class Status {
+  inboxType: string;
+  constructor(imageUrl?: string | null, message?: string | null);
+  constructor(data: Record<string, any>);
+  static sendStatusToFollowers(
+    status: Status,
+    options?: AuthOptions
+  ): Promise<Status>;
+  static sendPrivateStatus(
+    status: Status,
+    target: string,
+    options?: AuthOptions
+  ): Promise<Status>;
+  static countUnreadStatuses(
+    owner: User,
+    inboxType?: string,
+    options?: AuthOptions
+  ): Promise<{ total: number; unread: number }>;
+  static resetUnreadCount(
+    owner: User,
+    inboxType?: string,
+    options?: AuthOptions
+  ): Promise<any>;
+  static statusQuery(source?: User): Query<Object>;
+  static inboxQuery(owner?: User, inboxType?: string): InboxQuery<Status>;
+  get(key: string): any;
+  set(key: string, value: any): this;
+  destroy(options?: AuthOptions): Promise<any>;
+  toObject(): Object;
+  send(options?: AuthOptions): Promise<this>;
+}
+
+export class InboxQuery<T extends Queriable> extends Query<T> {
+  sinceId(id: number): this;
+  maxId(id: number): this;
+  owner(owner: User): this;
+  inboxType(type: string): this;
 }
 
 interface ServerURLs {
