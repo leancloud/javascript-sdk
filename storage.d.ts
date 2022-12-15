@@ -680,7 +680,7 @@ export class Role extends Object {
   setName(name: string): Role;
 }
 
-interface OAuthLoginOptions {
+interface OAuthLoginOptions extends AuthOptions {
   failOnNotExist?: boolean;
 }
 
