@@ -145,7 +145,11 @@ module.exports = function(AV) {
        * call linkWith on the user (even if it doesn't exist yet on the server).
        * @private
        */
-      _linkWith: function(provider, data, { failOnNotExist = false } = {}) {
+      _linkWith: function(
+        provider,
+        data,
+        { failOnNotExist = false, useMasterKey, sessionToken, user } = {}
+      ) {
         var authType;
         if (_.isString(provider)) {
           authType = provider;
@@ -157,6 +161,9 @@ module.exports = function(AV) {
           return this.save(
             { authData: { [authType]: data } },
             {
+              useMasterKey,
+              sessionToken,
+              user,
               fetchWhenSave: !!this.get('authData'),
               _failOnNotExist: failOnNotExist,
             }
@@ -580,6 +587,9 @@ module.exports = function(AV) {
         unionIdPlatform = 'weixin',
         asMainAccount = true,
         failOnNotExist = false,
+        useMasterKey,
+        sessionToken,
+        user,
       } = {}) {
         const getAuthInfo = getAdapter('getAuthInfo');
         return getAuthInfo({
@@ -587,7 +597,12 @@ module.exports = function(AV) {
           asMainAccount,
           platform: unionIdPlatform,
         }).then(authInfo =>
-          this.loginWithMiniApp(authInfo, { failOnNotExist })
+          this.loginWithMiniApp(authInfo, {
+            failOnNotExist,
+            useMasterKey,
+            sessionToken,
+            user,
+          })
         );
       },
 
@@ -602,12 +617,20 @@ module.exports = function(AV) {
           unionIdPlatform = 'weixin',
           asMainAccount = false,
           failOnNotExist = false,
+          useMasterKey,
+          sessionToken,
+          user,
         } = {}
       ) {
         const getAuthInfo = getAdapter('getAuthInfo');
         return getAuthInfo({ platform: unionIdPlatform }).then(authInfo => {
           authInfo = AV.User.mergeUnionId(authInfo, unionId, { asMainAccount });
-          return this.loginWithMiniApp(authInfo, { failOnNotExist });
+          return this.loginWithMiniApp(authInfo, {
+            failOnNotExist,
+            useMasterKey,
+            sessionToken,
+            user,
+          });
         });
       },
 
@@ -626,6 +649,9 @@ module.exports = function(AV) {
         unionIdPlatform = 'qq',
         asMainAccount = true,
         failOnNotExist = false,
+        useMasterKey,
+        sessionToken,
+        user,
       } = {}) {
         const getAuthInfo = getAdapter('getAuthInfo');
         return getAuthInfo({
@@ -634,7 +660,12 @@ module.exports = function(AV) {
           platform: unionIdPlatform,
         }).then(authInfo => {
           authInfo.provider = PLATFORM_QQAPP;
-          return this.loginWithMiniApp(authInfo, { failOnNotExist });
+          return this.loginWithMiniApp(authInfo, {
+            failOnNotExist,
+            useMasterKey,
+            sessionToken,
+            user,
+          });
         });
       },
 
@@ -649,13 +680,21 @@ module.exports = function(AV) {
           unionIdPlatform = 'qq',
           asMainAccount = false,
           failOnNotExist = false,
+          useMasterKey,
+          sessionToken,
+          user,
         } = {}
       ) {
         const getAuthInfo = getAdapter('getAuthInfo');
         return getAuthInfo({ platform: unionIdPlatform }).then(authInfo => {
           authInfo = AV.User.mergeUnionId(authInfo, unionId, { asMainAccount });
           authInfo.provider = PLATFORM_QQAPP;
-          return this.loginWithMiniApp(authInfo, { failOnNotExist });
+          return this.loginWithMiniApp(authInfo, {
+            failOnNotExist,
+            useMasterKey,
+            sessionToken,
+            user,
+          });
         });
       },
 
@@ -1316,6 +1355,9 @@ module.exports = function(AV) {
         unionIdPlatform = 'weixin',
         asMainAccount = true,
         failOnNotExist = false,
+        useMasterKey,
+        sessionToken,
+        user,
       } = {}) {
         const getAuthInfo = getAdapter('getAuthInfo');
         return getAuthInfo({
@@ -1323,7 +1365,12 @@ module.exports = function(AV) {
           asMainAccount,
           platform: unionIdPlatform,
         }).then(authInfo =>
-          this.loginWithMiniApp(authInfo, { failOnNotExist })
+          this.loginWithMiniApp(authInfo, {
+            failOnNotExist,
+            useMasterKey,
+            sessionToken,
+            user,
+          })
         );
       },
 
@@ -1344,12 +1391,20 @@ module.exports = function(AV) {
           unionIdPlatform = 'weixin',
           asMainAccount = false,
           failOnNotExist = false,
+          useMasterKey,
+          sessionToken,
+          user,
         } = {}
       ) {
         const getAuthInfo = getAdapter('getAuthInfo');
         return getAuthInfo({ platform: unionIdPlatform }).then(authInfo => {
           authInfo = AV.User.mergeUnionId(authInfo, unionId, { asMainAccount });
-          return this.loginWithMiniApp(authInfo, { failOnNotExist });
+          return this.loginWithMiniApp(authInfo, {
+            failOnNotExist,
+            useMasterKey,
+            sessionToken,
+            user,
+          });
         });
       },
 
@@ -1371,6 +1426,9 @@ module.exports = function(AV) {
         unionIdPlatform = 'qq',
         asMainAccount = true,
         failOnNotExist = false,
+        useMasterKey,
+        sessionToken,
+        user,
       } = {}) {
         const getAuthInfo = getAdapter('getAuthInfo');
         return getAuthInfo({
@@ -1379,7 +1437,12 @@ module.exports = function(AV) {
           platform: unionIdPlatform,
         }).then(authInfo => {
           authInfo.provider = PLATFORM_QQAPP;
-          return this.loginWithMiniApp(authInfo, { failOnNotExist });
+          return this.loginWithMiniApp(authInfo, {
+            failOnNotExist,
+            useMasterKey,
+            sessionToken,
+            user,
+          });
         });
       },
 
@@ -1401,13 +1464,21 @@ module.exports = function(AV) {
           unionIdPlatform = 'qq',
           asMainAccount = false,
           failOnNotExist = false,
+          useMasterKey,
+          sessionToken,
+          user,
         } = {}
       ) {
         const getAuthInfo = getAdapter('getAuthInfo');
         return getAuthInfo({ platform: unionIdPlatform }).then(authInfo => {
           authInfo = AV.User.mergeUnionId(authInfo, unionId, { asMainAccount });
           authInfo.provider = PLATFORM_QQAPP;
-          return this.loginWithMiniApp(authInfo, { failOnNotExist });
+          return this.loginWithMiniApp(authInfo, {
+            failOnNotExist,
+            useMasterKey,
+            sessionToken,
+            user,
+          });
         });
       },
 
