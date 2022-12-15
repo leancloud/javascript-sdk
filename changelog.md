@@ -1,3 +1,9 @@
+## 4.14.0 (2022-12-15)
+
+### Features
+
+- 支持在 `AV.User.loginWithAuthData`, `AV.User.loginWithMiniApp`, `AV.User.loginWithAuthDataAndUnionId` 等函数的 `options` 中使用 `useMasterKey`, `sessionToken`, `user` 参数
+
 ## 4.13.4（2022-10-31）
 
 ### Bug Fixes
