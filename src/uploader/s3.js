@@ -4,10 +4,13 @@ const ajax = require('../utils/ajax');
 module.exports = function upload(uploadInfo, data, file, saveOptions = {}) {
   /* NODE-ONLY:start */
   if (data instanceof require('stream')) {
-    // data.pipe(req);
-    throw new TypeError(
-      'Saving an AV.File from a Stream to S3 is not yet supported'
-    );
+    const size = file.metaData('size');
+    if (typeof size !== 'number') {
+      throw new Error(
+        'Saving an AV.File from a Stream to S3 need metaData.size to be set'
+      );
+    }
+    file.setUploadHeader('Content-Length', size.toString());
   }
   /* NODE-ONLY:end */
 
