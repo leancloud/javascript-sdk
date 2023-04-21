@@ -1,3 +1,16 @@
+## 4.15.0 (2023-04-21)
+
+### Features
+
+- 国际节点支持通过 stream 构建文件（需要手动设置文件大小）
+  ```js
+  const stats = fs.statSync('my_file');
+  const stream = fs.createReadStream('my_file');
+  const file = new AV.File('my_file', stream);
+  file.metaData('size', stats.size);
+  file.save();
+  ```
+
 ## 4.14.0 (2022-12-15)
 
 ### Features
