@@ -4,17 +4,13 @@ const ajax = require('../utils/ajax');
 module.exports = function upload(uploadInfo, data, file, saveOptions = {}) {
   /* NODE-ONLY:start */
   if (data instanceof require('stream')) {
-    let contentLength;
-    Object.entries(file._uploadHeaders).forEach(([name, value]) => {
-      if (name.toLowerCase() === 'content-length') {
-        contentLength = value;
-      }
-    });
-    if (!contentLength) {
+    const size = file.metaData('size');
+    if (typeof size !== 'number') {
       throw new Error(
-        'Saving an AV.File from a Stream to S3 need "Content-Length" header to be set'
+        'Saving an AV.File from a Stream to S3 need metaData.size to be set'
       );
     }
+    file.setUploadHeader('Content-Length', size.toString());
   }
   /* NODE-ONLY:end */
 
