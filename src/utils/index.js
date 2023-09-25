@@ -91,7 +91,12 @@ const inherits = function inherits(parent, protoProps, staticProps) {
   return child;
 };
 
-const parseDate = iso8601 => new Date(Date.parse(iso8601));
+// Suppress the date string format warning in Weixin DevTools
+// Link: https://developers.weixin.qq.com/community/minihome/doc/00080c6f244718053550067736b401
+const parseDate =
+  typeof wx === 'undefined'
+    ? iso8601 => new Date(iso8601)
+    : iso8601 => new Date(Date.parse(iso8601));
 
 const setValue = (target, key, value) => {
   // '.' is not allowed in Class keys, escaping is not in concern now.
