@@ -1,0 +1,67 @@
+<!doctype html>
+<html>
+
+<head>
+  <title>LeanCloud Leaderboard Demo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css">
+  <link rel="stylesheet" href="//unpkg.com/@leancloud/styles@^1/styles/font.css">
+  <link rel="stylesheet" href="./leaderboard.css">
+</head>
+
+<body>
+  <div id="app" v-cloak>
+    <div id="overlay" class="center" v-if="!user.username">
+      <form action="#" id="login" v-on:submit.prevent="login">
+        <input v-model="username" autofocus required placeholder="用户名（将会显示在排行榜上）">
+        <input type="password" v-model="password" required placeholder="密码">
+        <div class="control">
+          <input type="submit" value="登录" id="login-button">&nbsp;
+          <input type="button" @click="signup" value="注册">
+        </div>
+      </form>
+    </div>
+    <div class="center" id="dice-wrapper" v-if="user.username">
+      <div class="dice" :class="{ 'animated wobble': rolling }" @click="roll">
+        <transition :duration="1000" enter-active-class="animated fadeIn" leave-active-class="animated fadeOut">
+          <span class="score" v-show="!rolling">{{ score || '🎲' }}</span>
+        </transition>
+        <transition :duration="1000" enter-active-class="animated fadeIn" leave-active-class="animated fadeOut">
+          <span class="new-high-score" v-show="newHighScore">新纪录</span>
+        </transition>
+      </div>
+    </div>
+    <transition-group name="ranking-list" class="ranking-list" tag="ul">
+      <li v-for="ranking in rankings" class="ranking" :key="ranking.user.username" :class="{ completed: ranking.done }">
+        <span>{{ranking.rank + 1}}.&nbsp;</span>
+        <span class="username">{{ranking.user.username}}
+          <span v-if="ranking.user.username == user.username">（你）</span>
+        </span>
+        <span class="score">
+          <animated-integer :value="ranking.value"></animated-integer>
+        </span>
+      </li>
+    </transition-group>
+
+    <div class="operations">
+      <div v-if="nextResetAt">下次重置时间：{{ nextResetAt }}
+        <span @click="fetchResults">⟳</span>
+        </span>
+      </div>
+      <div>
+        Powered by <a href="https://leancloud.cn" target="_blank">LeanCloud</a>
+        <span class="separator">•</span>
+        <a href="https://github.com/leancloud/javascript-sdk/blob/master/demo/leaderboard/">源码</a>
+        <span v-if="user.username">
+          <span class="separator">•</span>{{user.username}}（<a href="javascript:" @click='logout'>注销</a>）</span>
+      </div>
+    </div>
+
+  </div>
+  <script src="//unpkg.com/vue@^2/dist/vue.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/tween.js/17.2.0/Tween.min.js"></script>
+  <script src="../../dist/av-min.js"></script>
+  <script src="./leaderboard.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,167 @@
+body,
+html {
+  background: linear-gradient(320deg, #581b98, #9c1de7);
+  height: 100vh;
+  width: 100vw;
+  margin: 0;
+  color: white;
+  font-family: radikal, sans-serif;
+}
+
+a,
+a:active,
+a:visited {
+  color: white;
+  text-decoration: none;
+}
+
+#app {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+[v-cloak] {
+  display: none;
+}
+
+.center {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  position: fixed;
+  z-index: 1000;
+}
+
+#dice-wrapper {
+  height: 8.5rem;
+  width: 8.5rem;
+}
+
+.dice {
+  background: #fefefe;
+  border-radius: 10px;
+  box-shadow: 4px 3px 12px 2px #333;
+  height: 100%;
+  width: 100%;
+  cursor: pointer;
+  display: inline-block;
+  text-align: center;
+}
+
+.dice .score {
+  color: black;
+  line-height: 8.5rem;
+  font-size: 4rem;
+}
+
+.new-high-score {
+  position: absolute;
+  top: -2em;
+  width: 100%;
+  left: 0;
+}
+
+.ranking-list {
+  height: 100%;
+  flex: 1;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  font-size: 1.4em;
+  overflow: auto;
+}
+
+.ranking {
+  background: linear-gradient(320deg, #581b98, #9c1de7);
+  height: 100%;
+  max-height: 8.333%;
+  min-height: 44px;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  transition: all 1s;
+  position: relative;
+}
+
+.ranking-list-move {
+  transition: transform 1s;
+}
+
+.ranking-list-enter,
+.ranking-list-leave-to {
+  opacity: 0;
+  transform: translateY(-30px);
+}
+.ranking-list-leave-active {
+  position: absolute;
+}
+
+.ranking:nth-child(1) {
+  color: gold;
+}
+.ranking:nth-child(2) {
+  color: lightgray;
+}
+.ranking:nth-child(3) {
+  color: sandybrown;
+}
+
+.username {
+  width: 100%;
+  flex: 1;
+}
+.ranking .score {
+  max-width: 44px;
+  overflow: hidden;
+}
+
+.operations {
+  padding: 6px 0;
+  text-align: center;
+  color: #ddd;
+}
+
+.operations .separator {
+  display: inline-block;
+  margin: 0 0.4em;
+}
+
+#overlay {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.8);
+}
+#login {
+  width: 300px;
+  margin: 0 auto;
+  padding: 14px 0 18px;
+  display: flex;
+  flex-direction: column;
+}
+
+#login input {
+  box-sizing: border-box;
+  width: 100%;
+  background: transparent;
+  border: 1px solid #ffffff99;
+  border-width: 0 0 2px 0;
+  border-radius: 0;
+  color: white;
+  font-size: 20px;
+  text-align: center;
+  padding: 10px 6px 14px;
+  margin: 0 0 4px;
+}
+#login input:hover {
+  background: #ffffff18;
+}
+#login input:focus {
+  background: #ffffff28;
+}
+
+.control {
+  display: flex;
+}
