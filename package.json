@@ -1,6 +1,6 @@
 {
   "name": "leancloud-storage",
-  "version": "4.15.1",
+  "version": "4.15.2",
   "main": "./dist/node/entry/index.js",
   "description": "LeanCloud JavaScript SDK.",
   "repository": {

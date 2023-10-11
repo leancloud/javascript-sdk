@@ -1,3 +1,14 @@
+## 4.15.2 (2023-10-11)
+
+### Internal Changes
+
+升级依赖
+
+| package                            | from       | to         |
+| ---------------------------------- | ---------- | ---------- |
+| @leancloud/platform-adapters-weapp | 1.6.2      | 1.6.3      |
+| leancloud-realtime                 | 5.0.0-rc.7 | 5.0.0-rc.8 |
+
 ## 4.15.1 (2023-09-25)
 
 ### Bug Fixes
