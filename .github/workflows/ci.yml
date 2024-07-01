@@ -14,6 +14,12 @@ jobs:
           node-version: 16
       - run: npm ci
       - run: npm test
+        env:
+          SERVER_URL: https://qvnm6ag2.api.lncldglobal.com
+          APPID: QvNM6AG2khJtBQo6WRMWqfLV-gzGzoHsz
+          APPKEY: be2YmUduiuEnCB2VR9bLRnnV
+          MASTERKEY: ${{ secrets.MASTER_KEY }}
+          HOOKKEY: ${{ secrets.HOOK_KEY }}
       - uses: codecov/codecov-action@v3
       - run: npm run build
       - if: github.ref_name == 'master'
