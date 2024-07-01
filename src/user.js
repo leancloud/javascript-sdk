@@ -1731,11 +1731,12 @@ module.exports = function(AV) {
        * The sms code is sent by AV.User.requestPasswordResetBySmsCode.
        * @param {String} code The sms code sent by AV.User.Cloud.requestSmsCode
        * @param {String} password The new password.
+       * @param {String} mobilePhoneNumber
        * @return {Promise} A promise that will be resolved with the result
        * of the function.
        */
-      resetPasswordBySmsCode: function(code, password) {
-        var json = { password: password };
+      resetPasswordBySmsCode: function(code, password, mobilePhoneNumber) {
+        var json = { password: password, mobilePhoneNumber: mobilePhoneNumber };
         var request = AVRequest(
           'resetPasswordBySmsCode',
           null,
@@ -1750,11 +1751,13 @@ module.exports = function(AV) {
        * Makes a call to verify sms code that sent by AV.User.Cloud.requestSmsCode
        * If verify successfully,the user mobilePhoneVerified attribute will be true.
        * @param {String} code The sms code sent by AV.User.Cloud.requestSmsCode
+       * @param {String} mobilePhoneNumber
        * @return {Promise} A promise that will be resolved with the result
        * of the function.
        */
-      verifyMobilePhone: function(code) {
-        var request = AVRequest('verifyMobilePhone', null, code, 'POST', null);
+      verifyMobilePhone: function(code, mobilePhoneNumber) {
+        var json = { mobilePhoneNumber: mobilePhoneNumber };
+        var request = AVRequest('verifyMobilePhone', null, code, 'POST', json);
         return request;
       },
 
