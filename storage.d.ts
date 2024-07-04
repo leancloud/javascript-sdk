@@ -800,9 +800,14 @@ export class User extends Object {
   static resetPasswordBySmsCode(
     code: string,
     password: string,
+    mobilePhoneNumber: string,
     options?: AuthOptions
   ): Promise<User>;
-  static verifyMobilePhone(code: string, options?: AuthOptions): Promise<User>;
+  static verifyMobilePhone(
+    code: string,
+    mobilePhoneNumber: string,
+    options?: AuthOptions
+  ): Promise<User>;
   static requestChangePhoneNumber(
     mobilePhoneNumber: string,
     ttl?: number,

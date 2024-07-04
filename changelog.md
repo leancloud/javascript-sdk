@@ -1,3 +1,9 @@
+## 4.15.3 (2024-07-01)
+
+### Bug Fixes
+
+- `resetPasswordBySmsCode` 和 `verifyMobilePhone` 支持传递 mobilePhoneNumber 参数。
+
 ## 4.15.2 (2023-10-11)
 
 ### Internal Changes
